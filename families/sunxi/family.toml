@@ -10,9 +10,12 @@ hooks = ["build-kernel.sh", "build-bootchain.sh", "assemble-image.sh", "flash.sh
 
 [toolchain]
 # gcc-10.3-2021.07 (image/build/toolchain-arm-10.3-2021.07.cmake) — pinned for the
-# A133 glibc-2.33 constraint; builds both the 4.9 (a133) and 5.15 (a523) lines today.
-# B2 (tsp-1dl.2) makes "does A523-5.15 want newer gcc?" a GATING check — if so this
-# becomes a per-device/per-kernel-line toolchain key + a 2nd container build stage.
+# A133 glibc-2.33 constraint; builds BOTH the 4.9 (a133) and 5.15 (a523) lines today.
+# B2 (tsp-1dl.2) GATING check RESOLVED (2026-06-25): keep one shared gcc-10.3 for now (no
+# per-line toolchain split), BUT A523/5.15 is NOT pristine on it — the a523 profile carries
+# `cflags_extra = "-Wno-error -fcommon"` (GCC 10 -fno-common default + vendor BSP warnings).
+# A per-line toolchain bump + a 2nd container stage stays the named follow-up if the 5.15
+# line outgrows 10.3. A device profile [toolchain] overrides these.
 cc          = "aarch64-none-linux-gnu-"
 gcc_version = "10.3-2021.07"
 

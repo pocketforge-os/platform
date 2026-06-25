@@ -15,16 +15,22 @@ arch         = "aarch64"
 family       = "sunxi"
 
 [kernel]
-repo       = "kernel-tsp"                     # B2 -> "kernel-sunxi", ref "device/a133"
-ref        = "main"
+repo       = "kernel-sunxi-4.9"               # split-per-(family,line); owner B2 decision (tsp-1dl.2)
+ref        = "device/a133"                    # 4.9.191; upstream-EOL (no `upstream` branch; root = vendor-import pin)
 defconfig  = "pocketforge_tsp_defconfig"
 dtb        = "pocketforge_tsp.dtb"
 dts_source = "owned"
 
 [gpu]
-repo    = "gpu-km-tsp"                        # B2 -> "gpu-sunxi", ref "device/a133"
+repo    = "gpu-km-tsp"                        # GPU stays PER-IP (PowerVR != Mali; share zero code) — NOT collapsed
 ref     = "main"
 modules = ["pvrsrvkm.ko", "dc_sunxi.ko"]     # PowerVR DDK 1.19; UM .so is a preserved blob group
+
+[toolchain]
+# Explicit pin (B2/tsp-1dl.2). Family default (families/sunxi/family.toml) builds the
+# 4.9 line cleanly; restated here so the profile is self-contained for `pf lock`/repro.
+cc          = "aarch64-none-linux-gnu-"
+gcc_version = "10.3-2021.07"
 
 [bootchain]
 model      = "sunxi-boot0-fex"               # vendor boot0 + boot_package.fex (no owned U-Boot)
