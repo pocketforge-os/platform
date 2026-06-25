@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# pf — the PocketForge build-platform orchestrator entrypoint (tsp-1dl).
+#
+# ONE entrypoint for any device: `pf build --device <id> --artifact {os-image|containers}
+# --target {ci-dell|dev-modelmaker}` produces a deterministic, fully-owned artifact
+# (same SHA on either host). Adding the Nth device is a devices/<id>/profile.toml, not
+# a pile of hand-copied trees.
+#
+# Subcommands:
+#   build      <args>          dispatch a device build (core/pf-build.sh)
+#   flash      --device <id>   flash a built image via the family flash hook
+#   lock       [args]          freeze repo SHAs into platform.lock (gated: tsp-1dl.1.1)
+#   validate   <id|--all>      validate a profile against the schema + family seam + lock
+#   resolve    <id>            print the merged (profile+family) profile as JSON
+#   env        <id>            print the flattened PF_* env the family hooks consume
+#   list                       list device ids
+#   repos                      list platform.lock repos + seeded state
+#   purity-check               assert core/ contains zero family vocabulary (B8 CI gate)
+#   regression <baseline|check> --device <id> --artifact <path>   regression-gate harness
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
+PF_PY="${PF_PY:-python3}"
+
+usage() { grep '^#' "$0" | sed 's/^# \{0,1\}//'; }
+
+cmd="${1:-}"; [ "$#" -gt 0 ] && shift || true
+case "$cmd" in
+    build)        exec bash "$ROOT/core/pf-build.sh" "$@" ;;
+    lock)         exec bash "$ROOT/core/pf-lock.sh" "$@" ;;
+    flash)        exec bash "$ROOT/core/pf-flash.sh" "$@" ;;
+    regression)   exec bash "$ROOT/core/pf-regression.sh" "$@" ;;
+    purity-check) exec bash "$ROOT/ci/core-purity-check.sh" "$@" ;;
+    validate|resolve|env|list|repos)
+                  exec "$PF_PY" "$ROOT/core/profile.py" "$cmd" "$@" ;;
+    ""|-h|--help) usage; exit 0 ;;
+    *) printf 'pf: unknown subcommand: %s\n\n' "$cmd" >&2; usage >&2; exit 2 ;;
+esac

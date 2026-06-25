@@ -1,0 +1,25 @@
+# families/sunxi/family.toml — Allwinner sunxi family plugin defaults.
+# A device profile overrides these; these override core defaults (Armbian
+# "board sourced first, family fills unset values" semantics).
+
+[family]
+id          = "sunxi"
+description = "Allwinner sunxi SoCs (A133/sun50iw10, A523/sun55iw3, future variants)"
+# The four hooks the core dispatches to (FAMILY-INTERFACE.md):
+hooks = ["build-kernel.sh", "build-bootchain.sh", "assemble-image.sh", "flash.sh"]
+
+[toolchain]
+# gcc-10.3-2021.07 (image/build/toolchain-arm-10.3-2021.07.cmake) — pinned for the
+# A133 glibc-2.33 constraint; builds both the 4.9 (a133) and 5.15 (a523) lines today.
+# B2 (tsp-1dl.2) makes "does A523-5.15 want newer gcc?" a GATING check — if so this
+# becomes a per-device/per-kernel-line toolchain key + a 2nd container build stage.
+cc          = "aarch64-none-linux-gnu-"
+gcc_version = "10.3-2021.07"
+
+[defaults]
+# Filled in for any [section] key a device profile omits.
+boot_proto      = "extlinux"
+partition_table = "gpt"
+
+[flash]
+method = "dd-sd"     # default backend; a device profile may override (none do today)

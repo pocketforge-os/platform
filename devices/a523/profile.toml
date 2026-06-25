@@ -1,0 +1,68 @@
+# platform/devices/a523/profile.toml — TrimUI Smart Pro S (Allwinner A523 / sun55iw3)
+#
+# Declarative device profile. NO build logic here — logic lives in core/ (SoC-agnostic)
+# and families/sunxi/ (the family plugin). The family plugin supplies defaults for any
+# key this file omits (merge order: core defaults < families/sunxi/family.toml < this).
+#
+# M-1 STATE (tsp-1dl.1): repos point at TODAY's repos. B2 (tsp-1dl.2) collapses the
+# sunxi kernel/gpu/bootchain repos to kernel-sunxi/gpu-sunxi/bootchain-sunxi
+# (device=branch) and re-seeds platform.lock; that is a one-line edit per [section].
+
+[device]
+id           = "a523"
+name         = "TrimUI Smart Pro S"
+soc          = "sun55iw3"
+soc_friendly = "Allwinner A523 (TG5050)"
+arch         = "aarch64"
+family       = "sunxi"                       # selects families/sunxi/
+
+[kernel]
+repo       = "kernel-tsp-a523"               # B2 -> "kernel-sunxi", ref "device/a523"
+ref        = "main"
+defconfig  = "pocketforge_a523_defconfig"
+dtb        = "sun55i-t527-tg5050.dtb"
+dts_source = "vendor-rebuilt"                # a523 still on a bring-up crutch DTB (tsp-vuo)
+
+[gpu]
+repo    = "gpu-km-tsp-a523"                  # B2 -> "gpu-sunxi", ref "device/a523"
+ref     = "master"
+modules = ["mali_kbase.ko"]                  # Mali-G57; userspace libmali is a blob group
+                                             # (obsoleted if tsp-mo2 Panfrost lands)
+
+[bootchain]
+model         = "sunxi-spl-uboot"            # owned U-Boot SPL + TF-A BL31 (source-built)
+boot_proto    = "extlinux"
+uboot.repo    = "u-boot-tsp-a523"            # B2 -> "bootchain-sunxi", ref "device/a523"
+uboot.ref     = "pf-main"
+uboot.defconfig = "tg5050_defconfig"
+tfa.repo      = "tfa-tsp-a523"               # B2 -> "bootchain-sunxi"
+tfa.ref       = "main"
+tfa.plat      = "sun55i_a523"
+spl_offset_kib = 8
+
+[image]
+partition_table = "mbr"
+assembler       = "family-script"            # families/sunxi/assemble-image.sh (boards/tsp-s/assemble-sd.sh)
+boot_fs         = "vfat"
+boot_label      = "POCKETFORGE"
+root_fs         = "ext4"
+root_label      = "POCKETFORGE_DATA"
+image_name      = "pocketforge-tsp-s"
+fs_uuids_file   = "boards/tsp-s/fs-uuids.env"  # USERDATA_FS_UUID / HASH_SEED / DISK_UUID (repro anchors)
+
+[console]
+dev          = "ttyAS0"
+baud         = 115200
+earlycon     = "uart8250,mmio32,0x02500000"
+cmdline_extra = "loglevel=8 rootwait"
+
+[blobs]
+groups = ["sunxi-a523-mali", "sunxi-a523-wifi-firmware"]   # names -> vendor-manifest groups
+
+[container]
+build_image = "pocketforge/build:10.3-2021.07-bookworm"    # @sha256:<digest> seeded in tsp-1dl.1.1
+app_base    = "pocketforge/oci-base-aarch64"               # @sha256:<digest> (B5)
+
+[flash]
+method = "dd-sd"
+slot   = "pros"                              # Dell two-LUN reader (tsp-device-access)

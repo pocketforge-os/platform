@@ -1,0 +1,79 @@
+# platform.lock — THE reproducibility anchor (AOSP `repo manifest -r` / west / vcstool
+# --exact / Nix flake.lock model). Every source repo pinned at an EXACT SHA. `pf build`
+# resolves a profile's `ref` THROUGH this file to a SHA and builds the SHA, NEVER a
+# branch tip (the Yocto AUTOREV / floating-branch reproducibility trap). `pf lock`
+# freezes the current checkouts into this file.
+#
+# ⚠ UNSEEDED in B1 (tsp-1dl.1): every `sha = ""`. Seeding is bead tsp-1dl.1.1, GATED on
+#   A1 (clean owned trees) + B2 (kernel re-home) — BOTH move these SHAs, so seeding now
+#   would pin phantom refs. Until seeded=true, `pf build` may only do dev builds.
+#
+# M-1 repo set = TODAY's repos. B2 (tsp-1dl.2) collapses the per-device sunxi repos to
+# per-FAMILY repos (device = branch) and re-seeds:
+#   kernel-tsp + kernel-tsp-a523   -> kernel-sunxi      (branches device/a133, device/a523)
+#   gpu-km-tsp + gpu-km-tsp-a523   -> gpu-sunxi         (branches device/a133, device/a523)
+#   u-boot-tsp-a523 + tfa-tsp-a523 -> bootchain-sunxi   (branch device/a523)
+# B3 (tsp-1dl.3) pins the vendor-manifest commit SHA here so the group->CID map can't float.
+
+lockfile_version = 1
+seeded           = false
+
+[[repos]]
+name = "image"
+url  = "https://github.com/pocketforge-os/image.git"
+ref  = "main"
+sha  = ""              # SEED_IN_tsp-1dl.1.1
+
+[[repos]]
+name = "kernel-tsp"           # A133 4.9.191 — B2 -> kernel-sunxi branch device/a133
+url  = "https://github.com/pocketforge-os/kernel-tsp.git"
+ref  = "main"
+sha  = ""
+
+[[repos]]
+name = "kernel-tsp-a523"      # A523 5.15.154 — B2 -> kernel-sunxi branch device/a523
+url  = "https://github.com/pocketforge-os/kernel-tsp-a523.git"
+ref  = "main"
+sha  = ""
+
+[[repos]]
+name = "gpu-km-tsp"           # PowerVR DDK 1.19 (A133) — B2 -> gpu-sunxi branch device/a133
+url  = "https://github.com/pocketforge-os/gpu-km-tsp.git"
+ref  = "main"
+sha  = ""
+
+[[repos]]
+name = "gpu-km-tsp-a523"      # Mali (A523) — B2 -> gpu-sunxi branch device/a523
+url  = "https://github.com/pocketforge-os/gpu-km-tsp-a523.git"
+ref  = "master"
+sha  = ""
+
+[[repos]]
+name = "u-boot-tsp-a523"      # B2 -> bootchain-sunxi branch device/a523
+url  = "https://github.com/pocketforge-os/u-boot-tsp-a523.git"
+ref  = "pf-main"
+sha  = ""
+
+[[repos]]
+name = "tfa-tsp-a523"         # B2 -> bootchain-sunxi branch device/a523
+url  = "https://github.com/pocketforge-os/tfa-tsp-a523.git"
+ref  = "main"
+sha  = ""
+
+[[repos]]
+name = "blobs"                # private; preserved vendor originals + apply-*.py + *.SHA256 (text-only after B3)
+url  = "https://github.com/pocketforge-os/blobs.git"
+ref  = "main"
+sha  = ""
+
+[[repos]]
+name = "vendor-manifest"      # private; signed group -> SHA-256 -> CID map (B3 pins this SHA)
+url  = "https://github.com/pocketforge-os/vendor-manifest.git"
+ref  = "main"
+sha  = ""
+
+[[repos]]
+name = "libsdl3-sunxifb"      # userspace lib (not per-device)
+url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
+ref  = "main"
+sha  = ""

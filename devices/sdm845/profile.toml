@@ -1,0 +1,62 @@
+# platform/devices/sdm845/profile.toml — EXAMPLE / PAPER PROOF (no hardware in lab).
+#
+# This profile exists ONLY to prove the schema + family seam abstract correctly: a
+# different SoC FAMILY (snapdragon) slots in with the SAME schema, different keys,
+# and the CORE never learns what fastboot/XBL/EDL are. It references repos that do
+# NOT exist yet (kernel-snapdragon, the qcom blob groups) — `pf validate` flags
+# those as example/future (WARN, not ERROR). Real onboarding is B8 (design) / M-5.
+#
+# status=example tells the validator to treat absent repos/groups as expected.
+
+[device]
+id           = "sdm845-example"
+name         = "Snapdragon 845 reference (example)"
+soc          = "sdm845"
+soc_friendly = "Qualcomm Snapdragon 845"
+arch         = "aarch64"
+family       = "snapdragon"                  # selects families/snapdragon/  (a DIFFERENT plugin)
+status       = "example"                     # paper proof; not a buildable device yet
+
+[kernel]
+repo      = "kernel-snapdragon"              # future; mainline msm DRM tree fork
+ref       = "device/sdm845"
+defconfig = "pocketforge_sdm845_defconfig"
+dtb       = "sdm845-foo.dtb"
+dts_source = "owned"
+
+[gpu]
+repo                 = "none"                # Adreno userspace = Mesa freedreno/turnip (source pkg, not a blob)
+kernel_driver        = "msm"                 # drivers/gpu/drm/msm is IN-TREE -> no separate gpu repo
+microcode_blob_group = "qcom-adreno-a630-fw" # a630_sqe.fw + a630_gmu.bin: irreducibly closed
+
+[bootchain]
+model      = "snapdragon-abl"                # PBL->XBL->ABL(UEFI); we do NOT build boot0/SPL/BL31
+boot_proto = "android-bootimg"               # mkbootimg boot.img -> boot partition
+blob_group = "qcom-sdm845-firmware"          # xbl/tz/modem/aop .mbn/.elf — signed, irreducibly closed
+
+[image]
+partition_table = "gpt"
+assembler       = "family-script"            # no genimage; fastboot flashes named partitions
+boot_fs         = "vfat"
+boot_label      = "POCKETFORGE"
+root_fs         = "ext4"
+root_label      = "POCKETFORGE_DATA"
+image_name      = "pocketforge-sdm845"
+
+[console]
+dev  = "ttyMSM0"
+baud = 115200
+
+[blobs]
+groups = ["qcom-sdm845-firmware", "qcom-adreno-a630-fw"]
+
+[container]
+build_image = "pocketforge/build:10.3-2021.07-bookworm"
+app_base    = "pocketforge/oci-base-aarch64"
+
+[flash]
+method = "fastboot"                          # the ONE switch; method="dd-sd" code never runs
+fastboot.partition_boot   = "boot"
+fastboot.partition_dtbo   = "dtbo"
+fastboot.partition_vbmeta = "vbmeta"
+edl.programmer_blob_group = "qcom-sdm845-firehose"   # EDL/Sahara recovery (Firehose .elf)

@@ -1,0 +1,9 @@
+# build output / caches (bead-id-keyed build dirs live OUTSIDE the repo, in /tmp)
+out/
+work/
+__pycache__/
+*.pyc
+.DS_Store
+/tmp/
+# regression: baselines ARE committed; the transient diff is not
+/tmp/pf-regression.diff

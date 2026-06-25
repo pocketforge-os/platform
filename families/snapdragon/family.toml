@@ -1,0 +1,19 @@
+# families/snapdragon/family.toml — Qualcomm Snapdragon family plugin (PAPER / STUB).
+# Exists to prove the seam: a 2nd family implements the SAME 4-hook contract with a
+# completely different boot/flash model, and the core never learns fastboot/XBL/EDL.
+# Real implementation is B8 (tsp-1dl.8 design) / M-5 onboarding. No hardware in lab.
+
+[family]
+id          = "snapdragon"
+description = "Qualcomm Snapdragon SoCs (PBL->XBL->ABL boot, fastboot/EDL flash) — STUB"
+hooks       = ["build-kernel.sh", "build-bootchain.sh", "assemble-image.sh", "flash.sh"]
+
+[toolchain]
+cc = "aarch64-linux-gnu-"
+
+[defaults]
+boot_proto      = "android-bootimg"
+partition_table = "gpt"
+
+[flash]
+method = "fastboot"

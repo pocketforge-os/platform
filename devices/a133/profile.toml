@@ -1,0 +1,60 @@
+# platform/devices/a133/profile.toml — TrimUI Smart Pro (Allwinner A133 / sun50iw10)
+#
+# See devices/a523/profile.toml header for the merge model + M-1 repo-naming note.
+# The A133 captures the divergence already in the tree: it boots VENDOR boot0 +
+# dragonsecboot boot_package.fex + abootimg boot.img (no mainline U-Boot for
+# sun50iw10), so its [bootchain] is a BLOB GROUP, not a source repo — the schema
+# expresses either, which is what makes the A133-vs-A523 split declarative.
+
+[device]
+id           = "a133"
+name         = "TrimUI Smart Pro"
+soc          = "sun50iw10p1"
+soc_friendly = "Allwinner A133 (TG5040)"
+arch         = "aarch64"
+family       = "sunxi"
+
+[kernel]
+repo       = "kernel-tsp"                     # B2 -> "kernel-sunxi", ref "device/a133"
+ref        = "main"
+defconfig  = "pocketforge_tsp_defconfig"
+dtb        = "pocketforge_tsp.dtb"
+dts_source = "owned"
+
+[gpu]
+repo    = "gpu-km-tsp"                        # B2 -> "gpu-sunxi", ref "device/a133"
+ref     = "main"
+modules = ["pvrsrvkm.ko", "dc_sunxi.ko"]     # PowerVR DDK 1.19; UM .so is a preserved blob group
+
+[bootchain]
+model      = "sunxi-boot0-fex"               # vendor boot0 + boot_package.fex (no owned U-Boot)
+boot_proto = "boot_package_fex"
+blob_group = "sunxi-a133-boot-chain"         # boot0.img / monitor.bin(BL31) / scp.bin / u-boot.bin
+# NB: no uboot.repo/tfa.repo here -> build_bootchain is pass-through-the-blob-group for a133.
+
+[image]
+partition_table = "gpt"
+assembler       = "genimage"                 # boards/tsp/genimage.cfg
+boot_fs         = "vfat"
+boot_label      = "POCKETFORGE"
+root_fs         = "ext4"
+root_label      = "POCKETFORGE_DATA"
+image_name      = "pocketforge-tsp"
+fs_uuids_file   = "boards/tsp/fs-uuids.env"
+
+[console]
+dev          = "ttyS0"                        # A133 dev access via the Dell ESP32 bridge /dev/tsp-console
+baud         = 115200
+earlycon     = "uart8250,mmio32,0x05000000"
+cmdline_extra = "loglevel=8 rootwait"
+
+[blobs]
+groups = ["pvr-ddk-22.102.54.38", "sunxi-a133-boot-chain", "sunxi-a133-wifi-firmware"]
+
+[container]
+build_image = "pocketforge/build:10.3-2021.07-bookworm"
+app_base    = "pocketforge/oci-base-aarch64"
+
+[flash]
+method = "dd-sd"
+slot   = "base"
