@@ -196,6 +196,8 @@ def env_lines(dev_id):
         "PF_BUILD_IMAGE": merged.get("container", {}).get("build_image"),
         "PF_FLASH_METHOD": flash.get("method"), "PF_FLASH_SLOT": flash.get("slot", ""),
         "PF_TOOLCHAIN_CC": tc.get("cc", ""),
+        "PF_TOOLCHAIN_GCC_VERSION": tc.get("gcc_version", ""),
+        "PF_TOOLCHAIN_CFLAGS_EXTRA": tc.get("cflags_extra", ""),
     }
     lines = []
     for kk, vv in out.items():

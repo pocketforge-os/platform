@@ -8,11 +8,14 @@
 #   A1 (clean owned trees) + B2 (kernel re-home) — BOTH move these SHAs, so seeding now
 #   would pin phantom refs. Until seeded=true, `pf build` may only do dev builds.
 #
-# M-1 repo set = TODAY's repos. B2 (tsp-1dl.2) collapses the per-device sunxi repos to
-# per-FAMILY repos (device = branch) and re-seeds:
-#   kernel-tsp + kernel-tsp-a523   -> kernel-sunxi      (branches device/a133, device/a523)
-#   gpu-km-tsp + gpu-km-tsp-a523   -> gpu-sunxi         (branches device/a133, device/a523)
-#   u-boot-tsp-a523 + tfa-tsp-a523 -> bootchain-sunxi   (branch device/a523)
+# TOPOLOGY (B2/tsp-1dl.2, owner-approved 2026-06-25) — kernel SPLIT per (family, line);
+# GPU stays PER-IP; bootchain consolidation deferred:
+#   kernel-tsp        -> kernel-sunxi-4.9   (branch device/a133; 4.9.191, upstream-EOL)
+#   kernel-tsp-a523   -> kernel-sunxi-5.15  (branch device/a523; full owned line + `upstream` base)
+#   gpu-km-tsp / gpu-km-tsp-a523            -> UNCHANGED, per-IP (PowerVR != Mali, share no code)
+#   u-boot-tsp-a523 + tfa-tsp-a523          -> bootchain-sunxi (device/a523) — DEFERRED (separate import)
+# Rationale: 4.9 and 5.15 share ~zero objects, never merge, want independent rulesets; split gives
+# cleaner isolation than one kernel-sunxi over two unrelated bases (named fallback, owner's call).
 # B3 (tsp-1dl.3) pins the vendor-manifest commit SHA here so the group->CID map can't float.
 
 lockfile_version = 1
@@ -25,37 +28,37 @@ ref  = "main"
 sha  = ""              # SEED_IN_tsp-1dl.1.1
 
 [[repos]]
-name = "kernel-tsp"           # A133 4.9.191 — B2 -> kernel-sunxi branch device/a133
-url  = "https://github.com/pocketforge-os/kernel-tsp.git"
-ref  = "main"
+name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
+url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
+ref  = "device/a133"
 sha  = ""
 
 [[repos]]
-name = "kernel-tsp-a523"      # A523 5.15.154 — B2 -> kernel-sunxi branch device/a523
-url  = "https://github.com/pocketforge-os/kernel-tsp-a523.git"
-ref  = "main"
+name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
+url  = "https://github.com/pocketforge-os/kernel-sunxi-5.15.git"   #  = AvaotaSBC base for fork-tracking.
+ref  = "device/a523"
 sha  = ""
 
 [[repos]]
-name = "gpu-km-tsp"           # PowerVR DDK 1.19 (A133) — B2 -> gpu-sunxi branch device/a133
+name = "gpu-km-tsp"           # PowerVR DDK 1.19 (A133) — PER-IP, unchanged (NOT collapsed)
 url  = "https://github.com/pocketforge-os/gpu-km-tsp.git"
 ref  = "main"
 sha  = ""
 
 [[repos]]
-name = "gpu-km-tsp-a523"      # Mali (A523) — B2 -> gpu-sunxi branch device/a523
+name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
 url  = "https://github.com/pocketforge-os/gpu-km-tsp-a523.git"
 ref  = "master"
 sha  = ""
 
 [[repos]]
-name = "u-boot-tsp-a523"      # B2 -> bootchain-sunxi branch device/a523
+name = "u-boot-tsp-a523"      # -> bootchain-sunxi (device/a523) when consolidated; DEFERRED
 url  = "https://github.com/pocketforge-os/u-boot-tsp-a523.git"
 ref  = "pf-main"
 sha  = ""
 
 [[repos]]
-name = "tfa-tsp-a523"         # B2 -> bootchain-sunxi branch device/a523
+name = "tfa-tsp-a523"         # -> bootchain-sunxi (device/a523) when consolidated; DEFERRED
 url  = "https://github.com/pocketforge-os/tfa-tsp-a523.git"
 ref  = "main"
 sha  = ""

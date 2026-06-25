@@ -20,12 +20,23 @@ menu** — the rejected options are recorded with reasons so we don't relitigate
    This is what makes "same SHA on Dell vs modelmaker" achievable and makes the
    stale-shared-tree clobber class (tsp-bcx.19) structurally impossible.
 
-3. **One kernel/GPU/bootchain repo per SoC FAMILY; device variants are BRANCHES, not
-   repos.** Collapses `kernel-tsp` + `kernel-tsp-a523` → `kernel-sunxi` (branches
-   `device/a133`, `device/a523`); same for `gpu-sunxi`, `bootchain-sunxi`. Matches
-   Armbian (kernel branch keyed by axis) + AOSP (one tree, many products). The
-   upstream-pointing mirror is NOT an owned repo — it is a passive `upstream` branch /
-   reference mirror. (Done structurally in B2 / `tsp-1dl.2`.)
+3. **Device variants are BRANCHES, not repos — but the kernel is SPLIT per (family,
+   kernel-line), GPU stays per-IP.** (Owner decision, B2 / `tsp-1dl.2`, 2026-06-25.)
+   - **Kernel:** two repos — `kernel-sunxi-4.9` (branch `device/a133`, A133/4.9.191) and
+     `kernel-sunxi-5.15` (branch `device/a523`, A523/5.15.154) — NOT one `kernel-sunxi`.
+     The 4.9 and 5.15 bases share ~zero objects, never merge, and want independent
+     branch-protection/CI rulesets; the named-fallback split (infra-015 §B) gives cleaner
+     isolation than one repo carrying two unrelated bases. `device=branch` still holds
+     *within* a line. `kernel-sunxi-5.15` also carries a passive `upstream` branch (the
+     AvaotaSBC import base) for `git am`-onto-GregKH-stable-tag fork-tracking; 4.9 is
+     upstream-EOL (no `upstream` branch; its root commit is the vendor-import provenance pin).
+   - **GPU:** stays PER-IP — `gpu-km-tsp` (PowerVR/A133) + `gpu-km-tsp-a523` (Mali-G57/A523)
+     share zero code, so a `gpu-sunxi` collapse buys nothing. (infra-019 hardened decision;
+     supersedes infra-014 §1's per-family GPU sketch.)
+   - **Bootchain:** decided target is one `bootchain-sunxi` repo (branch `device/a523`;
+     A133 boots a vendor blob group). DEFERRED in B2 — u-boot + TF-A are unrelated histories
+     needing a subdir/branch layout decision; a separate import. Refs stay on the real
+     `u-boot-tsp-a523` / `tfa-tsp-a523` repos until then.
 
 4. **Blobs are keyed by GROUP, named in the profile; never a hard-coded CID.** The
    profile lists `[blobs] groups`, the `vendor-manifest` maps group → {path, SHA-256,
@@ -67,6 +78,7 @@ menu** — the rejected options are recorded with reasons so we don't relitigate
   want a first-class, branch-protected `platform/` repo for the profiles + family plugins
   + orchestrator. The manifest is one file *inside* it, not a replacement.
 - **Per-device kernel repos (not branches).** That is the current duplication; branches
-  per device on one family repo keep the family build hook shared. (Fallback to
-  per-(family, kernel-line) repos — e.g. `kernel-sunxi-4.9`/`-5.15` — if branch management
-  hurts; named, medium-confidence; the single-vs-split check is GATING in B2.)
+  per device keep the family build hook shared. NOTE: the B2 GATING check resolved (owner,
+  2026-06-25) to the per-(family, kernel-line) SPLIT — `kernel-sunxi-4.9` / `kernel-sunxi-5.15`,
+  device=branch *within* each line — NOT one `kernel-sunxi` over two unrelated bases. See
+  decision 3. So "device=branch" stands; "one repo per family for the kernel" did not.
