@@ -24,6 +24,7 @@ Usage:
   caps.py list                      # device ids that have a capabilities.toml
   caps.py validate <id|--all>       # schema + semantic validation; non-zero exit on error
   caps.py emit-sdldb --device <id>  # emit the SDL gamecontrollerdb mapping line for a device
+  caps.py probe-diff --device <id> --probe <capture.json>   # SPIKE-0 asymmetric diff vs silicon
 """
 import sys, os, re, json
 
@@ -417,6 +418,123 @@ def cmd_emit_sdldb(argv):
 
 
 # ---------------------------------------------------------------------------
+# SPIKE-0 (tsp-9sx.1): descriptor <-> evdev-probe ASYMMETRIC diff. descriptor =
+# EXPECTATION, probe = GROUND TRUTH. RULE: every descriptor code MUST be advertised
+# by the probe (descriptor codes SUBSET-OF probe codes) -> ERROR if not. Codes the
+# probe advertises but the descriptor omits are EXPECTED (the shared Xbox-360 HID
+# superset) -> INFO, never an error. absinfo (min/max) mismatch -> WARN (reconcile
+# the descriptor to silicon). Feed it a capture from regression/caps/evdev-probe.py.
+# ---------------------------------------------------------------------------
+def probe_diff(dev_id, capture):
+    errs, warns, infos = [], [], []
+    cpath = os.path.join(DEVICES, dev_id, CAPS_FILE)
+    if not os.path.isfile(cpath):
+        return [f"{dev_id}: no {CAPS_FILE}"], [], []
+    data = _load(cpath)
+    nodes = capture.get("nodes", [])
+    ident = data.get("identity", {})
+    match = ident.get("match", {})
+
+    # Find the gamepad node (by evdev name; vid/pid if present in the capture).
+    pad = None
+    for n in nodes:
+        if n.get("name") == match.get("evdev_name"):
+            if match.get("vid") and n.get("vendor") and n["vendor"] != match["vid"]:
+                continue
+            pad = n
+            break
+    if pad is None:
+        errs.append(f"{dev_id}: no probe node matches identity.match.evdev_name "
+                    f"'{match.get('evdev_name')}'")
+        return errs, warns, infos
+
+    pad_keys = set(pad.get("keys", []))
+    pad_abs = pad.get("abs", {})
+    all_keys = set()
+    for n in nodes:
+        all_keys.update(n.get("keys", []))
+
+    used_keys, used_abs = set(), set()
+    for inp in data.get("inputs", []):
+        iid = inp.get("id", "?")
+        codes = [c for c in inp.get("code", "").split(",") if c]
+        for c in codes:
+            if c.startswith("ABS_"):
+                used_abs.add(c)
+                if c not in pad_abs:
+                    errs.append(f"{dev_id}: input '{iid}' claims {c} but the gamepad node "
+                                f"does not advertise it (descriptor not subset-of probe)")
+            elif c.startswith("BTN_"):
+                used_keys.add(c)
+                if c not in pad_keys:
+                    errs.append(f"{dev_id}: input '{iid}' claims {c} but the gamepad node "
+                                f"does not advertise it")
+            elif c.startswith("KEY_"):
+                if c not in all_keys:
+                    errs.append(f"{dev_id}: input '{iid}' claims system key {c} but NO probe "
+                                f"node advertises it")
+        # absinfo reconcile (min/max) for ranged inputs
+        axis_map = []
+        if inp.get("kind") == "stick" and len(codes) == 2:
+            axis_map = [(codes[0], inp.get("x")), (codes[1], inp.get("y"))]
+        elif inp.get("kind") == "trigger" and len(codes) == 1:
+            axis_map = [(codes[0], inp.get("range"))]
+        for code, ax in axis_map:
+            if ax and code in pad_abs:
+                p = pad_abs[code]
+                for k in ("min", "max"):
+                    if k in ax and p.get(k) is not None and ax[k] != p[k]:
+                        warns.append(f"{dev_id}: input '{iid}' {code}.{k}={ax[k]} but probe "
+                                     f"reads {p[k]} (reconcile descriptor to ground truth)")
+
+    # Extra advertised codes = expected X360 superset (INFO, not error).
+    extra_keys = sorted(k for k in pad_keys if k.startswith("BTN_") and k not in used_keys)
+    if extra_keys:
+        infos.append(f"{dev_id}: gamepad advertises {len(extra_keys)} BTN_* code(s) the "
+                     f"descriptor omits (expected HID superset): {', '.join(extra_keys)}")
+    extra_abs = sorted(a for a in pad_abs if a not in used_abs)
+    if extra_abs:
+        infos.append(f"{dev_id}: gamepad advertises ABS code(s) the descriptor omits: "
+                     f"{', '.join(extra_abs)}")
+    # Sensors are IIO, not evdev — flag for separate SPIKE-0 confirmation.
+    for s in data.get("sensors", []):
+        infos.append(f"{dev_id}: sensor '{s.get('id')}' (iio {s.get('iio_device')}) is IIO, "
+                     f"not evdev — confirm it BINDS separately (R3 hazard)")
+    return errs, warns, infos
+
+
+def cmd_probe_diff(argv):
+    dev_id, probe_path = None, None
+    i = 0
+    while i < len(argv):
+        if argv[i] == "--device" and i + 1 < len(argv):
+            dev_id = argv[i + 1]; i += 2
+        elif argv[i] == "--probe" and i + 1 < len(argv):
+            probe_path = argv[i + 1]; i += 2
+        else:
+            i += 1
+    if not dev_id or not probe_path:
+        sys.stderr.write("probe-diff: usage: probe-diff --device <id> --probe <capture.json>\n")
+        return 2
+    try:
+        with open(probe_path) as f:
+            capture = json.load(f)
+    except (OSError, ValueError) as e:
+        sys.stderr.write(f"probe-diff: cannot read capture {probe_path}: {e}\n")
+        return 2
+    errs, warns, infos = probe_diff(dev_id, capture)
+    for m in infos:
+        print(f"INFO  {m}")
+    for m in warns:
+        print(f"WARN  {m}")
+    for m in errs:
+        print(f"ERROR {m}")
+    if not errs:
+        print(f"OK    {dev_id}: descriptor codes are a subset of the probe (asymmetric rule)")
+    return 1 if errs else 0
+
+
+# ---------------------------------------------------------------------------
 # Driver
 # ---------------------------------------------------------------------------
 def list_caps_devices():
@@ -483,6 +601,8 @@ def main(argv):
         return cmd_validate(argv[1:])
     if cmd == "emit-sdldb":
         return cmd_emit_sdldb(argv[1:])
+    if cmd == "probe-diff":
+        return cmd_probe_diff(argv[1:])
     sys.stderr.write(f"caps: unknown subcommand: {cmd}\n{__doc__}")
     return 2
 

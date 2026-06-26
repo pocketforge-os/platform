@@ -178,6 +178,38 @@ def main():
         check(f"{did} emit: only known SDL fields (home/KEY_HOMEPAGE excluded)",
               all(f in caps.SDL_FIELDS for f in m))
 
+    # --- SPIKE-0 probe-diff (asymmetric rule) against a synthetic xpad capture ---
+    def xpad_capture(home=True, drop=None, absx_min=-32768):
+        keys = ["BTN_A", "BTN_B", "BTN_C", "BTN_X", "BTN_Y", "BTN_Z", "BTN_TL", "BTN_TR",
+                "BTN_SELECT", "BTN_START", "BTN_MODE", "BTN_THUMBL", "BTN_THUMBR"]
+        if drop:
+            keys = [k for k in keys if k != drop]
+        absd = {a: {"min": -32768, "max": 32767, "fuzz": 16, "flat": 128, "resolution": 0}
+                for a in ("ABS_X", "ABS_Y", "ABS_RX", "ABS_RY")}
+        absd["ABS_X"]["min"] = absx_min
+        absd["ABS_Z"] = {"min": 0, "max": 255, "fuzz": 0, "flat": 0, "resolution": 0}
+        absd["ABS_RZ"] = {"min": 0, "max": 255, "fuzz": 0, "flat": 0, "resolution": 0}
+        absd["ABS_HAT0X"] = {"min": -1, "max": 1, "fuzz": 0, "flat": 0, "resolution": 0}
+        absd["ABS_HAT0Y"] = {"min": -1, "max": 1, "fuzz": 0, "flat": 0, "resolution": 0}
+        pad = {"path": "/dev/input/event3", "name": "TRIMUI Player1", "vendor": "045e",
+               "product": "028e", "ev": ["EV_SYN", "EV_KEY", "EV_ABS"], "keys": keys, "abs": absd}
+        kbd = {"path": "/dev/input/event0", "name": "sunxi-keyboard",
+               "keys": (["KEY_HOMEPAGE"] if home else [])}
+        return {"nodes": [kbd, pad]}
+
+    e, w, i = caps.probe_diff("a133", xpad_capture())
+    check("probe-diff a133: subset holds (no errors)", e == [])
+    check("probe-diff a133: HID superset reported as INFO", any("superset" in x for x in i))
+    e, w, i = caps.probe_diff("a133", xpad_capture(drop="BTN_A"))
+    check("probe-diff a133: descriptor code not advertised -> ERROR", any("BTN_A" in x for x in e))
+    e, w, i = caps.probe_diff("a133", xpad_capture(absx_min=-1000))
+    check("probe-diff a133: absinfo mismatch -> WARN (reconcile)", any("reconcile" in x for x in w))
+    e, w, i = caps.probe_diff("a523", xpad_capture(home=True))
+    check("probe-diff a523: home on keyboard node -> no error", e == [])
+    check("probe-diff a523: IMU flagged as IIO (confirm bind)", any("IIO" in x for x in i))
+    e, w, i = caps.probe_diff("a523", xpad_capture(home=False))
+    check("probe-diff a523: home advertised nowhere -> ERROR", any("KEY_HOMEPAGE" in x for x in e))
+
     print()
     if _failures:
         print(f"{len(_failures)} FAILURE(S): " + ", ".join(_failures))
