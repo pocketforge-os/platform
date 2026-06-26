@@ -13,6 +13,10 @@
 # only the PHYSICAL, drawable controls; the SPIKE-0 fidelity check is asymmetric (these
 # codes ⊆ the probe's advertised codes; extra advertised codes are expected, not mismatches).
 
+# Default "confirm" face button (Xbox/PS = south, Switch-region = east). A HINT only;
+# full confirm/cancel/action mapping is the broker/SDK layer's job (E2), not this file.
+accept_default = "south"
+
 [identity]
 id           = "a133"
 manufacturer = "TrimUI"
@@ -33,35 +37,41 @@ render_canvas = { w = 1280, h = 720 }
 display_rect  = { x = 304, y = 75, w = 872, h = 490 }   # where the live fb composites on the bezel
 
 # ---- INPUTS: each row = one drawable, bindable PHYSICAL control ----
-# Face A/B/X/Y. Codes are the xpad driver's EMITTED names BTN_A/B/X/Y
-# (= 0x130/0x131/0x133/0x134). NB: the spatial aliases (BTN_SOUTH/EAST/NORTH/WEST)
-# share those numbers but map X<->NORTH and Y<->WEST — using them invites an X/Y swap
-# (physical X emits 0x133, physical Y emits 0x134). SPIKE-0 confirms the numeric code
-# per physical button. This also yields the canonical X360 gamecontrollerdb (x:b2,y:b3).
+# Face buttons — POSITIONAL ids (south/east/west/north, SDL3-aligned); the printed glyph
+# is in `label`. Binding is by POSITION so a Switch-format device differs by DATA only
+# (swap the labels + accept_default), never code or skin. `code` is the xpad driver's
+# EMITTED symbol (BTN_A/B/X/Y = 0x130/0x131/0x133/0x134) = ground truth; note id="west"
+# carries BTN_X (0x133, whose spatial alias is "NORTH") because physical X/left emits
+# 0x133 — trust the id for position, the code for the wire. SPIKE-0 confirms the numeric
+# code per physical button. Emits the canonical X360 gamecontrollerdb (a:b0,b:b1,x:b2,y:b3).
 [[inputs]]
-id = "a"
+id = "south"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_A"
-skin_part = "btn_a"
+label = "A"
+skin_part = "btn_south"
 [[inputs]]
-id = "b"
+id = "east"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_B"
-skin_part = "btn_b"
+label = "B"
+skin_part = "btn_east"
 [[inputs]]
-id = "x"
+id = "west"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_X"
-skin_part = "btn_x"
+label = "X"
+skin_part = "btn_west"
 [[inputs]]
-id = "y"
+id = "north"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_Y"
-skin_part = "btn_y"
+label = "Y"
+skin_part = "btn_north"
 # System buttons. guide = BTN_MODE (advertised + listed for the base unit; SPIKE-0 confirms
 # the physical press). The Pro S adds a SEPARATE Home key — see devices/a523.
 [[inputs]]
@@ -157,10 +167,10 @@ lit_body = "skins/a133/body_lit.png"
 dpad       = { x = 92,   y = 140, w = 116, h = 116 }
 stick_l    = { x = 95,   y = 382, w = 116, h = 116 }
 stick_r    = { x = 1272, y = 382, w = 116, h = 116 }
-btn_y      = { x = 1306, y = 128, w = 48,  h = 48 }
-btn_b      = { x = 1356, y = 176, w = 48,  h = 48 }
-btn_a      = { x = 1306, y = 224, w = 48,  h = 48 }
-btn_x      = { x = 1256, y = 176, w = 48,  h = 48 }
+btn_north  = { x = 1306, y = 128, w = 48,  h = 48 }
+btn_east   = { x = 1356, y = 176, w = 48,  h = 48 }
+btn_south  = { x = 1306, y = 224, w = 48,  h = 48 }
+btn_west   = { x = 1256, y = 176, w = 48,  h = 48 }
 btn_select = { x = 600,  y = 586, w = 56,  h = 30 }
 btn_guide  = { x = 712,  y = 586, w = 56,  h = 30 }
 btn_start  = { x = 824,  y = 586, w = 56,  h = 30 }

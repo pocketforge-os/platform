@@ -57,7 +57,7 @@ def valid_descriptor(bezel_path):
             "display_rect": {"x": 40, "y": 60, "w": 520, "h": 1080},
         }],
         "inputs": [
-            {"id": "a", "kind": "button", "ev_type": "EV_KEY", "code": "BTN_SOUTH", "skin_part": "btn_a"},
+            {"id": "south", "kind": "button", "ev_type": "EV_KEY", "code": "BTN_A", "label": "A", "skin_part": "btn_south"},
             {"id": "dpad", "kind": "hat", "ev_type": "EV_ABS", "code": "ABS_HAT0X,ABS_HAT0Y", "skin_part": "dpad"},
             {"id": "lstick", "kind": "stick", "ev_type": "EV_ABS", "code": "ABS_X,ABS_Y",
              "x": {"min": -32768, "max": 32767, "flat": 1024},
@@ -66,8 +66,9 @@ def valid_descriptor(bezel_path):
              "range": {"min": 0, "max": 255, "flat": 0}, "skin_part": "trig_l", "ui": "slider_above"},
         ],
         "actuators": [{"id": "leds", "kind": "led_array", "controller": "sunxi_led", "count": 23}],
+        "accept_default": "south",
         "skin": {"body": bezel_path, "parts": {
-            "btn_a":   {"x": 400, "y": 900, "w": 48, "h": 48},
+            "btn_south": {"x": 400, "y": 900, "w": 48, "h": 48},
             "dpad":    {"x": 80,  "y": 880, "w": 120, "h": 120},
             "stick_l": {"x": 120, "y": 1000, "w": 100, "h": 100},
             "trig_l":  {"x": 40,  "y": 120, "w": 40, "h": 140},
@@ -126,6 +127,7 @@ def main():
     schema_neg("bad sdl_guid pattern", lambda d: d["identity"].update(sdl_guid="nope"))
     schema_neg("empty inputs array", lambda d: d.update(inputs=[]))
     schema_neg("code pattern violation", lambda d: d["inputs"][0].update(code="lowercase_btn"))
+    schema_neg("bad label_kind enum", lambda d: d["inputs"][0].update(label_kind="weird"))
 
     # --- semantic negatives (beyond what JSON-Schema can express) ---
     def sem_neg(name, dev, mut, needle=None):
@@ -148,11 +150,13 @@ def main():
     sem_neg("skin_part with no parts entry", "a133",
             lambda d: d["inputs"][0].update(skin_part="ghost"), "no [skin.parts]")
     sem_neg("skin rect exceeds bezel", "a133",
-            lambda d: d["skin"]["parts"]["btn_a"].update(x=590, w=50), "exceeds bezel")
+            lambda d: d["skin"]["parts"]["btn_south"].update(x=590, w=50), "exceeds bezel")
     sem_neg("device.id != directory", "zzz",
             lambda d: None, "!= device directory")
     sem_neg("device.id join: identity != profile", "a133",
             lambda d: d["identity"].update(id="a133x"), None)  # id!=dir AND no profile
+    sem_neg("accept_default references a non-existent input id", "a133",
+            lambda d: d.update(accept_default="ghost"), "accept_default")
 
     # --- gamecontrollerdb emit (against the REAL authored descriptors) ---
     for did, expect_thumb in (("a133", False), ("a523", True)):

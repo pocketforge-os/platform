@@ -15,6 +15,9 @@
 # IMU (qmi8658) is claimed here; the magnetometer (mmc5603) and GNSS are OMITTED until
 # SPIKE-0 proves they actually BIND. The Home key code/device is a SPIKE-0 confirm (see below).
 
+# Default "confirm" face button (Xbox/PS = south). HINT only; full action mapping is E2's.
+accept_default = "south"
+
 [identity]
 id           = "a523"
 manufacturer = "TrimUI"
@@ -33,31 +36,35 @@ rotation      = "cw90"
 render_canvas = { w = 1280, h = 720 }
 display_rect  = { x = 304, y = 75, w = 872, h = 490 }
 
-# ---- INPUTS: the a133 set, verbatim (face codes = xpad BTN_A/B/X/Y; see a133 note) ----
+# ---- INPUTS: the a133 set, verbatim (POSITIONAL face ids + label; see the a133 note) ----
 [[inputs]]
-id = "a"
+id = "south"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_A"
-skin_part = "btn_a"
+label = "A"
+skin_part = "btn_south"
 [[inputs]]
-id = "b"
+id = "east"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_B"
-skin_part = "btn_b"
+label = "B"
+skin_part = "btn_east"
 [[inputs]]
-id = "x"
+id = "west"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_X"
-skin_part = "btn_x"
+label = "X"
+skin_part = "btn_west"
 [[inputs]]
-id = "y"
+id = "north"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_Y"
-skin_part = "btn_y"
+label = "Y"
+skin_part = "btn_north"
 [[inputs]]
 id = "select"
 kind = "button"
@@ -187,10 +194,10 @@ lit_body = "skins/a523/body_lit.png"
 dpad       = { x = 92,   y = 140, w = 116, h = 116 }
 stick_l    = { x = 95,   y = 382, w = 116, h = 116 }
 stick_r    = { x = 1272, y = 382, w = 116, h = 116 }
-btn_y      = { x = 1306, y = 128, w = 48,  h = 48 }
-btn_b      = { x = 1356, y = 176, w = 48,  h = 48 }
-btn_a      = { x = 1306, y = 224, w = 48,  h = 48 }
-btn_x      = { x = 1256, y = 176, w = 48,  h = 48 }
+btn_north  = { x = 1306, y = 128, w = 48,  h = 48 }
+btn_east   = { x = 1356, y = 176, w = 48,  h = 48 }
+btn_south  = { x = 1306, y = 224, w = 48,  h = 48 }
+btn_west   = { x = 1256, y = 176, w = 48,  h = 48 }
 btn_select = { x = 600,  y = 586, w = 56,  h = 30 }
 btn_guide  = { x = 712,  y = 586, w = 56,  h = 30 }
 btn_start  = { x = 824,  y = 586, w = 56,  h = 30 }

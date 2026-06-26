@@ -12,7 +12,8 @@
     "inputs":    { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/input" } },
     "sensors":   { "type": "array", "items": { "$ref": "#/$defs/sensor" } },
     "actuators": { "type": "array", "items": { "$ref": "#/$defs/actuator" } },
-    "skin":      { "$ref": "#/$defs/skin" }
+    "skin":      { "$ref": "#/$defs/skin" },
+    "accept_default": { "type": "string", "minLength": 1 }
   },
   "$defs": {
     "identity": {
@@ -89,12 +90,14 @@
         "id":        { "type": "string", "pattern": "^[a-z0-9_]+$" },
         "kind":      { "enum": ["button", "hat", "stick", "stick-click", "trigger"] },
         "ev_type":   { "enum": ["EV_KEY", "EV_ABS"] },
-        "code":      { "type": "string", "pattern": "^(BTN_|KEY_|ABS_)[A-Z0-9_]+(,(BTN_|KEY_|ABS_)[A-Z0-9_]+)?$" },
-        "skin_part": { "type": "string", "minLength": 1 },
-        "ui":        { "type": "string", "minLength": 1 },
-        "range":     { "$ref": "#/$defs/axis" },
-        "x":         { "$ref": "#/$defs/axis" },
-        "y":         { "$ref": "#/$defs/axis" }
+        "code":       { "type": "string", "pattern": "^(BTN_|KEY_|ABS_)[A-Z0-9_]+(,(BTN_|KEY_|ABS_)[A-Z0-9_]+)?$" },
+        "label":      { "type": "string", "minLength": 1 },
+        "label_kind": { "enum": ["letter", "shape"] },
+        "skin_part":  { "type": "string", "minLength": 1 },
+        "ui":         { "type": "string", "minLength": 1 },
+        "range":      { "$ref": "#/$defs/axis" },
+        "x":          { "$ref": "#/$defs/axis" },
+        "y":          { "$ref": "#/$defs/axis" }
       }
     },
     "sensor": {

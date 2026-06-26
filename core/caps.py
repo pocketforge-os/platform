@@ -234,6 +234,11 @@ def semantic_errors(dev_id, data):
             if axname in inp:
                 _axis_ok(axname, inp[axname], where, errs)
 
+    # 2b) accept_default hint (if present) must reference a real input id.
+    accept = data.get("accept_default")
+    if accept is not None and accept not in seen_input_ids:
+        errs.append(f"accept_default '{accept}' is not an input id")
+
     # 3) sensors / actuators — unique ids, actuator code membership.
     for section, codes_ok in (("sensors", None), ("actuators", FF_CODES)):
         seen = set()
