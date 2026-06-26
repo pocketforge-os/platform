@@ -33,30 +33,30 @@ rotation      = "cw90"
 render_canvas = { w = 1280, h = 720 }
 display_rect  = { x = 304, y = 75, w = 872, h = 490 }
 
-# ---- INPUTS: the a133 set, verbatim ... ----
+# ---- INPUTS: the a133 set, verbatim (face codes = xpad BTN_A/B/X/Y; see a133 note) ----
 [[inputs]]
 id = "a"
 kind = "button"
 ev_type = "EV_KEY"
-code = "BTN_SOUTH"
+code = "BTN_A"
 skin_part = "btn_a"
 [[inputs]]
 id = "b"
 kind = "button"
 ev_type = "EV_KEY"
-code = "BTN_EAST"
+code = "BTN_B"
 skin_part = "btn_b"
 [[inputs]]
 id = "x"
 kind = "button"
 ev_type = "EV_KEY"
-code = "BTN_WEST"
+code = "BTN_X"
 skin_part = "btn_x"
 [[inputs]]
 id = "y"
 kind = "button"
 ev_type = "EV_KEY"
-code = "BTN_NORTH"
+code = "BTN_Y"
 skin_part = "btn_y"
 [[inputs]]
 id = "select"

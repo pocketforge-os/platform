@@ -11,7 +11,7 @@
 #   flash      --device <id>   flash a built image via the family flash hook
 #   lock       [args]          freeze repo SHAs into platform.lock (gated: tsp-1dl.1.1)
 #   validate   <id|--all>      validate a profile against the schema + family seam + lock
-#   caps       <validate ...>  validate the capability descriptor (devices/<id>/capabilities.toml)
+#   caps       <validate|emit-sdldb ...>  capability descriptor: validate + emit SDL gamecontrollerdb
 #   resolve    <id>            print the merged (profile+family) profile as JSON
 #   env        <id>            print the flattened PF_* env the family hooks consume
 #   list                       list device ids

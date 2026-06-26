@@ -33,30 +33,34 @@ render_canvas = { w = 1280, h = 720 }
 display_rect  = { x = 304, y = 75, w = 872, h = 490 }   # where the live fb composites on the bezel
 
 # ---- INPUTS: each row = one drawable, bindable PHYSICAL control ----
-# Face diamond (Linux-Gamepad-spec: SOUTH=A bottom, EAST=B right, WEST=X left, NORTH=Y top).
+# Face A/B/X/Y. Codes are the xpad driver's EMITTED names BTN_A/B/X/Y
+# (= 0x130/0x131/0x133/0x134). NB: the spatial aliases (BTN_SOUTH/EAST/NORTH/WEST)
+# share those numbers but map X<->NORTH and Y<->WEST — using them invites an X/Y swap
+# (physical X emits 0x133, physical Y emits 0x134). SPIKE-0 confirms the numeric code
+# per physical button. This also yields the canonical X360 gamecontrollerdb (x:b2,y:b3).
 [[inputs]]
 id = "a"
 kind = "button"
 ev_type = "EV_KEY"
-code = "BTN_SOUTH"
+code = "BTN_A"
 skin_part = "btn_a"
 [[inputs]]
 id = "b"
 kind = "button"
 ev_type = "EV_KEY"
-code = "BTN_EAST"
+code = "BTN_B"
 skin_part = "btn_b"
 [[inputs]]
 id = "x"
 kind = "button"
 ev_type = "EV_KEY"
-code = "BTN_WEST"
+code = "BTN_X"
 skin_part = "btn_x"
 [[inputs]]
 id = "y"
 kind = "button"
 ev_type = "EV_KEY"
-code = "BTN_NORTH"
+code = "BTN_Y"
 skin_part = "btn_y"
 # System buttons. guide = BTN_MODE (advertised + listed for the base unit; SPIKE-0 confirms
 # the physical press). The Pro S adds a SEPARATE Home key — see devices/a523.

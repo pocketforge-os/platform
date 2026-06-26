@@ -23,6 +23,7 @@ asserts that agreement when the library is present.
 Usage:
   caps.py list                      # device ids that have a capabilities.toml
   caps.py validate <id|--all>       # schema + semantic validation; non-zero exit on error
+  caps.py emit-sdldb --device <id>  # emit the SDL gamecontrollerdb mapping line for a device
 """
 import sys, os, re, json
 
@@ -295,6 +296,127 @@ def semantic_errors(dev_id, data):
 
 
 # ---------------------------------------------------------------------------
+# SDL gamecontrollerdb emit (tsp-9sx.4): the descriptor is ALSO the single source
+# for the SDL3 gamepad mapping — no hand-maintained second file. Keyed by numeric
+# evdev code value so either name spelling (BTN_A or BTN_SOUTH) yields the canonical
+# mapping. Non-gamepad keys (e.g. KEY_HOMEPAGE on the system-key node) are excluded.
+# ---------------------------------------------------------------------------
+CODE_VAL = {
+    "BTN_A": 0x130, "BTN_SOUTH": 0x130, "BTN_B": 0x131, "BTN_EAST": 0x131,
+    "BTN_C": 0x132, "BTN_X": 0x133, "BTN_NORTH": 0x133, "BTN_Y": 0x134, "BTN_WEST": 0x134,
+    "BTN_Z": 0x135, "BTN_TL": 0x136, "BTN_TR": 0x137, "BTN_TL2": 0x138, "BTN_TR2": 0x139,
+    "BTN_SELECT": 0x13a, "BTN_START": 0x13b, "BTN_MODE": 0x13c,
+    "BTN_THUMBL": 0x13d, "BTN_THUMBR": 0x13e,
+}
+SDL_BTN_FIELD = {
+    0x130: "a", 0x131: "b", 0x133: "x", 0x134: "y", 0x136: "leftshoulder",
+    0x137: "rightshoulder", 0x13a: "back", 0x13b: "start", 0x13c: "guide",
+    0x13d: "leftstick", 0x13e: "rightstick",
+}
+SDL_AXIS = {  # ABS code -> (SDL axis index, SDL field)
+    "ABS_X": (0, "leftx"), "ABS_Y": (1, "lefty"), "ABS_Z": (2, "lefttrigger"),
+    "ABS_RX": (3, "rightx"), "ABS_RY": (4, "righty"), "ABS_RZ": (5, "righttrigger"),
+}
+FIELD_ORDER = ["a", "b", "x", "y", "back", "guide", "start", "leftshoulder", "rightshoulder",
+               "leftstick", "rightstick", "dpup", "dpdown", "dpleft", "dpright",
+               "leftx", "lefty", "rightx", "righty", "lefttrigger", "righttrigger"]
+SDL_FIELDS = set(FIELD_ORDER)
+
+
+def build_sdldb_mapping(data):
+    """Return (guid, name, {field: source}) derived from the descriptor's inputs."""
+    ident = data.get("identity", {})
+    guid, name = ident.get("sdl_guid", ""), ident.get("model", "")
+    mapping = {}
+    # Buttons: only true gamepad BTN_* codes; index = rank by ascending evdev value.
+    btn_inputs = []
+    for inp in data.get("inputs", []):
+        codes = [c for c in inp.get("code", "").split(",") if c]
+        if inp.get("ev_type") == "EV_KEY" and len(codes) == 1 and codes[0] in CODE_VAL:
+            btn_inputs.append(codes[0])
+    for idx, code in enumerate(sorted(btn_inputs, key=lambda c: CODE_VAL[c])):
+        field = SDL_BTN_FIELD.get(CODE_VAL[code])
+        if field:
+            mapping[field] = f"b{idx}"
+    # Axes + dpad hat.
+    for inp in data.get("inputs", []):
+        if inp.get("ev_type") != "EV_ABS":
+            continue
+        codes = [c for c in inp.get("code", "").split(",") if c]
+        if inp.get("kind") == "hat":
+            mapping.update({"dpup": "h0.1", "dpright": "h0.2", "dpdown": "h0.4", "dpleft": "h0.8"})
+        for c in codes:
+            if c in SDL_AXIS:
+                aidx, field = SDL_AXIS[c]
+                mapping[field] = f"a{aidx}"
+    return guid, name, mapping
+
+
+def emit_sdldb(data):
+    guid, name, mapping = build_sdldb_mapping(data)
+    fields = ",".join(f"{f}:{mapping[f]}" for f in FIELD_ORDER if f in mapping)
+    return f"{guid},{name},{fields},platform:Linux,"
+
+
+def parse_sdldb(line):
+    """Offline SDL3-grammar round-trip parser. Returns (guid, name, {field:source})
+    or raises ValueError. Mirrors SDL_AddGamepadMapping's grammar closely enough to
+    prove the emitted line is well-formed and re-ingestible."""
+    parts = [p for p in line.split(",")]
+    if len(parts) < 3:
+        raise ValueError("too few fields")
+    guid, name = parts[0], parts[1]
+    if not re.fullmatch(r"[0-9a-f]{32}", guid):
+        raise ValueError(f"bad GUID: {guid!r}")
+    if not name:
+        raise ValueError("empty name")
+    out, saw_platform = {}, False
+    for tok in parts[2:]:
+        if not tok:
+            continue
+        if ":" not in tok:
+            raise ValueError(f"bad token: {tok!r}")
+        field, src = tok.split(":", 1)
+        if field == "platform":
+            saw_platform = True
+            continue
+        if field not in SDL_FIELDS:
+            raise ValueError(f"unknown SDL field: {field!r}")
+        if not re.fullmatch(r"b\d+|a\d+|h\d+\.\d+", src):
+            raise ValueError(f"bad source for {field}: {src!r}")
+        out[field] = src
+    if not saw_platform:
+        raise ValueError("missing platform:")
+    return guid, name, out
+
+
+def cmd_emit_sdldb(argv):
+    dev_id = None
+    if len(argv) >= 2 and argv[0] == "--device":
+        dev_id = argv[1]
+    elif len(argv) == 1:
+        dev_id = argv[0]
+    if not dev_id:
+        sys.stderr.write("emit-sdldb: usage: emit-sdldb --device <id>\n")
+        return 2
+    cpath = os.path.join(DEVICES, dev_id, CAPS_FILE)
+    if not os.path.isfile(cpath):
+        sys.stderr.write(f"emit-sdldb: no {CAPS_FILE} for '{dev_id}'\n")
+        return 2
+    data = _load(cpath)
+    line = emit_sdldb(data)
+    try:  # self-check: the line must round-trip + the GUID must match the descriptor.
+        guid, _, _ = parse_sdldb(line)
+        if guid != data.get("identity", {}).get("sdl_guid"):
+            raise ValueError("emitted GUID != identity.sdl_guid")
+    except ValueError as e:
+        sys.stderr.write(f"emit-sdldb: emitted line failed round-trip: {e}\n")
+        return 1
+    print(line)
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # Driver
 # ---------------------------------------------------------------------------
 def list_caps_devices():
@@ -359,6 +481,8 @@ def main(argv):
         return 0
     if cmd == "validate":
         return cmd_validate(argv[1:])
+    if cmd == "emit-sdldb":
+        return cmd_emit_sdldb(argv[1:])
     sys.stderr.write(f"caps: unknown subcommand: {cmd}\n{__doc__}")
     return 2
 

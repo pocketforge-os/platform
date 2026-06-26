@@ -154,6 +154,30 @@ def main():
     sem_neg("device.id join: identity != profile", "a133",
             lambda d: d["identity"].update(id="a133x"), None)  # id!=dir AND no profile
 
+    # --- gamecontrollerdb emit (against the REAL authored descriptors) ---
+    for did, expect_thumb in (("a133", False), ("a523", True)):
+        cpath = os.path.join(caps.DEVICES, did, caps.CAPS_FILE)
+        if not os.path.isfile(cpath):
+            check(f"{did} emit: descriptor present", False); continue
+        d = caps._load(cpath)
+        line = caps.emit_sdldb(d)
+        try:
+            guid, name, m = caps.parse_sdldb(line); rt = True
+        except ValueError:
+            guid, name, m, rt = "", "", {}, False
+        check(f"{did} emit: round-trips through SDL grammar", rt)
+        check(f"{did} emit: GUID matches sdl_guid", guid == d["identity"]["sdl_guid"])
+        for f, s in [("a", "b0"), ("b", "b1"), ("x", "b2"), ("y", "b3"),
+                     ("leftshoulder", "b4"), ("rightshoulder", "b5"), ("back", "b6"),
+                     ("start", "b7"), ("guide", "b8"), ("leftx", "a0"), ("lefty", "a1"),
+                     ("rightx", "a3"), ("righty", "a4"), ("lefttrigger", "a2"),
+                     ("righttrigger", "a5"), ("dpup", "h0.1"), ("dpdown", "h0.4")]:
+            check(f"{did} emit: {f}:{s}", m.get(f) == s)
+        check(f"{did} emit: L3/R3 present == {expect_thumb}",
+              ("leftstick" in m) == expect_thumb and ("rightstick" in m) == expect_thumb)
+        check(f"{did} emit: only known SDL fields (home/KEY_HOMEPAGE excluded)",
+              all(f in caps.SDL_FIELDS for f in m))
+
     print()
     if _failures:
         print(f"{len(_failures)} FAILURE(S): " + ", ".join(_failures))
