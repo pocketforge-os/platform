@@ -269,6 +269,13 @@ def semantic_errors(dev_id, data):
             errs.append(f"skin.body not found or not a PNG: {body}")
         else:
             bw, bh = dims
+            lit_body = skin.get("lit_body")
+            if lit_body:
+                ld = png_size(os.path.join(ROOT, lit_body))
+                if ld is None:
+                    errs.append(f"skin.lit_body not found or not a PNG: {lit_body}")
+                elif ld != (bw, bh):
+                    errs.append(f"skin.lit_body dims {ld} != body dims {bw}x{bh}")
             for name, part in skin.get("parts", {}).items():
                 if part["x"] + part["w"] > bw or part["y"] + part["h"] > bh:
                     errs.append(f"skin part '{name}' ({part['x']},{part['y']},{part['w']},{part['h']}) "

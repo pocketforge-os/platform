@@ -55,7 +55,13 @@ renders the skin from them; CI (E7/infra-106) asserts the contract from the same
 | | `ev_type`/`code`, `sysfs` | | rumble: `EV_FF`/`FF_RUMBLE` + `pwm-vibrator` |
 | | `controller`, `count` | | led_array: controller name + LED count |
 | `[skin]` | `body` | ✅ (for acceptance) | repo-relative PNG bezel path (original art, traced from the FCC public-record photos) |
+| | `lit_body` | | all-lit overlay PNG (same dims as `body`); the AVD layered model — light a control by compositing `lit_body` cropped to its rect |
 | | `parts` | ✅ | `[skin.parts.<id>] = { x, y, w, h, lit? }` named rects, each inside the bezel; every `inputs.skin_part` must resolve here |
+
+Bezels are generated from the descriptor's own rects by `skins/generate-bezel.py <id|--all>`
+(original schematic art traced from the FCC external-photo proportions — body.png and the
+rects cannot drift). Real photographic art may replace `body.png`/`body_lit.png` later
+without touching the rects.
 
 ## What `pf caps validate` checks
 1. **Schema** (structure, types, enums, patterns, `additionalProperties:false`).
