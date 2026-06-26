@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pocketforge.os/schemas/capabilities.schema.json",
+  "title": "PocketForge device capability descriptor (capabilities.toml)",
+  "description": "Net-new per-variant sibling to devices/<id>/profile.toml, joined ONLY by device.id. Describes what a device can SENSE, ACTUATE, and LOOK LIKE. One descriptor, three consumers (capability broker, simulator, CI). descriptor = EXPECTATION; the live EVIOCGBIT/EVIOCGABS probe = GROUND TRUTH. Missing hardware = ROW OMISSION, never a fabricated row.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "screens", "inputs"],
+  "properties": {
+    "identity": { "$ref": "#/$defs/identity" },
+    "screens":   { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/screen" } },
+    "inputs":    { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/input" } },
+    "sensors":   { "type": "array", "items": { "$ref": "#/$defs/sensor" } },
+    "actuators": { "type": "array", "items": { "$ref": "#/$defs/actuator" } },
+    "skin":      { "$ref": "#/$defs/skin" },
+    "accept_default": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "manufacturer", "model", "sdl_guid", "match"],
+      "properties": {
+        "id":           { "type": "string", "pattern": "^[a-z0-9]+$" },
+        "manufacturer": { "type": "string", "minLength": 1 },
+        "model":        { "type": "string", "minLength": 1 },
+        "codename":     { "type": "string", "minLength": 1 },
+        "sdl_guid":     { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+        "match": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["evdev_name"],
+          "properties": {
+            "evdev_name": { "type": "string", "minLength": 1 },
+            "vid":        { "type": "string", "pattern": "^[0-9a-f]{4}$" },
+            "pid":        { "type": "string", "pattern": "^[0-9a-f]{4}$" }
+          }
+        }
+      }
+    },
+    "screen": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "render_canvas", "present", "rotation"],
+      "properties": {
+        "role":          { "enum": ["primary", "secondary"] },
+        "render_canvas": { "$ref": "#/$defs/wh" },
+        "present":       { "enum": ["landscape", "portrait"] },
+        "rotation":      { "enum": ["none", "cw90", "cw180", "cw270"] },
+        "display_rect":  { "$ref": "#/$defs/rect" }
+      }
+    },
+    "wh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["w", "h"],
+      "properties": {
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "rect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": { "type": "integer", "minimum": 0 },
+        "y": { "type": "integer", "minimum": 0 },
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "axis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min":        { "type": "integer" },
+        "max":        { "type": "integer" },
+        "flat":       { "type": "integer", "minimum": 0 },
+        "fuzz":       { "type": "integer", "minimum": 0 },
+        "resolution": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "ev_type", "code"],
+      "properties": {
+        "id":        { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "kind":      { "enum": ["button", "hat", "stick", "stick-click", "trigger"] },
+        "ev_type":   { "enum": ["EV_KEY", "EV_ABS"] },
+        "code":       { "type": "string", "pattern": "^(BTN_|KEY_|ABS_)[A-Z0-9_]+(,(BTN_|KEY_|ABS_)[A-Z0-9_]+)?$" },
+        "label":      { "type": "string", "minLength": 1 },
+        "label_kind": { "enum": ["letter", "shape"] },
+        "skin_part":  { "type": "string", "minLength": 1 },
+        "ui":         { "type": "string", "minLength": 1 },
+        "range":      { "$ref": "#/$defs/axis" },
+        "x":          { "$ref": "#/$defs/axis" },
+        "y":          { "$ref": "#/$defs/axis" }
+      }
+    },
+    "sensor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "iio_device"],
+      "properties": {
+        "id":           { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "kind":         { "enum": ["accel", "gyro", "mag", "accel+gyro", "imu"] },
+        "iio_device":   { "type": "string", "minLength": 1 },
+        "units":        { "type": "string", "minLength": 1 },
+        "mount_matrix": { "$ref": "#/$defs/mat3" },
+        "ui":           { "type": "string", "minLength": 1 }
+      }
+    },
+    "mat3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } }
+    },
+    "actuator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id":         { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "kind":       { "enum": ["rumble", "led_array"] },
+        "ev_type":    { "enum": ["EV_FF"] },
+        "code":       { "type": "string", "pattern": "^FF_[A-Z0-9_]+$" },
+        "sysfs":      { "type": "string", "minLength": 1 },
+        "controller": { "type": "string", "minLength": 1 },
+        "count":      { "type": "integer", "minimum": 1 }
+      }
+    },
+    "skin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["body", "parts"],
+      "properties": {
+        "body":     { "type": "string", "minLength": 1 },
+        "lit_body": { "type": "string", "minLength": 1 },
+        "parts":    { "type": "object", "additionalProperties": { "$ref": "#/$defs/skinpart" } }
+      }
+    },
+    "skinpart": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x":   { "type": "integer", "minimum": 0 },
+        "y":   { "type": "integer", "minimum": 0 },
+        "w":   { "type": "integer", "minimum": 1 },
+        "h":   { "type": "integer", "minimum": 1 },
+        "lit": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
