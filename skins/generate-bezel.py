@@ -58,10 +58,17 @@ def draw_device(data, lit):
             d.ellipse(box, fill=fill, outline=(58, 58, 64), width=3)
             d.ellipse([box[0] + 8, box[1] + 8, box[2] - 8, box[3] - 8], outline=(58, 58, 64), width=2)
         elif name == "dpad":
+            # draw the d-pad as a SINGLE plus (one perimeter outline), not two separately-
+            # outlined rectangles — so it reads as a clean cross, no outline through the middle.
             cx, cy = (box[0] + box[2]) // 2, (box[1] + box[3]) // 2
             t = r["w"] // 3
-            d.rectangle([box[0], cy - t // 2, box[2], cy + t // 2], fill=fill, outline=(58, 58, 64), width=2)
-            d.rectangle([cx - t // 2, box[1], cx + t // 2, box[3]], fill=fill, outline=(58, 58, 64), width=2)
+            hl = t // 2
+            x0, y0, x1, y1 = box
+            pts = [(cx - hl, y0), (cx + hl, y0), (cx + hl, cy - hl), (x1, cy - hl),
+                   (x1, cy + hl), (cx + hl, cy + hl), (cx + hl, y1), (cx - hl, y1),
+                   (cx - hl, cy + hl), (x0, cy + hl), (x0, cy - hl), (cx - hl, cy - hl)]
+            d.polygon(pts, fill=fill)
+            d.line(pts + [pts[0]], fill=(58, 58, 64), width=2, joint="curve")
         else:
             d.rounded_rectangle(box, radius=9, fill=fill, outline=(58, 58, 64), width=2)
         glyph = label_for.get(name)
