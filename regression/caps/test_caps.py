@@ -171,11 +171,15 @@ def main():
             guid, name, m, rt = "", "", {}, False
         check(f"{did} emit: round-trips through SDL grammar", rt)
         check(f"{did} emit: GUID matches sdl_guid", guid == d["identity"]["sdl_guid"])
+        # L2/R2 are DIGITAL buttons (tsp-5p1), so they emit as lefttrigger:b6/righttrigger:b7
+        # (NOT the ABS axes a2/a5), which inserts at evdev 0x138/0x139 and pushes back/start/guide
+        # to b8/b9/b10 (L3/R3 on a523 follow at b11/b12).
         for f, s in [("a", "b0"), ("b", "b1"), ("x", "b2"), ("y", "b3"),
-                     ("leftshoulder", "b4"), ("rightshoulder", "b5"), ("back", "b6"),
-                     ("start", "b7"), ("guide", "b8"), ("leftx", "a0"), ("lefty", "a1"),
-                     ("rightx", "a3"), ("righty", "a4"), ("lefttrigger", "a2"),
-                     ("righttrigger", "a5"), ("dpup", "h0.1"), ("dpdown", "h0.4")]:
+                     ("leftshoulder", "b4"), ("rightshoulder", "b5"),
+                     ("lefttrigger", "b6"), ("righttrigger", "b7"),
+                     ("back", "b8"), ("start", "b9"), ("guide", "b10"),
+                     ("leftx", "a0"), ("lefty", "a1"), ("rightx", "a3"), ("righty", "a4"),
+                     ("dpup", "h0.1"), ("dpdown", "h0.4")]:
             check(f"{did} emit: {f}:{s}", m.get(f) == s)
         check(f"{did} emit: L3/R3 present == {expect_thumb}",
               ("leftstick" in m) == expect_thumb and ("rightstick" in m) == expect_thumb)
@@ -184,7 +188,10 @@ def main():
 
     # --- SPIKE-0 probe-diff (asymmetric rule) against a synthetic xpad capture ---
     def xpad_capture(home=True, drop=None, absx_min=-32768):
+        # BTN_TL2/BTN_TR2 = the DIGITAL L2/R2 the node advertises (tsp-5p1). The X360-presented
+        # ABS_Z/ABS_RZ axes below stay too -> they're now an unused advertised superset (INFO).
         keys = ["BTN_A", "BTN_B", "BTN_C", "BTN_X", "BTN_Y", "BTN_Z", "BTN_TL", "BTN_TR",
+                "BTN_TL2", "BTN_TR2",
                 "BTN_SELECT", "BTN_START", "BTN_MODE", "BTN_THUMBL", "BTN_THUMBR"]
         if drop:
             keys = [k for k in keys if k != drop]
