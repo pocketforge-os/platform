@@ -6,8 +6,9 @@
 #
 # TOPOLOGY (B2/tsp-1dl.2, owner-approved): kernel is SPLIT per (family, kernel-line) —
 # A523's 5.15 line lives in kernel-sunxi-5.15 (branch device/a523), separate from the
-# A133 4.9 line (kernel-sunxi-4.9). GPU stays PER-IP (Mali != PowerVR). Bootchain is the
-# one bootchain-sunxi repo (A523 = branch device/a523; A133 boots a vendor blob group).
+# A133 4.9 line (kernel-sunxi-4.9). GPU stays PER-IP (Mali != PowerVR). Bootchain repos are
+# KEPT SEPARATE — u-boot-tsp-a523 + tfa-tsp-a523 (bootchain-sunxi consolidation DROPPED; A133
+# boots a vendor blob group). Bootchain ownership: see infra-025.
 # platform.lock SHA-seeding is still deferred to tsp-1dl.1.1.
 
 [device]
@@ -45,14 +46,14 @@ cflags_extra = "-Wno-error -fcommon"
 [bootchain]
 model         = "sunxi-spl-uboot"            # owned U-Boot SPL + TF-A BL31 (source-built)
 boot_proto    = "extlinux"
-# DECIDED topology (B2): consolidate into one `bootchain-sunxi` repo (branch device/a523).
-# DEFERRED: u-boot + TF-A are unrelated histories needing a subdir/branch layout decision —
-# a separate import, NOT in B2's kernel-focused safe groundwork. Refs stay on the real repos
-# until that import lands (avoids a phantom ref); platform.lock seeding is deferred anyway.
-uboot.repo    = "u-boot-tsp-a523"            # -> bootchain-sunxi (device/a523) when consolidated
+# DECISION (2026-07-01): bootchain-sunxi consolidation DROPPED — keep u-boot-tsp-a523 + tfa-tsp-a523
+# as separate repos (U-Boot & TF-A are unrelated projects; only the A523 owns a bootchain, so a
+# merge buys nothing). The [bootchain] table references each repo directly. Bootchain OWNERSHIP
+# (fork-tracking + the A133 vendor-blob gap) lives in infra-025. platform.lock seeding is tsp-1dl.1.1.
+uboot.repo    = "u-boot-tsp-a523"            # kept separate (consolidation dropped — infra-025)
 uboot.ref     = "pf-main"
 uboot.defconfig = "tg5050_defconfig"
-tfa.repo      = "tfa-tsp-a523"               # -> bootchain-sunxi when consolidated
+tfa.repo      = "tfa-tsp-a523"               # kept separate (consolidation dropped — infra-025)
 tfa.ref       = "main"
 tfa.plat      = "sun55i_a523"
 spl_offset_kib = 8

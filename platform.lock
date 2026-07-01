@@ -9,11 +9,11 @@
 #   would pin phantom refs. Until seeded=true, `pf build` may only do dev builds.
 #
 # TOPOLOGY (B2/tsp-1dl.2, owner-approved 2026-06-25) — kernel SPLIT per (family, line);
-# GPU stays PER-IP; bootchain consolidation deferred:
+# GPU stays PER-IP; bootchain consolidation DROPPED (repos kept separate):
 #   kernel-tsp        -> kernel-sunxi-4.9   (branch device/a133; 4.9.191, upstream-EOL)
 #   kernel-tsp-a523   -> kernel-sunxi-5.15  (branch device/a523; full owned line + `upstream` base)
 #   gpu-km-tsp / gpu-km-tsp-a523            -> UNCHANGED, per-IP (PowerVR != Mali, share no code)
-#   u-boot-tsp-a523 + tfa-tsp-a523          -> bootchain-sunxi (device/a523) — DEFERRED (separate import)
+#   u-boot-tsp-a523 + tfa-tsp-a523          -> KEPT SEPARATE (bootchain-sunxi consolidation DROPPED; see infra-025)
 # Rationale: 4.9 and 5.15 share ~zero objects, never merge, want independent rulesets; split gives
 # cleaner isolation than one kernel-sunxi over two unrelated bases (named fallback, owner's call).
 # B3 (tsp-1dl.3) pins the vendor-manifest commit SHA here so the group->CID map can't float.
@@ -52,13 +52,13 @@ ref  = "master"
 sha  = ""
 
 [[repos]]
-name = "u-boot-tsp-a523"      # -> bootchain-sunxi (device/a523) when consolidated; DEFERRED
+name = "u-boot-tsp-a523"      # owned A523 U-Boot; kept separate (bootchain-sunxi consolidation DROPPED — infra-025)
 url  = "https://github.com/pocketforge-os/u-boot-tsp-a523.git"
 ref  = "pf-main"
 sha  = ""
 
 [[repos]]
-name = "tfa-tsp-a523"         # -> bootchain-sunxi (device/a523) when consolidated; DEFERRED
+name = "tfa-tsp-a523"         # owned A523 TF-A; kept separate (bootchain-sunxi consolidation DROPPED — infra-025)
 url  = "https://github.com/pocketforge-os/tfa-tsp-a523.git"
 ref  = "main"
 sha  = ""

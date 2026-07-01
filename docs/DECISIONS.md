@@ -33,10 +33,10 @@ menu** — the rejected options are recorded with reasons so we don't relitigate
    - **GPU:** stays PER-IP — `gpu-km-tsp` (PowerVR/A133) + `gpu-km-tsp-a523` (Mali-G57/A523)
      share zero code, so a `gpu-sunxi` collapse buys nothing. (infra-019 hardened decision;
      supersedes infra-014 §1's per-family GPU sketch.)
-   - **Bootchain:** decided target is one `bootchain-sunxi` repo (branch `device/a523`;
-     A133 boots a vendor blob group). DEFERRED in B2 — u-boot + TF-A are unrelated histories
-     needing a subdir/branch layout decision; a separate import. Refs stay on the real
-     `u-boot-tsp-a523` / `tfa-tsp-a523` repos until then.
+   - **Bootchain:** consolidation into a `bootchain-sunxi` repo is DROPPED (decision, 2026-07-01) —
+     `u-boot-tsp-a523` + `tfa-tsp-a523` stay SEPARATE (U-Boot & TF-A are unrelated projects; only
+     the A523 owns a bootchain, so a merge buys nothing). The profile `[bootchain]` references each
+     repo directly; A133 boots a vendor blob group. Bootchain ownership → infra-025.
 
 4. **Blobs are keyed by GROUP, named in the profile; never a hard-coded CID.** The
    profile lists `[blobs] groups`, the `vendor-manifest` maps group → {path, SHA-256,
