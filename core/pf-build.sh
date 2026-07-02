@@ -134,6 +134,22 @@ pf_stage_sources() {
 }
 
 # pf_os_image_dockerbuild — construct the multistage os-image `docker build` (B4.0).
+# Create-if-missing the docker-container buildx builder that grants the security.insecure
+# entitlement (the rootfs + assemble stages run privileged debootstrap/image-assembly steps that
+# need SYS_ADMIN/mount). Idempotent: a no-op once the builder exists. Every build host (modelmaker,
+# Dell CI) converges to the same named builder. See the tsp-buildkit-insecure-mmdebstrap memory.
+pf_ensure_insecure_builder() {
+    local builder="$1"
+    if docker buildx inspect "$builder" >/dev/null 2>&1; then
+        return 0
+    fi
+    pf_log "creating docker-container buildx builder '$builder' (grants security.insecure)"
+    docker buildx create --name "$builder" --driver docker-container \
+        --buildkitd-flags '--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host' \
+        --bootstrap >/dev/null \
+        || pf_die "failed to create buildx builder '$builder'"
+}
+
 pf_os_image_dockerbuild() {
     # Lock-pinned build-arg surface (the ONE place that reads profile+lock).
     local ba; ba="$("$PF_PY" "$PF_PLATFORM_DIR/core/profile.py" buildargs "$DEVICE")" \
@@ -179,7 +195,17 @@ pf_os_image_dockerbuild() {
     sde="$(pf_commit_epoch image "$image_sha" "$mirror_dir")"
     k_sde="$(pf_commit_epoch "$kernel_repo" "$kernel_sha" "$mirror_dir")"
 
+    # The rootfs stage does a privileged debootstrap (real chroot/mount) and the assemble stage
+    # builds the disk image — both need SYS_ADMIN, which BuildKit grants ONLY under
+    # `RUN --security=insecure` on a builder that allows the security.insecure entitlement. The
+    # DEFAULT docker builder refuses it (no dockerd reconfig here), so we use a dedicated
+    # docker-container buildx builder created with the entitlement. Driver choice does not change
+    # output bytes. See the tsp-buildkit-insecure-mmdebstrap memory.
+    local builder="${PF_BUILDX_BUILDER:-pf-insecure}"
+
     local -a cmd=( docker buildx build
+        --builder "$builder"
+        --allow security.insecure
         --file "$dockerfile"
         --target export
         --build-arg "PF_CONTAINER=$container"
@@ -219,6 +245,7 @@ pf_os_image_dockerbuild() {
     fi
     pf_stage_sources "$src_dir" "$ba"
     [ "$TARGET" = ci-dell ] && mkdir -p "$cache_dir"
+    pf_ensure_insecure_builder "$builder"
     pf_log "EXEC os-image multistage build"
     "${cmd[@]}"
 }
