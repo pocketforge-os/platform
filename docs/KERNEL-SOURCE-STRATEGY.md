@@ -60,20 +60,36 @@ The multistage `docker build` consumes a content-addressed `git archive` of the
 We build modules with `CONFIG_MODVERSIONS=n`, so **vermagic is the ONLY `.ko` load gate**.
 An archive-build version string that drifts from a clone build = a **silent** GPU-KM load
 failure (`pvrsrvkm`/`mali_kbase` refuses to load), not merely a repro blemish. The build
-MUST hard-assert (skeleton emits these as WARN in `families/sunxi/build-kernel.sh`; B4 flips
-them to hard FAIL):
+hard-asserts these (WARN in the M-1 skeleton; **tsp-1dl.4.2** flipped them to hard FAIL in
+`families/sunxi/build-kernel.sh` and re-asserts them inline in `image/build/Dockerfile.pf`'s
+`kernel` stage — keep the two in lockstep):
 
-1. `CONFIG_LOCALVERSION_AUTO=n` — else the archive (no `.git`) and a clone produce different
-   `+`/`-gabc123` suffixes → different vermagic.
-2. A **stamped `LOCALVERSION`** — empty, or `.scmversion` derived from the lock SHA — so both
-   transports agree.
+1. **A stamped empty `.scmversion`** — this is the *definitive* transport-independence anchor.
+   `scripts/setlocalversion` reads `.scmversion` first and, if present, uses ONLY its content
+   and skips the scm probe entirely — so the version string is identical regardless of
+   `CONFIG_LOCALVERSION_AUTO`, whether `.git` is present, or whether the tree is a clone or an
+   archive. The `kernel` stage writes `printf '' > .scmversion` before configuring; the build
+   HARD-FAILS if it is missing. (`.scmversion` derived from the lock SHA is an alternative, but
+   empty keeps the release string exactly the defconfig's.)
+2. `CONFIG_LOCALVERSION_AUTO=n` — **recommended, not required.** With (1) in force, AUTO is
+   moot; a WARN (not a FAIL) fires if a defconfig leaves it at the Kconfig default `y`. Pinning
+   `=n` in the defconfig is cleaner belt-and-suspenders. VERIFIED tsp-1dl.4.2: with `.scmversion`
+   stamped, `make kernelrelease` == `4.9.191` (a133) / `5.15.154` (a523) across archive, clone,
+   and even a naive clone with no `.scmversion` — these owned repos carry no reachable tags and
+   the checkout is clean, so no `+`/`-g<sha>` suffix arises in practice. a133's defconfig pins
+   `=n`; a523's leaves it default-`y` (a minor B2 cleanliness item, not a repro bug given (1)).
 3. The **GPU KM built against the same-tree `Module.symvers`** (same archive, same build).
-4. **No git submodules** (archive omits them → divergence).
+4. **No git submodules** (archive omits them → divergence); **no `.git`** in the build tree
+   (the input must be a `git archive`, not a clone).
 5. Pinned `KBUILD_BUILD_TIMESTAMP`, `KBUILD_BUILD_USER`, `KBUILD_BUILD_HOST`, and
-   `SOURCE_DATE_EPOCH` (already proven bit-for-bit; `kernel-substrate-ownership.md` §3.2).
+   `SOURCE_DATE_EPOCH` (already proven bit-for-bit; `kernel-substrate-ownership.md` §3.2). The
+   kernel `SOURCE_DATE_EPOCH` is pinned to the KERNEL commit time (resolved from the lock SHA by
+   `core/pf-build.sh`), giving the Image component reproducibility independent of image-repo churn.
 
 The kernel repro bar (component artifacts: `Image`, the GPU `.ko`, DTBs) is aligned with the
-image repro bar (B6).
+image repro bar (B6). NOTE: vermagic (the load gate) is transport-independent as above; full
+Image *byte* equality additionally requires build-path normalization (the archive builds at
+`/work/kernel`, a dev clone elsewhere) — that whole-image byte-repro item is owned by B6.
 
 ## 5. Fork-tracking cadence (A523 only; A133/4.9 is EOL)
 

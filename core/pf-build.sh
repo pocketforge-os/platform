@@ -78,6 +78,16 @@ pf_find_git_source() {
     return 1
 }
 
+# pf_commit_epoch <repo> <sha> <mirror_dir> — print the committer epoch of <sha> resolved from
+# any local git source for <repo> (checkout OR bare mirror), else print nothing. Deterministic
+# (a function of the pinned SHA), so it is a valid SOURCE_DATE_EPOCH; never falls back to now().
+pf_commit_epoch() {
+    local repo="$1" sha="$2" mirror_dir="$3" gitdir
+    [ -n "$repo" ] && [ -n "$sha" ] || return 0
+    gitdir="$(pf_find_git_source "$repo" "$mirror_dir")" || return 0
+    git --git-dir="$gitdir" show -s --format=%ct "${sha}^{commit}" 2>/dev/null || true
+}
+
 # pf_stage_sources <src_dir> <buildargs-text>
 # Materialize each source repo as a `git archive` of its platform.lock SHA under
 # <src_dir>/<logical>/ (the named build contexts the Dockerfile COPYs from). NEVER a clone
@@ -156,18 +166,26 @@ pf_os_image_dockerbuild() {
     local snap="20260601T000000Z"
     [ -f "$PF_IMAGE_REPO/snapshot-date.txt" ] && snap="$(tr -d '[:space:]' < "$PF_IMAGE_REPO/snapshot-date.txt")"
 
-    # Reproducibility stamp: the image commit time. Best-effort at B4.0; the kernel stage
-    # (tsp-1dl.4.2) hard-pins KBUILD_BUILD_{TIMESTAMP,USER,HOST} from SOURCE_DATE_EPOCH too.
-    local image_sha sde=""
+    # Reproducibility epochs — pinned commit times, resolved deterministically from the
+    # pinned SHA (never wall-clock). The IMAGE epoch stamps rootfs/assemble; the KERNEL epoch
+    # (tsp-1dl.4.2) stamps the kernel stage so the Image is byte-stable from the kernel SHA
+    # alone (component reproducibility), independent of image-repo churn. Both resolve via
+    # any local git source (checkout OR bare mirror) so a .git-less build host still works.
+    local mirror_dir="${PF_MIRROR_DIR:-$HOME/wt/.mirrors}"
+    local image_sha kernel_repo kernel_sha sde="" k_sde=""
     image_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_IMAGE_SHA=//p')"
-    sde="$(git -C "$PF_IMAGE_REPO" show -s --format=%ct "$image_sha" 2>/dev/null || true)"
+    kernel_repo="$(printf '%s\n' "$ba" | sed -n 's/^PF_KERNEL_REPO=//p')"
+    kernel_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_KERNEL_SHA=//p')"
+    sde="$(pf_commit_epoch image "$image_sha" "$mirror_dir")"
+    k_sde="$(pf_commit_epoch "$kernel_repo" "$kernel_sha" "$mirror_dir")"
 
     local -a cmd=( docker buildx build
         --file "$dockerfile"
         --target export
         --build-arg "PF_CONTAINER=$container"
         --build-arg "APT_SNAPSHOT_DATE=$snap" )
-    [ -n "$sde" ] && cmd+=( --build-arg "SOURCE_DATE_EPOCH=$sde" )
+    [ -n "$sde" ]   && cmd+=( --build-arg "SOURCE_DATE_EPOCH=$sde" )
+    [ -n "$k_sde" ] && cmd+=( --build-arg "PF_KERNEL_SOURCE_DATE_EPOCH=$k_sde" )
     local line
     while IFS= read -r line; do
         case "$line" in PF_LOCK_STATE=*|PF_LOCK_MISSING_SHAS=*|"") continue ;; esac
