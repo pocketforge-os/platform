@@ -53,10 +53,11 @@ def list_devices():
 
 def load_lock():
     if not os.path.isfile(LOCK):
-        return {"seeded": False, "repos": {}}
+        return {"seeded": False, "interim": False, "repos": {}}
     data = _load(LOCK)
     repos = {r["name"]: r for r in data.get("repos", []) if "name" in r}
-    return {"seeded": bool(data.get("seeded", False)), "repos": repos}
+    return {"seeded": bool(data.get("seeded", False)),
+            "interim": bool(data.get("interim_seed", False)), "repos": repos}
 
 
 def _deep_fill(dst, src):
@@ -164,7 +165,13 @@ def validate(dev_id, lock):
     check_repo(bc.get("tfa", {}).get("repo"), "[bootchain].tfa")
 
     if not lock["seeded"] and not is_example:
-        warns.append(f"{dev_id}: platform.lock not seeded (SHAs empty) — release builds blocked until tsp-1dl.1.1")
+        if lock.get("interim"):
+            warns.append(f"{dev_id}: platform.lock is INTERIM-seeded (dev-only, non-authoritative) — "
+                         f"dev builds resolve real SHAs; RELEASE builds blocked until the authoritative "
+                         f"re-seed (post-B2 hardware retest, tsp-1dl.1.1)")
+        else:
+            warns.append(f"{dev_id}: platform.lock not seeded (SHAs empty) — builds cannot resolve SHAs "
+                         f"until seeded (`pf lock --interim`, tsp-1dl.1.1)")
     return errs, warns
 
 
@@ -217,7 +224,8 @@ def main(argv):
         return 0
     if cmd == "repos":
         lock = load_lock()
-        print(f"seeded={lock['seeded']}")
+        state = "authoritative" if lock["seeded"] else ("interim" if lock.get("interim") else "unseeded")
+        print(f"seeded={lock['seeded']} state={state}")
         for n, r in sorted(lock["repos"].items()):
             print(f"  {n}\t{r.get('ref','')}\t{r.get('sha','') or '(unseeded)'}")
         return 0
