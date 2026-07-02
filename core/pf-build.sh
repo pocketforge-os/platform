@@ -196,10 +196,18 @@ pf_os_image_dockerbuild() {
            --build-context "kernel-src=$src_dir/kernel"
            --build-context "gpu-src=$src_dir/gpu"
            --build-context "sdl-src=$src_dir/libsdl3-sunxifb"
-           --build-context "blobs-src=$src_dir/blobs"
-           --cache-from "type=local,src=$cache_dir"
-           --cache-to   "type=local,dest=$cache_dir,mode=max"
-           --output     "type=local,dest=$PF_OUT_DIR"
+           --build-context "blobs-src=$src_dir/blobs" )
+    # Local BuildKit cache export (tsp-1dl.4.7): emit ONLY for ci-dell. On a persistent dev host
+    # docker's own layer cache already persists between builds for free, so an explicit
+    # type=local,mode=max export buys nothing — and mode=max serializes+compresses EVERY intermediate
+    # layer of every stage (the ~2.2GB kernel tree), a slow disk-heavy write that has filled
+    # modelmaker's / and left BuildKit wedged. CI (fresh workspaces) genuinely benefits from
+    # cross-run cache priming, so it keeps the export.
+    if [ "$TARGET" = ci-dell ]; then
+        cmd+=( --cache-from "type=local,src=$cache_dir"
+               --cache-to   "type=local,dest=$cache_dir,mode=max" )
+    fi
+    cmd+=( --output     "type=local,dest=$PF_OUT_DIR"
            --metadata-file "$PF_OUT_DIR/build-metadata.json"
            "$PF_IMAGE_REPO/build" )
 
@@ -210,7 +218,7 @@ pf_os_image_dockerbuild() {
         return 0
     fi
     pf_stage_sources "$src_dir" "$ba"
-    mkdir -p "$cache_dir"
+    [ "$TARGET" = ci-dell ] && mkdir -p "$cache_dir"
     pf_log "EXEC os-image multistage build"
     "${cmd[@]}"
 }
