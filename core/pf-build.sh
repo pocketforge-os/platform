@@ -107,6 +107,7 @@ pf_stage_sources() {
         "gpu|$(v PF_GPU_REPO)|$(v PF_GPU_SHA)"
         "libsdl3-sunxifb|libsdl3-sunxifb|$(v PF_LIBSDL3_SHA)"
         "blobs|blobs|$(v PF_BLOBS_SHA)"
+        "vendor-manifest|vendor-manifest|$(v PF_VENDOR_MANIFEST_SHA)"
     )
     local spec logical repo sha gitdir dest n
     for spec in "${specs[@]}"; do
@@ -227,6 +228,12 @@ pf_os_image_dockerbuild() {
     # changes output bytes (R1 / G-reproducible safe). Opt-in via the PF_APT_PROXY env; a CI host
     # points it at its own cache (or leaves it unset for direct snapshot).
     [ -n "${PF_APT_PROXY:-}" ] && cmd+=( --build-arg "PF_APT_PROXY=$PF_APT_PROXY" )
+    # Hermetic blob-fetch (B3 / tsp-1dl.3): PF_FETCH_MODE=fallback selects the git-clone-blobs path
+    # (merge-1 safety); default hermetic (the FETCH stage's ARG default). PF_CAR_SHA256 is the
+    # vendor-originals.car rot-detection gate (hermetic only) — from platform.lock [car].sha256
+    # (agent-docqueue re-pins at merge) or the env for a dev verify. Both opt-in; unset = FETCH defaults.
+    [ -n "${PF_FETCH_MODE:-}" ] && cmd+=( --build-arg "PF_FETCH_MODE=$PF_FETCH_MODE" )
+    [ -n "${PF_CAR_SHA256:-}" ] && cmd+=( --build-arg "PF_CAR_SHA256=$PF_CAR_SHA256" )
     local line
     while IFS= read -r line; do
         case "$line" in PF_LOCK_STATE=*|PF_LOCK_MISSING_SHAS=*|"") continue ;; esac
@@ -237,7 +244,9 @@ pf_os_image_dockerbuild() {
            --build-context "kernel-src=$src_dir/kernel"
            --build-context "gpu-src=$src_dir/gpu"
            --build-context "sdl-src=$src_dir/libsdl3-sunxifb"
-           --build-context "blobs-src=$src_dir/blobs" )
+           --build-context "blobs-src=$src_dir/blobs"
+           --build-context "vendor-manifest-src=$src_dir/vendor-manifest"
+           --build-context "blobs-car=${PF_CAR_DIR:-$HOME/.pf-car}" )
     # Local BuildKit cache export (tsp-1dl.4.7): emit ONLY for ci-dell. On a persistent dev host
     # docker's own layer cache already persists between builds for free, so an explicit
     # type=local,mode=max export buys nothing — and mode=max serializes+compresses EVERY intermediate

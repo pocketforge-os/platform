@@ -43,8 +43,8 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "tsp-1dl.4.5"   # DEV pin to the B4.4 WIP branch (rootfs+assemble stages + PF_APT_PROXY + #6 apt-retries). Re-pins to main@<merged-sha> at co-land.
-sha  = "5d8175b80b8cdc45ce6230ba49a2f7b6975204ac"
+ref  = "tsp-1dl.4.5"   # DEV pin to the B4.4/co-land WIP branch (rootfs+assemble + PF_APT_PROXY + blob-path reorg + hermetic FETCH). Re-pins to main@<merged-sha> at co-land.
+sha  = "15391834189fa48f70c964722bd7881b7ac2b9f9"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -85,17 +85,17 @@ sha  = "deaba081685170ffff0aec9f7a260ad1586840fe"
 [[repos]]
 name = "blobs"                # private; preserved vendor originals + apply-*.py + *.SHA256 (text-only after B3)
 url  = "https://github.com/pocketforge-os/blobs.git"
-ref  = "main"
-sha  = "dabe5e77aca4f2b63182a1d232c121f9b43e031c"
+ref  = "tsp-1dl.3"            # DEV co-land pin: REORG-ONLY (sunxi/a133/ paths, binaries RETAINED for fallback). NOT -strip. agent-docqueue re-pins to main@<merged-sha>.
+sha  = "6d6bfd2e87afdf9828e3d75ee9a43d6f7c05326f"
 
 [[repos]]
 name = "vendor-manifest"      # private; group -> SHA-256 -> CID map + fetch-group.py (B3 pins this SHA)
 url  = "https://github.com/pocketforge-os/vendor-manifest.git"
-ref  = "main"
-sha  = "34387ac0c3095905b3bf44f145a7dab090b6dd9d"   # B3: +family/device/soc/category + fetch-group.py + CARv2 (vendor-manifest#1)
+ref  = "tsp-1dl.3"            # DEV co-land pin: path reorg (sunxi/a133/) + boot-chain rename + wifi split + fetch-group.py. agent-docqueue re-pins to main@<merged-sha>.
+sha  = "1905c96b2a17273c5631ff39f42d659b5189f07c"
 
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
-ref  = "main"
-sha  = "c1cacb08567a626aabd6071ff7832fab28dfb7fc"
+ref  = "tsp-1dl.4.5"          # DEV co-land pin: UM blob path reorg tsp/ -> sunxi/a133/. Re-pins to main@<merged-sha> at co-land.
+sha  = "6b69c4e9528144583be68744354f5e77b42e5aef"
