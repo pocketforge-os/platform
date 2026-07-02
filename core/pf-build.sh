@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
 # core/pf-build.sh — the SoC-AGNOSTIC `pf build` dispatcher.
 #
-# Reads a device profile, validates it, resolves the family, and calls the family's
-# four hooks in order. The core owns everything BETWEEN the hooks (validate, fetch,
-# rootfs, reproducibility-finalize, SHA emit); the family owns everything INSIDE them.
+# Reads a device profile, validates it, resolves the family, and produces the artifact.
+# The core owns everything BETWEEN the family hooks (validate, resolve lock SHAs, fetch,
+# rootfs, reproducibility-finalize, SHA emit); the family owns everything INSIDE the hooks.
 # The core contains ZERO family vocabulary (ci/core-purity-check.sh enforces this).
 #
 #   pf build --device <id> --artifact {os-image|containers} --target {ci-dell|dev-modelmaker}
-#            [--dry-run] [--bead <id>] [--image-repo <path>]
+#            [--dry-run|--no-dry-run] [--bead <id>] [--image-repo <path>]
 #
-# M-1 SKELETON (tsp-1dl.1): the family hooks are dispatch placeholders (DRY by default),
-# so this proves the seam end to end. The real per-stage container build lands in B4.
+# B4.0 (tsp-1dl.4.1): the os-image path constructs a MULTISTAGE `docker build` of
+# image/build/Dockerfile.pf from the platform.lock-pinned SHAs (never a branch tip), with
+# bead-id-keyed output/cache/source dirs. Source repos are delivered as named build CONTEXTS
+# (a `git archive` of each lock SHA — NEVER a clone in the build; docs/KERNEL-SOURCE-STRATEGY.md
+# §3). ADDITIVE: the legacy `make build-image` path is untouched and the M-1 hook-dispatch seam
+# is still reachable via PF_ENGINE=hooks. The per-stage builds (kernel/GPU/SDL/rootfs/assemble)
+# land in tsp-1dl.4.2..4.5; --dry-run previews the exact command today.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 # shellcheck source=core/lib/common.sh
@@ -57,16 +62,94 @@ run_hook() {
     bash "$path" "$@"
 }
 
+# pf_stage_sources <src_dir> <buildargs-text>
+# Materialize each source repo as a `git archive` of its platform.lock SHA under
+# <src_dir>/<repo>/ (the named build contexts the Dockerfile COPYs from). NEVER a clone
+# inside the build — the archive of a content-addressed SHA is byte-identical regardless of
+# transport (docs/KERNEL-SOURCE-STRATEGY.md §3). The actual per-repo archiving + the stages
+# that consume it land in tsp-1dl.4.2..4.5; B4.0 is scaffolding.
+pf_stage_sources() {
+    pf_die "source-archive staging (git archive of the lock SHA → named build contexts) lands in tsp-1dl.4.2+ (bare-mirror flow). B4.0 is scaffolding — use --dry-run to preview the exact build command."
+}
+
+# pf_os_image_dockerbuild — construct the multistage os-image `docker build` (B4.0).
+pf_os_image_dockerbuild() {
+    local dockerfile="$PF_IMAGE_REPO/build/Dockerfile.pf"
+    [ -f "$dockerfile" ] || pf_die "missing $dockerfile — B4.0 multistage Dockerfile (build it in the image worktree)"
+    local pin_file="$PF_IMAGE_REPO/container.pin"
+    [ -f "$pin_file" ] || pf_die "missing $pin_file (owned build-container digest)"
+    local container; container="$(grep -v '^[[:space:]]*#' "$pin_file" | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')"
+    local snap="20260601T000000Z"
+    [ -f "$PF_IMAGE_REPO/snapshot-date.txt" ] && snap="$(tr -d '[:space:]' < "$PF_IMAGE_REPO/snapshot-date.txt")"
+
+    # Lock-pinned build-arg surface (the ONE place that reads profile+lock).
+    local ba; ba="$("$PF_PY" "$PF_PLATFORM_DIR/core/profile.py" buildargs "$DEVICE")" \
+        || pf_die "profile.py buildargs failed for $DEVICE"
+    local lock_state missing
+    lock_state="$(printf '%s\n' "$ba" | sed -n 's/^PF_LOCK_STATE=//p')"
+    missing="$(printf '%s\n' "$ba" | sed -n 's/^PF_LOCK_MISSING_SHAS=//p')"
+    case "$lock_state" in
+        unseeded) pf_die "platform.lock is UNSEEDED — seed it first (\`pf lock --interim\`; tsp-1dl.1.1)" ;;
+        interim)  pf_log "platform.lock is INTERIM-seeded (dev-only) — OK for a dev build; a RELEASE build needs the authoritative seed (post-B2)" ;;
+    esac
+    [ -z "$missing" ] || pf_die "platform.lock missing SHAs for $DEVICE: $missing — re-seed (\`pf lock\`)"
+
+    local cache_dir="/tmp/pf-build/$BEAD/cache" src_dir="/tmp/pf-build/$BEAD/src"
+
+    # Reproducibility stamp: the image commit time. Best-effort at B4.0; the kernel stage
+    # (tsp-1dl.4.2) hard-pins KBUILD_BUILD_{TIMESTAMP,USER,HOST} from SOURCE_DATE_EPOCH too.
+    local image_sha sde=""
+    image_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_IMAGE_SHA=//p')"
+    sde="$(git -C "$PF_IMAGE_REPO" show -s --format=%ct "$image_sha" 2>/dev/null || true)"
+
+    local -a cmd=( docker buildx build
+        --file "$dockerfile"
+        --target export
+        --build-arg "PF_CONTAINER=$container"
+        --build-arg "APT_SNAPSHOT_DATE=$snap" )
+    [ -n "$sde" ] && cmd+=( --build-arg "SOURCE_DATE_EPOCH=$sde" )
+    local line
+    while IFS= read -r line; do
+        case "$line" in PF_LOCK_STATE=*|PF_LOCK_MISSING_SHAS=*|"") continue ;; esac
+        cmd+=( --build-arg "$line" )
+    done <<< "$ba"
+    # Source repos as named build contexts (git archive of the lock SHA; staged by pf_stage_sources).
+    cmd+=( --build-context "image-src=$src_dir/image"
+           --build-context "kernel-src=$src_dir/kernel"
+           --build-context "gpu-src=$src_dir/gpu"
+           --build-context "sdl-src=$src_dir/libsdl3-sunxifb"
+           --build-context "blobs-src=$src_dir/blobs"
+           --cache-from "type=local,src=$cache_dir"
+           --cache-to   "type=local,dest=$cache_dir,mode=max"
+           --output     "type=local,dest=$PF_OUT_DIR"
+           --metadata-file "$PF_OUT_DIR/build-metadata.json"
+           "$PF_IMAGE_REPO/build" )
+
+    if [ "${PF_DRY_RUN:-1}" = 1 ]; then
+        pf_log "DRY-RUN os-image multistage build (device=$DEVICE bead=$BEAD lock=$lock_state). Command:"
+        printf '%q ' "${cmd[@]}"; printf '\n'
+        pf_log "source contexts (git archive of the lock SHA) stage under $src_dir/ — materialized by tsp-1dl.4.2+."
+        return 0
+    fi
+    pf_stage_sources "$src_dir" "$ba"
+    mkdir -p "$cache_dir"
+    pf_log "EXEC os-image multistage build"
+    "${cmd[@]}"
+}
+
 if [ "$ARTIFACT" = "os-image" ]; then
-    # CORE: (fetch blob groups by CID, build_rootfs) are stubbed in M-1 -> B3/B4.
-    pf_log "core: fetch blob groups [$PF_BLOB_GROUPS] (B3 multistage fetch-by-CID — stub in M-1)"
-    pf_log "core: build_rootfs (mmdebstrap, SoC-agnostic — legacy image/ build in M-1)"
-    run_hook build-kernel.sh
-    run_hook build-bootchain.sh
-    run_hook assemble-image.sh
-    pf_log "core: reproducibility_finalize (faketime/disorderfs/SOURCE_DATE_EPOCH — B4/B6)"
-    pf_log "core: emit artifact '$PF_IMAGE_NAME' + SHA + provenance under $PF_OUT_DIR (B4)"
+    if [ "${PF_ENGINE:-docker}" = "hooks" ]; then
+        # M-1 seam demo (legacy engine): dispatch the family hooks (DRY). Kept for the seam test.
+        pf_log "engine=hooks (M-1 seam demo): core fetch blob groups [$PF_BLOB_GROUPS] (B3 fetch-by-CID — stub)"
+        pf_log "engine=hooks: core build_rootfs (mmdebstrap — legacy image/ build)"
+        run_hook build-kernel.sh
+        run_hook build-bootchain.sh
+        run_hook assemble-image.sh
+        pf_log "engine=hooks: reproducibility_finalize + emit (B4/B6)"
+    else
+        pf_os_image_dockerbuild
+    fi
 else
-    pf_log "core: container-image path (apko-DROP -> mmdebstrap->tar->OCI) is B5 — not in B1"
+    pf_log "core: container-image path (mmdebstrap->tar->OCI) is B5 (tsp-1dl.5) — not in B1/B4"
 fi
 pf_log "build dispatch complete (device=$DEVICE artifact=$ARTIFACT)."
