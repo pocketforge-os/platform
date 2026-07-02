@@ -18,6 +18,7 @@ Usage:
   profile.py validate <id|--all>
   profile.py resolve  <id>            # merged profile as JSON
   profile.py env      <id>            # `export PF_*=...` lines for the dispatcher
+  profile.py buildargs <id>           # docker `--build-arg` surface (lock-pinned SHAs)
   profile.py repos                    # platform.lock repo names + seeded state
 """
 import sys, os, json
@@ -214,6 +215,65 @@ def env_lines(dev_id):
     return lines
 
 
+def build_args(dev_id):
+    """Resolve a device's `docker build --build-arg` surface: every source repo the
+    multistage os-image build consumes, pinned to its platform.lock SHA (never a branch
+    tip). Returns (args_dict, lock). The build must use these SHAs, not the profile ref
+    (B4 / tsp-1dl.4). Emitted by `profile.py buildargs <id>` for core/pf-build.sh."""
+    merged, _family = resolve(dev_id)
+    lock = load_lock()
+    repos = lock["repos"]
+
+    def sha(name):
+        return (repos.get(name or "", {}) or {}).get("sha", "") or ""
+
+    dev = merged["device"]
+    k = merged.get("kernel", {})
+    gpu = merged.get("gpu", {})
+    bc = merged.get("bootchain", {})
+    tc = merged.get("toolchain", {})
+    img = merged.get("image", {})
+    uboot_repo = bc.get("uboot", {}).get("repo", "") or ""
+
+    args = {
+        "PF_DEVICE_ID": dev.get("id", ""),
+        "PF_FAMILY": dev.get("family", ""),
+        "PF_ARCH": dev.get("arch", ""),
+        "PF_KERNEL_REPO": k.get("repo", ""),
+        "PF_KERNEL_REF": k.get("ref", ""),
+        "PF_KERNEL_SHA": sha(k.get("repo")),
+        "PF_KERNEL_DEFCONFIG": k.get("defconfig", ""),
+        "PF_KERNEL_DTB": k.get("dtb", ""),
+        "PF_GPU_REPO": gpu.get("repo", ""),
+        "PF_GPU_REF": gpu.get("ref", ""),
+        "PF_GPU_SHA": sha(gpu.get("repo")),
+        "PF_GPU_MODULES": " ".join(gpu.get("modules", []) or []),
+        "PF_LIBSDL3_SHA": sha("libsdl3-sunxifb"),
+        "PF_IMAGE_SHA": sha("image"),
+        "PF_IMAGE_NAME": img.get("image_name", ""),
+        "PF_IMAGE_ASSEMBLER": img.get("assembler", ""),
+        "PF_BLOBS_SHA": sha("blobs"),
+        "PF_VENDOR_MANIFEST_SHA": sha("vendor-manifest"),
+        "PF_BLOB_GROUPS": " ".join(sorted(merged.get("blobs", {}).get("groups", []) or [])),
+        "PF_BOOTCHAIN_MODEL": bc.get("model", ""),
+        "PF_BOOT_PROTO": bc.get("boot_proto", ""),
+        "PF_BOOTCHAIN_BLOB_GROUP": bc.get("blob_group", "") or "",
+        "PF_TOOLCHAIN_GCC_VERSION": tc.get("gcc_version", ""),
+        "PF_UBOOT_REPO": uboot_repo,
+        "PF_UBOOT_SHA": sha(uboot_repo),
+    }
+    # Repos this device genuinely needs a SHA for (repo named, not the "none" sentinel).
+    needed = [("PF_KERNEL_SHA", k.get("repo")), ("PF_IMAGE_SHA", "image"),
+              ("PF_BLOBS_SHA", "blobs"), ("PF_VENDOR_MANIFEST_SHA", "vendor-manifest")]
+    if (gpu.get("repo") or "none") != "none":
+        needed.append(("PF_GPU_SHA", gpu.get("repo")))
+    if uboot_repo:
+        needed.append(("PF_UBOOT_SHA", uboot_repo))
+    missing = [ak for ak, rn in needed if rn and not args.get(ak)]
+    state = "authoritative" if lock["seeded"] else ("interim" if lock.get("interim") else "unseeded")
+    return args, state, missing
+
+
 def main(argv):
     if not argv:
         sys.stderr.write(__doc__)
@@ -256,6 +316,15 @@ def main(argv):
         if len(argv) < 2:
             sys.stderr.write("env: give a device id\n"); return 2
         print("\n".join(env_lines(argv[1])))
+        return 0
+    if cmd == "buildargs":
+        if len(argv) < 2:
+            sys.stderr.write("buildargs: give a device id\n"); return 2
+        args, state, missing = build_args(argv[1])
+        for kk in sorted(args):
+            print(f"{kk}={args[kk]}")
+        print(f"PF_LOCK_STATE={state}")
+        print(f"PF_LOCK_MISSING_SHAS={','.join(missing)}")
         return 0
     sys.stderr.write(f"unknown command: {cmd}\n{__doc__}")
     return 2
