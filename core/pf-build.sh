@@ -222,6 +222,11 @@ pf_os_image_dockerbuild() {
         --build-arg "APT_SNAPSHOT_DATE=$snap" )
     [ -n "$sde" ]   && cmd+=( --build-arg "SOURCE_DATE_EPOCH=$sde" )
     [ -n "$k_sde" ] && cmd+=( --build-arg "PF_KERNEL_SOURCE_DATE_EPOCH=$k_sde" )
+    # Optional transparent apt cache proxy (e.g. the NAS apt-cacher-ng at http://10.0.32.86:3142).
+    # Fetch transport only — apt verifies every .deb vs the signed snapshot index, so it never
+    # changes output bytes (R1 / G-reproducible safe). Opt-in via the PF_APT_PROXY env; a CI host
+    # points it at its own cache (or leaves it unset for direct snapshot).
+    [ -n "${PF_APT_PROXY:-}" ] && cmd+=( --build-arg "PF_APT_PROXY=$PF_APT_PROXY" )
     local line
     while IFS= read -r line; do
         case "$line" in PF_LOCK_STATE=*|PF_LOCK_MISSING_SHAS=*|"") continue ;; esac
