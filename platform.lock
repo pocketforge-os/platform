@@ -27,6 +27,19 @@ lockfile_version = 1
 seeded           = false
 interim_seed     = true
 
+# Trust root (infra-016 §C; B3/tsp-1dl.3). Pins the release pubkey INTO the reproducibility
+# anchor so gate-1 (the vendor-manifest signature) can't float independently of the source
+# SHAs. This IS the org release anchor (infra-060, minisign fingerprint C958F0F49AE8C528),
+# content-pinned by its key line. `manifest_signing_active = false`: manifest.toml is NOT yet
+# signed with it — vendor-manifest must be onboarded as a `sign` GitHub Environment repo
+# (infra-060 §12; tracked by tsp-dnw). Until then gate-1 is INERT and SHA-256 (gate 3, in
+# fetch-group.py + carv2-verify.sh) is the only load-bearing integrity check.
+[trust]
+release_pub_fingerprint = "C958F0F49AE8C528"
+release_pub_key         = "RWQoxeia9PBYyeMA93KCQALv/JTDLQGFVM7VDzjGcdidk5nhUP+3iJnk"
+release_pub_source      = "github.com/pocketforge-os/infra/trust/minisign.pub"
+manifest_signing_active = false
+
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
@@ -76,10 +89,10 @@ ref  = "main"
 sha  = "dabe5e77aca4f2b63182a1d232c121f9b43e031c"
 
 [[repos]]
-name = "vendor-manifest"      # private; signed group -> SHA-256 -> CID map (B3 pins this SHA)
+name = "vendor-manifest"      # private; group -> SHA-256 -> CID map + fetch-group.py (B3 pins this SHA)
 url  = "https://github.com/pocketforge-os/vendor-manifest.git"
 ref  = "main"
-sha  = "52a470aa52e372b2e4df7354454d8a7f9b6420c5"
+sha  = "34387ac0c3095905b3bf44f145a7dab090b6dd9d"   # B3: +family/device/soc/category + fetch-group.py + CARv2 (vendor-manifest#1)
 
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
