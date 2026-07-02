@@ -24,7 +24,7 @@ repo       = "kernel-sunxi-5.15"             # split-per-(family,line); owner B2
 ref        = "device/a523"                   # full owned line: AvaotaSBC import base + 12 owned commits
                                              #   (incl. tsp-vuo.8 DSI C-code); `upstream` branch = the
                                              #   AvaotaSBC base for `git am`-onto-GregKH-tag fork-tracking
-defconfig  = "pocketforge_a523_defconfig"
+defconfig  = "pocketforge_tsp_a523_defconfig"  # matches the committed arch/arm64/configs name (tsp-1dl.4.2)
 dtb        = "sun55i-t527-tg5050.dtb"
 dts_source = "vendor-rebuilt"                # a523 still on a bring-up crutch DTB (tsp-vuo)
 
