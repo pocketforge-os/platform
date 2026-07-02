@@ -137,18 +137,48 @@ pf_stage_sources() {
 # pf_os_image_dockerbuild — construct the multistage os-image `docker build` (B4.0).
 # Create-if-missing the docker-container buildx builder that grants the security.insecure
 # entitlement (the rootfs + assemble stages run privileged debootstrap/image-assembly steps that
-# need SYS_ADMIN/mount). Idempotent: a no-op once the builder exists. Every build host (modelmaker,
-# Dell CI) converges to the same named builder. See the tsp-buildkit-insecure-mmdebstrap memory.
+# need SYS_ADMIN/mount). Every build host (modelmaker, Dell CI) converges to the same named
+# builder. See the tsp-buildkit-insecure-mmdebstrap memory.
+#
+# The builder ALSO needs the insecure-registry buildkitd config so it can pull the owned build
+# container from the NAS registry (container.pin -> 10.0.32.86:5555, plain HTTP) — without it a
+# pull fails with "server gave HTTP response to HTTPS client". The config lives at
+# $PF_BUILDKITD_CONFIG (default ~/.pf-buildkit/buildkitd.toml); it is passed via --buildkitd-config
+# when present. A builder created BEFORE a registry was added to that config holds a stale snapshot
+# in its running buildkitd, so when the builder already exists we verify every insecure-registry
+# host the config declares is actually live and recreate the builder if it is behind (self-heal for
+# config drift; a no-op once in sync).
 pf_ensure_insecure_builder() {
     local builder="$1"
+    local cfg="${PF_BUILDKITD_CONFIG:-$HOME/.pf-buildkit/buildkitd.toml}"
+    local -a create=( docker buildx create --name "$builder" --driver docker-container
+        --driver-opt network=host
+        --buildkitd-flags '--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host' )
+    [ -f "$cfg" ] && create+=( --buildkitd-config "$cfg" )
+    create+=( --bootstrap )
+
     if docker buildx inspect "$builder" >/dev/null 2>&1; then
+        # Builder exists — self-heal if its running buildkitd is missing an insecure registry
+        # the config now declares (only when we can actually read the running config; never
+        # destroy a builder we cannot verify).
+        if [ -f "$cfg" ]; then
+            local node="buildx_buildkit_${builder}0" running h stale=0
+            running="$(docker exec "$node" cat /etc/buildkit/buildkitd.toml 2>/dev/null || true)"
+            if [ -n "$running" ]; then
+                for h in $(grep -oE '\[registry\."[^"]+"\]' "$cfg" | sed -E 's/.*"([^"]+)".*/\1/'); do
+                    printf '%s\n' "$running" | grep -qF "\"$h\"" || stale=1
+                done
+                if [ "$stale" = 1 ]; then
+                    pf_log "buildx builder '$builder' buildkitd config is stale (missing an insecure registry) — recreating"
+                    docker buildx rm "$builder" >/dev/null 2>&1 || true
+                    "${create[@]}" >/dev/null || pf_die "failed to recreate buildx builder '$builder'"
+                fi
+            fi
+        fi
         return 0
     fi
-    pf_log "creating docker-container buildx builder '$builder' (grants security.insecure)"
-    docker buildx create --name "$builder" --driver docker-container \
-        --buildkitd-flags '--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host' \
-        --bootstrap >/dev/null \
-        || pf_die "failed to create buildx builder '$builder'"
+    pf_log "creating docker-container buildx builder '$builder' (security.insecure${cfg:+; buildkitd config $cfg})"
+    "${create[@]}" >/dev/null || pf_die "failed to create buildx builder '$builder'"
 }
 
 pf_os_image_dockerbuild() {
