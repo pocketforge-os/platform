@@ -7,7 +7,10 @@
 # The core contains ZERO family vocabulary (ci/core-purity-check.sh enforces this).
 #
 #   pf build --device <id> --artifact {os-image|containers} --target {ci-dell|dev-modelmaker}
-#            [--dry-run|--no-dry-run] [--bead <id>] [--image-repo <path>]
+#            [--dry-run|--no-dry-run] [--stage-only] [--bead <id>] [--image-repo <path>]
+#
+# --stage-only materializes the pinned source contexts (git archive of each platform.lock
+# SHA) and stops — the first half of a real build, and a standalone CI/debug step.
 #
 # B4.0 (tsp-1dl.4.1): the os-image path constructs a MULTISTAGE `docker build` of
 # image/build/Dockerfile.pf from the platform.lock-pinned SHAs (never a branch tip), with
@@ -34,6 +37,7 @@ while [ "$#" -gt 0 ]; do
         --image-repo) PF_IMAGE_REPO="$2"; shift 2 ;;
         --dry-run)    PF_DRY_RUN=1; shift ;;
         --no-dry-run) PF_DRY_RUN=0; shift ;;
+        --stage-only) PF_STAGE_ONLY=1; shift ;;
         -h|--help)    grep '^#' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) pf_die "unknown arg: $1" ;;
     esac
@@ -62,26 +66,65 @@ run_hook() {
     bash "$path" "$@"
 }
 
+# pf_find_git_source <repo> <mirror_dir> — print a usable --git-dir for <repo>, else return 1.
+# Search order: a bare mirror (mirror_dir/<repo>.git or $HOME/<repo>.git) then a checkout
+# ($HOME/<repo>/.git). Bare-mirror-per-host is the transport of record (docs/KERNEL-SOURCE-
+# STRATEGY.md §2); a checkout is the fallback for a dev box.
+pf_find_git_source() {
+    local repo="$1" mirror_dir="$2" c
+    for c in "$mirror_dir/$repo.git" "$HOME/$repo.git" "$HOME/$repo/.git"; do
+        [ -d "$c" ] && git --git-dir="$c" rev-parse --git-dir >/dev/null 2>&1 && { printf '%s\n' "$c"; return 0; }
+    done
+    return 1
+}
+
 # pf_stage_sources <src_dir> <buildargs-text>
 # Materialize each source repo as a `git archive` of its platform.lock SHA under
-# <src_dir>/<repo>/ (the named build contexts the Dockerfile COPYs from). NEVER a clone
+# <src_dir>/<logical>/ (the named build contexts the Dockerfile COPYs from). NEVER a clone
 # inside the build — the archive of a content-addressed SHA is byte-identical regardless of
-# transport (docs/KERNEL-SOURCE-STRATEGY.md §3). The actual per-repo archiving + the stages
-# that consume it land in tsp-1dl.4.2..4.5; B4.0 is scaffolding.
+# transport, and needs no live remote (docs/KERNEL-SOURCE-STRATEGY.md §3). The SHA is pinned
+# by platform.lock; if it is missing from the local source we do a targeted fetch. Set
+# PF_STAGE_ALLOW_MISSING=1 to warn+skip a repo with no local source (partial/dev staging)
+# instead of failing.
 pf_stage_sources() {
-    pf_die "source-archive staging (git archive of the lock SHA → named build contexts) lands in tsp-1dl.4.2+ (bare-mirror flow). B4.0 is scaffolding — use --dry-run to preview the exact build command."
+    local src_dir="$1" ba="$2"
+    local mirror_dir="${PF_MIRROR_DIR:-$HOME/wt/.mirrors}"
+    v() { sed -n "s/^$1=//p" <<< "$ba"; }
+    # logical-context-dir | repo | sha  (order matches the --build-context args below)
+    local -a specs=(
+        "image|image|$(v PF_IMAGE_SHA)"
+        "kernel|$(v PF_KERNEL_REPO)|$(v PF_KERNEL_SHA)"
+        "gpu|$(v PF_GPU_REPO)|$(v PF_GPU_SHA)"
+        "libsdl3-sunxifb|libsdl3-sunxifb|$(v PF_LIBSDL3_SHA)"
+        "blobs|blobs|$(v PF_BLOBS_SHA)"
+    )
+    local spec logical repo sha gitdir dest n
+    for spec in "${specs[@]}"; do
+        IFS='|' read -r logical repo sha <<< "$spec"
+        [ -n "$repo" ] && [ "$repo" != "none" ] || { pf_log "stage: skip $logical (no repo)"; continue; }
+        [ -n "$sha" ] || pf_die "stage: no platform.lock SHA for $repo ($logical) — run \`pf lock\`"
+        if ! gitdir="$(pf_find_git_source "$repo" "$mirror_dir")"; then
+            if [ "${PF_STAGE_ALLOW_MISSING:-0}" = 1 ]; then
+                pf_log "stage: WARN no local git source for $repo — skipping ($logical) [PF_STAGE_ALLOW_MISSING=1]"; continue
+            fi
+            pf_die "stage: no local git source for $repo — provision a bare mirror at $mirror_dir/$repo.git (\`git clone --bare <url>\`) or a checkout at \$HOME/$repo"
+        fi
+        if ! git --git-dir="$gitdir" cat-file -e "${sha}^{commit}" 2>/dev/null; then
+            pf_log "stage: $repo missing $sha in $gitdir — targeted fetch"
+            git --git-dir="$gitdir" fetch -q origin "$sha" 2>/dev/null \
+                || git --git-dir="$gitdir" fetch -q origin 2>/dev/null || true
+            git --git-dir="$gitdir" cat-file -e "${sha}^{commit}" 2>/dev/null \
+                || pf_die "stage: SHA $sha absent from $repo after fetch — is platform.lock stale for this repo?"
+        fi
+        dest="$src_dir/$logical"; rm -rf "$dest"; mkdir -p "$dest"
+        git --git-dir="$gitdir" archive --format=tar "$sha" | tar -x -C "$dest"
+        n="$(find "$dest" -type f | wc -l)"
+        pf_log "stage: $logical <- $repo@${sha:0:12}  ($n files, src=$gitdir)"
+    done
 }
 
 # pf_os_image_dockerbuild — construct the multistage os-image `docker build` (B4.0).
 pf_os_image_dockerbuild() {
-    local dockerfile="$PF_IMAGE_REPO/build/Dockerfile.pf"
-    [ -f "$dockerfile" ] || pf_die "missing $dockerfile — B4.0 multistage Dockerfile (build it in the image worktree)"
-    local pin_file="$PF_IMAGE_REPO/container.pin"
-    [ -f "$pin_file" ] || pf_die "missing $pin_file (owned build-container digest)"
-    local container; container="$(grep -v '^[[:space:]]*#' "$pin_file" | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')"
-    local snap="20260601T000000Z"
-    [ -f "$PF_IMAGE_REPO/snapshot-date.txt" ] && snap="$(tr -d '[:space:]' < "$PF_IMAGE_REPO/snapshot-date.txt")"
-
     # Lock-pinned build-arg surface (the ONE place that reads profile+lock).
     local ba; ba="$("$PF_PY" "$PF_PLATFORM_DIR/core/profile.py" buildargs "$DEVICE")" \
         || pf_die "profile.py buildargs failed for $DEVICE"
@@ -95,6 +138,23 @@ pf_os_image_dockerbuild() {
     [ -z "$missing" ] || pf_die "platform.lock missing SHAs for $DEVICE: $missing — re-seed (\`pf lock\`)"
 
     local cache_dir="/tmp/pf-build/$BEAD/cache" src_dir="/tmp/pf-build/$BEAD/src"
+
+    # --stage-only: materialize the pinned source contexts and stop (CI/debug; also the
+    # first half of a real build). Needs neither the Dockerfile nor the container digest.
+    if [ "${PF_STAGE_ONLY:-0}" = 1 ]; then
+        pf_log "stage-only: materializing source contexts for $DEVICE under $src_dir/"
+        pf_stage_sources "$src_dir" "$ba"
+        pf_log "stage-only: done ($src_dir/)"
+        return 0
+    fi
+
+    local dockerfile="$PF_IMAGE_REPO/build/Dockerfile.pf"
+    [ -f "$dockerfile" ] || pf_die "missing $dockerfile — B4.0 multistage Dockerfile (build it in the image worktree)"
+    local pin_file="$PF_IMAGE_REPO/container.pin"
+    [ -f "$pin_file" ] || pf_die "missing $pin_file (owned build-container digest)"
+    local container; container="$(grep -v '^[[:space:]]*#' "$pin_file" | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')"
+    local snap="20260601T000000Z"
+    [ -f "$PF_IMAGE_REPO/snapshot-date.txt" ] && snap="$(tr -d '[:space:]' < "$PF_IMAGE_REPO/snapshot-date.txt")"
 
     # Reproducibility stamp: the image commit time. Best-effort at B4.0; the kernel stage
     # (tsp-1dl.4.2) hard-pins KBUILD_BUILD_{TIMESTAMP,USER,HOST} from SOURCE_DATE_EPOCH too.
