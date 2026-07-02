@@ -107,6 +107,7 @@ pf_stage_sources() {
         "gpu|$(v PF_GPU_REPO)|$(v PF_GPU_SHA)"
         "libsdl3-sunxifb|libsdl3-sunxifb|$(v PF_LIBSDL3_SHA)"
         "blobs|blobs|$(v PF_BLOBS_SHA)"
+        "vendor-manifest|vendor-manifest|$(v PF_VENDOR_MANIFEST_SHA)"
     )
     local spec logical repo sha gitdir dest n
     for spec in "${specs[@]}"; do
@@ -134,6 +135,22 @@ pf_stage_sources() {
 }
 
 # pf_os_image_dockerbuild — construct the multistage os-image `docker build` (B4.0).
+# Create-if-missing the docker-container buildx builder that grants the security.insecure
+# entitlement (the rootfs + assemble stages run privileged debootstrap/image-assembly steps that
+# need SYS_ADMIN/mount). Idempotent: a no-op once the builder exists. Every build host (modelmaker,
+# Dell CI) converges to the same named builder. See the tsp-buildkit-insecure-mmdebstrap memory.
+pf_ensure_insecure_builder() {
+    local builder="$1"
+    if docker buildx inspect "$builder" >/dev/null 2>&1; then
+        return 0
+    fi
+    pf_log "creating docker-container buildx builder '$builder' (grants security.insecure)"
+    docker buildx create --name "$builder" --driver docker-container \
+        --buildkitd-flags '--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host' \
+        --bootstrap >/dev/null \
+        || pf_die "failed to create buildx builder '$builder'"
+}
+
 pf_os_image_dockerbuild() {
     # Lock-pinned build-arg surface (the ONE place that reads profile+lock).
     local ba; ba="$("$PF_PY" "$PF_PLATFORM_DIR/core/profile.py" buildargs "$DEVICE")" \
@@ -161,8 +178,18 @@ pf_os_image_dockerbuild() {
     local dockerfile="$PF_IMAGE_REPO/build/Dockerfile.pf"
     [ -f "$dockerfile" ] || pf_die "missing $dockerfile — B4.0 multistage Dockerfile (build it in the image worktree)"
     local pin_file="$PF_IMAGE_REPO/container.pin"
-    [ -f "$pin_file" ] || pf_die "missing $pin_file (owned build-container digest)"
-    local container; container="$(grep -v '^[[:space:]]*#' "$pin_file" | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')"
+    local container
+    if [ -n "${PF_CONTAINER_OVERRIDE:-}" ]; then
+        # DEV escape hatch: the docker-container builder can only pull the owned build container
+        # from a registry, and container.pin may point at a not-yet-registry-hosted digest. A dev
+        # can point at a locally-reachable registry ref (e.g. localhost:5000/pocketforge/build@...).
+        # CI/release always resolve the committed container.pin (no override).
+        container="$PF_CONTAINER_OVERRIDE"
+        pf_log "PF_CONTAINER_OVERRIDE set — using $container (dev; NOT the committed container.pin)"
+    else
+        [ -f "$pin_file" ] || pf_die "missing $pin_file (owned build-container digest)"
+        container="$(grep -v '^[[:space:]]*#' "$pin_file" | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')"
+    fi
     local snap="20260601T000000Z"
     [ -f "$PF_IMAGE_REPO/snapshot-date.txt" ] && snap="$(tr -d '[:space:]' < "$PF_IMAGE_REPO/snapshot-date.txt")"
 
@@ -179,13 +206,34 @@ pf_os_image_dockerbuild() {
     sde="$(pf_commit_epoch image "$image_sha" "$mirror_dir")"
     k_sde="$(pf_commit_epoch "$kernel_repo" "$kernel_sha" "$mirror_dir")"
 
+    # The rootfs stage does a privileged debootstrap (real chroot/mount) and the assemble stage
+    # builds the disk image — both need SYS_ADMIN, which BuildKit grants ONLY under
+    # `RUN --security=insecure` on a builder that allows the security.insecure entitlement. The
+    # DEFAULT docker builder refuses it (no dockerd reconfig here), so we use a dedicated
+    # docker-container buildx builder created with the entitlement. Driver choice does not change
+    # output bytes. See the tsp-buildkit-insecure-mmdebstrap memory.
+    local builder="${PF_BUILDX_BUILDER:-pf-insecure}"
+
     local -a cmd=( docker buildx build
+        --builder "$builder"
+        --allow security.insecure
         --file "$dockerfile"
         --target export
         --build-arg "PF_CONTAINER=$container"
         --build-arg "APT_SNAPSHOT_DATE=$snap" )
     [ -n "$sde" ]   && cmd+=( --build-arg "SOURCE_DATE_EPOCH=$sde" )
     [ -n "$k_sde" ] && cmd+=( --build-arg "PF_KERNEL_SOURCE_DATE_EPOCH=$k_sde" )
+    # Optional transparent apt cache proxy (e.g. the NAS apt-cacher-ng at http://10.0.32.86:3142).
+    # Fetch transport only — apt verifies every .deb vs the signed snapshot index, so it never
+    # changes output bytes (R1 / G-reproducible safe). Opt-in via the PF_APT_PROXY env; a CI host
+    # points it at its own cache (or leaves it unset for direct snapshot).
+    [ -n "${PF_APT_PROXY:-}" ] && cmd+=( --build-arg "PF_APT_PROXY=$PF_APT_PROXY" )
+    # Hermetic blob-fetch (B3 / tsp-1dl.3): PF_FETCH_MODE=fallback selects the git-clone-blobs path
+    # (merge-1 safety); default hermetic (the FETCH stage's ARG default). PF_CAR_SHA256 is the
+    # vendor-originals.car rot-detection gate (hermetic only) — from platform.lock [car].sha256
+    # (agent-docqueue re-pins at merge) or the env for a dev verify. Both opt-in; unset = FETCH defaults.
+    [ -n "${PF_FETCH_MODE:-}" ] && cmd+=( --build-arg "PF_FETCH_MODE=$PF_FETCH_MODE" )
+    [ -n "${PF_CAR_SHA256:-}" ] && cmd+=( --build-arg "PF_CAR_SHA256=$PF_CAR_SHA256" )
     local line
     while IFS= read -r line; do
         case "$line" in PF_LOCK_STATE=*|PF_LOCK_MISSING_SHAS=*|"") continue ;; esac
@@ -196,7 +244,9 @@ pf_os_image_dockerbuild() {
            --build-context "kernel-src=$src_dir/kernel"
            --build-context "gpu-src=$src_dir/gpu"
            --build-context "sdl-src=$src_dir/libsdl3-sunxifb"
-           --build-context "blobs-src=$src_dir/blobs" )
+           --build-context "blobs-src=$src_dir/blobs"
+           --build-context "vendor-manifest-src=$src_dir/vendor-manifest"
+           --build-context "blobs-car=${PF_CAR_DIR:-$HOME/.pf-car}" )
     # Local BuildKit cache export (tsp-1dl.4.7): emit ONLY for ci-dell. On a persistent dev host
     # docker's own layer cache already persists between builds for free, so an explicit
     # type=local,mode=max export buys nothing — and mode=max serializes+compresses EVERY intermediate
@@ -219,6 +269,7 @@ pf_os_image_dockerbuild() {
     fi
     pf_stage_sources "$src_dir" "$ba"
     [ "$TARGET" = ci-dell ] && mkdir -p "$cache_dir"
+    pf_ensure_insecure_builder "$builder"
     pf_log "EXEC os-image multistage build"
     "${cmd[@]}"
 }

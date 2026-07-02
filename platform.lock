@@ -43,8 +43,8 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"
-sha  = "0cc059c5523d9d7d7cb40583664d66d4e15eddc1"
+ref  = "main"          # co-land MERGED (B4.4/B3, image#8): rootfs+assemble + PF_APT_PROXY + kubo-in-base + hermetic FETCH + blob-path reorg.
+sha  = "22ed8187a99a89d4e03cef011555cafd6e9ea4d0"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -85,17 +85,28 @@ sha  = "deaba081685170ffff0aec9f7a260ad1586840fe"
 [[repos]]
 name = "blobs"                # private; preserved vendor originals + apply-*.py + *.SHA256 (text-only after B3)
 url  = "https://github.com/pocketforge-os/blobs.git"
-ref  = "main"
-sha  = "dabe5e77aca4f2b63182a1d232c121f9b43e031c"
+ref  = "main"                # co-land MERGED (merge-1, reorg-only; sunxi/a133/ paths, binaries retained). -strip (merge-2) gated on >=2 .car custody.
+sha  = "481b944c0542d5df318037a9330295016ef00d8a"
 
 [[repos]]
 name = "vendor-manifest"      # private; group -> SHA-256 -> CID map + fetch-group.py (B3 pins this SHA)
 url  = "https://github.com/pocketforge-os/vendor-manifest.git"
-ref  = "main"
-sha  = "34387ac0c3095905b3bf44f145a7dab090b6dd9d"   # B3: +family/device/soc/category + fetch-group.py + CARv2 (vendor-manifest#1)
+ref  = "main"                # co-land MERGED: path reorg (sunxi/a133/) + boot-chain rename + wifi split + fetch-group.py. 49 CIDs unchanged.
+sha  = "a34def1ff7c23db4890e8ec601b54b71cf068bb9"
 
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
-ref  = "main"
-sha  = "c1cacb08567a626aabd6071ff7832fab28dfb7fc"
+ref  = "main"                # co-land MERGED: UM blob path reorg tsp/ -> sunxi/a133/ (libsdl3-sunxifb#2).
+sha  = "6eb2f2ae4d5954081835a4d2ec60faf3da69bf27"
+
+# Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
+# dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy
+# the build consumes — NOT a reproducibility gate (kubo emits CARv1; the .car is not byte-reproducible).
+# The reproducibility ANCHOR is the per-blob CID+sha256 in the vendor-manifest, re-verified in-stage by
+# fetch-group.py. Pinned so a build fetches a known-good .car copy.
+[car]
+sha256          = "75ad66fe9d47fbe6cb0b086f972ed8ee33b4c6ddd0ccd7d06dc8bfe81b00306a"
+file_count      = 47
+manifest_sha256 = "cb4a1d3f40d6f8502212f7d396f5fad0f548c3c5e624d5fb2cdc716988ce9889"
+# custody (3-2-1-1-0): git history (blobs, pre-strip) + AWS vault + mm:~/.pf-car (dev) + offline-cold (tsp-48j.6)
