@@ -4,9 +4,14 @@
 # branch tip (the Yocto AUTOREV / floating-branch reproducibility trap). `pf lock`
 # freezes the current checkouts into this file.
 #
-# ⚠ UNSEEDED in B1 (tsp-1dl.1): every `sha = ""`. Seeding is bead tsp-1dl.1.1, GATED on
-#   A1 (clean owned trees) + B2 (kernel re-home) — BOTH move these SHAs, so seeding now
-#   would pin phantom refs. Until seeded=true, `pf build` may only do dev builds.
+# SEEDING (bead tsp-1dl.1.1) — two-stage, run via `pf lock`:
+#   • INTERIM (seeded=false, interim_seed=true): SHAs = tips of the declared refs at seed
+#     time. DEV-ONLY / non-authoritative — dev builds resolve real SHAs; RELEASE builds are
+#     refused. Permitted now (owner decision 2026-07-01) to unblock B4 (tsp-1dl.4). Re-runs
+#     re-pin to current tips, so the pinned SHAs may move until the authoritative seed.
+#   • AUTHORITATIVE (seeded=true): the release lock. Only valid AFTER A1 + the B2 (tsp-1dl.2)
+#     hardware retest land — BOTH move the kernel SHAs; seeding before then pins phantom refs.
+#   `pf lock` (preview) → `pf lock --interim` (now) → `pf lock --authoritative --i-know-b2-is-done` (post-B2).
 #
 # TOPOLOGY (B2/tsp-1dl.2, owner-approved 2026-06-25) — kernel SPLIT per (family, line);
 # GPU stays PER-IP; bootchain consolidation DROPPED (repos kept separate):
@@ -20,63 +25,64 @@
 
 lockfile_version = 1
 seeded           = false
+interim_seed     = true
 
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
 ref  = "main"
-sha  = ""              # SEED_IN_tsp-1dl.1.1
+sha  = "0cc059c5523d9d7d7cb40583664d66d4e15eddc1"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
 ref  = "device/a133"
-sha  = ""
+sha  = "a0e7b9c172a380e2df67df7ca67eaed6e6d196ec"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
 url  = "https://github.com/pocketforge-os/kernel-sunxi-5.15.git"   #  = AvaotaSBC base for fork-tracking.
 ref  = "device/a523"
-sha  = ""
+sha  = "de920d4e495ca0e1f2aff908feda0f8de640a53e"
 
 [[repos]]
 name = "gpu-km-tsp"           # PowerVR DDK 1.19 (A133) — PER-IP, unchanged (NOT collapsed)
 url  = "https://github.com/pocketforge-os/gpu-km-tsp.git"
 ref  = "main"
-sha  = ""
+sha  = "b60161fd727ff4eed7ac07c4a34efae47f48eac3"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
 url  = "https://github.com/pocketforge-os/gpu-km-tsp-a523.git"
 ref  = "master"
-sha  = ""
+sha  = "3deecd9bf607051b567f7edb392b405b287132a6"
 
 [[repos]]
 name = "u-boot-tsp-a523"      # owned A523 U-Boot; kept separate (bootchain-sunxi consolidation DROPPED — infra-025)
 url  = "https://github.com/pocketforge-os/u-boot-tsp-a523.git"
-ref  = "pf-main"
-sha  = ""
+ref  = "main"                 # standardized to `main` (was `pf-main`, which no longer exists — fixed tsp-1dl.1.1)
+sha  = "e195dd28d5401b5c73f70e16950081b8b2b3a031"
 
 [[repos]]
 name = "tfa-tsp-a523"         # owned A523 TF-A; kept separate (bootchain-sunxi consolidation DROPPED — infra-025)
 url  = "https://github.com/pocketforge-os/tfa-tsp-a523.git"
 ref  = "main"
-sha  = ""
+sha  = "deaba081685170ffff0aec9f7a260ad1586840fe"
 
 [[repos]]
 name = "blobs"                # private; preserved vendor originals + apply-*.py + *.SHA256 (text-only after B3)
 url  = "https://github.com/pocketforge-os/blobs.git"
 ref  = "main"
-sha  = ""
+sha  = "dabe5e77aca4f2b63182a1d232c121f9b43e031c"
 
 [[repos]]
 name = "vendor-manifest"      # private; signed group -> SHA-256 -> CID map (B3 pins this SHA)
 url  = "https://github.com/pocketforge-os/vendor-manifest.git"
 ref  = "main"
-sha  = ""
+sha  = "52a470aa52e372b2e4df7354454d8a7f9b6420c5"
 
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
 ref  = "main"
-sha  = ""
+sha  = "c1cacb08567a626aabd6071ff7832fab28dfb7fc"
