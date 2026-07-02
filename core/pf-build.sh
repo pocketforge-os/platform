@@ -177,8 +177,18 @@ pf_os_image_dockerbuild() {
     local dockerfile="$PF_IMAGE_REPO/build/Dockerfile.pf"
     [ -f "$dockerfile" ] || pf_die "missing $dockerfile — B4.0 multistage Dockerfile (build it in the image worktree)"
     local pin_file="$PF_IMAGE_REPO/container.pin"
-    [ -f "$pin_file" ] || pf_die "missing $pin_file (owned build-container digest)"
-    local container; container="$(grep -v '^[[:space:]]*#' "$pin_file" | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')"
+    local container
+    if [ -n "${PF_CONTAINER_OVERRIDE:-}" ]; then
+        # DEV escape hatch: the docker-container builder can only pull the owned build container
+        # from a registry, and container.pin may point at a not-yet-registry-hosted digest. A dev
+        # can point at a locally-reachable registry ref (e.g. localhost:5000/pocketforge/build@...).
+        # CI/release always resolve the committed container.pin (no override).
+        container="$PF_CONTAINER_OVERRIDE"
+        pf_log "PF_CONTAINER_OVERRIDE set — using $container (dev; NOT the committed container.pin)"
+    else
+        [ -f "$pin_file" ] || pf_die "missing $pin_file (owned build-container digest)"
+        container="$(grep -v '^[[:space:]]*#' "$pin_file" | grep -v '^[[:space:]]*$' | head -1 | tr -d '[:space:]')"
+    fi
     local snap="20260601T000000Z"
     [ -f "$PF_IMAGE_REPO/snapshot-date.txt" ] && snap="$(tr -d '[:space:]' < "$PF_IMAGE_REPO/snapshot-date.txt")"
 
