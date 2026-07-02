@@ -44,7 +44,7 @@ manifest_signing_active = false
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
 ref  = "tsp-1dl.4.5"   # DEV pin to the B4.4/co-land WIP branch (rootfs+assemble + PF_APT_PROXY + blob-path reorg + hermetic FETCH). Re-pins to main@<merged-sha> at co-land.
-sha  = "15391834189fa48f70c964722bd7881b7ac2b9f9"
+sha  = "eb8d520a0743915f4e92ef10dfd5613fe76b7bab"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
