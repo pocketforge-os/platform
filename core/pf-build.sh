@@ -16,9 +16,10 @@
 # image/build/Dockerfile.pf from the platform.lock-pinned SHAs (never a branch tip), with
 # bead-id-keyed output/cache/source dirs. Source repos are delivered as named build CONTEXTS
 # (a `git archive` of each lock SHA — NEVER a clone in the build; docs/KERNEL-SOURCE-STRATEGY.md
-# §3). ADDITIVE: the legacy `make build-image` path is untouched and the M-1 hook-dispatch seam
-# is still reachable via PF_ENGINE=hooks. The per-stage builds (kernel/GPU/SDL/rootfs/assemble)
-# land in tsp-1dl.4.2..4.5; --dry-run previews the exact command today.
+# §3). The multistage docker build is now the SOLE os-image path; the legacy host-orchestrated
+# `make build-image` build was retired (tsp-1dl.4.5, code removed tsp-7xe). The M-1 hook-dispatch
+# seam is still reachable via PF_ENGINE=hooks as a dispatch demo. The per-stage builds
+# (kernel/GPU/SDL/rootfs/assemble) land in tsp-1dl.4.2..4.5; --dry-run previews the exact command.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 # shellcheck source=core/lib/common.sh
@@ -306,9 +307,10 @@ pf_os_image_dockerbuild() {
 
 if [ "$ARTIFACT" = "os-image" ]; then
     if [ "${PF_ENGINE:-docker}" = "hooks" ]; then
-        # M-1 seam demo (legacy engine): dispatch the family hooks (DRY). Kept for the seam test.
+        # M-1 seam demo: dispatch the family hooks (DRY). Kept for the seam test only —
+        # the real os-image build is the multistage docker path below (PF_ENGINE=docker).
         pf_log "engine=hooks (M-1 seam demo): core fetch blob groups [$PF_BLOB_GROUPS] (B3 fetch-by-CID — stub)"
-        pf_log "engine=hooks: core build_rootfs (mmdebstrap — legacy image/ build)"
+        pf_log "engine=hooks: core build_rootfs (mmdebstrap — seam demo)"
         run_hook build-kernel.sh
         run_hook build-bootchain.sh
         run_hook assemble-image.sh

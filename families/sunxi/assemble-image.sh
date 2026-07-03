@@ -10,17 +10,18 @@
 #   - a523 (assembler=family-script, boot_proto=extlinux): mainline U-Boot SPL +
 #     extlinux                                              (image/boards/tsp-s/assemble-sd.sh)
 #
-# M-1 SKELETON (tsp-1dl.1): the real assemble lives in the legacy `image` build, which
-# is device-specific and NOT cleanly BOARD-parameterized (a133 = `make build-image`
-# with substrate mounts; a523 = boards/tsp-s/assemble-sd.sh + build-rootfs-a523.sh) and
-# builds kernel/GPU/SDL OUTSIDE the container with LOCAL_BLOBS. B4 (tsp-1dl.4) RETIRES
-# this for one container-multistage assemble from platform.lock SHAs. Until then this
-# hook prints the legacy invocation (DRY by default); set PF_DRY_RUN=0 to actually
+# M-1 SKELETON (tsp-1dl.1): the a523 seam still maps to today's legacy `image` build
+# (a523 = boards/tsp-s/assemble-sd.sh + build-rootfs-a523.sh), which is device-specific
+# and NOT cleanly BOARD-parameterized. The a133 legacy assemble (`make build-image` with
+# substrate mounts) was RETIRED (B4 / tsp-1dl.4.5; code removed tsp-7xe) — a133 now builds
+# via the container multistage (image/build/Dockerfile.pf, PF_ENGINE=docker default), not
+# this hook. The a523 branch stays until the A523 migration onto pf build (tsp-jet). Until
+# then this hook prints the legacy invocation (DRY by default); set PF_DRY_RUN=0 to actually
 # shell it (requires the legacy env: BLOBS_SRC/KERNEL_*_SRC/GPU_*_SRC/LIBSDL3_SRC).
 set -euo pipefail
 : "${PF_IMAGE_REPO:?set PF_IMAGE_REPO to the image-repo checkout (M-1 legacy build)}"
 case "$PF_DEVICE_ID" in
-  a133) legacy_board=tsp   ; legacy="make -C '$PF_IMAGE_REPO' build-image   # + SUBSTRATE/BLOBS_SRC/KERNEL_TSP_SRC/GPU_KM_TSP_SRC/LIBSDL3_SRC" ;;
+  a133) echo "[sunxi/assemble_image] a133 legacy assemble is RETIRED (tsp-7xe) — build via the container multistage (pf build, PF_ENGINE=docker default), not the hooks seam." >&2; exit 2 ;;
   a523) legacy_board=tsp-s ; legacy="bash '$PF_IMAGE_REPO/boards/tsp-s/assemble-sd.sh'  # + build-rootfs-a523.sh, board.env" ;;
   *) echo "[sunxi/assemble_image] no legacy-board mapping for device=$PF_DEVICE_ID" >&2; exit 2 ;;
 esac
