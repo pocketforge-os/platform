@@ -52,8 +52,6 @@ This is the **ungated B1 skeleton**: the registry + `core/` + `families/sunxi/` 
   exactly what B4 retires.
 - **Profiles point at TODAY's repos** (M-1 "describe the current build"); B2 collapses
   the sunxi kernel/gpu/bootchain repos to per-family repos (device = branch).
-- **Regression gate** (`pf regression`, `docs/`): the harness + a committed baseline are
-  captured here; enforcement (pf build reproduces the legacy artifact bit-for-bit) is B4.
 
 See `docs/DECISIONS.md` for the architecture decisions + rejected alternatives, and the
 infra-019 kickoff for the full B1..B10 plan.

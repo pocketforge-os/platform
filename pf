@@ -17,7 +17,6 @@
 #   list                       list device ids
 #   repos                      list platform.lock repos + seeded state
 #   purity-check               assert core/ contains zero family vocabulary (B8 CI gate)
-#   regression <baseline|check> --device <id> --artifact <path>   regression-gate harness
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
 PF_PY="${PF_PY:-python3}"
@@ -29,7 +28,6 @@ case "$cmd" in
     build)        exec bash "$ROOT/core/pf-build.sh" "$@" ;;
     lock)         exec bash "$ROOT/core/pf-lock.sh" "$@" ;;
     flash)        exec bash "$ROOT/core/pf-flash.sh" "$@" ;;
-    regression)   exec bash "$ROOT/core/pf-regression.sh" "$@" ;;
     purity-check) exec bash "$ROOT/ci/core-purity-check.sh" "$@" ;;
     caps)         exec "$PF_PY" "$ROOT/core/caps.py" "$@" ;;
     validate|resolve|env|list|repos)
