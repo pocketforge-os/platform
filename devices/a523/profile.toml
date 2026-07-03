@@ -51,7 +51,9 @@ boot_proto    = "extlinux"
 # merge buys nothing). The [bootchain] table references each repo directly. Bootchain OWNERSHIP
 # (fork-tracking + the A133 vendor-blob gap) lives in infra-025. platform.lock seeding is tsp-1dl.1.1.
 uboot.repo    = "u-boot-tsp-a523"            # kept separate (consolidation dropped — infra-025)
-uboot.ref     = "pf-main"
+uboot.ref     = "main"                       # was "pf-main" (a branch that no longer exists); the lock
+                                             # was fixed in tsp-1dl.1.1 — profile drift folded into
+                                             # tsp-jet.1 so a future re-seed can't reintroduce it
 uboot.defconfig = "tg5050_defconfig"
 tfa.repo      = "tfa-tsp-a523"               # kept separate (consolidation dropped — infra-025)
 tfa.ref       = "main"
