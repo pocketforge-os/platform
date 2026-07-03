@@ -278,6 +278,17 @@ pf_os_image_dockerbuild() {
     # (agent-docqueue re-pins at merge) or the env for a dev verify. Both opt-in; unset = FETCH defaults.
     [ -n "${PF_FETCH_MODE:-}" ] && cmd+=( --build-arg "PF_FETCH_MODE=$PF_FETCH_MODE" )
     [ -n "${PF_CAR_SHA256:-}" ] && cmd+=( --build-arg "PF_CAR_SHA256=$PF_CAR_SHA256" )
+    # WiFi credentials (bd tsp-8ba, interim file source for the tsp-zbg#5 design): the
+    # gitignored wifi.txt never enters the lock-ref build contexts, so it reaches the
+    # assemble stage only as a BuildKit secret (never an image layer). PF_WIFI_SHA
+    # cache-busts the consuming RUN — secret content is excluded from BuildKit's cache
+    # key, so a rotated PSK would otherwise reuse the stale cached layer. Opt-in: unset
+    # = today's behavior (image ships WiFi-unconfigured).
+    if [ -n "${PF_WIFI_SECRET_FILE:-}" ]; then
+        [ -r "$PF_WIFI_SECRET_FILE" ] || pf_die "PF_WIFI_SECRET_FILE set but not readable: $PF_WIFI_SECRET_FILE"
+        cmd+=( --secret "id=wifi,src=$PF_WIFI_SECRET_FILE"
+               --build-arg "PF_WIFI_SHA=$(sha256sum "$PF_WIFI_SECRET_FILE" | cut -d' ' -f1)" )
+    fi
     local line
     while IFS= read -r line; do
         case "$line" in PF_LOCK_STATE=*|PF_LOCK_MISSING_SHAS=*|"") continue ;; esac
