@@ -234,6 +234,7 @@ def build_args(dev_id):
     tc = merged.get("toolchain", {})
     img = merged.get("image", {})
     uboot_repo = bc.get("uboot", {}).get("repo", "") or ""
+    tfa_repo = bc.get("tfa", {}).get("repo", "") or ""
 
     args = {
         "PF_DEVICE_ID": dev.get("id", ""),
@@ -261,6 +262,10 @@ def build_args(dev_id):
         "PF_TOOLCHAIN_GCC_VERSION": tc.get("gcc_version", ""),
         "PF_UBOOT_REPO": uboot_repo,
         "PF_UBOOT_SHA": sha(uboot_repo),
+        "PF_UBOOT_DEFCONFIG": bc.get("uboot", {}).get("defconfig", "") or "",
+        "PF_TFA_REPO": tfa_repo,
+        "PF_TFA_SHA": sha(tfa_repo),
+        "PF_TFA_PLAT": bc.get("tfa", {}).get("plat", "") or "",
     }
     # Repos this device genuinely needs a SHA for (repo named, not the "none" sentinel).
     needed = [("PF_KERNEL_SHA", k.get("repo")), ("PF_IMAGE_SHA", "image"),
@@ -269,6 +274,8 @@ def build_args(dev_id):
         needed.append(("PF_GPU_SHA", gpu.get("repo")))
     if uboot_repo:
         needed.append(("PF_UBOOT_SHA", uboot_repo))
+    if tfa_repo:
+        needed.append(("PF_TFA_SHA", tfa_repo))
     missing = [ak for ak, rn in needed if rn and not args.get(ak)]
     state = "authoritative" if lock["seeded"] else ("interim" if lock.get("interim") else "unseeded")
     return args, state, missing

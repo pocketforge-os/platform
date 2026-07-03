@@ -109,11 +109,16 @@ pf_stage_sources() {
         "libsdl3-sunxifb|libsdl3-sunxifb|$(v PF_LIBSDL3_SHA)"
         "blobs|blobs|$(v PF_BLOBS_SHA)"
         "vendor-manifest|vendor-manifest|$(v PF_VENDOR_MANIFEST_SHA)"
+        "uboot|$(v PF_UBOOT_REPO)|$(v PF_UBOOT_SHA)"
+        "tfa|$(v PF_TFA_REPO)|$(v PF_TFA_SHA)"
     )
     local spec logical repo sha gitdir dest n
     for spec in "${specs[@]}"; do
         IFS='|' read -r logical repo sha <<< "$spec"
-        [ -n "$repo" ] && [ "$repo" != "none" ] || { pf_log "stage: skip $logical (no repo)"; continue; }
+        # A device that does not use this source (e.g. no source bootchain) still gets an
+        # EMPTY context dir: the --build-context args below are unconditional, and the
+        # device-gated Dockerfile stages COPY from the empty context harmlessly.
+        [ -n "$repo" ] && [ "$repo" != "none" ] || { pf_log "stage: skip $logical (no repo — empty context)"; rm -rf "$src_dir/$logical"; mkdir -p "$src_dir/$logical"; continue; }
         [ -n "$sha" ] || pf_die "stage: no platform.lock SHA for $repo ($logical) — run \`pf lock\`"
         if ! gitdir="$(pf_find_git_source "$repo" "$mirror_dir")"; then
             if [ "${PF_STAGE_ALLOW_MISSING:-0}" = 1 ]; then
@@ -236,6 +241,13 @@ pf_os_image_dockerbuild() {
     kernel_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_KERNEL_SHA=//p')"
     sde="$(pf_commit_epoch image "$image_sha" "$mirror_dir")"
     k_sde="$(pf_commit_epoch "$kernel_repo" "$kernel_sha" "$mirror_dir")"
+    # The BOOTCHAIN epoch (tsp-jet.1) pins the bootchain stage to the u-boot commit time,
+    # same component-reproducibility rationale as the kernel epoch. Empty for a device
+    # with no source bootchain (the stage no-ops there).
+    local uboot_repo uboot_sha bc_sde=""
+    uboot_repo="$(printf '%s\n' "$ba" | sed -n 's/^PF_UBOOT_REPO=//p')"
+    uboot_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_UBOOT_SHA=//p')"
+    bc_sde="$(pf_commit_epoch "$uboot_repo" "$uboot_sha" "$mirror_dir")"
 
     # The rootfs stage does a privileged debootstrap (real chroot/mount) and the assemble stage
     # builds the disk image — both need SYS_ADMIN, which BuildKit grants ONLY under
@@ -252,8 +264,9 @@ pf_os_image_dockerbuild() {
         --target export
         --build-arg "PF_CONTAINER=$container"
         --build-arg "APT_SNAPSHOT_DATE=$snap" )
-    [ -n "$sde" ]   && cmd+=( --build-arg "SOURCE_DATE_EPOCH=$sde" )
-    [ -n "$k_sde" ] && cmd+=( --build-arg "PF_KERNEL_SOURCE_DATE_EPOCH=$k_sde" )
+    [ -n "$sde" ]    && cmd+=( --build-arg "SOURCE_DATE_EPOCH=$sde" )
+    [ -n "$k_sde" ]  && cmd+=( --build-arg "PF_KERNEL_SOURCE_DATE_EPOCH=$k_sde" )
+    [ -n "$bc_sde" ] && cmd+=( --build-arg "PF_BOOTCHAIN_SOURCE_DATE_EPOCH=$bc_sde" )
     # Optional transparent apt cache proxy (e.g. the NAS apt-cacher-ng at http://10.0.32.86:3142).
     # Fetch transport only — apt verifies every .deb vs the signed snapshot index, so it never
     # changes output bytes (R1 / G-reproducible safe). Opt-in via the PF_APT_PROXY env; a CI host
@@ -277,6 +290,8 @@ pf_os_image_dockerbuild() {
            --build-context "sdl-src=$src_dir/libsdl3-sunxifb"
            --build-context "blobs-src=$src_dir/blobs"
            --build-context "vendor-manifest-src=$src_dir/vendor-manifest"
+           --build-context "uboot-src=$src_dir/uboot"
+           --build-context "tfa-src=$src_dir/tfa"
            --build-context "blobs-car=${PF_CAR_DIR:-$HOME/.pf-car}" )
     # Local BuildKit cache export (tsp-1dl.4.7): emit ONLY for ci-dell. On a persistent dev host
     # docker's own layer cache already persists between builds for free, so an explicit
