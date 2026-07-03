@@ -91,8 +91,8 @@ sha  = "481b944c0542d5df318037a9330295016ef00d8a"
 [[repos]]
 name = "vendor-manifest"      # private; group -> SHA-256 -> CID map + fetch-group.py (B3 pins this SHA)
 url  = "https://github.com/pocketforge-os/vendor-manifest.git"
-ref  = "main"                # co-land MERGED: path reorg (sunxi/a133/) + boot-chain rename + wifi split + fetch-group.py. 49 CIDs unchanged.
-sha  = "a34def1ff7c23db4890e8ec601b54b71cf068bb9"
+ref  = "main"                # tsp-cv7.4.3.2.1: +7 PowerVR-DDK EGL/GLES/KHR headers registered into pvr-ddk-22.102.54.38 (unblocks SDL sunxifb backend). 49 -> 56 CIDs.
+sha  = "1b6e01a8849d6f34689bec3751426d9c0cf8a49e"
 
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
@@ -106,7 +106,7 @@ sha  = "6eb2f2ae4d5954081835a4d2ec60faf3da69bf27"
 # The reproducibility ANCHOR is the per-blob CID+sha256 in the vendor-manifest, re-verified in-stage by
 # fetch-group.py. Pinned so a build fetches a known-good .car copy.
 [car]
-sha256          = "75ad66fe9d47fbe6cb0b086f972ed8ee33b4c6ddd0ccd7d06dc8bfe81b00306a"
-file_count      = 47
-manifest_sha256 = "cb4a1d3f40d6f8502212f7d396f5fad0f548c3c5e624d5fb2cdc716988ce9889"
+sha256          = "100fd858142d9d1fa8d58e84ea998cdb9cf99de8fc90068f9eac0668ecdbffd7"
+file_count      = 54
+manifest_sha256 = "e5fb701405a605a870c2018caa9ea0863a1ff6293b7abcd626149f5a028d099c"
 # custody (3-2-1-1-0): git history (blobs, pre-strip) + AWS vault + mm:~/.pf-car (dev) + offline-cold (tsp-48j.6)
