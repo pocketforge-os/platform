@@ -43,8 +43,8 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-jet.5: +image#25 (a523 initrd cpio --reproducible — closes the a523 cross-host repro gate). Prior: image#23/#24 (a523 rootfs+assemble, first full hermetic a523 image); a133 clean-boot #18-#22.
-sha  = "9a59d24223e034b9984834b36f89a9644f6eff36"
+ref  = "main"          # tsp-h1o: +image#26 (a133 WiFi self-heal watchdog — restart wpa_supplicant on xr819 lost-lease idle drop). Prior: image#25 (a523 initrd cpio --reproducible, a523 cross-host repro gate); image#23/#24 (a523 rootfs+assemble, first full hermetic a523 image); a133 clean-boot #18-#22.
+sha  = "a6e1436f3c814b2ce18528cd1c7fa5260572965b"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
