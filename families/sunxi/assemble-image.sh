@@ -1,35 +1,20 @@
 #!/usr/bin/env bash
 # families/sunxi/assemble-image.sh — sunxi FAMILY hook: assemble_image.
-# Contract: in = kernel + bootchain + rootfs; out = flashable .img + SHA.
 #
-# The sunxi family owns BOTH assemble variants already in the tree (declarative via
-# image.assembler / bootchain.boot_proto), instead of two silently-diverging board
-# scripts (the tsp-bcx.19 class):
-#   - a133 (assembler=genimage, boot_proto=boot_package_fex): vendor boot0 +
-#     dragonsecboot boot_package.fex + abootimg boot.img  (image/boards/tsp/genimage.cfg)
-#   - a523 (assembler=family-script, boot_proto=extlinux): mainline U-Boot SPL +
-#     extlinux                                              (image/boards/tsp-s/assemble-sd.sh)
-#
-# M-1 SKELETON (tsp-1dl.1): the a523 seam still maps to today's legacy `image` build
-# (a523 = boards/tsp-s/assemble-sd.sh + build-rootfs-a523.sh), which is device-specific
-# and NOT cleanly BOARD-parameterized. The a133 legacy assemble (`make build-image` with
-# substrate mounts) was RETIRED (B4 / tsp-1dl.4.5; code removed tsp-7xe) — a133 now builds
-# via the container multistage (image/build/Dockerfile.pf, PF_ENGINE=docker default), not
-# this hook. The a523 branch stays until the A523 migration onto pf build (tsp-jet). Until
-# then this hook prints the legacy invocation (DRY by default); set PF_DRY_RUN=0 to actually
-# shell it (requires the legacy env: BLOBS_SRC/KERNEL_*_SRC/GPU_*_SRC/LIBSDL3_SRC).
+# RETIRED SKELETON (tsp-1dl.1 → fully dead post-tsp-jet). This hook is ONLY reached
+# via the PF_ENGINE=hooks seam demo (dry/test path); the LIVE os-image build is the
+# multistage docker path (pf_os_image_dockerbuild → image/build/Dockerfile.pf,
+# PF_ENGINE=docker default), which never calls this hook. BOTH sunxi devices now
+# assemble in-container:
+#   - a133 legacy assemble retired B4 / tsp-1dl.4.5 (host code removed tsp-7xe).
+#   - a523 legacy assemble retired by tsp-jet (A523 migrated onto pf build; the old
+#     boards/tsp-s/assemble-sd.sh host flow + pocketforge-automation build-a523-*.sh gone).
+# So this hook now exits 2 for every device — a stale seam dispatch fails loud instead
+# of resurrecting a legacy host flow. The real assemble is the Dockerfile.pf `assemble` stage.
 set -euo pipefail
-: "${PF_IMAGE_REPO:?set PF_IMAGE_REPO to the image-repo checkout (M-1 legacy build)}"
-case "$PF_DEVICE_ID" in
-  a133) echo "[sunxi/assemble_image] a133 legacy assemble is RETIRED (tsp-7xe) — build via the container multistage (pf build, PF_ENGINE=docker default), not the hooks seam." >&2; exit 2 ;;
-  a523) legacy_board=tsp-s ; legacy="bash '$PF_IMAGE_REPO/boards/tsp-s/assemble-sd.sh'  # + build-rootfs-a523.sh, board.env" ;;
-  *) echo "[sunxi/assemble_image] no legacy-board mapping for device=$PF_DEVICE_ID" >&2; exit 2 ;;
+case "${PF_DEVICE_ID:-}" in
+  a133) echo "[sunxi/assemble_image] a133 legacy assemble RETIRED (tsp-7xe) — build via the container multistage (pf build, PF_ENGINE=docker default), not this hook." >&2 ;;
+  a523) echo "[sunxi/assemble_image] a523 legacy assemble RETIRED (tsp-jet) — build via the container multistage (pf build, PF_ENGINE=docker default), not this hook." >&2 ;;
+  *)    echo "[sunxi/assemble_image] no legacy assemble mapping for device=${PF_DEVICE_ID:-<unset>} — sunxi assembles via pf build (Dockerfile.pf)." >&2 ;;
 esac
-echo "[sunxi/assemble_image] device=$PF_DEVICE_ID legacy_board=$legacy_board assembler=$PF_IMAGE_ASSEMBLER image_name=$PF_IMAGE_NAME"
-echo "[sunxi/assemble_image] M-1 legacy invocation: $legacy"
-if [ "${PF_DRY_RUN:-1}" = 1 ]; then
-  echo "[sunxi/assemble_image] PF_DRY_RUN=1 (default): not invoking the legacy build (skeleton dispatch only)."
-  exit 0
-fi
-echo "[sunxi/assemble_image] PF_DRY_RUN=0: shelling the legacy image build (needs the full legacy env)."
-eval "$legacy"
+exit 2
