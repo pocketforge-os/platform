@@ -62,7 +62,7 @@ sha  = "de920d4e495ca0e1f2aff908feda0f8de640a53e"
 name = "gpu-km-tsp"           # PowerVR DDK 1.19 (A133) — PER-IP, unchanged (NOT collapsed)
 url  = "https://github.com/pocketforge-os/gpu-km-tsp.git"
 ref  = "main"
-sha  = "b60161fd727ff4eed7ac07c4a34efae47f48eac3"
+sha  = "d8bd603bf1ac72161742e6218a112915933e402a"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
