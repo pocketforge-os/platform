@@ -43,8 +43,8 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # co-land MERGED (B4.4/B3, image#8): rootfs+assemble + PF_APT_PROXY + kubo-in-base + hermetic FETCH + blob-path reorg.
-sha  = "22ed8187a99a89d4e03cef011555cafd6e9ea4d0"
+ref  = "main"          # a133 clean-boot batch MERGED (image#18 jet-boot bootchain stage; #19 wifi BuildKit secret + wpa skip-drop-in; #20 fb-clear; #21 SDL test bins).
+sha  = "bb1981fedf904792b04c85cde00520296af77ba6"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
