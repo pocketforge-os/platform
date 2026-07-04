@@ -43,8 +43,8 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-h1o: +image#26 (a133 WiFi self-heal watchdog — restart wpa_supplicant on xr819 lost-lease idle drop). Prior: image#25 (a523 initrd cpio --reproducible, a523 cross-host repro gate); image#23/#24 (a523 rootfs+assemble, first full hermetic a523 image); a133 clean-boot #18-#22.
-sha  = "a6e1436f3c814b2ce18528cd1c7fa5260572965b"
+ref  = "main"          # tsp-ve5: +image#29 (a133 EGL client-API discovery — PowerVR dev-name dlopen symlinks in multiarch dir; as-shipped testgles2 cube fix). Prior: tsp-3q4 image#28 (a133 initrd cpio --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble); a133 clean-boot #18-#22.
+sha  = "d64acb2ba667ea6f5675bc53fb19ea6fc2c78c5a"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -97,8 +97,8 @@ sha  = "5c3c412a47c654f2bce158886738baaef4b8d5b1"
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
-ref  = "main"                # co-land MERGED: UM blob path reorg tsp/ -> sunxi/a133/ (libsdl3-sunxifb#2).
-sha  = "6eb2f2ae4d5954081835a4d2ec60faf3da69bf27"
+ref  = "main"                # tsp-ve5: +libsdl3-sunxifb#5 (check eglBindAPI return in SDL_EGL_PrivateChooseConfig — clean error instead of DDK blob NULL-deref). Prior: UM blob path reorg tsp/ -> sunxi/a133/ (#2).
+sha  = "8d55dbffed66ba7caeb093b43e39e74347ac5d67"
 
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy
