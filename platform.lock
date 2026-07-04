@@ -43,8 +43,8 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # a133 clean-boot batch MERGED (image#18 jet-boot bootchain stage; #19 wifi BuildKit secret + wpa skip-drop-in; #20 fb-clear; #21 SDL test bins).
-sha  = "8392aa6bde2950a83a45e62c6b1d6ed6a428b774"
+ref  = "main"          # tsp-jet a523 batch MERGED (image#23 jet-root a523 rootfs stage; image#24 jet-asm a523 assemble stage — first full hermetic a523 image); a133 clean-boot batch still landed (image#18/#19/#20/#21/#22).
+sha  = "159299d37c04b89b2b85a23325b094dd58118c2c"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
