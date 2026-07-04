@@ -56,7 +56,7 @@ sha  = "a0e7b9c172a380e2df67df7ca67eaed6e6d196ec"
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
 url  = "https://github.com/pocketforge-os/kernel-sunxi-5.15.git"   #  = AvaotaSBC base for fork-tracking.
 ref  = "device/a523"
-sha  = "de920d4e495ca0e1f2aff908feda0f8de640a53e"
+sha  = "ec6b5cca8393e9f93f9d7001731460830052630b"
 
 [[repos]]
 name = "gpu-km-tsp"           # PowerVR DDK 1.19 (A133) — PER-IP, unchanged (NOT collapsed)
