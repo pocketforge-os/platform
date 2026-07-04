@@ -85,14 +85,14 @@ sha  = "deaba081685170ffff0aec9f7a260ad1586840fe"
 [[repos]]
 name = "blobs"                # private; preserved vendor originals + apply-*.py + *.SHA256 (text-only after B3)
 url  = "https://github.com/pocketforge-os/blobs.git"
-ref  = "main"                # co-land MERGED (merge-1, reorg-only; sunxi/a133/ paths, binaries retained). -strip (merge-2) gated on >=2 .car custody.
-sha  = "481b944c0542d5df318037a9330295016ef00d8a"
+ref  = "main"                # tsp-jet.2: +sunxi/a523/{mali,wifi-firmware} custody records (born text-only — no a523 strip debt). a133 merge-1 state unchanged; -strip (merge-2) still gated.
+sha  = "e269a2cdd72653e589466cddce43623467976f2b"
 
 [[repos]]
 name = "vendor-manifest"      # private; group -> SHA-256 -> CID map + fetch-group.py (B3 pins this SHA)
 url  = "https://github.com/pocketforge-os/vendor-manifest.git"
-ref  = "main"                # tsp-cv7.4.3.2.1: +7 PowerVR-DDK EGL/GLES/KHR headers registered into pvr-ddk-22.102.54.38 (unblocks SDL sunxifb backend). 49 -> 56 CIDs.
-sha  = "1b6e01a8849d6f34689bec3751426d9c0cf8a49e"
+ref  = "main"                # tsp-jet.2: +a523 groups sunxi-a523-mali + sunxi-a523-wifi-firmware (14 blobs, traced provenance). cat-1/2 54 -> 68 distinct CIDs.
+sha  = "5c3c412a47c654f2bce158886738baaef4b8d5b1"
 
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
@@ -106,7 +106,9 @@ sha  = "6eb2f2ae4d5954081835a4d2ec60faf3da69bf27"
 # The reproducibility ANCHOR is the per-blob CID+sha256 in the vendor-manifest, re-verified in-stage by
 # fetch-group.py. Pinned so a build fetches a known-good .car copy.
 [car]
-sha256          = "100fd858142d9d1fa8d58e84ea998cdb9cf99de8fc90068f9eac0668ecdbffd7"
-file_count      = 54
-manifest_sha256 = "e5fb701405a605a870c2018caa9ea0863a1ff6293b7abcd626149f5a028d099c"
-# custody (3-2-1-1-0): git history (blobs, pre-strip) + AWS vault + mm:~/.pf-car (dev) + offline-cold (tsp-48j.6)
+sha256          = "ee4dee45ca46a1d494fbedff1fbd4a99469282e8e5078708f4491c07c28d16e2"
+file_count      = 68
+manifest_sha256 = "d36c32c6d5c04612ba2e3e9f2a5178aa6551511692f746f91c9bb85d3d8f3f8d"
+# custody (3-2-1-1-0): git history (blobs a133 pre-strip; a523 born text-only, tsp-jet.2) + AWS vault (68/68
+# pin-verified 2026-07-03) + mm:~/.pf-car + laptop ~/pf-carv2 (dev) + offline-cold (tsp-48j.6; refresh owed for
+# the 54->68 delta — tracked in tsp-jet.2 close-out)
