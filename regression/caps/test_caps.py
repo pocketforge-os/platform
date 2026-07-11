@@ -179,13 +179,14 @@ def main():
             guid, name, m, rt = "", "", {}, False
         check(f"{did} emit: round-trips through SDL grammar", rt)
         check(f"{did} emit: GUID matches sdl_guid", guid == d["identity"]["sdl_guid"])
-        # L2/R2 are DIGITAL buttons (tsp-5p1), so they emit as lefttrigger:b6/righttrigger:b7
-        # (NOT the ABS axes a2/a5), which inserts at evdev 0x138/0x139 and pushes back/start/guide
-        # to b8/b9/b10 (L3/R3 on a523 follow at b11/b12).
+        # L2/R2 are the X360 TRIGGER AXES (SPIKE-0 on-silicon 2026-07-11: full-swing ABS_Z/RZ,
+        # no BTN_TL2/TR2 advertised — tsp-5p1's digital-button claim refuted), so they emit as
+        # lefttrigger:a2/righttrigger:a5 and back/start/guide sit at their CANONICAL upstream
+        # X360 indices b6/b7/b8 (L3/R3 on a523 follow at b9/b10).
         for f, s in [("a", "b0"), ("b", "b1"), ("x", "b2"), ("y", "b3"),
                      ("leftshoulder", "b4"), ("rightshoulder", "b5"),
-                     ("lefttrigger", "b6"), ("righttrigger", "b7"),
-                     ("back", "b8"), ("start", "b9"), ("guide", "b10"),
+                     ("lefttrigger", "a2"), ("righttrigger", "a5"),
+                     ("back", "b6"), ("start", "b7"), ("guide", "b8"),
                      ("leftx", "a0"), ("lefty", "a1"), ("rightx", "a3"), ("righty", "a4"),
                      ("dpup", "h0.1"), ("dpdown", "h0.4")]:
             check(f"{did} emit: {f}:{s}", m.get(f) == s)
@@ -225,7 +226,12 @@ def main():
     check("probe-diff a133: absinfo mismatch -> WARN (reconcile)", any("reconcile" in x for x in w))
     e, w, i = caps.probe_diff("a523", xpad_capture(home=True))
     check("probe-diff a523: home on keyboard node -> no error", e == [])
-    check("probe-diff a523: IMU flagged as IIO (confirm bind)", any("IIO" in x for x in i))
+    # R3 adjudicated on silicon (2026-07-11): qmi8658/mmc5603 UNBOUND on stock -> the a523
+    # descriptor OMITS [[sensors]] entirely (row omission, never a fabricated row), so
+    # probe-diff emits no IIO confirm-bind INFO for it.
+    _a523 = caps._load(os.path.join(caps.DEVICES, "a523", caps.CAPS_FILE))
+    check("a523 descriptor omits [[sensors]] (R3: unbound on stock)", not _a523.get("sensors"))
+    check("probe-diff a523: no IIO sensor INFO (nothing claimed)", not any("IIO" in x for x in i))
     e, w, i = caps.probe_diff("a523", xpad_capture(home=False))
     check("probe-diff a523: home advertised nowhere -> ERROR", any("KEY_HOMEPAGE" in x for x in e))
 

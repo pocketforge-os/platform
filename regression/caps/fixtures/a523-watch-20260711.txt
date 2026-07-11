@@ -1,0 +1,308 @@
+# SPIKE-0 (tsp-9sx.1) A523 press-test watch transcript — 2026-07-11, stock Buildroot 5.15.147,
+# root@192.168.86.225, evdev-probe.py --watch, all event nodes. Owner pressed the 18-step script
+# (relay via hw-verify-coord). Owner-attested hardware artifacts: L1 hair-trigger (~3 fires at
+# step 8; extra blip after R1), L2 double-fire (graze then real pull at step 10 — the graze's
+# full-swing ABS_Z 255 with zero intermediates is the binary-actuator natural experiment).
+# watching /dev/input/event0 "sunxi-keyboard"
+# watching /dev/input/event1 "pwm-vibrator"
+# watching /dev/input/event2 "axp2202-pek"
+# watching /dev/input/event3 "audiocodec Headphones"
+# watching /dev/input/event4 "TRIMUI Player1"
+[   0.11s] event4 EV_ABS ABS_RX 569
+[   0.25s] event4 EV_ABS ABS_X -2113
+[  86.58s] event4 EV_KEY BTN_B 1
+[  87.67s] event4 EV_KEY BTN_B 0
+[  89.62s] event4 EV_KEY BTN_A 1
+[  90.61s] event4 EV_KEY BTN_A 0
+[  92.88s] event4 EV_KEY BTN_Y 1
+[  93.69s] event4 EV_KEY BTN_Y 0
+[  95.33s] event4 EV_KEY BTN_X 1
+[  96.28s] event4 EV_KEY BTN_X 0
+[  98.74s] event4 EV_KEY BTN_START 1
+[  99.85s] event4 EV_KEY BTN_START 0
+[ 101.64s] event4 EV_KEY BTN_SELECT 1
+[ 102.75s] event4 EV_KEY BTN_SELECT 0
+[ 104.76s] event4 EV_KEY BTN_MODE 1
+[ 105.81s] event4 EV_KEY BTN_MODE 0
+[ 106.81s] event4 EV_KEY BTN_TL 1
+[ 107.26s] event4 EV_KEY BTN_TL 0
+[ 108.19s] event4 EV_KEY BTN_TL 1
+[ 108.34s] event4 EV_KEY BTN_TL 0
+[ 108.86s] event4 EV_KEY BTN_TL 1
+[ 110.55s] event4 EV_KEY BTN_TL 0
+[ 111.34s] event4 EV_KEY BTN_TR 1
+[ 112.84s] event4 EV_KEY BTN_TR 0
+[ 113.05s] event4 EV_KEY BTN_TL 1
+[ 113.17s] event4 EV_KEY BTN_TL 0
+[ 114.05s] event4 EV_ABS ABS_Z 255
+[ 114.60s] event4 EV_ABS ABS_Z 0
+[ 116.57s] event4 EV_ABS ABS_Z 255
+[ 118.79s] event4 EV_ABS ABS_Z 0
+[ 119.95s] event4 EV_ABS ABS_RZ 255
+[ 121.71s] event4 EV_ABS ABS_RZ 0
+[ 124.03s] event4 EV_ABS ABS_HAT0Y -1
+[ 124.32s] event4 EV_ABS ABS_HAT0Y 0
+[ 126.02s] event4 EV_ABS ABS_HAT0Y 1
+[ 126.92s] event4 EV_ABS ABS_HAT0Y 0
+[ 128.04s] event4 EV_ABS ABS_HAT0X -1
+[ 129.11s] event4 EV_ABS ABS_HAT0X 0
+[ 130.58s] event4 EV_ABS ABS_HAT0X 1
+[ 131.53s] event4 EV_ABS ABS_HAT0X 0
+[ 136.53s] event4 EV_ABS ABS_Y 6639
+[ 136.57s] event4 EV_ABS ABS_Y 4333
+[ 136.59s] event4 EV_ABS ABS_X 0
+[ 136.59s] event4 EV_ABS ABS_Y 0
+[ 136.61s] event4 EV_ABS ABS_X -1915
+[ 136.61s] event4 EV_ABS ABS_Y -8823
+[ 136.63s] event4 EV_ABS ABS_Y -13361
+[ 136.66s] event4 EV_ABS ABS_X 527
+[ 136.66s] event4 EV_ABS ABS_Y -17562
+[ 136.68s] event4 EV_ABS ABS_X 1920
+[ 136.68s] event4 EV_ABS ABS_Y -22459
+[ 136.70s] event4 EV_ABS ABS_Y -25076
+[ 136.72s] event4 EV_ABS ABS_X 3166
+[ 136.78s] event4 EV_ABS ABS_X 5108
+[ 136.80s] event4 EV_ABS ABS_X 6860
+[ 136.82s] event4 EV_ABS ABS_X 8591
+[ 136.86s] event4 EV_ABS ABS_X 9899
+[ 136.88s] event4 EV_ABS ABS_X 12369
+[ 136.90s] event4 EV_ABS ABS_X 14817
+[ 136.92s] event4 EV_ABS ABS_X 17625
+[ 136.94s] event4 EV_ABS ABS_X 20496
+[ 136.94s] event4 EV_ABS ABS_Y -22374
+[ 136.96s] event4 EV_ABS ABS_X 23029
+[ 136.96s] event4 EV_ABS ABS_Y -20517
+[ 136.98s] event4 EV_ABS ABS_X 26343
+[ 136.98s] event4 EV_ABS ABS_Y -19482
+[ 137.00s] event4 EV_ABS ABS_Y -18195
+[ 137.02s] event4 EV_ABS ABS_X 28242
+[ 137.02s] event4 EV_ABS ABS_Y -16612
+[ 137.04s] event4 EV_ABS ABS_X 29678
+[ 137.04s] event4 EV_ABS ABS_Y -14290
+[ 137.06s] event4 EV_ABS ABS_X 31577
+[ 137.06s] event4 EV_ABS ABS_Y -11271
+[ 137.08s] event4 EV_ABS ABS_Y -7197
+[ 137.10s] event4 EV_ABS ABS_Y -3862
+[ 137.12s] event4 EV_ABS ABS_Y -1160
+[ 137.14s] event4 EV_ABS ABS_Y 3140
+[ 137.16s] event4 EV_ABS ABS_Y 5506
+[ 137.18s] event4 EV_ABS ABS_Y 7096
+[ 137.20s] event4 EV_ABS ABS_Y 10297
+[ 137.22s] event4 EV_ABS ABS_Y 14113
+[ 137.25s] event4 EV_ABS ABS_Y 19819
+[ 137.27s] event4 EV_ABS ABS_Y 25404
+[ 137.29s] event4 EV_ABS ABS_Y 29957
+[ 137.31s] event4 EV_ABS ABS_Y 32104
+[ 137.33s] event4 EV_ABS ABS_X 24000
+[ 137.35s] event4 EV_ABS ABS_X 13234
+[ 137.37s] event4 EV_ABS ABS_X 4686
+[ 137.39s] event4 EV_ABS ABS_X 2110
+[ 137.41s] event4 EV_ABS ABS_X -484
+[ 137.43s] event4 EV_ABS ABS_X -1937
+[ 137.45s] event4 EV_ABS ABS_X -3060
+[ 137.47s] event4 EV_ABS ABS_X -5129
+[ 137.49s] event4 EV_ABS ABS_X -7529
+[ 137.51s] event4 EV_ABS ABS_X -8872
+[ 137.53s] event4 EV_ABS ABS_X -11404
+[ 137.55s] event4 EV_ABS ABS_X -14860
+[ 137.57s] event4 EV_ABS ABS_X -21950
+[ 137.59s] event4 EV_ABS ABS_X -26023
+[ 137.61s] event4 EV_ABS ABS_X -30360
+[ 137.65s] event4 EV_ABS ABS_Y 30295
+[ 137.67s] event4 EV_ABS ABS_Y 28327
+[ 137.69s] event4 EV_ABS ABS_Y 25881
+[ 137.71s] event4 EV_ABS ABS_Y 16777
+[ 137.73s] event4 EV_ABS ABS_Y 7633
+[ 137.75s] event4 EV_ABS ABS_Y 1908
+[ 137.77s] event4 EV_ABS ABS_Y -1646
+[ 137.79s] event4 EV_ABS ABS_Y -3799
+[ 137.81s] event4 EV_ABS ABS_Y -6332
+[ 137.83s] event4 EV_ABS ABS_Y -9477
+[ 137.86s] event4 EV_ABS ABS_Y -13255
+[ 137.88s] event4 EV_ABS ABS_X -32385
+[ 137.88s] event4 EV_ABS ABS_Y -18216
+[ 137.90s] event4 EV_ABS ABS_X -29347
+[ 137.90s] event4 EV_ABS ABS_Y -21277
+[ 137.92s] event4 EV_ABS ABS_X -22698
+[ 137.92s] event4 EV_ABS ABS_Y -24084
+[ 137.94s] event4 EV_ABS ABS_X -16952
+[ 137.94s] event4 EV_ABS ABS_Y -25878
+[ 137.96s] event4 EV_ABS ABS_X -12527
+[ 137.98s] event4 EV_ABS ABS_X -9444
+[ 137.98s] event4 EV_ABS ABS_Y -27039
+[ 138.00s] event4 EV_ABS ABS_X -5063
+[ 138.02s] event4 EV_ABS ABS_X -2113
+[ 138.04s] event4 EV_ABS ABS_X 1414
+[ 138.06s] event4 EV_ABS ABS_X 3208
+[ 138.08s] event4 EV_ABS ABS_X 4897
+[ 138.10s] event4 EV_ABS ABS_X 6733
+[ 138.40s] event4 EV_ABS ABS_X -4205
+[ 138.40s] event4 EV_ABS ABS_Y 6579
+[ 138.49s] event4 EV_ABS ABS_X -3016
+[ 139.44s] event4 EV_ABS ABS_Y 7971
+[ 139.46s] event4 EV_ABS ABS_X -4579
+[ 139.50s] event4 EV_ABS ABS_Y 9223
+[ 139.54s] event4 EV_ABS ABS_X -5680
+[ 139.54s] event4 EV_ABS ABS_Y 10376
+[ 139.77s] event4 EV_ABS ABS_X -6891
+[ 139.91s] event4 EV_ABS ABS_Y 9223
+[ 139.93s] event4 EV_ABS ABS_Y 7951
+[ 139.97s] event4 EV_ABS ABS_X -4249
+[ 139.97s] event4 EV_ABS ABS_Y 6718
+[ 140.05s] event4 EV_ABS ABS_X -5636
+[ 140.09s] event4 EV_ABS ABS_Y 7792
+[ 140.27s] event4 EV_ABS ABS_X -6869
+[ 140.34s] event4 EV_ABS ABS_Y 8905
+[ 140.36s] event4 EV_ABS ABS_X -8300
+[ 140.38s] event4 EV_KEY BTN_THUMBL 1
+[ 140.38s] event4 EV_ABS ABS_X -9775
+[ 140.50s] event4 EV_ABS ABS_X -10831
+[ 140.68s] event4 EV_ABS ABS_Y 11629
+[ 140.70s] event4 EV_ABS ABS_Y 12682
+[ 140.78s] event4 EV_KEY BTN_THUMBL 0
+[ 140.78s] event4 EV_ABS ABS_X -7573
+[ 140.78s] event4 EV_ABS ABS_Y 11012
+[ 140.80s] event4 EV_ABS ABS_X -4535
+[ 140.80s] event4 EV_ABS ABS_Y 9104
+[ 140.82s] event4 EV_ABS ABS_Y 7911
+[ 143.06s] event4 EV_ABS ABS_RY 4532
+[ 143.13s] event4 EV_ABS ABS_RY 0
+[ 143.17s] event4 EV_ABS ABS_RX -1959
+[ 143.17s] event4 EV_ABS ABS_RY -10638
+[ 143.19s] event4 EV_ABS ABS_RX -3082
+[ 143.19s] event4 EV_ABS ABS_RY -26406
+[ 143.21s] event4 EV_ABS ABS_RX -154
+[ 143.21s] event4 EV_ABS ABS_RY -30290
+[ 143.23s] event4 EV_ABS ABS_RX 2216
+[ 143.59s] event4 EV_ABS ABS_RX 7810
+[ 143.61s] event4 EV_ABS ABS_RX 18385
+[ 143.61s] event4 EV_ABS ABS_RY -28137
+[ 143.63s] event4 EV_ABS ABS_RX 26765
+[ 143.63s] event4 EV_ABS ABS_RY -21340
+[ 143.65s] event4 EV_ABS ABS_RX 30121
+[ 143.65s] event4 EV_ABS ABS_RY -16443
+[ 143.67s] event4 EV_ABS ABS_RX 32760
+[ 143.67s] event4 EV_ABS ABS_RY -9941
+[ 143.69s] event4 EV_ABS ABS_RY -2068
+[ 143.71s] event4 EV_ABS ABS_RY 3180
+[ 143.73s] event4 EV_ABS ABS_RY 4552
+[ 143.75s] event4 EV_ABS ABS_RY 6977
+[ 143.77s] event4 EV_ABS ABS_RY 9521
+[ 143.79s] event4 EV_ABS ABS_RY 14491
+[ 143.81s] event4 EV_ABS ABS_RY 20057
+[ 143.83s] event4 EV_ABS ABS_RY 26716
+[ 143.85s] event4 EV_ABS ABS_RX 29825
+[ 143.86s] event4 EV_ABS ABS_RY 29976
+[ 143.88s] event4 EV_ABS ABS_RX 28285
+[ 143.88s] event4 EV_ABS ABS_RY 32521
+[ 143.90s] event4 EV_ABS ABS_RX 23092
+[ 143.92s] event4 EV_ABS ABS_RX 15493
+[ 143.94s] event4 EV_ABS ABS_RX 8823
+[ 143.96s] event4 EV_ABS ABS_RX 5255
+[ 143.98s] event4 EV_ABS ABS_RX 2701
+[ 144.00s] event4 EV_ABS ABS_RX 1350
+[ 144.02s] event4 EV_ABS ABS_RX -704
+[ 144.04s] event4 EV_ABS ABS_RX -2818
+[ 144.06s] event4 EV_ABS ABS_RX -5988
+[ 144.08s] event4 EV_ABS ABS_RX -10347
+[ 144.10s] event4 EV_ABS ABS_RX -19132
+[ 144.12s] event4 EV_ABS ABS_RX -26749
+[ 144.12s] event4 EV_ABS ABS_RY 31090
+[ 144.14s] event4 EV_ABS ABS_RX -31483
+[ 144.14s] event4 EV_ABS ABS_RY 20991
+[ 144.16s] event4 EV_ABS ABS_RX -32760
+[ 144.16s] event4 EV_ABS ABS_RY 9820
+[ 144.18s] event4 EV_ABS ABS_RY 6917
+[ 144.20s] event4 EV_ABS ABS_RY 4830
+[ 144.22s] event4 EV_ABS ABS_RY 2882
+[ 144.24s] event4 EV_ABS ABS_RY 675
+[ 144.26s] event4 EV_ABS ABS_RY -970
+[ 144.28s] event4 EV_ABS ABS_RY -5023
+[ 144.30s] event4 EV_ABS ABS_RY -8464
+[ 144.32s] event4 EV_ABS ABS_RY -14374
+[ 144.34s] event4 EV_ABS ABS_RX -29611
+[ 144.34s] event4 EV_ABS ABS_RY -20179
+[ 144.36s] event4 EV_ABS ABS_RX -28488
+[ 144.36s] event4 EV_ABS ABS_RY -22459
+[ 144.38s] event4 EV_ABS ABS_RY -23936
+[ 144.40s] event4 EV_ABS ABS_RX -23689
+[ 144.40s] event4 EV_ABS ABS_RY -25920
+[ 144.42s] event4 EV_ABS ABS_RX -17150
+[ 144.42s] event4 EV_ABS ABS_RY -28939
+[ 144.44s] event4 EV_ABS ABS_RX -12681
+[ 144.44s] event4 EV_ABS ABS_RY -30015
+[ 144.48s] event4 EV_ABS ABS_RX -8938
+[ 144.50s] event4 EV_ABS ABS_RX -5305
+[ 144.52s] event4 EV_ABS ABS_RX 844
+[ 144.54s] event4 EV_ABS ABS_RX 2300
+[ 144.56s] event4 EV_ABS ABS_RX 3398
+[ 144.58s] event4 EV_ABS ABS_RX 5108
+[ 144.60s] event4 EV_ABS ABS_RX 6712
+[ 144.62s] event4 EV_ABS ABS_RX 12031
+[ 144.64s] event4 EV_ABS ABS_RX 14965
+[ 144.67s] event4 EV_ABS ABS_RX 16506
+[ 144.73s] event4 EV_ABS ABS_RX 18321
+[ 144.73s] event4 EV_ABS ABS_RY -28854
+[ 144.75s] event4 EV_ABS ABS_RX 19672
+[ 144.93s] event4 EV_ABS ABS_RY -27694
+[ 145.13s] event4 EV_ABS ABS_RX 17836
+[ 145.15s] event4 EV_ABS ABS_RX 0
+[ 145.15s] event4 EV_ABS ABS_RY 0
+[ 145.17s] event4 EV_ABS ABS_RY 3836
+[ 145.72s] event4 EV_ABS ABS_RY 4989
+[ 145.78s] event4 EV_ABS ABS_RY 6341
+[ 146.08s] event4 EV_KEY BTN_THUMBR 1
+[ 146.08s] event4 EV_ABS ABS_RX 2448
+[ 146.09s] event4 EV_ABS ABS_RY 4651
+[ 146.39s] event4 EV_KEY BTN_THUMBR 0
+[ 146.39s] event4 EV_ABS ABS_RX 4348
+[ 146.41s] event4 EV_ABS ABS_RX 2490
+[ 146.45s] event4 EV_ABS ABS_RX 1055
+[ 156.02s] event0 EV_KEY KEY_HOMEPAGE 1
+[ 157.22s] event0 EV_KEY KEY_HOMEPAGE 0
+{
+  "watch_summary": {
+    "/dev/input/event0": {
+      "name": "sunxi-keyboard",
+      "codes_seen": [
+        "KEY_HOMEPAGE"
+      ]
+    },
+    "/dev/input/event1": {
+      "name": "pwm-vibrator",
+      "codes_seen": []
+    },
+    "/dev/input/event2": {
+      "name": "axp2202-pek",
+      "codes_seen": []
+    },
+    "/dev/input/event3": {
+      "name": "audiocodec Headphones",
+      "codes_seen": []
+    },
+    "/dev/input/event4": {
+      "name": "TRIMUI Player1",
+      "codes_seen": [
+        "ABS_HAT0X",
+        "ABS_HAT0Y",
+        "ABS_RX",
+        "ABS_RY",
+        "ABS_RZ",
+        "ABS_X",
+        "ABS_Y",
+        "ABS_Z",
+        "BTN_A",
+        "BTN_B",
+        "BTN_MODE",
+        "BTN_SELECT",
+        "BTN_START",
+        "BTN_THUMBL",
+        "BTN_THUMBR",
+        "BTN_TL",
+        "BTN_TR",
+        "BTN_X",
+        "BTN_Y"
+      ]
+    }
+  }
+}

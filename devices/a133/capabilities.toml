@@ -37,6 +37,9 @@ render_canvas = { w = 1280, h = 720 }
 display_rect  = { x = 304, y = 75, w = 872, h = 490 }   # where the live fb composites on the bezel
 
 # ---- INPUTS: each row = one drawable, bindable PHYSICAL control ----
+# Face labels are NINTENDO-arranged on the shared chassis (east=A, south=B, north=X, west=Y):
+# attested by the A523 SPIKE-0 press-test (2026-07-11) + the FCC 2BD9O-TG5040 photos; the
+# positional ids/codes are unchanged. Owner visual OK rides the .3 skin gate.
 # Face buttons — POSITIONAL ids (south/east/west/north, SDL3-aligned); the printed glyph
 # is in `label`. Binding is by POSITION so a Switch-format device differs by DATA only
 # (swap the labels + accept_default), never code or skin. `code` is the xpad driver's
@@ -49,28 +52,28 @@ id = "south"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_A"
-label = "A"
+label = "B"
 skin_part = "btn_south"
 [[inputs]]
 id = "east"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_B"
-label = "B"
+label = "A"
 skin_part = "btn_east"
 [[inputs]]
 id = "west"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_X"
-label = "X"
+label = "Y"
 skin_part = "btn_west"
 [[inputs]]
 id = "north"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_Y"
-label = "Y"
+label = "X"
 skin_part = "btn_north"
 # System buttons. guide = BTN_MODE (advertised + listed for the base unit; SPIKE-0 confirms
 # the physical press). The Pro S adds a SEPARATE Home key — see devices/a523.
@@ -129,20 +132,28 @@ code = "ABS_RX,ABS_RY"
 skin_part = "stick_r"
 x = { min = -32768, max = 32767, fuzz = 16, flat = 128 }
 y = { min = -32768, max = 32767, fuzz = 16, flat = 128 }
-# DIGITAL L2/R2 — clicky buttons, NO analog/Hall-effect travel (owner-confirmed; tsp-5p1). Modeled
-# as plain digital gamepad buttons (BTN_TL2/BTN_TR2); the ltrig/rtrig ids stay as stable handles.
-# The SDL emit maps them to lefttrigger/righttrigger as buttons (full-press = 0/32767).
+# L2/R2 — a BINARY ACTUATOR reported on ANALOG wire channels (same switch hardware as the
+# Pro S; owner ground truth), modeled on the Xbox-360 TRIGGER AXES, not BTN_TL2/TR2.
+# Evidence (SPIKE-0, 2026-07-11): the stock a133 probe (hardware-firmware-probes.md §13)
+# advertises ABS=3003f — the Z/RZ trigger axes — and its KEY inventory (face/shoulder/thumb/
+# start/select/guide = the same 11 codes the A523 advertises) contains NO BTN_TL2/TR2; the
+# A523 press-test on the shared trimui_inputd stack fired endpoint-only full-swing ABS_Z/RZ
+# 0<->255 (graze included). On-silicon a133 press confirmation is deferred until PocketForge
+# ships an input-synthesis layer (tsp-ozbp). Actuator semantics (binary, endpoint-only) are
+# not yet schema-expressible — schema gap filed as an E1 follow-up; wire format modeled here.
 [[inputs]]
 id = "ltrig"
-kind = "button"
-ev_type = "EV_KEY"
-code = "BTN_TL2"
+kind = "trigger"
+ev_type = "EV_ABS"
+code = "ABS_Z"
+range = { min = 0, max = 255, fuzz = 0, flat = 0 }
 skin_part = "trig_l"
 [[inputs]]
 id = "rtrig"
-kind = "button"
-ev_type = "EV_KEY"
-code = "BTN_TR2"
+kind = "trigger"
+ev_type = "EV_ABS"
+code = "ABS_RZ"
+range = { min = 0, max = 255, fuzz = 0, flat = 0 }
 skin_part = "trig_r"
 
 # ---- ACTUATORS ----

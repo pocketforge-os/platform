@@ -318,9 +318,10 @@ SDL_BTN_FIELD = {
     0x130: "a", 0x131: "b", 0x133: "x", 0x134: "y", 0x136: "leftshoulder",
     0x137: "rightshoulder", 0x13a: "back", 0x13b: "start", 0x13c: "guide",
     0x13d: "leftstick", 0x13e: "rightstick",
-    # DIGITAL L2/R2 (BTN_TL2/BTN_TR2): SDL allows a button to drive the trigger field
-    # (`lefttrigger:bN`) -> full-press reads 0/32767. The TrimUI 5040/5050 triggers are digital
-    # (tsp-5p1), so they emit as buttons here, NOT the ABS_Z/ABS_RZ axes (a2/a5).
+    # BTN_TL2/BTN_TR2: SDL allows a button to drive the trigger field (`lefttrigger:bN`) ->
+    # full-press reads 0/32767. Kept for descriptors that genuinely emit these codes; the
+    # TrimUI 5040/5050 pads do NOT (SPIKE-0 on-silicon 2026-07-11: no TL2/TR2 advertised,
+    # L2/R2 fire the ABS_Z/ABS_RZ axes -> those descriptors emit a2/a5).
     0x138: "lefttrigger", 0x139: "righttrigger",
 }
 SDL_AXIS = {  # ABS code -> (SDL axis index, SDL field)
