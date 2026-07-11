@@ -28,15 +28,67 @@ EV_SYN, EV_KEY, EV_ABS, EV_FF = 0x00, 0x01, 0x03, 0x15
 EV_NAMES = {0x00: "EV_SYN", 0x01: "EV_KEY", 0x02: "EV_REL", 0x03: "EV_ABS",
             0x04: "EV_SW", 0x11: "EV_LED", 0x15: "EV_FF"}
 
-# Reverse code->name tables (gamepad/handheld subset; shared with the descriptor's vocab).
-BTN = {0x130: "BTN_A", 0x131: "BTN_B", 0x132: "BTN_C", 0x133: "BTN_X", 0x134: "BTN_Y",
-       0x135: "BTN_Z", 0x136: "BTN_TL", 0x137: "BTN_TR", 0x138: "BTN_TL2", 0x139: "BTN_TR2",
-       0x13a: "BTN_SELECT", 0x13b: "BTN_START", 0x13c: "BTN_MODE", 0x13d: "BTN_THUMBL",
-       0x13e: "BTN_THUMBR"}
-KEY = {0x66: "KEY_HOME", 0x172: "KEY_HOMEPAGE", 0x8b: "KEY_MENU", 0x9e: "KEY_BACK",
-       0x74: "KEY_POWER", 0x73: "KEY_VOLUMEUP", 0x72: "KEY_VOLUMEDOWN"}
-ABS = {0x00: "ABS_X", 0x01: "ABS_Y", 0x02: "ABS_Z", 0x03: "ABS_RX", 0x04: "ABS_RY",
-       0x05: "ABS_RZ", 0x10: "ABS_HAT0X", 0x11: "ABS_HAT0Y"}
+# Reverse code->name tables — GENERATED from the kernel ABI (input-event-codes.h) restricted
+# to exactly the core/caps.py schema vocab. Do NOT edit by hand: the old hand-maintained map
+# decimal/hex-slipped KEY_HOMEPAGE (had 0x172 for what the kernel defines as 172/0xac) and was
+# missing schema codes (BTN_TL2/BTN_TR2, ABS_THROTTLE/GAS/BRAKE ...), which made
+# `pf caps probe-diff --device a523` ERROR on the a523 Home key even when the hardware was
+# correct. See gen_evdev_probe_codes.py.
+# --- BEGIN GENERATED reverse tables (gen_evdev_probe_codes.py) ---
+# Regenerate: python3 regression/caps/gen_evdev_probe_codes.py --platform <dir>
+# Verify   : python3 regression/caps/gen_evdev_probe_codes.py --platform <dir> --check
+# Values are kernel ABI (input-event-codes.h), restricted to core/caps.py vocab.
+BTN = {
+    0x120: 'BTN_TRIGGER',
+    0x121: 'BTN_THUMB',
+    0x130: 'BTN_A',
+    0x131: 'BTN_B',
+    0x132: 'BTN_C',
+    0x133: 'BTN_X',
+    0x134: 'BTN_Y',
+    0x135: 'BTN_Z',
+    0x136: 'BTN_TL',
+    0x137: 'BTN_TR',
+    0x138: 'BTN_TL2',
+    0x139: 'BTN_TR2',
+    0x13a: 'BTN_SELECT',
+    0x13b: 'BTN_START',
+    0x13c: 'BTN_MODE',
+    0x13d: 'BTN_THUMBL',
+    0x13e: 'BTN_THUMBR',
+    0x220: 'BTN_DPAD_UP',
+    0x221: 'BTN_DPAD_DOWN',
+    0x222: 'BTN_DPAD_LEFT',
+    0x223: 'BTN_DPAD_RIGHT',
+}
+KEY = {
+    0x1: 'KEY_ESC',
+    0x1c: 'KEY_ENTER',
+    0x66: 'KEY_HOME',
+    0x72: 'KEY_VOLUMEDOWN',
+    0x73: 'KEY_VOLUMEUP',
+    0x74: 'KEY_POWER',
+    0x8b: 'KEY_MENU',
+    0x9e: 'KEY_BACK',
+    0xac: 'KEY_HOMEPAGE',
+}
+ABS = {
+    0x0: 'ABS_X',
+    0x1: 'ABS_Y',
+    0x2: 'ABS_Z',
+    0x3: 'ABS_RX',
+    0x4: 'ABS_RY',
+    0x5: 'ABS_RZ',
+    0x6: 'ABS_THROTTLE',
+    0x7: 'ABS_RUDDER',
+    0x9: 'ABS_GAS',
+    0xa: 'ABS_BRAKE',
+    0x10: 'ABS_HAT0X',
+    0x11: 'ABS_HAT0Y',
+    0x12: 'ABS_HAT1X',
+    0x13: 'ABS_HAT1Y',
+}
+# --- END GENERATED reverse tables ---
 
 
 def _bits(buf):
