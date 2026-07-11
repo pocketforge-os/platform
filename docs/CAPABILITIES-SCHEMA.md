@@ -45,6 +45,31 @@ plus a separate per-vendor label lookup):
 Emitting the SDL `gamecontrollerdb` uses the fixed Xbox-semantic token table
 (`south→a, east→b, west→x, north→y`), so the canonical X360 line is unchanged.
 
+## Actuator semantics vs wire format (`inputs.semantics`)
+
+`kind`/`ev_type`/`code`/`range` describe **what the kernel emits** (the wire). `semantics`
+describes **what the physical actuator IS**. On most inputs they agree unambiguously —
+a `button` is binary, a `stick` is analog, a `hat` is a step enum. But on `kind=trigger`
+they can DIVERGE: an X360-style trigger is a proportional analog channel on the wire
+(`ABS_Z`/`ABS_RZ`, 0..255) yet the physical actuator may be a plain binary switch that
+fires only the endpoints. The TrimUI 5040 (a133) and 5050 (a523) L2/R2 are exactly this
+case (SPIKE-0 tsp-9sx.1, 2026-07-11: full-swing endpoint values only, zero intermediates,
+graze included). Setting `semantics = "binary"` records that truth in the descriptor
+where all three consumers can act on it:
+
+- **E2 capability broker / action-map** (infra-101) — may PRESENT the trigger to apps as
+  a digital input (either 0 or the endpoint value; no proportional passthrough).
+- **E5 simulator** (infra-104) — synthesizes endpoint-only values on a press; never a
+  ramp / intermediate.
+- **CI** (infra-106) — asserts endpoint-only behavior against a live capture (or an
+  invariance test); an intermediate ABS value would indicate a hardware/model divergence.
+
+`semantics` is OPTIONAL. Omitted = the natural semantics of `kind`. The validator restricts
+it to `kind=trigger` because that is the one place in today's vocabulary where wire and
+semantics diverge; extending to a new kind (e.g. a pressure-sensitive shoulder in the
+future) is a schema change, not a descriptor licence. `pf caps emit-sdldb` does NOT consult
+`semantics` — the SDL wire mapping stays the wire mapping (a2/a5), by design.
+
 ## Sections
 
 | table | key | required | notes |
@@ -66,6 +91,7 @@ Emitting the SDL `gamecontrollerdb` uses the fixed Xbox-semantic token table
 | | `label` | | printed glyph on the button (`"A"`/`"B"`/`"X"`/`"Y"` or a shape); for app/skin prompts. A Switch-format device swaps only `label` (+ `accept_default`), never `id`/`code`/skin |
 | | `label_kind` | | `letter` (default) \| `shape` (PlayStation-style) |
 | | `range` / `x` / `y` | | `{ min, max, flat?, fuzz?, resolution? }` absinfo; `trigger`→`range`, `stick`→`x`+`y` |
+| | `semantics` | | `analog`\|`binary` — what the physical actuator IS, DISTINCT from the wire format described by `kind`/`ev_type`/`code`. Only meaningful on `kind=trigger` (see "Actuator semantics vs wire format" below); other kinds have unambiguous semantics from `kind` itself and the validator rejects it there |
 | | `skin_part`, `ui` | | skin rect id (face buttons use positional `btn_south`...); UI hint (e.g. `slider_above`) |
 | `[[sensors]]` | `id`, `kind`, `iio_device` | ✅ | `kind` ∈ accel/gyro/mag/accel+gyro/imu; `iio_device` e.g. `qmi8658`. OMIT DT-but-unbound sensors until SPIKE-0 proves they bind |
 | | `units`, `mount_matrix`, `ui` | | `mount_matrix` = 3×3 numbers; `ui` e.g. `tilt_bubble` |

@@ -97,7 +97,8 @@
         "ui":         { "type": "string", "minLength": 1 },
         "range":      { "$ref": "#/$defs/axis" },
         "x":          { "$ref": "#/$defs/axis" },
-        "y":          { "$ref": "#/$defs/axis" }
+        "y":          { "$ref": "#/$defs/axis" },
+        "semantics":  { "enum": ["analog", "binary"] }
       }
     },
     "sensor": {

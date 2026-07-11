@@ -135,17 +135,17 @@ y = { min = -32768, max = 32767, fuzz = 16, flat = 128 }
 # L2/R2 — a BINARY ACTUATOR reported on ANALOG wire channels (same switch hardware as the
 # Pro S; owner ground truth), modeled on the Xbox-360 TRIGGER AXES, not BTN_TL2/TR2.
 # Evidence (SPIKE-0, 2026-07-11): the stock a133 probe (hardware-firmware-probes.md §13)
-# advertises ABS=3003f — the Z/RZ trigger axes — and its KEY inventory (face/shoulder/thumb/
-# start/select/guide = the same 11 codes the A523 advertises) contains NO BTN_TL2/TR2; the
-# A523 press-test on the shared trimui_inputd stack fired endpoint-only full-swing ABS_Z/RZ
-# 0<->255 (graze included). On-silicon a133 press confirmation is deferred until PocketForge
-# ships an input-synthesis layer (tsp-ozbp). Actuator semantics (binary, endpoint-only) are
-# not yet schema-expressible — schema gap filed as an E1 follow-up; wire format modeled here.
+# advertises ABS=3003f (Z/RZ) and NO BTN_TL2/TR2; the A523 press-test on the shared
+# trimui_inputd stack fired endpoint-only full-swing ABS_Z/RZ 0<->255 (accidental graze
+# included — switch-with-no-proportional-range). On-silicon a133 press confirmation is
+# deferred until PocketForge ships an input-synthesis layer (tsp-ozbp). The `semantics`
+# field (tsp-v19s) carries the binary-endpoint truth for the E2 broker / E5 sim / CI.
 [[inputs]]
 id = "ltrig"
 kind = "trigger"
 ev_type = "EV_ABS"
 code = "ABS_Z"
+semantics = "binary"
 range = { min = 0, max = 255, fuzz = 0, flat = 0 }
 skin_part = "trig_l"
 [[inputs]]
@@ -153,6 +153,7 @@ id = "rtrig"
 kind = "trigger"
 ev_type = "EV_ABS"
 code = "ABS_RZ"
+semantics = "binary"
 range = { min = 0, max = 255, fuzz = 0, flat = 0 }
 skin_part = "trig_r"
 

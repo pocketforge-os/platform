@@ -136,6 +136,7 @@ def main():
     schema_neg("empty inputs array", lambda d: d.update(inputs=[]))
     schema_neg("code pattern violation", lambda d: d["inputs"][0].update(code="lowercase_btn"))
     schema_neg("bad label_kind enum", lambda d: d["inputs"][0].update(label_kind="weird"))
+    schema_neg("bad input.semantics enum", lambda d: d["inputs"][3].update(semantics="tri-state"))
 
     # --- semantic negatives (beyond what JSON-Schema can express) ---
     def sem_neg(name, dev, mut, needle=None):
@@ -165,6 +166,48 @@ def main():
             lambda d: d["identity"].update(id="a133x"), None)  # id!=dir AND no profile
     sem_neg("accept_default references a non-existent input id", "a133",
             lambda d: d.update(accept_default="ghost"), "accept_default")
+    sem_neg("semantics on kind=button rejected", "a133",
+            lambda d: d["inputs"][0].update(semantics="binary"), "only meaningful on kind=trigger")
+    sem_neg("semantics on kind=stick rejected", "a133",
+            lambda d: d["inputs"][2].update(semantics="analog"), "only meaningful on kind=trigger")
+
+    # --- semantics field positive: on the REAL descriptors, ltrig/rtrig carry binary
+    #     (SPIKE-0 tsp-9sx.1: L2/R2 are binary-on-analog-wire on both units) and every
+    #     other kind of input omits it. This is the "one field, three consumers" truth
+    #     that E2/E5/CI will act on; tests here pin it at the descriptor layer.
+    def _trigger_semantics(did, expected):
+        cpath = os.path.join(caps.DEVICES, did, caps.CAPS_FILE)
+        if not os.path.isfile(cpath):
+            check(f"{did} semantics: descriptor present", False); return
+        d = caps._load(cpath)
+        for iid in ("ltrig", "rtrig"):
+            row = next((i for i in d["inputs"] if i.get("id") == iid), None)
+            check(f"{did} semantics: {iid} present with semantics={expected}",
+                  row is not None and row.get("semantics") == expected)
+        # `semantics` never appears on any non-trigger row (the validator would reject it).
+        stray = [i.get("id") for i in d["inputs"]
+                 if i.get("kind") != "trigger" and "semantics" in i]
+        check(f"{did} semantics: no non-trigger row carries the field", stray == [])
+        # And the whole descriptor validates + probe-diff doesn't regress.
+        errs, _ = caps.semantic_errors(did, d)
+        check(f"{did} semantics: descriptor still semantic-clean", errs == [])
+    for _did in ("a133", "a523"):
+        _trigger_semantics(_did, "binary")
+
+    # `pf caps emit-sdldb` MUST be unchanged by adding semantics (the SDL wire mapping
+    # stays the wire mapping; semantics is for the E2 broker / E5 sim / CI, not SDL).
+    # Compare against the emit produced with semantics stripped.
+    for _did in ("a133", "a523"):
+        cpath = os.path.join(caps.DEVICES, _did, caps.CAPS_FILE)
+        if not os.path.isfile(cpath): continue
+        d = caps._load(cpath)
+        with_sem = caps.emit_sdldb(d)
+        d2 = copy.deepcopy(d)
+        for i in d2.get("inputs", []):
+            i.pop("semantics", None)
+        without_sem = caps.emit_sdldb(d2)
+        check(f"{_did} emit-sdldb unchanged when 'semantics' is stripped",
+              with_sem == without_sem)
 
     # --- gnss/gps vocabulary (tsp-9sx.6): descriptor-REPRESENTABLE-but-OMITTED on shipping.
     # A synthetic gnss/gps row must schema-validate + semantic-validate WITHOUT an iio_device

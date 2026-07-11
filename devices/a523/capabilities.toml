@@ -123,18 +123,19 @@ y = { min = -32767, max = 32767, fuzz = 0, flat = 0 }
 # surgery: a digital switch, "just a button pusher, no travel"). The silicon emits the
 # Xbox-360 TRIGGER AXES: SPIKE-0 press-test (2026-07-11, stock 5.15.147) shows ONLY
 # endpoint values — full-swing ABS_Z/ABS_RZ 0<->255 per pull, zero intermediates (the
-# owner's accidental L2 graze emitted a full 255: switch-with-no-proportional-range,
-# natural-experiment confirmed) — and the pad advertises NO BTN_TL2/BTN_TR2 (EVIOCGBIT).
-# tsp-5p1's "kernel emits BTN_TL2/TR2" claim is REFUTED. The rows below model the WIRE
-# FORMAT (what a raw consumer sees); the ACTUATOR SEMANTICS (binary, endpoint-only — E2's
-# action-map may present it as a digital input) are NOT yet schema-expressible: the input
-# def has no analog/semantics field. Schema gap filed as an E1 follow-up — do not bend
-# `ui` or another field to carry it. SDL emit: lefttrigger/righttrigger axes (a2/a5).
+# owner's accidental L2 graze emitted a full 255: switch-with-no-proportional-range) —
+# and the pad advertises NO BTN_TL2/BTN_TR2 (EVIOCGBIT). tsp-5p1's "kernel emits
+# BTN_TL2/TR2" claim is REFUTED. `kind`/`ev_type`/`code`/`range` model the WIRE (what a
+# raw consumer sees); the `semantics = "binary"` field (tsp-v19s) carries the actuator
+# truth for the three consumers — E2 broker may present as a digital input, E5 sim
+# synthesizes endpoint-only values, CI asserts endpoint-only. SDL emit unchanged:
+# lefttrigger/righttrigger axes (a2/a5) — the SDL wire mapping stays the wire mapping.
 [[inputs]]
 id = "ltrig"
 kind = "trigger"
 ev_type = "EV_ABS"
 code = "ABS_Z"
+semantics = "binary"
 range = { min = 0, max = 255, fuzz = 0, flat = 0 }
 skin_part = "trig_l"
 [[inputs]]
@@ -142,6 +143,7 @@ id = "rtrig"
 kind = "trigger"
 ev_type = "EV_ABS"
 code = "ABS_RZ"
+semantics = "binary"
 range = { min = 0, max = 255, fuzz = 0, flat = 0 }
 skin_part = "trig_r"
 

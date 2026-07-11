@@ -233,6 +233,17 @@ def semantic_errors(dev_id, data):
         for axname in ("range", "x", "y"):
             if axname in inp:
                 _axis_ok(axname, inp[axname], where, errs)
+        # ACTUATOR SEMANTICS vs WIRE FORMAT (tsp-v19s). `kind`/`ev_type`/`code` describe
+        # the WIRE (what the kernel emits); `semantics` describes what the physical
+        # actuator IS. They diverge on kind=trigger when the wire is analog (ABS_Z/RZ,
+        # 0..255) but the actuator is a binary switch that fires endpoints only (TrimUI
+        # 5040/5050 L2/R2, SPIKE-0 tsp-9sx.1). Restrict the annotation to kind=trigger:
+        # every other kind's semantics is unambiguous from the wire (button/stick-click
+        # = binary; stick = analog; hat = enum), so allowing it there is only a footgun.
+        sem = inp.get("semantics")
+        if sem is not None and kind != "trigger":
+            errs.append(f"{where}: 'semantics' is only meaningful on kind=trigger "
+                        f"(this input's kind={kind!r} has an unambiguous wire semantics)")
 
     # 2b) accept_default hint (if present) must reference a real input id.
     accept = data.get("accept_default")
