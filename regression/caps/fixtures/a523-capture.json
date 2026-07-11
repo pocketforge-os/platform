@@ -1,16 +1,83 @@
 {
   "nodes": [
     {
+      "path": "/dev/input/event0",
+      "name": "sunxi-keyboard",
+      "bustype": 25,
+      "vendor": "0001",
+      "product": "0001",
+      "version": "0100",
+      "ev": [
+        "EV_SYN",
+        "EV_KEY"
+      ],
+      "keys": [
+        "KEY_VOLUMEDOWN",
+        "KEY_VOLUMEUP",
+        "KEY_HOMEPAGE"
+      ]
+    },
+    {
+      "path": "/dev/input/event1",
+      "name": "pwm-vibrator",
+      "bustype": 25,
+      "vendor": "0000",
+      "product": "0000",
+      "version": "0000",
+      "ev": [
+        "EV_SYN",
+        "EV_FF"
+      ],
+      "ev_ff": true
+    },
+    {
       "path": "/dev/input/event2",
+      "name": "axp2202-pek",
+      "bustype": 0,
+      "vendor": "0000",
+      "product": "0000",
+      "version": "0000",
+      "ev": [
+        "EV_SYN",
+        "EV_KEY",
+        "EV_0x14"
+      ],
+      "keys": [
+        "KEY_POWER"
+      ]
+    },
+    {
+      "path": "/dev/input/event3",
+      "name": "audiocodec Headphones",
+      "bustype": 0,
+      "vendor": "0000",
+      "product": "0000",
+      "version": "0000",
+      "ev": [
+        "EV_SYN",
+        "EV_KEY",
+        "EV_SW"
+      ],
+      "keys": [
+        "KEY_VOLUMEDOWN",
+        "KEY_VOLUMEUP",
+        "0xe2",
+        "0x246"
+      ]
+    },
+    {
+      "path": "/dev/input/event4",
       "name": "TRIMUI Player1",
       "bustype": 3,
       "vendor": "045e",
       "product": "028e",
-      "version": "0110",
+      "version": "0114",
       "ev": [
         "EV_SYN",
         "EV_KEY",
-        "EV_ABS"
+        "EV_ABS",
+        "EV_SW",
+        "EV_FF"
       ],
       "keys": [
         "BTN_A",
@@ -23,23 +90,21 @@
         "BTN_START",
         "BTN_MODE",
         "BTN_THUMBL",
-        "BTN_THUMBR",
-        "BTN_TL2",
-        "BTN_TR2"
+        "BTN_THUMBR"
       ],
       "abs": {
         "ABS_X": {
-          "min": -32768,
+          "min": -32767,
           "max": 32767,
-          "fuzz": 16,
-          "flat": 128,
+          "fuzz": 0,
+          "flat": 0,
           "resolution": 0
         },
         "ABS_Y": {
-          "min": -32768,
+          "min": -32767,
           "max": 32767,
-          "fuzz": 16,
-          "flat": 128,
+          "fuzz": 0,
+          "flat": 0,
           "resolution": 0
         },
         "ABS_Z": {
@@ -50,17 +115,17 @@
           "resolution": 0
         },
         "ABS_RX": {
-          "min": -32768,
+          "min": -32767,
           "max": 32767,
-          "fuzz": 16,
-          "flat": 128,
+          "fuzz": 0,
+          "flat": 0,
           "resolution": 0
         },
         "ABS_RY": {
-          "min": -32768,
+          "min": -32767,
           "max": 32767,
-          "fuzz": 16,
-          "flat": 128,
+          "fuzz": 0,
+          "flat": 0,
           "resolution": 0
         },
         "ABS_RZ": {
@@ -84,22 +149,8 @@
           "flat": 0,
           "resolution": 0
         }
-      }
-    },
-    {
-      "path": "/dev/input/event12",
-      "name": "TrimUI System",
-      "bustype": 25,
-      "vendor": "0000",
-      "product": "0000",
-      "version": "0000",
-      "ev": [
-        "EV_SYN",
-        "EV_KEY"
-      ],
-      "keys": [
-        "KEY_HOMEPAGE"
-      ]
+      },
+      "ev_ff": true
     }
   ]
 }

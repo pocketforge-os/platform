@@ -179,13 +179,14 @@ def main():
             guid, name, m, rt = "", "", {}, False
         check(f"{did} emit: round-trips through SDL grammar", rt)
         check(f"{did} emit: GUID matches sdl_guid", guid == d["identity"]["sdl_guid"])
-        # L2/R2 are DIGITAL buttons (tsp-5p1), so they emit as lefttrigger:b6/righttrigger:b7
-        # (NOT the ABS axes a2/a5), which inserts at evdev 0x138/0x139 and pushes back/start/guide
-        # to b8/b9/b10 (L3/R3 on a523 follow at b11/b12).
+        # L2/R2 are the X360 TRIGGER AXES (SPIKE-0 on-silicon 2026-07-11: full-swing ABS_Z/RZ,
+        # no BTN_TL2/TR2 advertised — tsp-5p1's digital-button claim refuted), so they emit as
+        # lefttrigger:a2/righttrigger:a5 and back/start/guide sit at their CANONICAL upstream
+        # X360 indices b6/b7/b8 (L3/R3 on a523 follow at b9/b10).
         for f, s in [("a", "b0"), ("b", "b1"), ("x", "b2"), ("y", "b3"),
                      ("leftshoulder", "b4"), ("rightshoulder", "b5"),
-                     ("lefttrigger", "b6"), ("righttrigger", "b7"),
-                     ("back", "b8"), ("start", "b9"), ("guide", "b10"),
+                     ("lefttrigger", "a2"), ("righttrigger", "a5"),
+                     ("back", "b6"), ("start", "b7"), ("guide", "b8"),
                      ("leftx", "a0"), ("lefty", "a1"), ("rightx", "a3"), ("righty", "a4"),
                      ("dpup", "h0.1"), ("dpdown", "h0.4")]:
             check(f"{did} emit: {f}:{s}", m.get(f) == s)
@@ -225,7 +226,12 @@ def main():
     check("probe-diff a133: absinfo mismatch -> WARN (reconcile)", any("reconcile" in x for x in w))
     e, w, i = caps.probe_diff("a523", xpad_capture(home=True))
     check("probe-diff a523: home on keyboard node -> no error", e == [])
-    check("probe-diff a523: IMU flagged as IIO (confirm bind)", any("IIO" in x for x in i))
+    # R3 adjudicated on silicon (2026-07-11): qmi8658/mmc5603 UNBOUND on stock -> the a523
+    # descriptor OMITS [[sensors]] entirely (row omission, never a fabricated row), so
+    # probe-diff emits no IIO confirm-bind INFO for it.
+    _a523 = caps._load(os.path.join(caps.DEVICES, "a523", caps.CAPS_FILE))
+    check("a523 descriptor omits [[sensors]] (R3: unbound on stock)", not _a523.get("sensors"))
+    check("probe-diff a523: no IIO sensor INFO (nothing claimed)", not any("IIO" in x for x in i))
     e, w, i = caps.probe_diff("a523", xpad_capture(home=False))
     check("probe-diff a523: home advertised nowhere -> ERROR", any("KEY_HOMEPAGE" in x for x in e))
 
@@ -303,6 +309,59 @@ def main():
         if r.returncode != 0:
             print("  probe-diff stderr: " + (r.stderr or "").strip())
             print("  probe-diff stdout: " + (r.stdout or "").strip())
+
+    # --- watch mode (SPIKE-0 press-test substitute for evtest on stock images) ---
+    # struct input_event decode on synthetic bytes (native bitness, like the target).
+    _ev = struct.pack(evdev_probe._EVENT_FMT, 12, 340000, 0x01, 0x130, 1)   # EV_KEY BTN_A press
+    _t, _c, _v = evdev_probe.decode_event(_ev)
+    check("watch decode: EV_KEY BTN_A press round-trips",
+          (_t, _c, _v) == (0x01, 0x130, 1)
+          and evdev_probe.event_name(_t, _c) == "BTN_A")
+    _ev2 = struct.pack(evdev_probe._EVENT_FMT, 12, 340001, 0x03, 0x10, -1)  # EV_ABS ABS_HAT0X=-1
+    _t2, _c2, _v2 = evdev_probe.decode_event(_ev2)
+    check("watch decode: EV_ABS ABS_HAT0X=-1 round-trips (signed value)",
+          (_t2, _c2, _v2) == (0x03, 0x10, -1)
+          and evdev_probe.event_name(_t2, _c2) == "ABS_HAT0X")
+    _ev3 = struct.pack(evdev_probe._EVENT_FMT, 12, 340002, 0x01, 172, 1)    # KEY_HOMEPAGE press
+    _t3, _c3, _v3 = evdev_probe.decode_event(_ev3)
+    check("watch decode: KEY_HOMEPAGE(172) press decodes by name",
+          evdev_probe.event_name(_t3, _c3) == "KEY_HOMEPAGE" and _v3 == 1)
+    # EV bit labels follow the kernel ABI: EV_MSC=0x04, EV_SW=0x05 (the TRIMUI pad's EV=2b
+    # includes bit 5 = SW; an earlier revision mislabeled 0x04 as EV_SW).
+    check("EV_NAMES matches kernel ABI (EV_MSC=0x04, EV_SW=0x05)",
+          evdev_probe.EV_NAMES.get(0x04) == "EV_MSC" and evdev_probe.EV_NAMES.get(0x05) == "EV_SW")
+
+    # evdev-dump.c (static-C fallback for python-less stock userlands) must compile clean
+    # and emit the SAME JSON capture shape. Soft-skipped when no C compiler is present.
+    _dump_c = os.path.join(HERE, "evdev-dump.c")
+    _cc = None
+    for _cand in ("cc", "gcc", "clang"):
+        try:
+            if subprocess.run([_cand, "--version"], capture_output=True).returncode == 0:
+                _cc = _cand
+                break
+        except OSError:
+            continue
+    if _cc and os.path.isfile(_dump_c):
+        with tempfile.TemporaryDirectory() as _td:
+            _bin = os.path.join(_td, "evdev-dump")
+            r = subprocess.run([_cc, "-Wall", "-Wextra", "-Werror", "-O2", "-o", _bin, _dump_c],
+                               capture_output=True, text=True)
+            check("evdev-dump.c compiles clean (-Wall -Wextra -Werror)", r.returncode == 0)
+            if r.returncode != 0:
+                print("  cc stderr: " + (r.stderr or "").strip()[:500])
+            else:
+                r2 = subprocess.run([_bin, "/nonexistent"], capture_output=True, text=True)
+                try:
+                    cap = json.loads(r2.stdout)
+                    ok_shape = (isinstance(cap.get("nodes"), list) and len(cap["nodes"]) == 1
+                                and cap["nodes"][0]["path"] == "/nonexistent"
+                                and "error" in cap["nodes"][0])
+                except ValueError:
+                    ok_shape = False
+                check("evdev-dump emits the evdev-probe.py JSON capture shape", ok_shape)
+    else:
+        check("no C compiler — skipping evdev-dump.c gate", True)
 
     # Drift gate: the generator's --check mode must be green on the committed probe file.
     if os.path.isfile(GEN_PY) and _header:

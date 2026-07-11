@@ -37,33 +37,35 @@ render_canvas = { w = 1280, h = 720 }
 display_rect  = { x = 304, y = 75, w = 872, h = 490 }
 
 # ---- INPUTS: the a133 set, verbatim (POSITIONAL face ids + label; see the a133 note) ----
+# Face labels are NINTENDO-arranged on the chassis (SPIKE-0 press-test on silicon, 2026-07-11:
+# pressing chassis-labeled A fired BTN_B/east, B->BTN_A/south, X->BTN_Y/north, Y->BTN_X/west).
 [[inputs]]
 id = "south"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_A"
-label = "A"
+label = "B"
 skin_part = "btn_south"
 [[inputs]]
 id = "east"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_B"
-label = "B"
+label = "A"
 skin_part = "btn_east"
 [[inputs]]
 id = "west"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_X"
-label = "X"
+label = "Y"
 skin_part = "btn_west"
 [[inputs]]
 id = "north"
 kind = "button"
 ev_type = "EV_KEY"
 code = "BTN_Y"
-label = "Y"
+label = "X"
 skin_part = "btn_north"
 [[inputs]]
 id = "select"
@@ -107,36 +109,47 @@ kind = "stick"
 ev_type = "EV_ABS"
 code = "ABS_X,ABS_Y"
 skin_part = "stick_l"
-x = { min = -32768, max = 32767, fuzz = 16, flat = 128 }
-y = { min = -32768, max = 32767, fuzz = 16, flat = 128 }
+x = { min = -32767, max = 32767, fuzz = 0, flat = 0 }
+y = { min = -32767, max = 32767, fuzz = 0, flat = 0 }
 [[inputs]]
 id = "rstick"
 kind = "stick"
 ev_type = "EV_ABS"
 code = "ABS_RX,ABS_RY"
 skin_part = "stick_r"
-x = { min = -32768, max = 32767, fuzz = 16, flat = 128 }
-y = { min = -32768, max = 32767, fuzz = 16, flat = 128 }
-# DIGITAL L2/R2 — clicky buttons, NO analog/Hall-effect travel (owner-confirmed; tsp-5p1). Same as
-# the base unit: plain digital gamepad buttons (BTN_TL2/BTN_TR2), ltrig/rtrig ids kept as handles;
-# the SDL emit maps them to lefttrigger/righttrigger as buttons (full-press = 0/32767).
+x = { min = -32767, max = 32767, fuzz = 0, flat = 0 }
+y = { min = -32767, max = 32767, fuzz = 0, flat = 0 }
+# L2/R2 — a BINARY ACTUATOR reported on ANALOG wire channels (owner ground truth, unit
+# surgery: a digital switch, "just a button pusher, no travel"). The silicon emits the
+# Xbox-360 TRIGGER AXES: SPIKE-0 press-test (2026-07-11, stock 5.15.147) shows ONLY
+# endpoint values — full-swing ABS_Z/ABS_RZ 0<->255 per pull, zero intermediates (the
+# owner's accidental L2 graze emitted a full 255: switch-with-no-proportional-range,
+# natural-experiment confirmed) — and the pad advertises NO BTN_TL2/BTN_TR2 (EVIOCGBIT).
+# tsp-5p1's "kernel emits BTN_TL2/TR2" claim is REFUTED. The rows below model the WIRE
+# FORMAT (what a raw consumer sees); the ACTUATOR SEMANTICS (binary, endpoint-only — E2's
+# action-map may present it as a digital input) are NOT yet schema-expressible: the input
+# def has no analog/semantics field. Schema gap filed as an E1 follow-up — do not bend
+# `ui` or another field to carry it. SDL emit: lefttrigger/righttrigger axes (a2/a5).
 [[inputs]]
 id = "ltrig"
-kind = "button"
-ev_type = "EV_KEY"
-code = "BTN_TL2"
+kind = "trigger"
+ev_type = "EV_ABS"
+code = "ABS_Z"
+range = { min = 0, max = 255, fuzz = 0, flat = 0 }
 skin_part = "trig_l"
 [[inputs]]
 id = "rtrig"
-kind = "button"
-ev_type = "EV_KEY"
-code = "BTN_TR2"
+kind = "trigger"
+ev_type = "EV_ABS"
+code = "ABS_RZ"
+range = { min = 0, max = 255, fuzz = 0, flat = 0 }
 skin_part = "trig_r"
 
 # ---- ... PLUS the Pro S-only PURE ADDED ROWS ----
-# Home: a dedicated system button physically NEXT TO POWER (Steam Deck HQ / FCC photos) —
-# i.e. a system key, NOT the gamepad's guide (BTN_MODE, already mapped above). Authored as
-# KEY_HOMEPAGE; the exact code + which evdev node it lands on is a SPIKE-0 ground-truth item.
+# Home: a dedicated system button physically NEXT TO POWER — a system key, NOT the gamepad's
+# guide (BTN_MODE, already mapped above). ADJUDICATED on silicon (SPIKE-0 press-test,
+# 2026-07-11, stock 5.15.147): the press fires KEY_HOMEPAGE (172) on the sunxi-keyboard
+# LRADC node (event0), confirming the KEY_HOMEPAGE authoring over the kickoff's BTN_MODE.
 [[inputs]]
 id = "home"
 kind = "button"
@@ -158,15 +171,12 @@ code = "BTN_THUMBR"
 skin_part = "stick_r"
 
 # ---- SENSORS (Pro S-only) ----
-# 6-axis IMU. SPIKE-0 must confirm the qmi8658 actually BINDS (DT-but-unbound is the R3
-# hazard); mag (mmc5603) + GNSS are intentionally OMITTED until proven bound.
-[[sensors]]
-id = "imu"
-kind = "accel+gyro"
-iio_device = "qmi8658"
-units = "m/s^2,rad/s"
-ui = "tilt_bubble"
-mount_matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]   # identity until SPIKE-0 measures the real mount
+# NO [[sensors]] rows: SPIKE-0 adjudicated (2026-07-11, two independent on-silicon checks —
+# tsp-e1b.8's exerciser + tsp-9sx.1's bind transcript) that on the operative stock kernel
+# /sys/bus/iio is EMPTY: qmi8658 (imu, i2c 1-006b, driver=UNBOUND) and mmc5603 (mag) are
+# DT-present but driver-UNBOUND, and GNSS shows no bound driver. Per the R3 rule (missing
+# hardware = ROW OMISSION, never a fabricated row) the imu row is OMITTED until an owned
+# A523 kernel binds the qmi8658 IIO driver; the mount_matrix is unmeasured until then.
 
 # ---- ACTUATORS ----
 # Rumble (Pro S-only) — single pwm-vibrator motor (§17).
