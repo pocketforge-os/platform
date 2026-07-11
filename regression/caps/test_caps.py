@@ -304,6 +304,59 @@ def main():
             print("  probe-diff stderr: " + (r.stderr or "").strip())
             print("  probe-diff stdout: " + (r.stdout or "").strip())
 
+    # --- watch mode (SPIKE-0 press-test substitute for evtest on stock images) ---
+    # struct input_event decode on synthetic bytes (native bitness, like the target).
+    _ev = struct.pack(evdev_probe._EVENT_FMT, 12, 340000, 0x01, 0x130, 1)   # EV_KEY BTN_A press
+    _t, _c, _v = evdev_probe.decode_event(_ev)
+    check("watch decode: EV_KEY BTN_A press round-trips",
+          (_t, _c, _v) == (0x01, 0x130, 1)
+          and evdev_probe.event_name(_t, _c) == "BTN_A")
+    _ev2 = struct.pack(evdev_probe._EVENT_FMT, 12, 340001, 0x03, 0x10, -1)  # EV_ABS ABS_HAT0X=-1
+    _t2, _c2, _v2 = evdev_probe.decode_event(_ev2)
+    check("watch decode: EV_ABS ABS_HAT0X=-1 round-trips (signed value)",
+          (_t2, _c2, _v2) == (0x03, 0x10, -1)
+          and evdev_probe.event_name(_t2, _c2) == "ABS_HAT0X")
+    _ev3 = struct.pack(evdev_probe._EVENT_FMT, 12, 340002, 0x01, 172, 1)    # KEY_HOMEPAGE press
+    _t3, _c3, _v3 = evdev_probe.decode_event(_ev3)
+    check("watch decode: KEY_HOMEPAGE(172) press decodes by name",
+          evdev_probe.event_name(_t3, _c3) == "KEY_HOMEPAGE" and _v3 == 1)
+    # EV bit labels follow the kernel ABI: EV_MSC=0x04, EV_SW=0x05 (the TRIMUI pad's EV=2b
+    # includes bit 5 = SW; an earlier revision mislabeled 0x04 as EV_SW).
+    check("EV_NAMES matches kernel ABI (EV_MSC=0x04, EV_SW=0x05)",
+          evdev_probe.EV_NAMES.get(0x04) == "EV_MSC" and evdev_probe.EV_NAMES.get(0x05) == "EV_SW")
+
+    # evdev-dump.c (static-C fallback for python-less stock userlands) must compile clean
+    # and emit the SAME JSON capture shape. Soft-skipped when no C compiler is present.
+    _dump_c = os.path.join(HERE, "evdev-dump.c")
+    _cc = None
+    for _cand in ("cc", "gcc", "clang"):
+        try:
+            if subprocess.run([_cand, "--version"], capture_output=True).returncode == 0:
+                _cc = _cand
+                break
+        except OSError:
+            continue
+    if _cc and os.path.isfile(_dump_c):
+        with tempfile.TemporaryDirectory() as _td:
+            _bin = os.path.join(_td, "evdev-dump")
+            r = subprocess.run([_cc, "-Wall", "-Wextra", "-Werror", "-O2", "-o", _bin, _dump_c],
+                               capture_output=True, text=True)
+            check("evdev-dump.c compiles clean (-Wall -Wextra -Werror)", r.returncode == 0)
+            if r.returncode != 0:
+                print("  cc stderr: " + (r.stderr or "").strip()[:500])
+            else:
+                r2 = subprocess.run([_bin, "/nonexistent"], capture_output=True, text=True)
+                try:
+                    cap = json.loads(r2.stdout)
+                    ok_shape = (isinstance(cap.get("nodes"), list) and len(cap["nodes"]) == 1
+                                and cap["nodes"][0]["path"] == "/nonexistent"
+                                and "error" in cap["nodes"][0])
+                except ValueError:
+                    ok_shape = False
+                check("evdev-dump emits the evdev-probe.py JSON capture shape", ok_shape)
+    else:
+        check("no C compiler — skipping evdev-dump.c gate", True)
+
     # Drift gate: the generator's --check mode must be green on the committed probe file.
     if os.path.isfile(GEN_PY) and _header:
         r = subprocess.run([sys.executable, GEN_PY, "--platform", ROOT, "--check"],

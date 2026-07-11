@@ -25,8 +25,10 @@ def EVIOCGBIT(ev, n):  return _IOC(_IOC_READ, 'E', 0x20 + ev, n)
 def EVIOCGABS(a):      return _IOC(_IOC_READ, 'E', 0x40 + a, 24)        # struct input_absinfo (6x s32)
 
 EV_SYN, EV_KEY, EV_ABS, EV_FF = 0x00, 0x01, 0x03, 0x15
+# Kernel ABI (input-event-codes.h): EV_MSC=0x04, EV_SW=0x05. (An earlier revision
+# mislabeled 0x04 as EV_SW; the SW bit the TRIMUI pad advertises is bit 5.)
 EV_NAMES = {0x00: "EV_SYN", 0x01: "EV_KEY", 0x02: "EV_REL", 0x03: "EV_ABS",
-            0x04: "EV_SW", 0x11: "EV_LED", 0x15: "EV_FF"}
+            0x04: "EV_MSC", 0x05: "EV_SW", 0x11: "EV_LED", 0x15: "EV_FF"}
 
 # Reverse code->name tables — GENERATED from the kernel ABI (input-event-codes.h) restricted
 # to exactly the core/caps.py schema vocab. Do NOT edit by hand: the old hand-maintained map
@@ -144,8 +146,103 @@ def probe(path):
     return node
 
 
+# --- press-test watch mode (SPIKE-0: physical presence => a real event, not a bitfield;
+# stock images may lack evtest, so this is the stdlib substitute) -------------------------
+_EVENT_FMT = "llHHi"          # struct input_event, native sizes (matches userland bitness)
+_EVENT_SIZE = struct.calcsize(_EVENT_FMT)
+
+
+def decode_event(buf, offset=0):
+    """Decode one struct input_event -> (type, code, value). Native-bitness layout."""
+    _sec, _usec, etype, code, value = struct.unpack_from(_EVENT_FMT, buf, offset)
+    return etype, code, value
+
+
+def event_name(etype, code):
+    if etype == EV_KEY:
+        return BTN.get(code) or KEY.get(code) or f"0x{code:x}"
+    if etype == EV_ABS:
+        return ABS.get(code, f"0x{code:x}")
+    return f"0x{code:x}"
+
+
+def watch(paths, seconds):
+    """Print decoded EV_KEY/EV_ABS events live; end with a JSON codes-seen summary.
+
+    ABS events are deduped per (node, code) with a delta of (max-min)/64 from the node's
+    own EVIOCGABS absinfo, so idle stick jitter doesn't flood a serial/SSH transcript.
+    """
+    import select, time
+    fds, meta = [], {}
+    for p in paths:
+        try:
+            info = probe(p)
+            f = open(p, "rb", buffering=0)
+            os.set_blocking(f.fileno(), False)
+            deltas = {}
+            for aname, ai in (info.get("abs") or {}).items():
+                deltas[aname] = max(1, (ai["max"] - ai["min"]) // 64)
+            fds.append(f)
+            meta[f.fileno()] = {"path": p, "name": info.get("name", ""), "deltas": deltas,
+                                "last": {}, "seen": set(), "file": f}
+        except OSError as e:
+            print(f"# {p}: {e}", flush=True)
+    if not fds:
+        print("# watch: no readable nodes", flush=True)
+        return 1
+    for m in meta.values():
+        print(f"# watching {m['path']} \"{m['name']}\"", flush=True)
+    t0 = time.time()
+    deadline = t0 + seconds
+    try:
+        while time.time() < deadline:
+            r, _, _ = select.select(fds, [], [], min(1.0, max(0.0, deadline - time.time())))
+            for f in r:
+                m = meta[f.fileno()]
+                try:
+                    buf = f.read(_EVENT_SIZE * 64)
+                except OSError:
+                    continue
+                if not buf:
+                    continue
+                for off in range(0, len(buf) - len(buf) % _EVENT_SIZE, _EVENT_SIZE):
+                    etype, code, value = decode_event(buf, off)
+                    if etype not in (EV_KEY, EV_ABS):
+                        continue
+                    name = event_name(etype, code)
+                    if etype == EV_ABS:
+                        last = m["last"].get(name)
+                        delta = m["deltas"].get(name, 1)
+                        if last is not None and abs(value - last) < delta:
+                            continue
+                        m["last"][name] = value
+                    m["seen"].add(name)
+                    print(f"[{time.time() - t0:7.2f}s] {os.path.basename(m['path'])} "
+                          f"{EV_NAMES.get(etype, hex(etype))} {name} {value}", flush=True)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        summary = {m["path"]: {"name": m["name"], "codes_seen": sorted(m["seen"])}
+                   for m in meta.values()}
+        print(json.dumps({"watch_summary": summary}, indent=2), flush=True)
+        for m in meta.values():
+            m["file"].close()
+    return 0
+
+
 def main(argv):
+    argv = list(argv)
+    do_watch, seconds = False, 120.0
+    if "--watch" in argv:
+        do_watch = True
+        argv.remove("--watch")
+    if "--seconds" in argv:
+        i = argv.index("--seconds")
+        seconds = float(argv[i + 1])
+        del argv[i:i + 2]
     paths = argv or sorted(glob.glob("/dev/input/event*"))
+    if do_watch:
+        return watch(paths, seconds)
     nodes = []
     for p in paths:
         try:
