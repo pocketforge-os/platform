@@ -166,6 +166,34 @@ def main():
     sem_neg("accept_default references a non-existent input id", "a133",
             lambda d: d.update(accept_default="ghost"), "accept_default")
 
+    # --- gnss/gps vocabulary (tsp-9sx.6): descriptor-REPRESENTABLE-but-OMITTED on shipping.
+    # A synthetic gnss/gps row must schema-validate + semantic-validate WITHOUT an iio_device
+    # (gnss/gps are not IIO sinks — gpsd/NMEA/CUSE stream). IIO-kind sensors (accel/gyro/mag/
+    # accel+gyro/imu) must STILL declare iio_device — semantic invariant, since the schema no
+    # longer enforces it (representable-but-source-kind-aware).
+    def sensor_pos(name, kind):
+        d = copy.deepcopy(base)
+        d["sensors"] = [{"id": f"loc_{kind}", "kind": kind}]
+        check(f"gnss vocab: descriptor with sensor.kind={kind} schema-valid",
+              caps.schema_errors(d, SCHEMA) == [])
+        errs, _ = caps.semantic_errors("a133", d)
+        check(f"gnss vocab: descriptor with sensor.kind={kind} semantic-clean", errs == [])
+        agree = reference_agrees(d, our_has_errors=False)
+        check(f"gnss vocab: kind={kind} agrees with reference jsonschema", agree in (True, None))
+    sensor_pos("gnss", "gnss")
+    sensor_pos("gps", "gps")
+
+    def sem_neg_iio(kind):
+        d = copy.deepcopy(base)
+        d["sensors"] = [{"id": f"s_{kind.replace('+','_')}", "kind": kind}]
+        check(f"IIO invariant: kind={kind} schema still clean (no iio_device required at schema)",
+              caps.schema_errors(d, SCHEMA) == [])
+        errs, _ = caps.semantic_errors("a133", d)
+        check(f"IIO invariant: kind={kind} without iio_device -> semantic rejects",
+              any("requires iio_device" in e for e in errs))
+    for _k in ("accel", "gyro", "mag", "accel+gyro", "imu"):
+        sem_neg_iio(_k)
+
     # --- gamecontrollerdb emit (against the REAL authored descriptors) ---
     for did, expect_thumb in (("a133", False), ("a523", True)):
         cpath = os.path.join(caps.DEVICES, did, caps.CAPS_FILE)

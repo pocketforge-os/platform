@@ -239,7 +239,7 @@ def semantic_errors(dev_id, data):
     if accept is not None and accept not in seen_input_ids:
         errs.append(f"accept_default '{accept}' is not an input id")
 
-    # 3) sensors / actuators — unique ids, actuator code membership.
+    # 3) sensors / actuators — unique ids, actuator code membership, IIO-kind→iio_device.
     for section, codes_ok in (("sensors", None), ("actuators", FF_CODES)):
         seen = set()
         for row in data.get(section, []):
@@ -249,6 +249,13 @@ def semantic_errors(dev_id, data):
             seen.add(rid)
             if codes_ok is not None and "code" in row and row["code"] not in codes_ok:
                 errs.append(f"{section} '{rid}': unknown FF code '{row['code']}'")
+            # IIO-backed sensor kinds must declare their iio_device path (the schema-required
+            # invariant before gnss/gps landed). gnss/gps are OMITTED from this set because
+            # they aren't IIO devices (gpsd/NMEA/CUSE stream, not iio sysfs) — presence is
+            # what matters, not the source path — see tsp-9sx.6.
+            if section == "sensors" and row.get("kind") in ("accel", "gyro", "mag", "accel+gyro", "imu"):
+                if not row.get("iio_device"):
+                    errs.append(f"sensors '{rid}': kind '{row.get('kind')}' requires iio_device")
 
     # 4) screens — geometry coherence (logical rotation of the render canvas must
     #    match the declared presentation orientation; catches a forgotten rotation).
