@@ -103,10 +103,10 @@
     "sensor": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "kind", "iio_device"],
+      "required": ["id", "kind"],
       "properties": {
         "id":           { "type": "string", "pattern": "^[a-z0-9_]+$" },
-        "kind":         { "enum": ["accel", "gyro", "mag", "accel+gyro", "imu"] },
+        "kind":         { "enum": ["accel", "gyro", "mag", "accel+gyro", "imu", "gnss", "gps"] },
         "iio_device":   { "type": "string", "minLength": 1 },
         "units":        { "type": "string", "minLength": 1 },
         "mount_matrix": { "$ref": "#/$defs/mat3" },
