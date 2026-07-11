@@ -9,16 +9,24 @@ hand-rolled subset engine is pinned to the real spec.
 
 Run:  python3 regression/caps/test_caps.py   (exit 0 = all pass)
 """
-import os, sys, json, copy, struct, zlib, tempfile, importlib.util
+import os, sys, json, copy, struct, zlib, re, subprocess, tempfile, importlib.util
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 CAPS_PY = os.path.join(ROOT, "core", "caps.py")
 SCHEMA_PATH = os.path.join(ROOT, "schemas", "capabilities.schema.json")
+PROBE_PY = os.path.join(HERE, "evdev-probe.py")
+GEN_PY = os.path.join(HERE, "gen_evdev_probe_codes.py")
 
 spec = importlib.util.spec_from_file_location("caps", CAPS_PY)
 caps = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(caps)
+
+# evdev-probe.py has a hyphen (not a valid module name) — load via importlib. It runs on
+# device with stdlib only; importing it here doesn't touch /dev/input.
+_pspec = importlib.util.spec_from_file_location("evdev_probe", PROBE_PY)
+evdev_probe = importlib.util.module_from_spec(_pspec)
+_pspec.loader.exec_module(evdev_probe)
 
 with open(SCHEMA_PATH) as f:
     SCHEMA = json.load(f)
@@ -220,6 +228,90 @@ def main():
     check("probe-diff a523: IMU flagged as IIO (confirm bind)", any("IIO" in x for x in i))
     e, w, i = caps.probe_diff("a523", xpad_capture(home=False))
     check("probe-diff a523: home advertised nowhere -> ERROR", any("KEY_HOMEPAGE" in x for x in e))
+
+    # --- evdev-probe reverse tables (tsp-9sx.5) ---
+    # The old hand-maintained table decimal/hex-slipped KEY_HOMEPAGE (0x172 instead of
+    # 172/0xac), which made a real code-172 key decode as raw "0xac" and probe-diff ERROR
+    # even when the a523 hardware was correct. The tables are now GENERATED from the kernel
+    # ABI restricted to the caps.py schema vocab — these tests pin that.
+    check("KEY_HOMEPAGE reverse maps 172 (0xac), not 0x172 (=370)",
+          evdev_probe.KEY.get(172) == "KEY_HOMEPAGE" and 0x172 not in evdev_probe.KEY)
+    # Decode simulation: mirror the exact expression the probe uses on an EVIOCGBIT bitmap,
+    # feed it code 172, verify it does NOT fall through to the raw "0xac" fallback.
+    decoded = [evdev_probe.BTN.get(c) or evdev_probe.KEY.get(c) or f"0x{c:x}" for c in [172]]
+    check("evdev-probe decodes code 172 as 'KEY_HOMEPAGE' (not raw '0xac')",
+          decoded == ["KEY_HOMEPAGE"])
+
+    # Every schema-vocab code must have a canonical name in the appropriate reverse table
+    # (no schema code decodes as raw "0x.." — the bead's coverage rule). Resolve names via
+    # the kernel header so this is pinned to the same ABI the generator reads.
+    _header = {}
+    _DEFINE = re.compile(r"^#define\s+([A-Z][A-Z0-9_]*)\s+(\S+)")
+    for _hdr in ("/usr/include/linux/input-event-codes.h", "/usr/include/linux/input.h"):
+        try:
+            with open(_hdr) as _f:
+                for _line in _f:
+                    _m = _DEFINE.match(_line)
+                    if _m:
+                        _header[_m.group(1)] = _m.group(2)
+        except OSError:
+            pass
+
+    def _resolve(nm, seen=None):
+        seen = seen or set()
+        if nm in seen: return None
+        seen.add(nm)
+        tok = _header.get(nm)
+        if tok is None: return None
+        try: return int(tok, 0)
+        except ValueError:
+            return _resolve(tok, seen) if re.fullmatch(r"[A-Z][A-Z0-9_]*", tok) else None
+
+    def _raw_fallback_names(vocab, table, prefix):
+        missing = []
+        for nm in sorted(vocab):
+            code = _resolve(nm)
+            if code is None: continue
+            if code not in table:
+                missing.append(f"{nm}={code:#x}")
+        return missing
+
+    if not _header:
+        # No kernel headers available (unusual on any dev host but skip gracefully).
+        check("no header found — skipping schema-code coverage", True)
+    else:
+        miss_b = _raw_fallback_names(caps.BTN_CODES, evdev_probe.BTN, "BTN_")
+        miss_k = _raw_fallback_names(caps.KEY_CODES, evdev_probe.KEY, "KEY_")
+        miss_a = _raw_fallback_names(caps.ABS_CODES, evdev_probe.ABS, "ABS_")
+        check("no BTN_ schema code decodes as raw 0x.." + (f" (missing: {miss_b})" if miss_b else ""),
+              not miss_b)
+        check("no KEY_ schema code decodes as raw 0x.." + (f" (missing: {miss_k})" if miss_k else ""),
+              not miss_k)
+        check("no ABS_ schema code decodes as raw 0x.." + (f" (missing: {miss_a})" if miss_a else ""),
+              not miss_a)
+
+    # End-to-end: `pf caps probe-diff --device a523` must go green vs the vendored a523
+    # fixture (tsp-9sx.5 AC). Runs the CLI so both invocation path + reverse-table decode
+    # ride the gate.
+    _fixture = os.path.join(HERE, "fixtures", "a523-capture.json")
+    _pf = os.path.join(ROOT, "pf")
+    if os.path.isfile(_fixture) and os.access(_pf, os.X_OK):
+        r = subprocess.run([_pf, "caps", "probe-diff", "--device", "a523", "--probe", _fixture],
+                           capture_output=True, text=True)
+        check("pf caps probe-diff --device a523 (vendored fixture) exits 0",
+              r.returncode == 0)
+        if r.returncode != 0:
+            print("  probe-diff stderr: " + (r.stderr or "").strip())
+            print("  probe-diff stdout: " + (r.stdout or "").strip())
+
+    # Drift gate: the generator's --check mode must be green on the committed probe file.
+    if os.path.isfile(GEN_PY) and _header:
+        r = subprocess.run([sys.executable, GEN_PY, "--platform", ROOT, "--check"],
+                           capture_output=True, text=True)
+        check("gen_evdev_probe_codes.py --check clean (no drift vs kernel + caps.py vocab)",
+              r.returncode == 0)
+        if r.returncode != 0:
+            print("  gen --check stderr: " + (r.stderr or "").strip())
 
     print()
     if _failures:
