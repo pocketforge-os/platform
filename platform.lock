@@ -50,7 +50,7 @@ sha  = "b54a15d9f558cd3aea9d468489150a8f857ddbfd"
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
 ref  = "device/a133"
-sha  = "e18c316e59dcd69e1ea83ba364d2b6d05d6d5c18"  # tsp-myp1.5.1: bounded g2d wait in fb0 rot create
+sha  = "58a2e4d225e54bda13e4aff993a96729d0ae14a6"  # tsp-myp1.5.1: bounded g2d wait in fb0 rot create
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
