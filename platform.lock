@@ -44,7 +44,7 @@ manifest_signing_active = false
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
 ref  = "main"          # tsp-j31: +image#30 (a523 fullmac wpa profile — board-scope roam policy so AIC8800 gets simple WPA-PSK, not the XR829 FT/bgscan config; a133 output byte-identical). Prior: tsp-ve5 image#29 (a133 EGL client-API discovery — PowerVR dev-name dlopen symlinks; testgles2 cube fix); tsp-3q4 image#28 (a133 initrd cpio --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble); a133 clean-boot #18-#22.
-sha  = "d745a2e36ee2126f9b09188d1924dc8252ed5916"
+sha  = "44c2e9730c32c16085d08b6fca6a3c07f8b4eac5"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -86,7 +86,7 @@ sha  = "deaba081685170ffff0aec9f7a260ad1586840fe"
 name = "blobs"                # private; preserved vendor originals + apply-*.py + *.SHA256 (text-only after B3)
 url  = "https://github.com/pocketforge-os/blobs.git"
 ref  = "main"                # tsp-jet.2: +sunxi/a523/{mali,wifi-firmware} custody records (born text-only — no a523 strip debt). a133 merge-1 state unchanged; -strip (merge-2) still gated.
-sha  = "e269a2cdd72653e589466cddce43623467976f2b"
+sha  = "02ad8b7158ae39797f2693607ea9f2e6975f9ffd"
 
 [[repos]]
 name = "vendor-manifest"      # private; group -> SHA-256 -> CID map + fetch-group.py (B3 pins this SHA)
