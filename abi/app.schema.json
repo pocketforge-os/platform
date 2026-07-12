@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pocketforge.os/schemas/app.schema.json",
+  "title": "PocketForge canonical app descriptor (app.toml)",
+  "description": "THE reconciled app.toml — ONE descriptor, THREE consumers (the on-device broker/supervisor at launch; the packaging path at build/sign; the SDK/author tooling at scaffold). Reconciles the three pre-E8 schemas: Phase-1 plan pocketforge-plan.md §9.3/§9.4 ([app]/[launch]/[health]/[fetch]); Phase-2 OCI build-integration-reference.md §18 (the sibling OCI/signature/SBOM/slice files); and pf-broker manifest.rs ([app].use=[] authority graph). E8 (tsp-ziac.1) ADDS the [runtime] platform-family pin (family + abi + platform-version), which none of the three carried. The OCI/signature/SBOM/resource-limit layer is a set of SIBLING FILES beside app.toml (see docs/PLATFORM-ABI-CONTRACT.md), not keys in this file.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["app", "runtime"],
+  "properties": {
+    "app":     { "$ref": "#/$defs/app" },
+    "runtime": { "$ref": "#/$defs/runtime" },
+    "launch":  { "$ref": "#/$defs/launch" },
+    "health":  { "$ref": "#/$defs/health" },
+    "fetch":   { "$ref": "#/$defs/fetch" }
+  },
+  "$defs": {
+    "app": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "description": "Identity + the capability authority graph. `use=[]` is the CEILING of what the app may ever acquire (pf-broker manifest.rs); the broker refuses anything outside it at runtime.",
+      "properties": {
+        "id":               { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$", "description": "reverse-DNS-ish app id; matched by the broker + the blessed-binary registry" },
+        "name":             { "type": "string", "minLength": 1 },
+        "category":         { "type": "string", "enum": ["media", "stream", "game", "system", "settings"] },
+        "order":            { "type": "integer" },
+        "icon":             { "type": "string" },
+        "version":          { "type": "string" },
+        "upstream_version": { "type": "string" },
+        "use": {
+          "type": "array",
+          "description": "Capability authority graph: `<cap>[:<modifier>][?]` tokens. `?` = OPTIONAL (graceful HardwareAbsent if the device can't back it). The AUTHORITATIVE capability-universe + descriptor-backed dangling check is runtime/crates/pf-broker/src/manifest.rs (cooperative, on-device). The platform static validator checks only token well-formedness (see core/appmanifest.py).",
+          "items": { "type": "string", "pattern": "^[a-z0-9]+(:[^\\s?]+)?\\??$" }
+        }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family", "abi"],
+      "description": "The per-SoC-family Platform ABI pin (E8 / tsp-ziac.1). A Platform accepts an app iff app.runtime.family == platform.family (or an accepted alias) AND app.runtime.abi is offered. `platform-version` pins the exact frozen {kernel,gpu,sdl} SHA-set via abi/platform-abi.json.",
+      "properties": {
+        "family":           { "type": "string", "description": "canonical family id or accepted alias — see abi/families.toml (e.g. pocketforge/a133-powervr, pocketforge/a523-mali)", "pattern": "^pocketforge/[a-z0-9-]+$" },
+        "abi":              { "type": "string", "description": "the frozen libpocketforge/PFW1 contract version (STABILITY.md); currently \"1\"", "pattern": "^[0-9]+$" },
+        "platform-version": { "type": "string", "description": "the frozen Platform release this build pins → resolves to a {kernel,gpu,sdl} SHA-set in abi/platform-abi.json for this family. Optional but recommended for reproducibility/provenance." }
+      }
+    },
+    "launch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exec"],
+      "properties": {
+        "exec":          { "type": "string", "minLength": 1 },
+        "needs_network": { "type": "boolean" },
+        "takes_display": { "type": "boolean" },
+        "audio":         { "type": "boolean" }
+      }
+    },
+    "health": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional, advisory preflight (plan §9.3).",
+      "properties": {
+        "preflight":   { "type": "string" },
+        "timeout_sec": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "fetch": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional per-app first-boot HTTPS binary fetch (plan §9.4). NOTE: distinct from the vendor-BLOB manifest.toml [[blobs]] IPFS fetch (image/scripts/ipfs-fetch.sh) — same word, different mechanism; they are NOT unified.",
+      "required": ["enabled"],
+      "properties": {
+        "enabled":     { "type": "boolean" },
+        "destination": { "type": "string", "enum": ["var", "home"] },
+        "reason":      { "type": "string" },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["url", "sha256"],
+            "properties": {
+              "url":              { "type": "string" },
+              "sha256":           { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "size":             { "type": "integer", "minimum": 0 },
+              "format":           { "type": "string", "enum": ["tar.gz", "tar.xz", "tar.zst", "zip", "raw"] },
+              "dest":             { "type": "string" },
+              "strip_components": { "type": "integer", "minimum": 0 },
+              "executable":       { "type": "object", "additionalProperties": { "type": "string", "pattern": "^0[0-7]{3}$" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

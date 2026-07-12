@@ -1,0 +1,22 @@
+# abi/examples/app-a133-powervr.toml — a VALID canonical app descriptor for the a133 family.
+# Validate: `pf app-validate abi/examples/app-a133-powervr.toml`. Schema: abi/app.schema.json.
+# Note the same app source targets BOTH families as separate builds (one build per family) —
+# only [runtime].family differs; the capability facade hides the within-family device delta.
+# `imu?` is OPTIONAL here precisely because the a133 has no IMU (graceful HardwareAbsent).
+
+[app]
+id       = "com.example.spinner"
+name     = "Spinner"
+category = "game"
+version  = "1.0.0"
+use      = ["input", "vibration", "imu?", "entropy", "egress:scores.example.com"]
+
+[runtime]
+family           = "pocketforge/a133-powervr"
+abi              = "1"
+platform-version = "1"
+
+[launch]
+exec          = "./launch"
+takes_display = true
+audio         = true

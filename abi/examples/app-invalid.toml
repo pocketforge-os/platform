@@ -1,0 +1,18 @@
+# abi/examples/app-invalid.toml — an INTENTIONALLY INVALID descriptor (negative-test fixture).
+# `pf app-validate abi/examples/app-invalid.toml` MUST exit 1 and report every violation:
+#   - OutOfLockVersion: platform-version '99' is not offered for pocketforge/a523-mali
+#   - UnsupportedAbi  : abi '7' is not offered
+#   - DuplicateCapability 'input'
+#   - BadModifier     : 'location:teleport'
+# (UnknownFamily is covered by the unit test; a version check needs a KNOWN family, so this
+#  fixture uses a real family with an out-of-lock version. Unknown *capabilities* + descriptor-
+#  backed dangling are the runtime broker's authoritative checks, not this static validator's.)
+
+[app]
+id  = "com.example.bad"
+use = ["input", "input", "location:teleport"]
+
+[runtime]
+family           = "pocketforge/a523-mali"   # known family...
+abi              = "7"                         # ...but abi 7 is not a supported contract version
+platform-version = "99"                        # ...and version 99 is not offered for it (out-of-lock)

@@ -1,0 +1,57 @@
+# abi/families.toml — the NAMED per-SoC-family Platform ABI registry (E8 / tsp-ziac.1).
+#
+# THE FAMILY AXIS. `platform.lock` pins repos at exact SHAs; `devices/<id>/profile.toml`
+# maps a device to its kernel/GPU repos. This registry adds the ONE thing neither carries:
+# a STABLE, NAMED per-SoC-family ABI target an app pins in `app.toml` `[runtime].family`.
+#
+# WHY per-family, not per-device (E2 `runtime/docs/RUNTIME-SDK-SPLIT.md` §2, R-D): the two
+# starter devices are DIVERGENT SoCs, not variants — different kernel line + different GPU IP
+# + different SDL backend ⇒ a different binary build. The *capability descriptor* stays
+# device-level (`devices/<id>/capabilities.toml`), but the *binary ABI target* is family-level.
+# One app source → one build per family it supports.
+#
+# DERIVED-NOT-DUPLICATED. This file carries ONLY the ABI-family metadata that is NOT already
+# in a device profile or the lock: the family id, the GPU-IP tag, the SDL-backend mapping, the
+# platform-version, and the per-family provenance posture. The kernel/GPU repo names come from
+# `devices/<device>/profile.toml`; their SHAs come from `platform.lock`. `core/abi_view.py`
+# JOINS the three and emits the frozen view `abi/platform-abi.json`; `pf abi check` proves the
+# committed view still equals the live join (the anti-drift gate — a view CANNOT diverge from
+# the lock because it is DERIVED from it, and `check` fails if the substrate SHAs moved without
+# the view being re-frozen + the platform-version bumped).
+#
+# NAMING (E8 reconciliation, tsp-ziac.1). The canonical family ids are GPU-IP-bearing
+# (`pocketforge/a133-powervr`, `pocketforge/a523-mali`) per epic R-D + this bead's acceptance
+# criteria. E2's `RUNTIME-SDK-SPLIT.md` §2 first drafted SoC-only ids (`pocketforge/sun50i-a133`,
+# `pocketforge/sun55i-a523`); that doc explicitly said "When E8 is filed, confirm it adopts this
+# schema rather than inventing its own." E8 adopts the *schema* (family/abi vocabulary) verbatim
+# and RECONCILES the *ids* to the GPU-IP-bearing form — the SDL-backend split (PowerVR fbdev vs
+# Mali kmsdrm) is the ABI-relevant divergence, so naming the GPU IP is the honest key. The
+# SoC-only ids are kept as accepted `alias`es so an app that pinned the E2 draft name still
+# resolves. See docs/PLATFORM-ABI-CONTRACT.md.
+
+platform_abi_schema = 1
+
+# ── pocketforge/a133-powervr — TrimUI Smart Pro (Allwinner A133 / sun50iw10) ───────────────
+[[family]]
+id               = "pocketforge/a133-powervr"
+alias            = ["pocketforge/sun50i-a133"]   # E2 RUNTIME-SDK-SPLIT.md §2 draft id (superseded → accepted alias)
+device           = "a133"                        # -> devices/a133/profile.toml (kernel/gpu repos) + capabilities.toml
+gpu_ip           = "powervr"                     # PowerVR DDK 1.19 (Rogue)
+sdl_repo         = "libsdl3-sunxifb"             # OWNED SDL3 fbdev backend; links the PowerVR UM (a133-only)
+sdl_backend      = "sunxifb"                     # SDL_VIDEODRIVER (fbdev via the sunxi disp engine)
+platform_version = "1"                           # bump when the resolved kernel/gpu/sdl SHA-set changes
+reproducible     = true                          # hermetic pf build from committed refs (tsp-1dl.4.5, tsp-cv7.6.1)
+provenance_ref   = "tsp-1dl.4.5, tsp-cv7.6.1"
+
+# ── pocketforge/a523-mali — TrimUI Smart Pro S (Allwinner A523 / sun55iw3) ──────────────────
+[[family]]
+id               = "pocketforge/a523-mali"
+alias            = ["pocketforge/sun55i-a523"]   # E2 RUNTIME-SDK-SPLIT.md §2 draft id (superseded → accepted alias)
+device           = "a523"                        # -> devices/a523/profile.toml (kernel/gpu repos) + capabilities.toml
+gpu_ip           = "mali"                        # Mali-G57 (Valhall); libmali blob group (Panfrost = tsp-mo2, future)
+sdl_repo         = ""                             # NOT yet owned — a523 ships NO sunxifb libSDL3 today (image
+                                                 #   build/Dockerfile.pf: sunxifb links the PowerVR UM ⇒ a133-only)
+sdl_backend      = "kmsdrm"                       # TARGET backend (Mali → KMS/DRM); NOT yet a pinned owned fork
+platform_version = "1"
+reproducible     = false                         # a523 image build not yet hermetic (tsp-jet); blob→IPFS (tsp-iby)
+provenance_ref   = "tsp-jet, tsp-iby"
