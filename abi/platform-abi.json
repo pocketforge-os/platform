@@ -1,0 +1,61 @@
+{
+  "families": [
+    {
+      "alias": [
+        "pocketforge/sun50i-a133"
+      ],
+      "device": "a133",
+      "gpu_ip": "powervr",
+      "gpu_km": {
+        "ref": "main",
+        "repo": "gpu-km-tsp",
+        "sha": "d8bd603bf1ac72161742e6218a112915933e402a"
+      },
+      "id": "pocketforge/a133-powervr",
+      "kernel": {
+        "ref": "device/a133",
+        "repo": "kernel-sunxi-4.9",
+        "sha": "a0e7b9c172a380e2df67df7ca67eaed6e6d196ec"
+      },
+      "platform_version": "1",
+      "provenance_ref": "tsp-1dl.4.5, tsp-cv7.6.1",
+      "reproducible": true,
+      "sdl": {
+        "backend": "sunxifb",
+        "repo": "libsdl3-sunxifb",
+        "sha": "8d55dbffed66ba7caeb093b43e39e74347ac5d67",
+        "status": "owned"
+      }
+    },
+    {
+      "alias": [
+        "pocketforge/sun55i-a523"
+      ],
+      "device": "a523",
+      "gpu_ip": "mali",
+      "gpu_km": {
+        "ref": "master",
+        "repo": "gpu-km-tsp-a523",
+        "sha": "3deecd9bf607051b567f7edb392b405b287132a6"
+      },
+      "id": "pocketforge/a523-mali",
+      "kernel": {
+        "ref": "device/a523",
+        "repo": "kernel-sunxi-5.15",
+        "sha": "e63004b0e9478de722571d97cd0e853194ffb9a2"
+      },
+      "platform_version": "1",
+      "provenance_ref": "tsp-jet, tsp-iby",
+      "reproducible": false,
+      "sdl": {
+        "backend": "kmsdrm",
+        "note": "no owned SDL fork yet (tsp-jet, tsp-iby)",
+        "repo": null,
+        "sha": null,
+        "status": "not-owned"
+      }
+    }
+  ],
+  "lock_state": "interim",
+  "platform_abi_schema": 1
+}

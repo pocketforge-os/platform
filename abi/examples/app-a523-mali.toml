@@ -1,0 +1,28 @@
+# abi/examples/app-a523-mali.toml — a VALID canonical app descriptor (fixture).
+# Validate: `pf app-validate abi/examples/app-a523-mali.toml`. Schema: abi/app.schema.json.
+# This is THE reconciled shape .2 (scaffold) and .3 (packaging) consume.
+
+[app]
+id       = "com.example.spinner"
+name     = "Spinner"
+category = "game"
+version  = "1.0.0"
+# Capability authority graph (pf-broker CEILING). `?` = optional (graceful HardwareAbsent).
+use      = ["input", "vibration", "imu?", "entropy", "egress:scores.example.com"]
+
+[runtime]
+# The per-SoC-family Platform ABI pin (E8). A Platform accepts this app iff its family
+# matches AND it offers abi 1. platform-version pins the exact {kernel,gpu,sdl} SHA-set.
+family           = "pocketforge/a523-mali"
+abi              = "1"
+platform-version = "1"
+
+[launch]
+exec          = "./launch"
+needs_network = true
+takes_display = true
+audio         = true
+
+# Optional first-boot HTTPS fetch (plan §9.4). Sibling files that ride ALONGSIDE app.toml at
+# package time (NOT keys here): app.toml.sig (minisign), oci/ + oci.sig (cosign-by-digest),
+# sbom.spdx.json (syft), slice.conf (systemd resource limits). See docs/PLATFORM-ABI-CONTRACT.md.
