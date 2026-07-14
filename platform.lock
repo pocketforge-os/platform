@@ -44,7 +44,7 @@ manifest_signing_active = false
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
 ref  = "main"          # tsp-myp1.5: +image#39 (charger-boot + fastboot splash paths — mcopies the PocketForge logo BMP into bat/battery_charge.bmp, bat/bat0.bmp, bat/low_pwr.bmp, fastbootlogo.bmp on the FAT boot-resource; fixes the white-flash on VBUS-powered boots). +image#37 (PocketForge logo as the bootlogo item in boot_package.fex — normal-boot path). Prior: tsp-myp1.2 image#38 (DEV-variant u-boot charger-shutdown-defeat hook); tsp-j31 image#30 (a523 fullmac wpa profile); tsp-ve5 image#29 (a133 EGL client-API discovery); tsp-3q4 image#28 (a133 initrd cpio --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble); a133 clean-boot #18-#22.
-sha  = "b54a15d9f558cd3aea9d468489150a8f857ddbfd"
+sha  = "9da688547c17d919fdde36af104f9b8e22cfe6f8"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
