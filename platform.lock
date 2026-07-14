@@ -49,8 +49,11 @@ sha  = "b54a15d9f558cd3aea9d468489150a8f857ddbfd"
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"
-sha  = "a0e7b9c172a380e2df67df7ca67eaed6e6d196ec"
+ref  = "device/a133"          # tsp-p6p5: pinned to the branch-tip cd8a776 (off device/a133 aa2aa386,
+                              # incl. AXP2202 charge + rotation fixes) which enables SUPPORT_NON_HT40_CHIP
+                              # (xr829 HT20-only) to cure the base-A133 2.4GHz data-plane wedge. Re-pin to
+                              # the merged device/a133 tip once kernel-sunxi-4.9#<pr> lands.
+sha  = "cd8a7768d5730eee9eea22eec0a25325364d2cec"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
