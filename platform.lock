@@ -60,7 +60,7 @@ ref  = "device/a133"          # tsp-myp1.5.1.1: re-pin to device/a133 tip ed7b36
                               # blocking wait on the init thread. Also carries
                               # #6 xr829 HT20-only + aa2aa38 orig plus #8 revert
                               # of the 3s-cap regression.
-sha  = "ed7b3638b9ea741b36f800183f8adb7df4c27338"
+sha  = "cccccccccccccccccccccccccccccccccccccccc"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
