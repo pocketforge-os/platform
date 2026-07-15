@@ -18,13 +18,12 @@
 # (or surfaces a pre-existing drift on the base, which is desirable). Superset of the "runs on
 # any PR touching platform.lock/abi/" requirement, not a narrowing of it.
 #
-# SELF-HOSTED runner - REQUIRED. The org runs on self-hosted runners (GitHub-hosted `ubuntu-latest`
-# is disabled at the org level - `runs-on: ubuntu-latest` yields a startup_failure). `[self-hosted,
-# Linux, X64]` targets the Default runner group (available to every repo; the same pool the
-# pf-pr-review gate uses). actions/checkout + actions/setup-python are GitHub-owned actions, which
-# the org's "selected actions" allowlist permits (github_owned_allowed=true). setup-python pins
-# 3.12 so tomllib (abi_view.py needs Python 3.11+) is present regardless of the runner's system
-# Python; there are no third-party deps to install.
+# NO MARKETPLACE ACTIONS - DELIBERATE (matches the org's proven pr-review-gate). The org runs on
+# self-hosted runners (GitHub-hosted `ubuntu-latest` is disabled) and its "selected actions"
+# allowlist rejects `actions/checkout`/`actions/setup-python` (they yield a startup_failure here),
+# so - exactly like shared-workflows/pr-review-gate.yml - this job uses ZERO `uses:` actions: it
+# checks the PR ref out with plain `git` + the ephemeral `github.token`, and runs `pf abi check`
+# with the first Python 3.11+ interpreter it finds (abi_view.py needs tomllib; no third-party deps).
 
 name: ABI drift gate
 
@@ -42,9 +41,27 @@ jobs:
     name: pf-abi-drift
     runs-on: [self-hosted, Linux, X64]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: pf abi check - committed view must equal the live platform.lock join
-        run: ./pf abi check
+      - name: checkout the PR ref + pf abi check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          wd="$RUNNER_TEMP/platform-abi-drift-$GITHUB_RUN_ID"
+          rm -rf "$wd"
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
+          cd "$wd"
+          git fetch --quiet origin "$GITHUB_SHA"
+          git checkout --quiet --detach "$GITHUB_SHA"
+          # Pick a Python 3.11+ (tomllib) interpreter; the pf script honours PF_PY.
+          PY=""
+          for c in python3.12 python3.11 python3; do
+            if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys;raise SystemExit(0 if sys.version_info>=(3,11) else 1)'; then
+              PY="$c"; break
+            fi
+          done
+          if [ -z "$PY" ]; then
+            echo "FATAL: no Python 3.11+ (tomllib) on this runner: $(python3 -V 2>&1 || echo none)" >&2
+            exit 3
+          fi
+          echo "using $PY ($("$PY" -V 2>&1)) on runner $RUNNER_NAME"
+          PF_PY="$PY" ./pf abi check
