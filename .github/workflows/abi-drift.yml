@@ -1,0 +1,67 @@
+# abi-drift - the REQUIRED anti-drift gate for the named per-family Platform ABI (E8 / tsp-ziac.7).
+#
+# WHY THIS EXISTS. abi/platform-abi.json is a DERIVED, frozen view over platform.lock (JOINed by
+# core/abi_view.py - see docs/PLATFORM-ABI-CONTRACT.md #3). The anti-drift guarantee was
+# documentary only: `pf abi check` was built + proven (regression/abi/drift-test.sh) but never
+# wired as a REQUIRED status check, so a cross-epic platform.lock bump that skipped the regen
+# drifted the view (platform#42 moved kernel-sunxi-4.9 a0e7b9c -> ed7b3638 without re-freezing;
+# tsp-ziac.7). This workflow closes that hole: `pf abi check` fails the PR whenever the committed
+# view no longer equals the live platform.lock join, so a lock bump MUST be paired with
+# `pf abi generate` (and a per-family platform_version bump when a frozen SHA-set changes).
+#
+# NO `paths:` FILTER - DELIBERATE. This gate is wired REQUIRED on the default branch. A required
+# status check gated by `paths:` becomes permanently "expected"/pending on any PR that does NOT
+# touch the filtered paths, which BLOCKS merge indefinitely (GitHub's required-check semantics).
+# `pf abi check` is a sub-second, side-effect-free re-derivation, so running it on EVERY PR is
+# strictly safer than path-gating and still blocks exactly the drift case: a PR touching
+# platform.lock/abi/ that forgot to regenerate goes RED; every other PR re-derives and passes
+# (or surfaces a pre-existing drift on the base, which is desirable). Superset of the "runs on
+# any PR touching platform.lock/abi/" requirement, not a narrowing of it.
+#
+# NO MARKETPLACE ACTIONS - DELIBERATE (matches the org's proven pr-review-gate). The org runs on
+# self-hosted runners (GitHub-hosted `ubuntu-latest` is disabled) and its "selected actions"
+# allowlist rejects `actions/checkout`/`actions/setup-python` (they yield a startup_failure here),
+# so - exactly like shared-workflows/pr-review-gate.yml - this job uses ZERO `uses:` actions: it
+# checks the PR ref out with plain `git` + the ephemeral `github.token`, and runs `pf abi check`
+# with the first Python 3.11+ interpreter it finds (abi_view.py needs tomllib; no third-party deps).
+
+name: ABI drift gate
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: pf-abi-drift
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - name: checkout the PR ref + pf abi check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          wd="$RUNNER_TEMP/platform-abi-drift-$GITHUB_RUN_ID"
+          rm -rf "$wd"
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
+          cd "$wd"
+          git fetch --quiet origin "$GITHUB_SHA"
+          git checkout --quiet --detach "$GITHUB_SHA"
+          # Pick a Python 3.11+ (tomllib) interpreter; the pf script honours PF_PY.
+          PY=""
+          for c in python3.12 python3.11 python3; do
+            if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys;raise SystemExit(0 if sys.version_info>=(3,11) else 1)'; then
+              PY="$c"; break
+            fi
+          done
+          if [ -z "$PY" ]; then
+            echo "FATAL: no Python 3.11+ (tomllib) on this runner: $(python3 -V 2>&1 || echo none)" >&2
+            exit 3
+          fi
+          echo "using $PY ($("$PY" -V 2>&1)) on runner $RUNNER_NAME"
+          PF_PY="$PY" ./pf abi check
