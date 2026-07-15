@@ -49,15 +49,18 @@ sha  = "9da688547c17d919fdde36af104f9b8e22cfe6f8"
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"          # tsp-myp1.5.1: re-pin to device/a133 tip e38de53b = kernel-sunxi-4.9#8
-                              # (REVERTS #7's 500→3000ms cap bump — capture-boot proved
-                              # the wait blocks the serial kernel init thread, self-
-                              # deadlocking against g2d probe on that same thread;
-                              # 3s cap added a 3s per-boot regression with no rotation
-                              # gain). Back to aa2aa38 500ms cap baseline. Real fix
-                              # tracked as tsp-myp1.5.1.1 (non-blocking async apply).
-                              # Also carries #6 tsp-p6p5 xr829 HT20-only + aa2aa38 orig fix.
-sha  = "e38de53ba07796ef2a60aabbc6e91aaec261d61a"
+ref  = "device/a133"          # tsp-myp1.5.1.1: re-pin to device/a133 tip ed7b3638 = kernel-sunxi-4.9#9
+                              # — non-blocking WORKQUEUE-DEFERRED apply of fb0's g2d
+                              # rotation. Replaces the earlier sync-wait approach
+                              # (aa2aa38/PR#4 500ms; f7848e23/PR#7 3000ms since
+                              # reverted) which self-deadlocked the serial init
+                              # thread against g2d's downstream initcall. Boot
+                              # logo flips from un-rotated to landscape ~50-200ms
+                              # after fb0 reg (g2d-probe latency), without any
+                              # blocking wait on the init thread. Also carries
+                              # #6 xr829 HT20-only + aa2aa38 orig plus #8 revert
+                              # of the 3s-cap regression.
+sha  = "ed7b3638b9ea741b36f800183f8adb7df4c27338"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
