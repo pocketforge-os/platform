@@ -1,0 +1,41 @@
+# abi-drift — the REQUIRED anti-drift gate for the named per-family Platform ABI (E8 / tsp-ziac.7).
+#
+# WHY THIS EXISTS. `abi/platform-abi.json` is a DERIVED, frozen view over `platform.lock`
+# (JOINed by core/abi_view.py — see docs/PLATFORM-ABI-CONTRACT.md §3). The anti-drift guarantee
+# was documentary only: `pf abi check` was built + proven (regression/abi/drift-test.sh) but
+# never wired as a REQUIRED status check, so a cross-epic `platform.lock` bump that skipped the
+# regen drifted the view (platform#42 moved kernel-sunxi-4.9 a0e7b9c -> ed7b3638 without
+# re-freezing; tsp-ziac.7). This workflow closes that hole: `pf abi check` fails the PR whenever
+# the committed view no longer equals the live platform.lock join, so a lock bump MUST be paired
+# with `pf abi generate` (and a per-family platform_version bump when a frozen SHA-set changes).
+#
+# NO `paths:` FILTER — DELIBERATE. This gate is wired REQUIRED on the default branch. A required
+# status check gated by `paths:` becomes permanently "expected"/pending on any PR that does NOT
+# touch the filtered paths, which BLOCKS merge indefinitely (GitHub's required-check semantics).
+# `pf abi check` is a sub-second, side-effect-free re-derivation, so running it on EVERY PR is
+# strictly safer than path-gating and still blocks exactly the drift case: a PR touching
+# platform.lock/abi/ that forgot to regenerate goes RED; every other PR re-derives and passes
+# (or surfaces a pre-existing drift on the base, which is desirable). This is a superset of the
+# "runs on any PR touching platform.lock/abi/" requirement, not a narrowing of it.
+
+name: ABI drift gate
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: pf-abi-drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # ubuntu-latest ships Python 3.12 (tomllib in stdlib) — abi_view.py needs 3.11+ and no
+      # third-party deps, so there is nothing to install.
+      - name: pf abi check — committed view must equal the live platform.lock join
+        run: ./pf abi check

@@ -52,6 +52,13 @@ without the snapshot being re-frozen. A moved `{kernel,gpu,sdl}` SHA-set **is a 
 ABI**, so re-freezing (`pf abi generate`) must be paired with a **`platform-version` bump** for
 the affected family. Proven end-to-end by `regression/abi/drift-test.sh`.
 
+**Enforced in CI (required, not documentary).** `pf abi check` runs on every PR via
+[`.github/workflows/abi-drift.yml`](../.github/workflows/abi-drift.yml) (job `pf-abi-drift`) and
+is wired as a **required status check** on the default branch. A `platform.lock` bump that skips
+`pf abi generate` therefore **cannot merge** — the gate goes RED until the view is re-frozen.
+This closes the enforcement hole that let `platform#42` drift the a133 view (`tsp-ziac.7`): the
+guarantee above is now mechanized, not just documented.
+
 **Lock state is surfaced.** The view carries `lock_state` (`interim` / `authoritative` /
 `unseeded`) straight from `platform.lock`. Today it is **`interim`** — the SHAs are dev-tips, not
 a frozen release seed (`tsp-1dl.1.1`). An `interim`-pinned ABI is **DEV-ONLY**; a released app
