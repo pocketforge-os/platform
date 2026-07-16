@@ -23,7 +23,7 @@
       "sdl": {
         "backend": "sunxifb",
         "repo": "libsdl3-sunxifb",
-        "sha": "8d55dbffed66ba7caeb093b43e39e74347ac5d67",
+        "sha": "cd8a7a1785e1ee7d975c252c668f424b0d18852f",
         "status": "owned"
       }
     },
