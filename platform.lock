@@ -43,7 +43,12 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-woy3: +image#50 (animator pan-to-present — the boot animator now
+ref  = "main"          # tsp-myp1.8.6: +image#51 (tsp-myp1.8.5 Lane C2 v4 config-regression fixes —
+                       # TCP buffer maxes restored + net sysctl config corrections; folded into the
+                       # same lock PR as this bump's kernel fq_codel+regdb enable per wifi-perf-coord
+                       # ruling, so the lock resolves the complete round-2 WiFi stack in ONE bump —
+                       # the stale-image-pin lesson from tonight's tsp-myp1.8 lock churn).
+                       # Prior: tsp-woy3: +image#50 (animator pan-to-present — the boot animator now
                        # presents every frame via FBIOPAN_DISPLAY, double-buffered blit-back-
                        # page-then-pan + one pan after the SIGTERM clear. Root cause of the
                        # boot-animation-invisible P1: with HW rotation the panel scans a g2d-
@@ -88,12 +93,21 @@ ref  = "main"          # tsp-woy3: +image#50 (animator pan-to-present — the bo
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "6b92323e047e182acd03339473974f3844b73780"
+sha  = "c2ed31f8bbe0aa10e634674dc168fa0181a2bef7"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"          # tsp-myp1.8.1: bump 42a9d3ac -> 5c3e63017cd8 = device/a133 tip after #14
+ref  = "device/a133"          # tsp-myp1.8.6: bump 5c3e6301 -> c0d2ac249f7d = device/a133 tip after #16
+                              # (enable CONFIG_NET_SCH_CODEL+FQ_CODEL — the image's shipped
+                              # default_qdisc=fq_codel sysctl was a silent no-op with both compiled
+                              # out; and CONFIG_CFG80211_INTERNAL_REGDB + real wireless-regdb db.txt
+                              # (upstream master-2026-05-30 @ b488e68) — the ONLY regdomain path on
+                              # this 4.9 kernel (bookworm has no crda), unblocks Lane C2's country=
+                              # config. Hermetic build proven pre-merge at the branch tip, PROOF_RC=0.
+                              # ABI: kernel sha changes the a133 resolved {kernel,gpu,sdl} set —
+                              # a133-powervr platform_version 5 -> 6 + abi re-freeze in this commit).
+                              # Prior (5c3e6301, tsp-myp1.8.1): bump 42a9d3ac -> 5c3e63017cd8 = tip after #14
                               # (the tsp-urq WiFi fix-line port from archived kernel-tsp: xr829 bh
                               # -ERESTARTSYS tolerance + scan-PM revert-to-stock; BH_PROC_TX=1 deep
                               # proc-thread TX feed + key_conf[] PTK-slot-0 pin. Lane M before/after
@@ -111,7 +125,7 @@ ref  = "device/a133"          # tsp-myp1.8.1: bump 42a9d3ac -> 5c3e63017cd8 = de
                               # vendor image, load-bearing only for the owned-SPL path.
                               # Prior (ed7b3638, tsp-myp1.5.1.1): WORKQUEUE-DEFERRED fb0 g2d
                               # rotation + #6 xr829 HT20-only + #8 revert of the 3s-cap regression.
-sha  = "5c3e63017cd80515d3bd71298ea6883f886df53e"
+sha  = "c0d2ac249f7d5cacbfce32afede1a10a64c99299"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
