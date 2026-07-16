@@ -39,7 +39,10 @@ device           = "a133"                        # -> devices/a133/profile.toml 
 gpu_ip           = "powervr"                     # PowerVR DDK 1.19 (Rogue)
 sdl_repo         = "libsdl3-sunxifb"             # OWNED SDL3 fbdev backend; links the PowerVR UM (a133-only)
 sdl_backend      = "sunxifb"                     # SDL_VIDEODRIVER (fbdev via the sunxi disp engine)
-platform_version = "3"                           # bump when the resolved kernel/gpu/sdl SHA-set changes
+platform_version = "4"                           # bump when the resolved kernel/gpu/sdl SHA-set changes
+                                                 #   v4 (tsp-myp1.8.1): kernel-sunxi-4.9 42a9d3ac -> 5c3e630 (#14
+                                                 #   tsp-urq WiFi fix-line port: BH_PROC_TX=1 + PTK-slot-0 pin +
+                                                 #   bh ERESTARTSYS tolerance; Lane M gradient-validated)
                                                  #   v3 (tsp-147u.8.5): libsdl3-sunxifb 8d55dbff -> cd8a7a17
                                                  #   (pf-gfxbench test app added beside testgles2; SDL library
                                                  #   code untouched — additive test binary only)
