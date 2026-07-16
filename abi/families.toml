@@ -39,7 +39,9 @@ device           = "a133"                        # -> devices/a133/profile.toml 
 gpu_ip           = "powervr"                     # PowerVR DDK 1.19 (Rogue)
 sdl_repo         = "libsdl3-sunxifb"             # OWNED SDL3 fbdev backend; links the PowerVR UM (a133-only)
 sdl_backend      = "sunxifb"                     # SDL_VIDEODRIVER (fbdev via the sunxi disp engine)
-platform_version = "1"                           # bump when the resolved kernel/gpu/sdl SHA-set changes
+platform_version = "2"                           # bump when the resolved kernel/gpu/sdl SHA-set changes
+                                                 #   v2 (tsp-147u.16): kernel-sunxi-4.9 ab2f2b6c -> 42a9d3ac (PD22
+                                                 #   pwm1-mux removal — OTM1289A reset EBUSY fix, sharp render)
 reproducible     = true                          # hermetic pf build from committed refs (tsp-1dl.4.5, tsp-cv7.6.1)
 provenance_ref   = "tsp-1dl.4.5, tsp-cv7.6.1"
 
