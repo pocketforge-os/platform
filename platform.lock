@@ -162,8 +162,8 @@ sha  = "5c3c412a47c654f2bce158886738baaef4b8d5b1"
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
-ref  = "main"                # tsp-147u.8.5: +libsdl3-sunxifb#9 (pf-gfxbench — owned ramping GPU+CPU stress benchmark in sdl3/test/, built by the existing SDL_TESTS=ON beside testgles2; additive, library code untouched). Prior: tsp-ve5 #5 (eglBindAPI return check); UM blob path reorg tsp/ -> sunxi/a133/ (#2).
-sha  = "cd8a7a1785e1ee7d975c252c668f424b0d18852f"
+ref  = "main"                # tsp-147u.8.5: +libsdl3-sunxifb#12 (pf-gfxbench stage-schedule CALIBRATION from the A133 device window — per-stage fill table tuned to the owner's ~60->~2fps gradient, measured 60.41->2.00 on tsp-base; plasma visibility + particle size; constants only). Prior: #9 (pf-gfxbench app, additive beside testgles2); tsp-ve5 #5 (eglBindAPI return check); UM blob path reorg tsp/ -> sunxi/a133/ (#2).
+sha  = "8066078b6b6cc6ca5cf25f9e1b90d841789e4860"
 
 [[repos]]
 name = "wpa-supplicant-tsp"   # owned wpa_supplicant 2.10 fork (GREAT_SNR 25->45 roam hysteresis,
