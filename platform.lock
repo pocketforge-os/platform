@@ -43,15 +43,19 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-ikk0.11: +image#48 (pocketforge-foreground.target — declarative
+ref  = "main"          # tsp-ikk0.11: +image#49 (foreground-seam HARDENING — the animator
+                       # Conflicts=/After= must ALSO live target-side or a dependency-pulled
+                       # target start (systemd-run/pf-take-panel/app-unit Requires=, the normal
+                       # path) does not stop the animator; defect found + fix validated
+                       # on-device in the 2026-07-16 verify window, bead tsp-ikk0.11).
+                       # Pin = image/main HEAD (the #49 merge commit).
+                       # Prior: tsp-ikk0.11 +image#48 (pocketforge-foreground.target — declarative
                        # animator→app fb0 handoff seam + pf-take-panel launch shim; kills the
                        # splash/app pan-fight owner-reported as cube "z-fighting", root cause
                        # bead tsp-7kpp; rootfs-overlay units + build-rootfs.sh installs, both
-                       # variants). ADDITIVE over the 9245510 lineage it subsumes (9245510 is
-                       # an ancestor of this pin; supersedes platform#55 if that lands second):
+                       # variants); that bump subsumed the 9245510 lineage:
                        # +image#45 (tsp-myp1.8.2 v4 WiFi lineage) +image#47 (tsp-ikk0.8
                        # pr-review caller concurrency — CI workflow only, no rootfs effect).
-                       # Pin = image/main HEAD (the #48 merge commit).
                        # Prior: tsp-147u.8.5 +image#46 (ship pf-gfxbench — the owned ramping
                        # GPU+CPU stress benchmark — in the a133 dev-image testbin set; one-word
                        # sdl-stage copy-list addition, dev variant only) +image#43 (tsp-147u.8.2:
@@ -76,7 +80,7 @@ ref  = "main"          # tsp-ikk0.11: +image#48 (pocketforge-foreground.target �
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "9b469f6e02591756b0ad6bb9a536d7b2d436f285"
+sha  = "cf10cce481a4054e976692b4d7f5bf551394398c"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
