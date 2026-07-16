@@ -39,7 +39,11 @@ device           = "a133"                        # -> devices/a133/profile.toml 
 gpu_ip           = "powervr"                     # PowerVR DDK 1.19 (Rogue)
 sdl_repo         = "libsdl3-sunxifb"             # OWNED SDL3 fbdev backend; links the PowerVR UM (a133-only)
 sdl_backend      = "sunxifb"                     # SDL_VIDEODRIVER (fbdev via the sunxi disp engine)
-platform_version = "7"                           # bump when the resolved kernel/gpu/sdl SHA-set changes
+platform_version = "8"                           # bump when the resolved kernel/gpu/sdl SHA-set changes
+                                                 #   v8 (tsp-myp1.8.4): kernel-sunxi-4.9 242a6660 -> a6b19832 (#18
+                                                 #   FIX A: xr829 OOB host-wake IRQ level-high per BSP flags —
+                                                 #   kills the 125ms RX polling fallback; the last stranded
+                                                 #   tsp-urq fix; idle-latency candidate, TEST #2 decisive)
                                                  #   v7 (tsp-woy3): kernel-sunxi-4.9 c0d2ac24 -> 242a6660 (#17
                                                  #   disp2 fbdev commit-latch fix: config2 self-heal ported to
                                                  #   disp_mgr_set_layer_config + cfg_cnt underflow clamp +
