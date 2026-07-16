@@ -79,14 +79,49 @@ pf_find_git_source() {
     return 1
 }
 
+# pf_ensure_commit <gitdir> <repo> <sha> — ensure the pinned <sha> is present in <gitdir>:
+# cheap local check first (ZERO network on the hot path), then the same pinned-sha targeted
+# fetch pf_stage_sources has always used. Hermeticity-safe: the fetch is of the
+# content-addressed SHA (the full `fetch origin` fallback exists only for servers that refuse
+# fetch-by-sha, and merely populates objects — nothing ever reads a branch tip; the build
+# still archives exactly the pinned SHA). Returns 1 if the sha is still absent after fetching.
+# Shared by pf_commit_epoch and pf_stage_sources so the two ladders can never drift (tsp-hbpd).
+pf_ensure_commit() {
+    local gitdir="$1" repo="$2" sha="$3"
+    git --git-dir="$gitdir" cat-file -e "${sha}^{commit}" 2>/dev/null && return 0
+    pf_log "fetch: $repo missing ${sha:0:12} in $gitdir — targeted fetch"
+    git --git-dir="$gitdir" fetch -q origin "$sha" 2>/dev/null \
+        || git --git-dir="$gitdir" fetch -q origin 2>/dev/null || true
+    git --git-dir="$gitdir" cat-file -e "${sha}^{commit}" 2>/dev/null
+}
+
 # pf_commit_epoch <repo> <sha> <mirror_dir> — print the committer epoch of <sha> resolved from
 # any local git source for <repo> (checkout OR bare mirror), else print nothing. Deterministic
 # (a function of the pinned SHA), so it is a valid SOURCE_DATE_EPOCH; never falls back to now().
+# When the sha is missing from the local source (first build after a platform.lock bump on a
+# stale-mirror host) it does the pinned-sha targeted fetch via pf_ensure_commit — previously it
+# never fetched, so the epoch came back EMPTY and the build-arg was silently omitted, tripping
+# the kernel stage's in-container repro guard on the FIRST build after every lock bump (and the
+# failed run's staging fetch made a blind retry pass, masking the bug as flakiness — tsp-hbpd).
 pf_commit_epoch() {
     local repo="$1" sha="$2" mirror_dir="$3" gitdir
     [ -n "$repo" ] && [ -n "$sha" ] || return 0
     gitdir="$(pf_find_git_source "$repo" "$mirror_dir")" || return 0
+    pf_ensure_commit "$gitdir" "$repo" "$sha" || return 0
     git --git-dir="$gitdir" show -s --format=%ct "${sha}^{commit}" 2>/dev/null || true
+}
+
+# pf_require_epoch <repo> <sha> <mirror_dir> — pf_commit_epoch, but a resolvable epoch is
+# MANDATORY once a sha is pinned: an empty repo ("" or "none" — device doesn't use this
+# source) still yields empty output, but a pinned sha whose epoch cannot be resolved is a
+# HARD, NAMED failure at the pf orchestration layer instead of a silently-omitted build-arg
+# that dies deep inside the kernel stage (tsp-hbpd).
+pf_require_epoch() {
+    local repo="$1" sha="$2" mirror_dir="$3" epoch
+    { [ -n "$repo" ] && [ "$repo" != "none" ] && [ -n "$sha" ]; } || return 0
+    epoch="$(pf_commit_epoch "$repo" "$sha" "$mirror_dir")"
+    [ -n "$epoch" ] || pf_die "epoch unresolvable for $repo@$sha — no local git source or sha unfetchable (mirror stale? provision/refresh $mirror_dir/$repo.git) reason=epoch_unresolvable repo=$repo sha=$sha"
+    printf '%s\n' "$epoch"
 }
 
 # pf_stage_sources <src_dir> <buildargs-text>
@@ -126,13 +161,8 @@ pf_stage_sources() {
             fi
             pf_die "stage: no local git source for $repo — provision a bare mirror at $mirror_dir/$repo.git (\`git clone --bare <url>\`) or a checkout at \$HOME/$repo"
         fi
-        if ! git --git-dir="$gitdir" cat-file -e "${sha}^{commit}" 2>/dev/null; then
-            pf_log "stage: $repo missing $sha in $gitdir — targeted fetch"
-            git --git-dir="$gitdir" fetch -q origin "$sha" 2>/dev/null \
-                || git --git-dir="$gitdir" fetch -q origin 2>/dev/null || true
-            git --git-dir="$gitdir" cat-file -e "${sha}^{commit}" 2>/dev/null \
-                || pf_die "stage: SHA $sha absent from $repo after fetch — is platform.lock stale for this repo?"
-        fi
+        pf_ensure_commit "$gitdir" "$repo" "$sha" \
+            || pf_die "stage: SHA $sha absent from $repo after fetch — is platform.lock stale for this repo?"
         dest="$src_dir/$logical"; rm -rf "$dest"; mkdir -p "$dest"
         git --git-dir="$gitdir" archive --format=tar "$sha" | tar -x -C "$dest"
         n="$(find "$dest" -type f | wc -l)"
@@ -233,21 +263,27 @@ pf_os_image_dockerbuild() {
     # pinned SHA (never wall-clock). The IMAGE epoch stamps rootfs/assemble; the KERNEL epoch
     # (tsp-1dl.4.2) stamps the kernel stage so the Image is byte-stable from the kernel SHA
     # alone (component reproducibility), independent of image-repo churn. Both resolve via
-    # any local git source (checkout OR bare mirror) so a .git-less build host still works.
+    # any local git source (checkout OR bare mirror) — a host with no git source for a repo
+    # cannot build anyway (pf_stage_sources hard-dies on it), so a pinned-but-unresolvable
+    # epoch is a hard, named failure HERE rather than a silently-omitted build-arg that trips
+    # the kernel stage's in-container guard (tsp-hbpd; a stale mirror is fetch-recovered by
+    # pf_commit_epoch first — note this runs before the dry-run gate, so a --dry-run on a
+    # stale mirror may do that same pinned-sha fetch to preview the true command).
     local mirror_dir="${PF_MIRROR_DIR:-$HOME/wt/.mirrors}"
     local image_sha kernel_repo kernel_sha sde="" k_sde=""
     image_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_IMAGE_SHA=//p')"
     kernel_repo="$(printf '%s\n' "$ba" | sed -n 's/^PF_KERNEL_REPO=//p')"
     kernel_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_KERNEL_SHA=//p')"
-    sde="$(pf_commit_epoch image "$image_sha" "$mirror_dir")"
-    k_sde="$(pf_commit_epoch "$kernel_repo" "$kernel_sha" "$mirror_dir")"
+    sde="$(pf_require_epoch image "$image_sha" "$mirror_dir")"
+    k_sde="$(pf_require_epoch "$kernel_repo" "$kernel_sha" "$mirror_dir")"
     # The BOOTCHAIN epoch (tsp-jet.1) pins the bootchain stage to the u-boot commit time,
     # same component-reproducibility rationale as the kernel epoch. Empty for a device
-    # with no source bootchain (the stage no-ops there).
+    # with no source bootchain (the stage no-ops there — the only legitimate empty-epoch
+    # case, which pf_require_epoch passes through).
     local uboot_repo uboot_sha bc_sde=""
     uboot_repo="$(printf '%s\n' "$ba" | sed -n 's/^PF_UBOOT_REPO=//p')"
     uboot_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_UBOOT_SHA=//p')"
-    bc_sde="$(pf_commit_epoch "$uboot_repo" "$uboot_sha" "$mirror_dir")"
+    bc_sde="$(pf_require_epoch "$uboot_repo" "$uboot_sha" "$mirror_dir")"
 
     # The rootfs stage does a privileged debootstrap (real chroot/mount) and the assemble stage
     # builds the disk image — both need SYS_ADMIN, which BuildKit grants ONLY under
