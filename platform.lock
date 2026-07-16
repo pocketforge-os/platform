@@ -43,12 +43,20 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-ikk0.11: +image#49 (foreground-seam HARDENING — the animator
+ref  = "main"          # tsp-woy3: +image#50 (animator pan-to-present — the boot animator now
+                       # presents every frame via FBIOPAN_DISPLAY, double-buffered blit-back-
+                       # page-then-pan + one pan after the SIGTERM clear. Root cause of the
+                       # boot-animation-invisible P1: with HW rotation the panel scans a g2d-
+                       # rotated COPY of fb0 refreshed ONLY on pan; the animator blitted without
+                       # panning, so frames never reached the panel — a latent day-one gap
+                       # unmasked by the #48/#49 single-writer seam, NOT the kernel WiFi bump
+                       # (42a9d3ac..5c3e630 = xr829-only, exonerated). Bead tsp-woy3.)
+                       # Pin = image/main HEAD (the #50 merge commit).
+                       # Prior: tsp-ikk0.11: +image#49 (foreground-seam HARDENING — the animator
                        # Conflicts=/After= must ALSO live target-side or a dependency-pulled
                        # target start (systemd-run/pf-take-panel/app-unit Requires=, the normal
                        # path) does not stop the animator; defect found + fix validated
                        # on-device in the 2026-07-16 verify window, bead tsp-ikk0.11).
-                       # Pin = image/main HEAD (the #49 merge commit).
                        # Prior: tsp-ikk0.11 +image#48 (pocketforge-foreground.target — declarative
                        # animator→app fb0 handoff seam + pf-take-panel launch shim; kills the
                        # splash/app pan-fight owner-reported as cube "z-fighting", root cause
@@ -80,7 +88,7 @@ ref  = "main"          # tsp-ikk0.11: +image#49 (foreground-seam HARDENING — t
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "cf10cce481a4054e976692b4d7f5bf551394398c"
+sha  = "6b92323e047e182acd03339473974f3844b73780"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
