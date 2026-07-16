@@ -43,13 +43,22 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-147u.8.5: +image#46 (ship pf-gfxbench — the owned ramping GPU+CPU
-                       # stress benchmark — in the a133 dev-image testbin set; one-word sdl-stage
-                       # copy-list addition, dev variant only) +image#43 (tsp-147u.8.2: stage
-                       # iperf3 in dev-variant rootfs packages — was NOT reachable from the prior
-                       # fbdd292 pin, so this bump newly carries it). Pin = image/main HEAD
-                       # (the #46 merge commit); hermetic pf build proven at this exact
-                       # image+libsdl3 content pre-merge (bead tsp-147u.8.5, PROOF_RC=0).
+ref  = "main"          # tsp-ikk0.11: +image#48 (pocketforge-foreground.target — declarative
+                       # animator→app fb0 handoff seam + pf-take-panel launch shim; kills the
+                       # splash/app pan-fight owner-reported as cube "z-fighting", root cause
+                       # bead tsp-7kpp; rootfs-overlay units + build-rootfs.sh installs, both
+                       # variants). ADDITIVE over the 9245510 lineage it subsumes (9245510 is
+                       # an ancestor of this pin; supersedes platform#55 if that lands second):
+                       # +image#45 (tsp-myp1.8.2 v4 WiFi lineage) +image#47 (tsp-ikk0.8
+                       # pr-review caller concurrency — CI workflow only, no rootfs effect).
+                       # Pin = image/main HEAD (the #48 merge commit).
+                       # Prior: tsp-147u.8.5 +image#46 (ship pf-gfxbench — the owned ramping
+                       # GPU+CPU stress benchmark — in the a133 dev-image testbin set; one-word
+                       # sdl-stage copy-list addition, dev variant only) +image#43 (tsp-147u.8.2:
+                       # stage iperf3 in dev-variant rootfs packages — was NOT reachable from the
+                       # prior fbdd292 pin, so that bump newly carried it); hermetic pf build
+                       # proven at that image+libsdl3 content pre-merge (bead tsp-147u.8.5,
+                       # PROOF_RC=0).
                        # Prior: tsp-ikk0.3 image#44 (a133 dev-variant: debug user → video,render,input
                        # groups, so fb0/DRM/input diagnostics run as non-root debug; one-line
                        # rootfs-config change, dev variant only).
@@ -67,7 +76,7 @@ ref  = "main"          # tsp-147u.8.5: +image#46 (ship pf-gfxbench — the owned
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "4185b707f736bcb3de1fb9eed16316c97da6e070"
+sha  = "9b469f6e02591756b0ad6bb9a536d7b2d436f285"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
