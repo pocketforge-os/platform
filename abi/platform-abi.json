@@ -17,13 +17,13 @@
         "repo": "kernel-sunxi-4.9",
         "sha": "42a9d3ac74d9c399b26c3b2691ccb8f22205775c"
       },
-      "platform_version": "2",
+      "platform_version": "3",
       "provenance_ref": "tsp-1dl.4.5, tsp-cv7.6.1",
       "reproducible": true,
       "sdl": {
         "backend": "sunxifb",
         "repo": "libsdl3-sunxifb",
-        "sha": "8d55dbffed66ba7caeb093b43e39e74347ac5d67",
+        "sha": "cd8a7a1785e1ee7d975c252c668f424b0d18852f",
         "status": "owned"
       }
     },
