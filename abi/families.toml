@@ -39,7 +39,13 @@ device           = "a133"                        # -> devices/a133/profile.toml 
 gpu_ip           = "powervr"                     # PowerVR DDK 1.19 (Rogue)
 sdl_repo         = "libsdl3-sunxifb"             # OWNED SDL3 fbdev backend; links the PowerVR UM (a133-only)
 sdl_backend      = "sunxifb"                     # SDL_VIDEODRIVER (fbdev via the sunxi disp engine)
-platform_version = "6"                           # bump when the resolved kernel/gpu/sdl SHA-set changes
+platform_version = "7"                           # bump when the resolved kernel/gpu/sdl SHA-set changes
+                                                 #   v7 (tsp-woy3): kernel-sunxi-4.9 c0d2ac24 -> 242a6660 (#17
+                                                 #   disp2 fbdev commit-latch fix: config2 self-heal ported to
+                                                 #   disp_mgr_set_layer_config + cfg_cnt underflow clamp +
+                                                 #   DISP_SHADOW_PROTECT bounds-check + cfg:N sys-dump field)
+                                                 #   v6 (tsp-myp1.8.6): kernel-sunxi-4.9 5c3e6301 -> c0d2ac24 (#16
+                                                 #   fq_codel qdiscs + INTERNAL_REGDB + wireless-regdb db.txt)
                                                  #   v5 (tsp-147u.8.5): libsdl3-sunxifb cd8a7a17 -> 8066078b
                                                  #   (pf-gfxbench stage-schedule calibration to the measured A133
                                                  #   60->2fps gradient; constants only, library code untouched)

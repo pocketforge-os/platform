@@ -98,7 +98,16 @@ sha  = "c2ed31f8bbe0aa10e634674dc168fa0181a2bef7"
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"          # tsp-myp1.8.6: bump 5c3e6301 -> c0d2ac249f7d = device/a133 tip after #16
+ref  = "device/a133"          # tsp-woy3: bump c0d2ac24 -> 242a6660a296 = device/a133 tip after #17
+                              # (disp2 fbdev commit-latch fix: the vsync flush that latches layer
+                              # commits to DE hardware is gated on the shadow-protect refcount
+                              # cfg_cnt with NO reset path; the vendor self-heal existed only in
+                              # the /dev/disp config2 path. #17 ports it to the fbdev
+                              # disp_mgr_set_layer_config, clamps the cfg_cnt underflow,
+                              # bounds-checks DISP_SHADOW_PROTECT, adds cfg:N to the sys dump,
+                              # and guards the deferred-rot/lazy-create race. Root cause #2 of
+                              # the boot-animation-invisible P1 — bead tsp-woy3.)
+                              # Prior: tsp-myp1.8.6: bump 5c3e6301 -> c0d2ac249f7d = device/a133 tip after #16
                               # (enable CONFIG_NET_SCH_CODEL+FQ_CODEL — the image's shipped
                               # default_qdisc=fq_codel sysctl was a silent no-op with both compiled
                               # out; and CONFIG_CFG80211_INTERNAL_REGDB + real wireless-regdb db.txt
@@ -125,7 +134,7 @@ ref  = "device/a133"          # tsp-myp1.8.6: bump 5c3e6301 -> c0d2ac249f7d = de
                               # vendor image, load-bearing only for the owned-SPL path.
                               # Prior (ed7b3638, tsp-myp1.5.1.1): WORKQUEUE-DEFERRED fb0 g2d
                               # rotation + #6 xr829 HT20-only + #8 revert of the 3s-cap regression.
-sha  = "c0d2ac249f7d5cacbfce32afede1a10a64c99299"
+sha  = "242a6660a29655ac48823f7f3be9445b7b707943"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
