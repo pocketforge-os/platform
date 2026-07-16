@@ -63,7 +63,12 @@ sha  = "6f288e545bcb8c33fbd8b6b6fe99bb0ae39c956e"
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"          # tsp-147u.13: bump ed7b3638 -> ab2f2b6c5a24 = device/a133 tip after
+ref  = "device/a133"          # tsp-147u.16: bump ab2f2b6c -> 42a9d3ac74d9 = device/a133 tip after #13
+                              # (PD22 pwm1 mux removal: frees PD22 for the OTM1289A reset line; fixes
+                              # disp_sys_gpio_request(lcd_gpio_0) -EBUSY that left scanout dead / the panel
+                              # a solid-blue collapse. Confirmed sharp-render by an A/B control on tsp-base:
+                              # pre-fix irq=0/blank vs fixed irq=13016/60fps/sharp; EBUSY absent).
+                              # Prior (ab2f2b6c, tsp-147u.13): bump ed7b3638 -> ab2f2b6c5a24 = device/a133 tip after
                               # #11 (otm1289a DSI panel driver, additive/DTB-gated) + #12 (lever-B
                               # reconcile: verbatim cherry-pick of the sunxi_clk_cold_lock_recover
                               # onto the CANONICAL device/a133 — #10 had landed on the orphaned
@@ -73,7 +78,7 @@ ref  = "device/a133"          # tsp-147u.13: bump ed7b3638 -> ab2f2b6c5a24 = dev
                               # image and load-bearing only for the owned-SPL path (tsp-147u.13).
                               # Prior (ed7b3638, tsp-myp1.5.1.1): WORKQUEUE-DEFERRED fb0 g2d
                               # rotation + #6 xr829 HT20-only + #8 revert of the 3s-cap regression.
-sha  = "ab2f2b6c5a24fd9346c57041ea83b5bdf6dc76ac"
+sha  = "42a9d3ac74d9c399b26c3b2691ccb8f22205775c"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
