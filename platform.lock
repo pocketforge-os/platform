@@ -72,22 +72,25 @@ sha  = "4185b707f736bcb3de1fb9eed16316c97da6e070"
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"          # tsp-147u.16: bump ab2f2b6c -> 42a9d3ac74d9 = device/a133 tip after #13
+ref  = "device/a133"          # tsp-myp1.8.1: bump 42a9d3ac -> 5c3e63017cd8 = device/a133 tip after #14
+                              # (the tsp-urq WiFi fix-line port from archived kernel-tsp: xr829 bh
+                              # -ERESTARTSYS tolerance + scan-PM revert-to-stock; BH_PROC_TX=1 deep
+                              # proc-thread TX feed + key_conf[] PTK-slot-0 pin. Lane M before/after
+                              # iperf3 gradient on tsp-base validated the bump: uplink +8%, loaded max
+                              # RTT 135 -> 59.5ms, jitter halved, zero stalls — evidence on epic
+                              # tsp-myp1.8. ABI: this changes the a133 resolved {kernel,gpu,sdl} set —
+                              # a133-powervr platform_version 3 -> 4 + abi re-freeze in this commit).
+                              # Prior (42a9d3ac, tsp-147u.16): bump ab2f2b6c -> 42a9d3ac74d9 = tip after #13
                               # (PD22 pwm1 mux removal: frees PD22 for the OTM1289A reset line; fixes
                               # disp_sys_gpio_request(lcd_gpio_0) -EBUSY that left scanout dead / the panel
                               # a solid-blue collapse. Confirmed sharp-render by an A/B control on tsp-base:
                               # pre-fix irq=0/blank vs fixed irq=13016/60fps/sharp; EBUSY absent).
-                              # Prior (ab2f2b6c, tsp-147u.13): bump ed7b3638 -> ab2f2b6c5a24 = device/a133 tip after
-                              # #11 (otm1289a DSI panel driver, additive/DTB-gated) + #12 (lever-B
-                              # reconcile: verbatim cherry-pick of the sunxi_clk_cold_lock_recover
-                              # onto the CANONICAL device/a133 — #10 had landed on the orphaned
-                              # kernel-tsp). Both merged+signed. lever-B is INERT on the vendor
-                              # boot0 chain (fires only on cold PLLs = owned SPL); otm1289a is
-                              # DTB-gated — so the bump is behavior-neutral for the SHIPPED vendor
-                              # image and load-bearing only for the owned-SPL path (tsp-147u.13).
+                              # Prior (ab2f2b6c, tsp-147u.13): #11 otm1289a DSI panel (DTB-gated) + #12
+                              # lever-B clk cold-lock reconcile — both behavior-neutral for the shipped
+                              # vendor image, load-bearing only for the owned-SPL path.
                               # Prior (ed7b3638, tsp-myp1.5.1.1): WORKQUEUE-DEFERRED fb0 g2d
                               # rotation + #6 xr829 HT20-only + #8 revert of the 3s-cap regression.
-sha  = "42a9d3ac74d9c399b26c3b2691ccb8f22205775c"
+sha  = "5c3e63017cd80515d3bd71298ea6883f886df53e"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
