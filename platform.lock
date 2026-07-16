@@ -147,6 +147,15 @@ url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
 ref  = "main"                # tsp-ve5: +libsdl3-sunxifb#5 (check eglBindAPI return in SDL_EGL_PrivateChooseConfig — clean error instead of DDK blob NULL-deref). Prior: UM blob path reorg tsp/ -> sunxi/a133/ (#2).
 sha  = "8d55dbffed66ba7caeb093b43e39e74347ac5d67"
 
+[[repos]]
+name = "wpa-supplicant-tsp"   # owned wpa_supplicant 2.10 fork (GREAT_SNR 25->45 roam hysteresis,
+url  = "https://github.com/pocketforge-os/wpa-supplicant-tsp.git"   # tsp-urq.7). Consumed by the a133
+ref  = "main"                 # image's device-gated `wpa` Dockerfile.pf stage (tsp-myp1.8.2); the
+                              # a523 fullmac profile ships stock Debian wpasupplicant. Tip is source-
+                              # identical to the bench-validated acc77223f732 (post-acc7722 commits
+                              # are governance/workflow only).
+sha  = "089aab801088a87484565d4b708c5c9df671fd9b"
+
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy
 # the build consumes — NOT a reproducibility gate (kubo emits CARv1; the .car is not byte-reproducible).

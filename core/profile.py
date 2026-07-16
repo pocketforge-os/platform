@@ -267,6 +267,7 @@ def build_args(dev_id):
         "PF_GPU_SHA": sha(gpu.get("repo")),
         "PF_GPU_MODULES": " ".join(gpu.get("modules", []) or []),
         "PF_LIBSDL3_SHA": sha("libsdl3-sunxifb"),
+        "PF_WPA_SHA": sha("wpa-supplicant-tsp"),
         "PF_IMAGE_SHA": sha("image"),
         "PF_IMAGE_NAME": img.get("image_name", ""),
         "PF_IMAGE_ASSEMBLER": img.get("assembler", ""),
