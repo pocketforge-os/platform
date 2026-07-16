@@ -1,10 +1,15 @@
 # platform/devices/a133/profile.toml — TrimUI Smart Pro (Allwinner A133 / sun50iw10)
 #
 # See devices/a523/profile.toml header for the merge model + M-1 repo-naming note.
-# The A133 captures the divergence already in the tree: it boots VENDOR boot0 +
-# dragonsecboot boot_package.fex + abootimg boot.img (no mainline U-Boot for
-# sun50iw10), so its [bootchain] is a BLOB GROUP, not a source repo — the schema
-# expresses either, which is what makes the A133-vs-A523 split declarative.
+# The A133 captures the divergence already in the tree: it currently boots VENDOR
+# boot0 + dragonsecboot boot_package.fex + abootimg boot.img, so its [bootchain]
+# is (for now) a BLOB GROUP, not a source repo — the schema expresses either,
+# which is what makes the A133-vs-A523 split declarative.
+# NB (2026-07-16, tsp-1dl.9): the old "no mainline U-Boot for sun50iw10" framing
+# is OUTDATED — PocketForge now owns A133 bootchain forks u-boot-tsp-a133 (mainline
+# sun50iw10 SPL + TG5040 board, FEL-cooperative; tsp-bcx.30.1) and tfa-tsp-a133.
+# This [bootchain] stays blob-group until those are wired into platform.lock
+# (tsp-147u.13 / tsp-bcx.30); this comment fix does NOT change the config.
 
 [device]
 id           = "a133"
@@ -33,10 +38,12 @@ cc          = "aarch64-none-linux-gnu-"
 gcc_version = "10.3-2021.07"
 
 [bootchain]
-model      = "sunxi-boot0-fex"               # vendor boot0 + boot_package.fex (no owned U-Boot)
+model      = "sunxi-boot0-fex"               # vendor boot0 + boot_package.fex (owned u-boot-tsp-a133/tfa-tsp-a133 exist but not yet wired here)
 boot_proto = "boot_package_fex"
 blob_group = "sunxi-a133-boot-chain"         # boot0.img / monitor.bin(BL31) / scp.bin / u-boot.bin
-# NB: no uboot.repo/tfa.repo here -> build_bootchain is pass-through-the-blob-group for a133.
+# NB: no uboot.repo/tfa.repo here yet -> build_bootchain is pass-through-the-blob-group for a133.
+# The owned forks (u-boot-tsp-a133 / tfa-tsp-a133) supersede the "no mainline U-Boot"
+# assumption; wiring uboot.repo/tfa.repo + platform.lock is tsp-147u.13 / tsp-bcx.30, not this edit.
 
 [image]
 partition_table = "gpt"
