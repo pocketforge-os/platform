@@ -1,0 +1,39 @@
+# platform/devices/a133-owned/profile.toml — A133 FULLY-OWNED boot-chain variant
+#
+# tsp-147u.13 (M2). This is an OPT-IN, additive sibling of `a133`: `pf build a133-owned`
+# produces the fully-owned A133 image (owned mainline SPL @0x20000 + owned u-boot-tsp-a133 +
+# source-built BL31 tfa-tsp-a133, replacing vendor boot0/monitor.bin), while the SHIPPED
+# `a133` default build is left 100% UNCHANGED (vendor boot0 + dragonsecboot boot_package).
+#
+# It inherits the ENTIRE a133 profile via [device].base = "a133" and restates ONLY the
+# [bootchain] group — so it is provably identical to a133 except the boot chain (no drift),
+# and the eventual owner-gated DEFAULT FLIP is a minimal "repoint a133's [bootchain] to the
+# validated owned one + drop this variant" diff, not a divergent-profile re-review.
+#
+# Validated boot chain (tsp-147u.7/.11): BROM -> owned SPL @0x20000 -> owned u-boot (self-
+# relative in the blob) -> BL31 (a133 plat, 4 cores) -> booti Image/dtb.bin/initrd.gz from
+# mmc 0:4 (FAT p4) -> Linux userspace. Assemble path = the sunxi-spl-booti branch in
+# image/build/Dockerfile.pf (reuses the a133 GPT layout; boot0 slot @0x20000 holds the owned
+# u-boot-sunxi-with-spl.bin; Image/dtb.bin/initrd.gz staged on FAT p4).
+
+[device]
+base = "a133"                                # inherit the whole a133 profile (kernel/gpu/image/
+                                             # console/blobs/toolchain/flash) — override only below
+id   = "a133-owned"
+
+[bootchain]
+model         = "sunxi-spl-uboot"            # source-built owned SPL + BL31 (mirrors a523); the
+                                             # Dockerfile bootchain stage gates on this value
+boot_proto    = "sunxi-spl-booti"            # NEW proto: SPL chainloads owned u-boot, u-boot
+                                             # booti's Image/dtb.bin/initrd.gz from FAT p4 (mmc 0:4)
+uboot.repo      = "u-boot-tsp-a133"          # owned mainline U-Boot (TG5040 fork); replaces vendor boot0
+uboot.ref       = "main"                     # platform.lock pins the merged mmc0-fix sha (PR#4)
+uboot.defconfig = "tg5040_defconfig"
+tfa.repo      = "tfa-tsp-a133"               # owned TF-A BL31 (mainline snapshot w/ plat/sun50i_a133)
+tfa.ref       = "main"
+tfa.plat      = "sun50i_a133"                # A133 RVBAR (CPUSUBSYS) -> all 4 cores; native PSCI, no SCP
+spl_offset_kib = 128                         # A133 BROM 128 KiB / 0x20000 (NOT a523's 8 KiB)
+# blob_group ("sunxi-a133-boot-chain") is INHERITED from a133 and KEPT as the fallback: the
+# owned assemble path still packs the vendor boot_package/env slots as inert placeholders so
+# the GPT numbering (boot-resource = p4 = the owned u-boot's `mmc 0:4`) stays identical to the
+# validated reference. Dropping the vendor blob group is a separate, owner-accepted follow-up.

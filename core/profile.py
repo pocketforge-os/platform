@@ -78,6 +78,23 @@ def resolve(dev_id):
     if not os.path.isfile(ppath):
         raise FileNotFoundError(f"no profile for device '{dev_id}' at {ppath}")
     profile = _load(ppath)
+    # Device-level inheritance (tsp-147u.13): a VARIANT profile may declare
+    # [device].base = "<other-device-id>" to inherit that device's ENTIRE profile,
+    # restating only the sections it needs to differ (e.g. a133-owned inherits a133
+    # wholesale, restating only [bootchain]). _deep_fill fills the base's keys UNDER
+    # the variant (variant wins per-key), so the variant is provably identical to its
+    # base except the sections/keys it explicitly restates — no drift, and the eventual
+    # default-flip is a crisp "repoint the base's [bootchain]" diff, not a divergent
+    # profile re-review. Single-level (a base's own [device].base is not chased).
+    base_id = profile.get("device", {}).get("base")
+    if base_id:
+        if base_id == dev_id:
+            raise ValueError(f"device '{dev_id}' [device].base points at itself")
+        base_path = os.path.join(DEVICES, base_id, "profile.toml")
+        if not os.path.isfile(base_path):
+            raise FileNotFoundError(
+                f"device '{dev_id}' base '{base_id}' has no profile at {base_path}")
+        _deep_fill(profile, _load(base_path))  # variant wins; base fills absent keys
     family_id = profile.get("device", {}).get("family")
     family = {}
     if family_id:
@@ -266,6 +283,10 @@ def build_args(dev_id):
         "PF_TFA_REPO": tfa_repo,
         "PF_TFA_SHA": sha(tfa_repo),
         "PF_TFA_PLAT": bc.get("tfa", {}).get("plat", "") or "",
+        # SPL raw offset for the owned-SPL assemble path (a133 = 128 KiB / 0x20000, a523 = 8;
+        # emitted by env_lines() but was DEAD for the container path — the assemble stage's
+        # owned-SPL branch consumes it to place u-boot-sunxi-with-spl.bin. tsp-147u.13).
+        "PF_SPL_OFFSET_KIB": str(bc.get("spl_offset_kib", "") or ""),
     }
     # Repos this device genuinely needs a SHA for (repo named, not the "none" sentinel).
     needed = [("PF_KERNEL_SHA", k.get("repo")), ("PF_IMAGE_SHA", "image"),

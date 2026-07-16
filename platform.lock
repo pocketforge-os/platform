@@ -43,24 +43,37 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-myp1.5: +image#39 (charger-boot + fastboot splash paths — mcopies the PocketForge logo BMP into bat/battery_charge.bmp, bat/bat0.bmp, bat/low_pwr.bmp, fastbootlogo.bmp on the FAT boot-resource; fixes the white-flash on VBUS-powered boots). +image#37 (PocketForge logo as the bootlogo item in boot_package.fex — normal-boot path). Prior: tsp-myp1.2 image#38 (DEV-variant u-boot charger-shutdown-defeat hook); tsp-j31 image#30 (a523 fullmac wpa profile); tsp-ve5 image#29 (a133 EGL client-API discovery); tsp-3q4 image#28 (a133 initrd cpio --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble); a133 clean-boot #18-#22.
-sha  = "df51c6095acbf39781611d382686e2e6dd1f3738"
+ref  = "main"          # tsp-147u.13: +image PR tsp-147u.13 (a133 owned-SPL assemble path — Dockerfile.pf
+                       # sunxi-spl-booti branch + build-sd-image.sh --boot-chain owned-spl). ADDITIVE:
+                       # consumed ONLY by the a133-owned variant's boot_proto; the shipped a133/a523
+                       # default builds are byte-identical. This pin MUST land together with (or after)
+                       # that image PR merging — merge-commit keeps 6f288e5 reachable from image/main.
+                       # Prior: tsp-myp1.5 image#39 (charger-boot + fastboot splash paths — mcopies the
+                       # PocketForge logo BMP into bat/battery_charge.bmp, bat/bat0.bmp, bat/low_pwr.bmp,
+                       # fastbootlogo.bmp on the FAT boot-resource; fixes the white-flash on VBUS-powered
+                       # boots). +image#37 (PocketForge logo as the bootlogo item in boot_package.fex —
+                       # normal-boot path). Prior: tsp-myp1.2 image#38 (DEV-variant u-boot charger-
+                       # shutdown-defeat hook); tsp-j31 image#30 (a523 fullmac wpa profile); tsp-ve5
+                       # image#29 (a133 EGL client-API discovery); tsp-3q4 image#28 (a133 initrd cpio
+                       # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
+                       # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
+                       # a133 clean-boot #18-#22.
+sha  = "6f288e545bcb8c33fbd8b6b6fe99bb0ae39c956e"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"          # tsp-myp1.5.1.1: re-pin to device/a133 tip ed7b3638 = kernel-sunxi-4.9#9
-                              # — non-blocking WORKQUEUE-DEFERRED apply of fb0's g2d
-                              # rotation. Replaces the earlier sync-wait approach
-                              # (aa2aa38/PR#4 500ms; f7848e23/PR#7 3000ms since
-                              # reverted) which self-deadlocked the serial init
-                              # thread against g2d's downstream initcall. Boot
-                              # logo flips from un-rotated to landscape ~50-200ms
-                              # after fb0 reg (g2d-probe latency), without any
-                              # blocking wait on the init thread. Also carries
-                              # #6 xr829 HT20-only + aa2aa38 orig plus #8 revert
-                              # of the 3s-cap regression.
-sha  = "ed7b3638b9ea741b36f800183f8adb7df4c27338"
+ref  = "device/a133"          # tsp-147u.13: bump ed7b3638 -> ab2f2b6c5a24 = device/a133 tip after
+                              # #11 (otm1289a DSI panel driver, additive/DTB-gated) + #12 (lever-B
+                              # reconcile: verbatim cherry-pick of the sunxi_clk_cold_lock_recover
+                              # onto the CANONICAL device/a133 — #10 had landed on the orphaned
+                              # kernel-tsp). Both merged+signed. lever-B is INERT on the vendor
+                              # boot0 chain (fires only on cold PLLs = owned SPL); otm1289a is
+                              # DTB-gated — so the bump is behavior-neutral for the SHIPPED vendor
+                              # image and load-bearing only for the owned-SPL path (tsp-147u.13).
+                              # Prior (ed7b3638, tsp-myp1.5.1.1): WORKQUEUE-DEFERRED fb0 g2d
+                              # rotation + #6 xr829 HT20-only + #8 revert of the 3s-cap regression.
+sha  = "ab2f2b6c5a24fd9346c57041ea83b5bdf6dc76ac"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -91,6 +104,22 @@ name = "tfa-tsp-a523"         # owned A523 TF-A; kept separate (bootchain-sunxi 
 url  = "https://github.com/pocketforge-os/tfa-tsp-a523.git"
 ref  = "main"
 sha  = "deaba081685170ffff0aec9f7a260ad1586840fe"
+
+[[repos]]
+name = "u-boot-tsp-a133"      # owned A133 mainline U-Boot SPL+proper (TG5040 fork of v2025.10); tsp-147u.13.
+url  = "https://github.com/pocketforge-os/u-boot-tsp-a133.git"   # replaces vendor boot0 @0x20000 for the
+ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). main tip = PR#4 merged (mmc0
+                              # reset-settle d298d82e + CLDO3-in-SPL 421f3237 + deterministic
+                              # booti-from-mmc0:4 bootcmd a0551e28). Validated to userspace on pf-node-01.
+sha  = "ec2adf4c1d139ce2c0906354a26fc541490b67c6"
+
+[[repos]]
+name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
+url  = "https://github.com/pocketforge-os/tfa-tsp-a133.git"      # tsp-147u.11/.13. PLAT=sun50i_a133 targets
+ref  = "main"                 # the A133 RVBAR (CPUSUBSYS 0x08100040) — brings up all 4 cores; native PSCI,
+                              # no SCP, SUNXI_BL31_IN_DRAM default. Closes the vendor monitor.bin provenance
+                              # gap. Validated: "Brought up 4 CPUs" on pf-node-01.
+sha  = "199316464722231e1a818e0d3f927be9c0fc2798"
 
 [[repos]]
 name = "blobs"                # private; preserved vendor originals + apply-*.py + *.SHA256 (text-only after B3)
