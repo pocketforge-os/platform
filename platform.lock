@@ -98,7 +98,18 @@ sha  = "c2ed31f8bbe0aa10e634674dc168fa0181a2bef7"
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"          # tsp-woy3: bump c0d2ac24 -> 242a6660a296 = device/a133 tip after #17
+ref  = "device/a133"          # tsp-myp1.8.4: bump 242a6660 -> a6b19832d3c4 = device/a133 tip after #18
+                              # (FIX A, the last stranded tsp-urq fix: xr829 platform.c registered the
+                              # OOB host-wake GPIO as edge (IRQF_TRIGGER_RISING) while the BSP declares
+                              # it level-high — RX ran on the 125ms polling fallback ("miss interrupt!"
+                              # flood), the round-2-validated 53-64ms-avg idle-latency signature. Now
+                              # uses sunxi_wlan_get_oob_irq_flags(). Single remaining idle-latency
+                              # candidate — next device window's TEST #2 is decisive either way.
+                              # Hermetic build proven at branch tip: PF_KERNEL_SHA in metadata, zero
+                              # xr829 warnings. ABI: kernel sha changes the a133 resolved
+                              # {kernel,gpu,sdl} set — a133-powervr platform_version 7 -> 8 + abi
+                              # re-freeze in this commit.)
+                              # Prior (242a6660, tsp-woy3): bump c0d2ac24 -> 242a6660a296 = device/a133 tip after #17
                               # (disp2 fbdev commit-latch fix: the vsync flush that latches layer
                               # commits to DE hardware is gated on the shadow-protect refcount
                               # cfg_cnt with NO reset path; the vendor self-heal existed only in
@@ -134,7 +145,7 @@ ref  = "device/a133"          # tsp-woy3: bump c0d2ac24 -> 242a6660a296 = device
                               # vendor image, load-bearing only for the owned-SPL path.
                               # Prior (ed7b3638, tsp-myp1.5.1.1): WORKQUEUE-DEFERRED fb0 g2d
                               # rotation + #6 xr829 HT20-only + #8 revert of the 3s-cap regression.
-sha  = "242a6660a29655ac48823f7f3be9445b7b707943"
+sha  = "a6b19832d3c4e9a670ce113cecff010b875658ba"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
