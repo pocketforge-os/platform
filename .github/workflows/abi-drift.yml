@@ -18,12 +18,23 @@
 # (or surfaces a pre-existing drift on the base, which is desirable). Superset of the "runs on
 # any PR touching platform.lock/abi/" requirement, not a narrowing of it.
 #
-# NO MARKETPLACE ACTIONS - DELIBERATE (matches the org's proven pr-review-gate). The org runs on
-# self-hosted runners (GitHub-hosted `ubuntu-latest` is disabled) and its "selected actions"
-# allowlist rejects `actions/checkout`/`actions/setup-python` (they yield a startup_failure here),
-# so - exactly like shared-workflows/pr-review-gate.yml - this job uses ZERO `uses:` actions: it
-# checks the PR ref out with plain `git` + the ephemeral `github.token`, and runs `pf abi check`
-# with the first Python 3.11+ interpreter it finds (abi_view.py needs tomllib; no third-party deps).
+# NO MARKETPLACE ACTIONS - DELIBERATE (matches the org's proven pr-review-gate). The org requires
+# SHA-pinned actions (org Actions policy `sha_pinning_required=true`), so a bare
+# `actions/checkout@v4`-style tag ref yields a startup_failure (that policy — not a hosted-runner
+# ban — is what killed marketplace actions here; SHA-pinned github-owned actions ARE allowed).
+# Rather than carry pins for a job this small, this job - exactly like
+# shared-workflows/pr-review-gate.yml - uses ZERO `uses:` actions: it checks the PR ref out with
+# plain `git` + the ephemeral `github.token`, and runs `pf abi check` with the first Python 3.11+
+# interpreter it finds (abi_view.py needs tomllib; no third-party deps).
+#
+# RUNNER ROUTING - DELIBERATE (tsp-ikk0.22). This gate targets the pf-review-vm lane by its
+# specific `pf-pr-review` label, NOT generic `[self-hosted, Linux, X64]` labels. The review VMs
+# are the org's designed lane for running untrusted PR code read-only — exactly what this job
+# does — and the check is sub-second and side-effect-free, so the lane load is negligible. The
+# earlier generic labels only reached this lane via the Default runner group's visibility=all;
+# label-specific targeting keeps this REQUIRED check pinned to the lane it is proven on
+# (consistently green on pf-review-vm-{1,2,3}) instead of whatever runner matches generic
+# labels next.
 
 name: ABI drift gate
 
@@ -39,7 +50,7 @@ permissions:
 jobs:
   check:
     name: pf-abi-drift
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: [self-hosted, pf-pr-review]
     steps:
       - name: checkout the PR ref + pf abi check
         env:
