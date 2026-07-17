@@ -43,7 +43,16 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-myp1.8.6: +image#51 (tsp-myp1.8.5 Lane C2 v4 config-regression fixes —
+ref  = "main"          # tsp-mc9m.14.8: +image#57 (mainline boot — move wpa_supplicant@wlan0 +
+                       # pocketforge-wifi-powersave/watchdog off multi-user.target.wants into the wlan0
+                       # sys-subsystem-net-devices-wlan0.device.wants/ so an ABSENT wlan0 (driver-less
+                       # mainline A133 kernel) no longer stalls boot ~90s on the DefaultDeviceTimeoutSec
+                       # device-job timeout; inert on the wlan0-present path — 4.9 + mainline-with-driver
+                       # still associate). Pin = image/main HEAD = the #57 merge commit d06f22d6.
+                       # ⚠ tsp-mc9m.14.8: this bump stays UNMERGED until the driver-less-boot<90s
+                       # on-device proof passes (protects pmic .3 / VPU .16.4 / display-integ .12.12 from
+                       # reflashing an unproven fix); coordinator mc9m-wifi-coord gates the merge.
+                       # Prior: tsp-myp1.8.6: +image#51 (tsp-myp1.8.5 Lane C2 v4 config-regression fixes —
                        # TCP buffer maxes restored + net sysctl config corrections; folded into the
                        # same lock PR as this bump's kernel fq_codel+regdb enable per wifi-perf-coord
                        # ruling, so the lock resolves the complete round-2 WiFi stack in ONE bump —
@@ -93,7 +102,7 @@ ref  = "main"          # tsp-myp1.8.6: +image#51 (tsp-myp1.8.5 Lane C2 v4 config
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "c2ed31f8bbe0aa10e634674dc168fa0181a2bef7"
+sha  = "d06f22d6ba8962ac39d233807fab1bd0b4fd5d6e"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
