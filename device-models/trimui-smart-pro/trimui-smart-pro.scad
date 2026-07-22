@@ -71,11 +71,11 @@ start_centre = [165.8, 8.8];
 // Photo-derived speaker grille lattice.  Each side has two staggered rows of
 // six shallow hexagonal recesses; the upper row steps toward its nearest
 // endcap and the lower row steps toward the display.
-speaker_left_centre_x = 44.775;
-speaker_pitch_x = 1.90;
-speaker_pitch_y = 1.50;
-speaker_bottom_y = 1.65;
-speaker_opening_diameter = 1.50;
+speaker_left_centre_x = 42.75;
+speaker_pitch_x = 1.50;
+speaker_pitch_y = 1.30;
+speaker_bottom_y = 1.75;
+speaker_opening_diameter = 1.30;
 speaker_throat_diameter = 0.90;
 
 dpad_size = 19.2;
@@ -420,14 +420,14 @@ module front_legends() {
     // The full lockup lives immediately left of the right speaker.  In the
     // photographs the three-dot mark is part of the wordmark, not a separate
     // centred ornament (which read as three errant speaker holes).
-    embossed_label([107.5, 5.42, front_z + 0.03],
+    embossed_label([111.6, 5.42, front_z + 0.03],
                    "TRIMUI", 2.15, 0.06, "left", "center",
                    legend_color, brand_font);
-    embossed_label([119.0, 5.42, front_z + 0.03],
+    embossed_label([123.1, 5.42, front_z + 0.03],
                    "SMART PRO", 2.15, 0.06, "left", "center",
                    legend_color, brand_companion_font);
     color(legend_color)
-        translate([104.2, 5.42, front_z + 0.03])
+        translate([108.3, 5.42, front_z + 0.03])
             linear_extrude(height = 0.06)
                 trimui_mark_2d();
 
