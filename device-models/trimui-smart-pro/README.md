@@ -25,7 +25,7 @@ say which protrusions are included.
 | D-pad centre / size | (18.8, 55.7), 19.2 mm | FCC near-front view plus owner left-front close-up | Medium-high |
 | Stick centres | (19.5, 24.9), mirrored; 19.4 mm outer ring | FCC ruler view plus both owner front close-ups | Medium-high |
 | Face cluster | centre (169.55, 55.8), pitch 7.55 × 7.75 mm, buttons 7.2 mm | Owner right-front close-up | Medium-high |
-| Menu / Select / Start centres | (26.0, 8.8) / (158.7, 8.8) / (170.4, 8.8) | Owner front close-ups and FCC front view | Medium-high |
+| Menu / Select / Start centres | (26.0, 8.8) / (156.4, 8.8) / (165.8, 8.8) | Owner front close-ups and FCC front view | Medium-high |
 | Speaker grilles / front printing | Two mirrored 2 × 6 arrays of tapered hexagonal recesses, 1.90 mm horizontal pitch with a half-pitch row stagger; bold-italic system silkscreen; three-dot mark immediately precedes `TRIMUI SMART PRO` left of the right grille | Owner left/right front close-ups and owner correction collages | High for count/order/style; medium-high for photo-derived dimensions and placement |
 | Top-edge centres | power 0.28W, host 0.49W, volume − 0.63W, + 0.71W | Two overlapping owner top-edge photographs | Medium |
 | Top-edge control topology | Raised POWER key; rim/cavity/tongue HOST USB-C; one continuous volume rocker with centre seam | Owner top-edge macros and owner correction collages | Medium-high |

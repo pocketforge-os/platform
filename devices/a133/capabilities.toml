@@ -186,9 +186,9 @@ btn_north  = { x = 1271, y = 134, w = 55,  h = 56 }
 btn_east   = { x = 1326, y = 190, w = 57,  h = 55 }
 btn_south  = { x = 1271, y = 245, w = 55,  h = 56 }
 btn_west   = { x = 1215, y = 190, w = 56,  h = 55 }
-btn_select = { x = 1191, y = 528, w = 55,  h = 52 }
+btn_select = { x = 1174, y = 528, w = 55,  h = 52 }
 btn_guide  = { x = 207,  y = 527, w = 55,  h = 53 }
-btn_start  = { x = 1279, y = 528, w = 54,  h = 52 }
+btn_start  = { x = 1244, y = 527, w = 54,  h = 53 }
 btn_l1     = { x = 75,   y = 94,  w = 189, h = 53 }
 btn_r1     = { x = 1216, y = 94,  w = 189, h = 40 }
 trig_l     = { x = 67,   y = 25,  w = 196, h = 69 }

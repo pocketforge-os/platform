@@ -65,8 +65,8 @@ stick_right_centre = [device_width - 19.5, 24.9];
 face_centre = [device_width - 18.8, 55.8];
 face_pitch = [7.55, 7.75];
 menu_centre = [26.0, 8.8];
-select_centre = [158.7, 8.8];
-start_centre = [170.4, 8.8];
+select_centre = [156.4, 8.8];
+start_centre = [165.8, 8.8];
 
 // Photo-derived speaker grille lattice.  Each side has two staggered rows of
 // six shallow hexagonal recesses; the upper row steps toward its nearest
