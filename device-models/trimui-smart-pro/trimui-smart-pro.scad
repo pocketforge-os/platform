@@ -68,6 +68,16 @@ menu_centre = [26.0, 8.8];
 select_centre = [158.7, 8.8];
 start_centre = [170.4, 8.8];
 
+// Photo-derived speaker grille lattice.  Each side has two staggered rows of
+// six shallow hexagonal recesses; the upper row steps toward its nearest
+// endcap and the lower row steps toward the display.
+speaker_left_centre_x = 44.775;
+speaker_pitch_x = 1.90;
+speaker_pitch_y = 1.50;
+speaker_bottom_y = 1.65;
+speaker_opening_diameter = 1.50;
+speaker_throat_diameter = 0.90;
+
 dpad_size = 19.2;
 dpad_arm = 7.2;
 stick_ring_diameter = 19.4;
@@ -146,11 +156,12 @@ ring_color = [0.74, 0.76, 0.76, 1.0];
 glass_color = [0.012, 0.017, 0.027, 1.0];
 glass_edge_color = [0.13, 0.15, 0.18, 1.0];
 legend_color = [0.76, 0.78, 0.79, 1.0];
+silkscreen_color = [0.93, 0.94, 0.92, 1.0];
 highlight_color = [0.92, 0.08, 0.08, 1.0];
 highlight_dark_color = [0.55, 0.025, 0.025, 1.0];
 
 ui_font = "Liberation Sans:style=Bold";
-silkscreen_font = "Liberation Sans:style=Bold Italic";
+silkscreen_font = "Ubuntu Sans:style=ExtraBold Italic";
 brand_font = "Liberation Sans:style=Bold Italic";
 brand_companion_font = "Liberation Sans:style=Regular";
 
@@ -158,6 +169,15 @@ function active_color(id, neutral = control_color) =
     is_active(id) ? highlight_color : neutral;
 function active_dark_color(id, neutral = control_edge_color) =
     is_active(id) ? highlight_dark_color : neutral;
+function speaker_positions(side) = [
+    for (row = [0 : 1], column = [0 : 5])
+        let(outward = side == "left" ? -1 : 1,
+            row_stagger = (row == 1 ? 1 : -1) *
+                          outward * speaker_pitch_x / 4)
+            [side_x(side, speaker_left_centre_x) +
+                 (column - 2.5) * speaker_pitch_x + row_stagger,
+             speaker_bottom_y + row * speaker_pitch_y]
+];
 
 // ---- Reusable geometry ----------------------------------------------------
 function left_endcap_points() = [
@@ -297,6 +317,16 @@ module rear_fastener_recesses() {
             cylinder(d = 3.2, h = 0.24, $fn = 28);
 }
 
+module speaker_recess_cutouts() {
+    // The tapered cut exposes a shell-coloured chamfer around a dark, narrow
+    // throat.  Cutting both shell solids below avoids the old raised-dot look.
+    for (side = ["left", "right"], point = speaker_positions(side))
+        translate([point.x, point.y, front_z - 0.43])
+            cylinder(d1 = speaker_throat_diameter,
+                     d2 = speaker_opening_diameter,
+                     h = 0.50, $fn = 6);
+}
+
 // ---- Shell and static visual details ------------------------------------
 module shell_volume() {
     // Five measured/observed depth bands: convex rear roll, broad body,
@@ -321,6 +351,7 @@ module shell_volume() {
             }
         }
         rear_fastener_recesses();
+        speaker_recess_cutouts();
     }
 }
 
@@ -336,9 +367,12 @@ module perimeter_seam() {
 
 module front_face() {
     color(shell_front_color)
-        translate([0, 0, front_z - 0.18])
-            linear_extrude(height = 0.20)
-                body_outline_2d(0.82);
+        difference() {
+            translate([0, 0, front_z - 0.18])
+                linear_extrude(height = 0.20)
+                    body_outline_2d(0.82);
+            speaker_recess_cutouts();
+        }
 }
 
 module active_screen() {
@@ -360,45 +394,40 @@ module screen() {
 }
 
 module speaker_array(side) {
-    // Both grilles are photographed as two rows of six.  They straddle the
-    // lower glass corners symmetrically rather than sitting beside the system
-    // buttons as the first-pass model implied.
-    pitch_x = 2.35;
-    start_x = side == "left"
-        ? 38.9
-        : device_width - 38.9 - 5 * pitch_x;
-    for (column = [0 : 5], row = [0 : 1])
+    // Dark hexagonal floors sit below the tapered openings.  They are kept as
+    // separate geometry so the grille remains legible in both preview and
+    // the production raster renderer without protruding above the face.
+    for (point = speaker_positions(side))
         color([0.018, 0.021, 0.025, 1.0])
-            translate([start_x + column * pitch_x,
-                       4.35 + row * 2.20,
-                       front_z + 0.24])
-                cylinder(d = 1.30, h = 0.34, $fn = 24);
+            translate([point.x, point.y, front_z - 0.425])
+                cylinder(d = speaker_throat_diameter - 0.08,
+                         h = 0.035, $fn = 6);
 }
 
 module front_legends() {
     // The full lockup lives immediately left of the right speaker.  In the
     // photographs the three-dot mark is part of the wordmark, not a separate
     // centred ornament (which read as three errant speaker holes).
-    embossed_label([96.0, 5.42, front_z + 0.24],
-                   "TRIMUI", 2.15, 0.12, "left", "center",
+    embossed_label([107.5, 5.42, front_z + 0.03],
+                   "TRIMUI", 2.15, 0.06, "left", "center",
                    legend_color, brand_font);
-    embossed_label([106.4, 5.42, front_z + 0.24],
-                   "SMART PRO", 2.15, 0.12, "left", "center",
+    embossed_label([119.0, 5.42, front_z + 0.03],
+                   "SMART PRO", 2.15, 0.06, "left", "center",
                    legend_color, brand_companion_font);
     color(legend_color)
-        translate([92.7, 5.42, front_z + 0.24])
-            linear_extrude(height = 0.14)
+        translate([104.2, 5.42, front_z + 0.03])
+            linear_extrude(height = 0.06)
                 trimui_mark_2d();
 
-    embossed_label([menu_centre.x, 4.00, front_z + 0.24],
-                   "MENU", 1.55, 0.10, "center", "center",
-                   legend_color, silkscreen_font);
-    embossed_label([select_centre.x, 4.00, front_z + 0.24],
-                   "SELECT", 1.45, 0.10, "center", "center",
-                   legend_color, silkscreen_font);
-    embossed_label([start_centre.x, 4.00, front_z + 0.24],
-                   "START", 1.45, 0.10, "center", "center",
-                   legend_color, silkscreen_font);
+    embossed_label([menu_centre.x, 4.00, front_z + 0.03],
+                   "MENU", 1.25, 0.06, "center", "center",
+                   silkscreen_color, silkscreen_font);
+    embossed_label([select_centre.x, 4.00, front_z + 0.03],
+                   "SELECT", 1.25, 0.06, "center", "center",
+                   silkscreen_color, silkscreen_font);
+    embossed_label([start_centre.x, 4.00, front_z + 0.03],
+                   "START", 1.25, 0.06, "center", "center",
+                   silkscreen_color, silkscreen_font);
 }
 
 module top_edge_details() {
@@ -436,10 +465,10 @@ module top_edge_details() {
 
     if (SHOW_MICRO_DETAILS) {
         edge_label([power_centre_x - 11.3, device_height + 0.16, 6.2],
-                   "POWER", 1.25, "top", 0.10, legend_color,
+                   "POWER", 1.25, "top", 0.10, silkscreen_color,
                    "center", "center", silkscreen_font);
         edge_label([host_centre_x - 9.5, device_height + 0.16, 6.2],
-                   "HOST", 1.25, "top", 0.10, legend_color,
+                   "HOST", 1.25, "top", 0.10, silkscreen_color,
                    "center", "center", silkscreen_font);
         edge_label([volume_minus_centre_x, device_height + 0.43, 6.15],
                    "-", 1.8, "top", 0.10, control_edge_color);
@@ -489,17 +518,17 @@ module bottom_edge_details() {
 
     if (SHOW_MICRO_DETAILS) {
         edge_label([fn_centre_x - 8.5, -0.16, 6.2],
-                   "FN", 1.25, "bottom", 0.10, legend_color,
+                   "FN", 1.25, "bottom", 0.10, silkscreen_color,
                    "center", "center", silkscreen_font);
         edge_label([badge_centre_x, -0.18, 6.75],
                    "TRIMUI", 1.15, "bottom", 0.10, control_edge_color);
         edge_label([badge_centre_x, -0.18, 4.95],
                    "TG5040", 0.72, "bottom", 0.10, control_edge_color);
         edge_label([dc_centre_x, -0.16, 8.55],
-                   "DC", 1.20, "bottom", 0.10, legend_color,
+                   "DC", 1.20, "bottom", 0.10, silkscreen_color,
                    "center", "center", silkscreen_font);
         edge_label([mic_centre_x, -0.16, 8.55],
-                   "MIC", 1.10, "bottom", 0.10, legend_color,
+                   "MIC", 1.10, "bottom", 0.10, silkscreen_color,
                    "center", "center", silkscreen_font);
     }
 }

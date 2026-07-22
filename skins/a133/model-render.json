@@ -1,7 +1,7 @@
 {
   "atlas_composition": "pairwise-disjoint-one-control-renders",
-  "body_lit_sha256": "3b26583400f0e14dcfff3853d72562b23bd49a786f3e27a32ec09a53bf3ffa09",
-  "body_sha256": "77485141858105677acaf217a0fe6507e06552fdfdbcf38aea06a3f2e227a79f",
+  "body_lit_sha256": "fdb5a243b34627192a45081ba065ca8efd33578ae0813a8acdc9a9849b9f200e",
+  "body_sha256": "7b5c19595acd7d6e21a9940d359ef3f9cafade8527393dc50f7aebabf143921d",
   "camera": {
     "colorscheme": "Tomorrow",
     "crop": [
@@ -123,5 +123,5 @@
   "schema_version": 3,
   "shoulder_crop_policy": "split-overlap-midpoint+4px-horizontal+front-control-trim",
   "source": "device-models/trimui-smart-pro/trimui-smart-pro.scad",
-  "source_sha256": "5fda78a6a297ca33dccbc21ab0f7aac0ccea186fdca6d9d4c464d6a4254f1e9f"
+  "source_sha256": "7fa4efe2639aac306995c23450b79f3413674504246caff4c4d8f31185d0cbc9"
 }
