@@ -34,7 +34,7 @@ role          = "primary"
 present       = "portrait"
 rotation      = "cw90"
 render_canvas = { w = 1280, h = 720 }
-display_rect  = { x = 338, y = 115, w = 804, h = 437 }  # model-derived projected active panel
+display_rect  = { x = 332, y = 108, w = 816, h = 443 }  # model-derived projected active panel
 
 # ---- INPUTS: each row = one drawable, bindable PHYSICAL control ----
 # Face labels are NINTENDO-arranged on the shared chassis (east=A, south=B, north=X, west=Y):
@@ -179,17 +179,17 @@ body     = "skins/a133/body.png"
 lit_body = "skins/a133/body_lit.png"
 
 [skin.parts]
-dpad       = { x = 117,  y = 152, w = 143, h = 141 }
-stick_l    = { x = 122,  y = 369, w = 143, h = 142 }
-stick_r    = { x = 1215, y = 369, w = 143, h = 142 }
-btn_north  = { x = 1264, y = 140, w = 55,  h = 55 }
-btn_east   = { x = 1319, y = 195, w = 55,  h = 55 }
-btn_south  = { x = 1264, y = 250, w = 55,  h = 54 }
-btn_west   = { x = 1209, y = 195, w = 55,  h = 54 }
-btn_select = { x = 1187, y = 528, w = 52,  h = 53 }
-btn_guide  = { x = 215,  y = 528, w = 54,  h = 53 }
-btn_start  = { x = 1271, y = 528, w = 53,  h = 53 }
-btn_l1     = { x = 73,   y = 102, w = 204, h = 50 }
-btn_r1     = { x = 1203, y = 102, w = 204, h = 38 }
-trig_l     = { x = 64,   y = 24,  w = 212, h = 78 }
-trig_r     = { x = 1204, y = 24,  w = 212, h = 78 }
+dpad       = { x = 109,  y = 147, w = 144, h = 142 }
+stick_l    = { x = 113,  y = 366, w = 147, h = 143 }
+stick_r    = { x = 1220, y = 366, w = 147, h = 143 }
+btn_north  = { x = 1271, y = 134, w = 55,  h = 56 }
+btn_east   = { x = 1326, y = 190, w = 57,  h = 55 }
+btn_south  = { x = 1271, y = 245, w = 55,  h = 56 }
+btn_west   = { x = 1215, y = 190, w = 56,  h = 55 }
+btn_select = { x = 1191, y = 528, w = 55,  h = 52 }
+btn_guide  = { x = 207,  y = 527, w = 55,  h = 53 }
+btn_start  = { x = 1279, y = 528, w = 54,  h = 52 }
+btn_l1     = { x = 75,   y = 94,  w = 189, h = 53 }
+btn_r1     = { x = 1216, y = 94,  w = 189, h = 40 }
+trig_l     = { x = 67,   y = 25,  w = 196, h = 69 }
+trig_r     = { x = 1217, y = 25,  w = 196, h = 69 }

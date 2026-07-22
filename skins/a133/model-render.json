@@ -1,13 +1,13 @@
 {
   "atlas_composition": "pairwise-disjoint-one-control-renders",
-  "body_lit_sha256": "b3a97bd2724559ab4cfe7ca1bf36c2da54ef49932037f83d407fa0c677c5440c",
-  "body_sha256": "862917e5fe3b8d2cecb597158202c106b447736de2869a9ed4c0bc8c92abafcf",
+  "body_lit_sha256": "3b26583400f0e14dcfff3853d72562b23bd49a786f3e27a32ec09a53bf3ffa09",
+  "body_sha256": "77485141858105677acaf217a0fe6507e06552fdfdbcf38aea06a3f2e227a79f",
   "camera": {
     "colorscheme": "Tomorrow",
     "crop": [
-      973,
-      422,
-      2227,
+      971,
+      428,
+      2229,
       972
     ],
     "eye_target": "94.175,125,330,94.175,39.885,5.5",
@@ -22,95 +22,95 @@
   "controls": {
     "btn_east": {
       "h": 55,
-      "w": 55,
-      "x": 1319,
-      "y": 195
+      "w": 57,
+      "x": 1326,
+      "y": 190
     },
     "btn_guide": {
       "h": 53,
-      "w": 54,
-      "x": 215,
-      "y": 528
+      "w": 55,
+      "x": 207,
+      "y": 527
     },
     "btn_l1": {
-      "h": 50,
-      "w": 204,
-      "x": 73,
-      "y": 102
+      "h": 53,
+      "w": 189,
+      "x": 75,
+      "y": 94
     },
     "btn_north": {
-      "h": 55,
+      "h": 56,
       "w": 55,
-      "x": 1264,
-      "y": 140
+      "x": 1271,
+      "y": 134
     },
     "btn_r1": {
-      "h": 38,
-      "w": 204,
-      "x": 1203,
-      "y": 102
+      "h": 40,
+      "w": 189,
+      "x": 1216,
+      "y": 94
     },
     "btn_select": {
-      "h": 53,
-      "w": 52,
-      "x": 1187,
+      "h": 52,
+      "w": 55,
+      "x": 1191,
       "y": 528
     },
     "btn_south": {
-      "h": 54,
+      "h": 56,
       "w": 55,
-      "x": 1264,
-      "y": 250
+      "x": 1271,
+      "y": 245
     },
     "btn_start": {
-      "h": 53,
-      "w": 53,
-      "x": 1271,
+      "h": 52,
+      "w": 54,
+      "x": 1279,
       "y": 528
     },
     "btn_west": {
-      "h": 54,
-      "w": 55,
-      "x": 1209,
-      "y": 195
+      "h": 55,
+      "w": 56,
+      "x": 1215,
+      "y": 190
     },
     "dpad": {
-      "h": 141,
-      "w": 143,
-      "x": 117,
-      "y": 152
+      "h": 142,
+      "w": 144,
+      "x": 109,
+      "y": 147
     },
     "stick_l": {
-      "h": 142,
-      "w": 143,
-      "x": 122,
-      "y": 369
+      "h": 143,
+      "w": 147,
+      "x": 113,
+      "y": 366
     },
     "stick_r": {
-      "h": 142,
-      "w": 143,
-      "x": 1215,
-      "y": 369
+      "h": 143,
+      "w": 147,
+      "x": 1220,
+      "y": 366
     },
     "trig_l": {
-      "h": 78,
-      "w": 212,
-      "x": 64,
-      "y": 24
+      "h": 69,
+      "w": 196,
+      "x": 67,
+      "y": 25
     },
     "trig_r": {
-      "h": 78,
-      "w": 212,
-      "x": 1204,
-      "y": 24
+      "h": 69,
+      "w": 196,
+      "x": 1217,
+      "y": 25
     }
   },
   "device": "a133",
   "display_rect": {
-    "h": 437,
-    "w": 804,
-    "x": 338,
-    "y": 115
+    "h": 443,
+    "w": 816,
+    "x": 332,
+    "y": 108
   },
   "model": "TrimUI Smart Pro",
   "model_number": "TG5040",
@@ -123,5 +123,5 @@
   "schema_version": 3,
   "shoulder_crop_policy": "split-overlap-midpoint+4px-horizontal+front-control-trim",
   "source": "device-models/trimui-smart-pro/trimui-smart-pro.scad",
-  "source_sha256": "e503901e941cd48a787de9e9e3c2b2d4b0625bcd9b0b847b04dee79efe4ea848"
+  "source_sha256": "5fda78a6a297ca33dccbc21ab0f7aac0ccea186fdca6d9d4c464d6a4254f1e9f"
 }

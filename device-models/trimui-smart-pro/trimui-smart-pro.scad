@@ -149,6 +149,11 @@ legend_color = [0.76, 0.78, 0.79, 1.0];
 highlight_color = [0.92, 0.08, 0.08, 1.0];
 highlight_dark_color = [0.55, 0.025, 0.025, 1.0];
 
+ui_font = "Liberation Sans:style=Bold";
+silkscreen_font = "Liberation Sans:style=Bold Italic";
+brand_font = "Liberation Sans:style=Bold Italic";
+brand_companion_font = "Liberation Sans:style=Regular";
+
 function active_color(id, neutral = control_color) =
     is_active(id) ? highlight_color : neutral;
 function active_dark_color(id, neutral = control_edge_color) =
@@ -239,27 +244,27 @@ module xz_rounded_rect(point, size, thickness, radius) {
 
 module edge_label(point, message, size, side,
                   height = 0.10, colour = legend_color,
-                  halign = "center", valign = "center") {
+                  halign = "center", valign = "center",
+                  font = ui_font, yaw = 0) {
     if (SHOW_GLYPHS)
         color(colour)
             translate([point.x, point.y, point.z])
-                rotate([side == "top" ? -90 : 90, 0, 0])
-                    linear_extrude(height = height)
-                        text(message, size = size, halign = halign,
-                             valign = valign,
-                             font = "Liberation Sans:style=Bold");
+                rotate([0, 0, yaw])
+                    rotate([side == "top" ? -90 : 90, 0, 0])
+                        linear_extrude(height = height)
+                            text(message, size = size, halign = halign,
+                                 valign = valign, font = font);
 }
 
 module embossed_label(point, message, size, height = 0.16,
                       halign = "center", valign = "center",
-                      colour = legend_color) {
+                      colour = legend_color, font = ui_font) {
     if (SHOW_GLYPHS)
         color(colour)
             translate([point.x, point.y, point.z])
                 linear_extrude(height = height)
                     text(message, size = size, halign = halign,
-                         valign = valign,
-                         font = "Liberation Sans:style=Bold");
+                         valign = valign, font = font);
 }
 
 module triangle_2d(radius) {
@@ -270,27 +275,52 @@ module triangle_2d(radius) {
     ]);
 }
 
+module trimui_mark_2d(dot_diameter = 0.95, orbit = 1.05) {
+    for (angle = [90, 210, 330])
+        translate([orbit * cos(angle), orbit * sin(angle)])
+            circle(d = dot_diameter, $fn = 18);
+}
+
+// The rear shell rolls away from Z=0, so rear fasteners must be recesses in
+// that surface, not dark decals extruded behind it. Their coordinates are
+// normalized from the owner's straight-on rear photograph.
+function rear_fastener_positions() = [
+    [8.0, device_height - 17.0],
+    [device_width - 8.0, device_height - 17.0],
+    [20.0, 6.3],
+    [device_width - 20.0, 6.3]
+];
+
+module rear_fastener_recesses() {
+    for (point = rear_fastener_positions())
+        translate([point.x, point.y, -epsilon])
+            cylinder(d = 3.2, h = 0.24, $fn = 28);
+}
+
 // ---- Shell and static visual details ------------------------------------
 module shell_volume() {
     // Five measured/observed depth bands: convex rear roll, broad body,
     // port/control band, front bevel, and the recessed face datum.
-    union() {
-        hull() {
-            outline_layer(0.00, 2.2);
-            outline_layer(1.20, 0.65);
+    difference() {
+        union() {
+            hull() {
+                outline_layer(0.00, 2.2);
+                outline_layer(1.20, 0.65);
+            }
+            hull() {
+                outline_layer(1.20, 0.65);
+                outline_layer(8.65, 0.00);
+            }
+            hull() {
+                outline_layer(8.65, 0.00);
+                outline_layer(10.15, 0.35);
+            }
+            hull() {
+                outline_layer(10.15, 0.35);
+                outline_layer(front_z - 0.05, 0.85);
+            }
         }
-        hull() {
-            outline_layer(1.20, 0.65);
-            outline_layer(8.65, 0.00);
-        }
-        hull() {
-            outline_layer(8.65, 0.00);
-            outline_layer(10.15, 0.35);
-        }
-        hull() {
-            outline_layer(10.15, 0.35);
-            outline_layer(front_z - 0.05, 0.85);
-        }
+        rear_fastener_recesses();
     }
 }
 
@@ -350,20 +380,25 @@ module front_legends() {
     // photographs the three-dot mark is part of the wordmark, not a separate
     // centred ornament (which read as three errant speaker holes).
     embossed_label([96.0, 5.42, front_z + 0.24],
-                   "TRIMUI SMART PRO", 2.15, 0.12, "left");
+                   "TRIMUI", 2.15, 0.12, "left", "center",
+                   legend_color, brand_font);
+    embossed_label([106.4, 5.42, front_z + 0.24],
+                   "SMART PRO", 2.15, 0.12, "left", "center",
+                   legend_color, brand_companion_font);
     color(legend_color)
-        for (angle = [90, 210, 330])
-            translate([92.7 + 1.05 * cos(angle),
-                       5.42 + 1.05 * sin(angle),
-                       front_z + 0.24])
-                cylinder(d = 0.95, h = 0.14, $fn = 18);
+        translate([92.7, 5.42, front_z + 0.24])
+            linear_extrude(height = 0.14)
+                trimui_mark_2d();
 
     embossed_label([menu_centre.x, 4.00, front_z + 0.24],
-                   "MENU", 1.55, 0.10);
+                   "MENU", 1.55, 0.10, "center", "center",
+                   legend_color, silkscreen_font);
     embossed_label([select_centre.x, 4.00, front_z + 0.24],
-                   "SELECT", 1.45, 0.10);
+                   "SELECT", 1.45, 0.10, "center", "center",
+                   legend_color, silkscreen_font);
     embossed_label([start_centre.x, 4.00, front_z + 0.24],
-                   "START", 1.45, 0.10);
+                   "START", 1.45, 0.10, "center", "center",
+                   legend_color, silkscreen_font);
 }
 
 module top_edge_details() {
@@ -400,10 +435,12 @@ module top_edge_details() {
                         [0.42, 3.10], 0.68, 0.08);
 
     if (SHOW_MICRO_DETAILS) {
-        edge_label([power_centre_x - 8.5, device_height + 0.16, 6.2],
-                   "POWER", 1.25, "top");
-        edge_label([host_centre_x - 7.0, device_height + 0.16, 6.2],
-                   "HOST", 1.25, "top");
+        edge_label([power_centre_x - 11.3, device_height + 0.16, 6.2],
+                   "POWER", 1.25, "top", 0.10, legend_color,
+                   "center", "center", silkscreen_font);
+        edge_label([host_centre_x - 9.5, device_height + 0.16, 6.2],
+                   "HOST", 1.25, "top", 0.10, legend_color,
+                   "center", "center", silkscreen_font);
         edge_label([volume_minus_centre_x, device_height + 0.43, 6.15],
                    "-", 1.8, "top", 0.10, control_edge_color);
         edge_label([volume_plus_centre_x, device_height + 0.43, 6.15],
@@ -452,15 +489,18 @@ module bottom_edge_details() {
 
     if (SHOW_MICRO_DETAILS) {
         edge_label([fn_centre_x - 8.5, -0.16, 6.2],
-                   "FN", 1.25, "bottom");
+                   "FN", 1.25, "bottom", 0.10, legend_color,
+                   "center", "center", silkscreen_font);
         edge_label([badge_centre_x, -0.18, 6.75],
                    "TRIMUI", 1.15, "bottom", 0.10, control_edge_color);
         edge_label([badge_centre_x, -0.18, 4.95],
                    "TG5040", 0.72, "bottom", 0.10, control_edge_color);
         edge_label([dc_centre_x, -0.16, 8.55],
-                   "DC", 1.20, "bottom");
+                   "DC", 1.20, "bottom", 0.10, legend_color,
+                   "center", "center", silkscreen_font);
         edge_label([mic_centre_x, -0.16, 8.55],
-                   "MIC", 1.10, "bottom");
+                   "MIC", 1.10, "bottom", 0.10, legend_color,
+                   "center", "center", silkscreen_font);
     }
 }
 
@@ -470,15 +510,9 @@ module rear_details() {
     // tighter to the shoulder cut-outs than the lower pair sits to the
     // endcap; they are not the corners of one rectangle.
     color([0.015, 0.018, 0.022, 1.0])
-        for (point = [
-            [7.5, device_height - 10.0],
-            [device_width - 7.5, device_height - 10.0],
-            [18.0, 8.5],
-            [device_width - 18.0, 8.5]
-        ])
-            translate([point.x, point.y, -0.04])
-                rotate([180, 0, 0])
-                    cylinder(d = 3.2, h = 0.18, $fn = 28);
+        for (point = rear_fastener_positions())
+            translate([point.x, point.y, 0.15])
+                cylinder(d = 2.85, h = 0.04, $fn = 28);
 
     if (SHOW_MICRO_DETAILS) {
         // Back-face text uses a Y half-turn.  It reverses the extrusion normal
@@ -488,12 +522,20 @@ module rear_details() {
         color(legend_color)
             translate([device_centre.x + 31, 19.0, -0.03])
                 rotate([0, 180, 0])
-                    linear_extrude(height = 0.10)
-                        text("TRIMUI SMART PRO", size = 3.0,
-                             halign = "center", valign = "center",
-                             font = "Liberation Sans:style=Bold");
+                    linear_extrude(height = 0.10) {
+                        translate([-17.0, 0])
+                            text("TRIMUI", size = 3.0,
+                                 halign = "left", valign = "center",
+                                 font = brand_font);
+                        translate([-1.2, 0])
+                            text("SMART PRO", size = 3.0,
+                                 halign = "left", valign = "center",
+                                 font = brand_companion_font);
+                        translate([-21.0, 0])
+                            trimui_mark_2d(1.10, 1.20);
+                    }
         color(legend_color)
-            translate([device_centre.x + 4, 19.0, -0.03])
+            translate([device_centre.x - 2, 19.0, -0.03])
                 rotate([0, 180, 0])
                     linear_extrude(height = 0.10)
                         text("CE  FCC", size = 2.1,
@@ -634,21 +676,21 @@ module shoulder_shape(side, kind) {
         // paddle is visibly joined along its full inner edge instead of being
         // suspended from a single peg like the first-pass "dog ear".
         shoulder_tube([
-            [anchor_x + mirror_x * 6.0,  device_height - 13.8, 2.25],
-            [anchor_x + mirror_x * 10.5, device_height - 7.7,  2.50],
-            [anchor_x + mirror_x * 16.8, device_height - 3.25, 2.35],
-            [anchor_x + mirror_x * 23.8, device_height - 0.95, 2.05],
-            [anchor_x + mirror_x * 28.6, device_height - 0.18, 1.55]
+            [anchor_x + mirror_x * 6.0,  device_height - 13.8, 0.90],
+            [anchor_x + mirror_x * 10.5, device_height - 7.7,  1.00],
+            [anchor_x + mirror_x * 16.8, device_height - 3.25, 0.94],
+            [anchor_x + mirror_x * 23.8, device_height - 0.95, 0.82],
+            [anchor_x + mirror_x * 28.6, device_height - 0.18, 0.62]
         ], front_z - 1.65, 2.45);
     } else {
         // L2/R2: broader rear paddle on the same shell-connected arc, ending
         // inboard at the straight top tangent just like the photographed cap.
         shoulder_tube([
-            [anchor_x + mirror_x * 5.1,  device_height - 14.5, 2.55],
-            [anchor_x + mirror_x * 9.6,  device_height - 8.8,  2.95],
-            [anchor_x + mirror_x * 15.8, device_height - 3.9,  2.80],
-            [anchor_x + mirror_x * 23.0, device_height - 1.15, 2.35],
-            [anchor_x + mirror_x * 28.4, device_height - 0.20, 1.65]
+            [anchor_x + mirror_x * 5.1,  device_height - 14.5, 1.02],
+            [anchor_x + mirror_x * 9.6,  device_height - 8.8,  1.18],
+            [anchor_x + mirror_x * 15.8, device_height - 3.9,  1.12],
+            [anchor_x + mirror_x * 23.0, device_height - 1.15, 0.94],
+            [anchor_x + mirror_x * 28.4, device_height - 0.20, 0.66]
         ], 2.65, 5.95);
     }
 }
@@ -663,15 +705,20 @@ module shoulder_control(side, kind) {
 
     color(active_color(id)) shoulder_shape(side, kind);
 
-    // Labels sit on the face-facing/top surface and remain dark when lit.
-    label_x = side == "left" ? 14.2 : device_width - 14.2;
-    label_y = kind == "bumper" ? device_height - 4.7
-                               : device_height - 4.5;
-    label_z = kind == "bumper" ? front_z + 0.83 : 8.63;
-    embossed_label([label_x, label_y, label_z],
-                   label, kind == "bumper" ? 2.5 : 2.2,
-                   0.13, "center", "center",
-                   active_dark_color(id));
+    // The moulded legends are on the top/outer faces seen from the edge, not
+    // on the narrow screen-facing strips. Follow the local endcap tangent so
+    // the text stays seated on the curved paddle instead of floating nearby.
+    label_x = side == "left"
+        ? (kind == "bumper" ? 10.0 : 9.0)
+        : device_width - (kind == "bumper" ? 10.0 : 9.0);
+    label_y = kind == "bumper" ? device_height - 6.85
+                               : device_height - 7.80;
+    label_z = kind == "bumper" ? front_z - 0.43 : 5.63;
+    label_yaw = side == "left" ? 31 : -31;
+    edge_label([label_x, label_y, label_z],
+               label, kind == "bumper" ? 2.5 : 2.2, "top",
+               0.13, active_dark_color(id), "center", "center",
+               ui_font, label_yaw);
 }
 
 module named_control(id) {
