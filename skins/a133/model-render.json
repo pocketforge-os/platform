@@ -1,0 +1,126 @@
+{
+  "body_lit_sha256": "276f246ee1915ea753aaf4240789171a0be8d0d9377efe7d1bc4299e8c6a740e",
+  "body_sha256": "77169a68e2d17ff81c62d2a3662b03a7a8fead778b2aadb20e9cebf119be35cd",
+  "camera": {
+    "colorscheme": "Tomorrow",
+    "crop": [
+      972,
+      424,
+      2228,
+      971
+    ],
+    "eye_target": "94.175,125,330,94.175,39.885,5.5",
+    "padding": 12,
+    "projection": "ortho",
+    "raw_rotation_degrees": 180
+  },
+  "canvas": {
+    "h": 640,
+    "w": 1480
+  },
+  "controls": {
+    "btn_east": {
+      "h": 63,
+      "w": 63,
+      "x": 1317,
+      "y": 190
+    },
+    "btn_guide": {
+      "h": 61,
+      "w": 62,
+      "x": 209,
+      "y": 524
+    },
+    "btn_l1": {
+      "h": 73,
+      "w": 188,
+      "x": 41,
+      "y": 84
+    },
+    "btn_north": {
+      "h": 62,
+      "w": 63,
+      "x": 1262,
+      "y": 135
+    },
+    "btn_r1": {
+      "h": 73,
+      "w": 188,
+      "x": 1251,
+      "y": 84
+    },
+    "btn_select": {
+      "h": 61,
+      "w": 61,
+      "x": 1183,
+      "y": 524
+    },
+    "btn_south": {
+      "h": 62,
+      "w": 63,
+      "x": 1262,
+      "y": 246
+    },
+    "btn_start": {
+      "h": 61,
+      "w": 62,
+      "x": 1269,
+      "y": 524
+    },
+    "btn_west": {
+      "h": 63,
+      "w": 62,
+      "x": 1207,
+      "y": 190
+    },
+    "dpad": {
+      "h": 148,
+      "w": 151,
+      "x": 111,
+      "y": 148
+    },
+    "stick_l": {
+      "h": 149,
+      "w": 154,
+      "x": 115,
+      "y": 365
+    },
+    "stick_r": {
+      "h": 149,
+      "w": 154,
+      "x": 1211,
+      "y": 365
+    },
+    "trig_l": {
+      "h": 63,
+      "w": 183,
+      "x": 40,
+      "y": 21
+    },
+    "trig_r": {
+      "h": 63,
+      "w": 183,
+      "x": 1257,
+      "y": 21
+    }
+  },
+  "device": "a133",
+  "display_rect": {
+    "h": 439,
+    "w": 806,
+    "x": 337,
+    "y": 113
+  },
+  "model": "TrimUI Smart Pro",
+  "model_number": "TG5040",
+  "raw_canvas": {
+    "h": 1400,
+    "w": 3200
+  },
+  "renderer": "device-models/trimui-smart-pro/render.py",
+  "renderer_sha256": "df4ac1adc78ec823bc7d6ef4cd281b284cf52be3a2bf5a209e716f02fcfb4310",
+  "schema_version": 2,
+  "shoulder_crop_policy": "split-overlap-midpoint+1px-horizontal",
+  "source": "device-models/trimui-smart-pro/trimui-smart-pro.scad",
+  "source_sha256": "e0d956c4f8217fc89a7a36a5dff6845c050bfa38b143d6dbc0f04f5b7497e171"
+}

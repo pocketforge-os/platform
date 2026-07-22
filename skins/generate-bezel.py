@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-"""skins/generate-bezel.py — render a device's clickable-skin bezel FROM its descriptor.
+"""skins/generate-bezel.py — regenerate source-owned clickable device skins.
 
-Original schematic art (NOT a copyrighted vendor render): a clean landscape-handheld
-chassis with every control drawn at exactly the rect declared in
-devices/<id>/capabilities.toml [skin.parts], plus the screen at display_rect. Because the
-geometry is read from the descriptor, body.png and the rects CANNOT drift. The layout
-proportions are traced from the device's FCC external-photo exhibit (public record).
+High-fidelity devices route to a semantic model renderer. The TG5040/a133 path uses its
+millimetre-coordinate OpenSCAD model, renders neutral/all-lit sprites, and derives every
+control rect from one-control highlight passes. Devices without a model retain the
+original descriptor-driven schematic fallback below (NOT a copyrighted vendor render).
 
 Produces, per device:
   skins/<id>/body.png       — the unlit chassis
   skins/<id>/body_lit.png   — same, every control in its lit (pressed) colour
 
 The app/simulator lights control X by compositing body_lit cropped to parts[X].rect over
-body. Real photographic bezel art can replace body.png later without touching the rects.
+body. Model-backed paths derive the rects from one-control renders; the schematic path
+continues to consume descriptor-authored rectangles.
 
 Usage:  python3 skins/generate-bezel.py <id> [<id> ...]   (or --all)
-Requires Pillow.
+Requires Pillow; model-backed devices additionally require OpenSCAD.
 """
-import sys, os, tomllib
+import sys, os, subprocess, tomllib
 from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,6 +28,10 @@ EDGE = (120, 120, 126)
 SCREEN_FILL = (18, 18, 24)
 NEUTRAL = (158, 158, 165)
 LIT = (214, 64, 64)
+
+MODEL_RENDERERS = {
+    "a133": os.path.join(ROOT, "device-models", "trimui-smart-pro", "render.py"),
+}
 
 
 def _rect(r):
@@ -83,6 +87,11 @@ def draw_device(data, lit):
 
 
 def generate(dev_id):
+    renderer = MODEL_RENDERERS.get(dev_id)
+    if renderer:
+        subprocess.run([sys.executable, renderer, "--write"], cwd=ROOT, check=True)
+        return
+
     cpath = os.path.join(DEVICES, dev_id, "capabilities.toml")
     with open(cpath, "rb") as f:
         data = tomllib.load(f)
