@@ -74,7 +74,8 @@ stick_ring_diameter = 19.4;
 stick_recess_diameter = 16.1;
 stick_cap_diameter = 12.8;
 face_button_diameter = 7.2;
-system_button_diameter = 7.0;
+system_button_diameter = 6.25;
+system_button_recess_diameter = 7.15;
 
 // Shoulder extents and top-edge feature centres are photo-derived.
 shoulder_span = 32.0;
@@ -329,25 +330,33 @@ module screen() {
 }
 
 module speaker_array(side) {
-    start_x = side == "left" ? 34.2 : device_width - 46.7;
+    // Both grilles are photographed as two rows of six.  They straddle the
+    // lower glass corners symmetrically rather than sitting beside the system
+    // buttons as the first-pass model implied.
+    pitch_x = 2.35;
+    start_x = side == "left"
+        ? 38.9
+        : device_width - 38.9 - 5 * pitch_x;
     for (column = [0 : 5], row = [0 : 1])
         color([0.018, 0.021, 0.025, 1.0])
-            translate([start_x + column * 2.5,
-                       4.20 + row * 2.35,
+            translate([start_x + column * pitch_x,
+                       4.35 + row * 2.20,
                        front_z + 0.24])
-                cylinder(d = 1.45, h = 0.34, $fn = 24);
+                cylinder(d = 1.30, h = 0.34, $fn = 24);
 }
 
 module front_legends() {
-    embossed_label([57.5, 2.55, front_z + 0.24],
-                   "TRIMUI SMART PRO", 2.15, 0.12, "center");
-    // Three-dot TrimUI mark centered beneath the display.
+    // The full lockup lives immediately left of the right speaker.  In the
+    // photographs the three-dot mark is part of the wordmark, not a separate
+    // centred ornament (which read as three errant speaker holes).
+    embossed_label([96.0, 5.42, front_z + 0.24],
+                   "TRIMUI SMART PRO", 2.15, 0.12, "left");
     color(legend_color)
         for (angle = [90, 210, 330])
-            translate([device_centre.x + 1.15 * cos(angle),
-                       2.75 + 1.15 * sin(angle),
+            translate([92.7 + 1.05 * cos(angle),
+                       5.42 + 1.05 * sin(angle),
                        front_z + 0.24])
-                cylinder(d = 1.05, h = 0.14, $fn = 18);
+                cylinder(d = 0.95, h = 0.14, $fn = 18);
 
     embossed_label([menu_centre.x, 4.00, front_z + 0.24],
                    "MENU", 1.55, 0.10);
@@ -360,28 +369,35 @@ module front_legends() {
 module top_edge_details() {
     top_y = device_height - 0.15;
 
+    // POWER is a raised, lighter key in a dark shallow bezel.
     color(control_edge_color)
-        xz_pill([power_centre_x, top_y, 6.1], [10.3, 3.9], 0.55);
-    color(shell_front_color)
-        xz_pill([power_centre_x, top_y + 0.08, 6.1], [8.9, 3.0], 0.62);
+        xz_pill([power_centre_x, top_y, 6.1], [11.0, 4.25], 0.58);
+    color([0.255, 0.265, 0.272, 1.0])
+        xz_pill([power_centre_x, top_y + 0.12, 6.1], [9.35, 3.25], 0.64);
 
-    // HOST USB-C: dark recess plus silver tongue.
-    color(control_edge_color)
-        xz_pill([host_centre_x, top_y, 5.8], [9.4, 3.7], 0.60);
+    // HOST USB-C: visible metal rim, black cavity, and centre tongue.  Each
+    // layer is deliberately stepped towards +Y so the top camera cannot hide
+    // the tongue behind the recess (the previous solid-black capsule).
     color([0.62, 0.64, 0.65, 1.0])
-        xz_pill([host_centre_x, top_y - 0.05, 5.8], [6.3, 1.2], 0.66);
-
-    // Split volume rocker in one shallow track.
+        xz_pill([host_centre_x, top_y + 0.01, 5.8], [10.4, 4.15], 0.62);
     color(control_edge_color)
-        xz_pill([(volume_minus_centre_x + volume_plus_centre_x) / 2,
-                 top_y, 6.1],
-                [volume_plus_centre_x - volume_minus_centre_x + 11.0,
-                 4.0], 0.58);
-    for (entry = [[volume_minus_centre_x, "-"],
-                  [volume_plus_centre_x, "+"]]) {
-        color(shell_front_color)
-            xz_pill([entry[0], top_y + 0.08, 6.1], [10.5, 3.1], 0.64);
-    }
+        xz_pill([host_centre_x, top_y + 0.10, 5.8], [9.15, 3.10], 0.66);
+    color([0.70, 0.71, 0.70, 1.0])
+        xz_pill([host_centre_x, top_y + 0.19, 5.8], [6.65, 0.78], 0.70);
+
+    // One continuous two-half volume rocker: pill outside ends and a narrow,
+    // straight centre seam, matching the photographed moulded part.
+    rocker_centre_x = (volume_minus_centre_x + volume_plus_centre_x) / 2;
+    rocker_width = volume_plus_centre_x - volume_minus_centre_x + 11.0;
+    color(control_edge_color)
+        xz_pill([rocker_centre_x, top_y, 6.1],
+                [rocker_width + 1.0, 4.25], 0.58);
+    color([0.235, 0.245, 0.252, 1.0])
+        xz_pill([rocker_centre_x, top_y + 0.12, 6.1],
+                [rocker_width, 3.25], 0.64);
+    color(control_edge_color)
+        xz_rounded_rect([rocker_centre_x, top_y + 0.22, 6.1],
+                        [0.42, 3.10], 0.68, 0.08);
 
     if (SHOW_MICRO_DETAILS) {
         edge_label([power_centre_x - 8.5, device_height + 0.16, 6.2],
@@ -526,26 +542,28 @@ module face_button(id, point, glyph) {
 }
 
 module system_button(id, point, symbol) {
+    // The physical keys have a narrow dark outer ring and a smaller convex
+    // crown.  Keeping both pieces semantic lets the complete control light.
+    color(active_dark_color(id))
+        translate([point.x, point.y, front_z + 0.15])
+            bevel_cylinder(system_button_recess_diameter, 0.72, 0.22);
     color(active_color(id))
-        translate([point.x, point.y, front_z + 0.16])
-            bevel_cylinder(system_button_diameter, 0.95, 0.32);
+        translate([point.x, point.y, front_z + 0.45])
+            bevel_cylinder(system_button_diameter, 0.76, 0.24);
 
     color(active_dark_color(id))
-        // The button crown ends at front_z + 1.11; leave a real air gap so
+        // The button crown ends at front_z + 1.21; leave a real air gap so
         // off-screen OpenCSG renders cannot race two coincident fragments.
-        translate([point.x, point.y, front_z + 1.14])
+        translate([point.x, point.y, front_z + 1.24])
             linear_extrude(height = 0.13) {
                 if (symbol == "menu") {
                     for (angle = [90, 210, 330])
                         translate([1.25 * cos(angle), 1.25 * sin(angle)])
                             circle(d = 1.15, $fn = 18);
                 } else if (symbol == "select") {
-                    difference() {
-                        rounded_rect_2d([2.8, 2.2], 0.35);
-                        rounded_rect_2d([1.9, 1.3], 0.20);
-                    }
+                    pill_2d(2.75, 0.82);
                 } else {
-                    triangle_2d(1.65);
+                    triangle_2d(1.50);
                 }
             }
 }
@@ -611,22 +629,27 @@ module shoulder_shape(side, kind) {
     mirror_x = is_left ? 1 : -1;
     anchor_x = is_left ? 0 : device_width;
     if (kind == "bumper") {
-        // L1/R1: a curved lower bumper following the elliptical endcap into
-        // the straight top tangent, rather than a detached horizontal bar.
+        // L/R: front/edge bumper following and overlapping the real endcap.
+        // Every control-section centre sits on the shell ellipse, so the
+        // paddle is visibly joined along its full inner edge instead of being
+        // suspended from a single peg like the first-pass "dog ear".
         shoulder_tube([
-            [anchor_x + mirror_x * 2.0, device_height - 12.0, 2.2],
-            [anchor_x + mirror_x * 7.5, device_height - 7.0, 2.6],
-            [anchor_x + mirror_x * 14.0, device_height - 3.2, 2.4],
-            [anchor_x + mirror_x * 22.0, device_height - 1.2, 1.8]
-        ], front_z - 1.55, 2.35);
+            [anchor_x + mirror_x * 6.0,  device_height - 13.8, 2.25],
+            [anchor_x + mirror_x * 10.5, device_height - 7.7,  2.50],
+            [anchor_x + mirror_x * 16.8, device_height - 3.25, 2.35],
+            [anchor_x + mirror_x * 23.8, device_height - 0.95, 2.05],
+            [anchor_x + mirror_x * 28.6, device_height - 0.18, 1.55]
+        ], front_z - 1.65, 2.45);
     } else {
-        // L2/R2: separate taller arched paddle behind that same curve.
+        // L2/R2: broader rear paddle on the same shell-connected arc, ending
+        // inboard at the straight top tangent just like the photographed cap.
         shoulder_tube([
-            [anchor_x + mirror_x * 2.0, device_height - 10.5, 2.4],
-            [anchor_x + mirror_x * 7.5, device_height - 5.2, 2.9],
-            [anchor_x + mirror_x * 14.0, device_height - 2.0, 2.7],
-            [anchor_x + mirror_x * 21.0, device_height - 0.7, 1.9]
-        ], 2.7, 5.5);
+            [anchor_x + mirror_x * 5.1,  device_height - 14.5, 2.55],
+            [anchor_x + mirror_x * 9.6,  device_height - 8.8,  2.95],
+            [anchor_x + mirror_x * 15.8, device_height - 3.9,  2.80],
+            [anchor_x + mirror_x * 23.0, device_height - 1.15, 2.35],
+            [anchor_x + mirror_x * 28.4, device_height - 0.20, 1.65]
+        ], 2.65, 5.95);
     }
 }
 
@@ -641,10 +664,10 @@ module shoulder_control(side, kind) {
     color(active_color(id)) shoulder_shape(side, kind);
 
     // Labels sit on the face-facing/top surface and remain dark when lit.
-    label_x = side == "left" ? 10.5 : device_width - 10.5;
-    label_y = kind == "bumper" ? device_height - 3.2
-                               : device_height - 0.4;
-    label_z = kind == "bumper" ? front_z + 0.82 : 8.25;
+    label_x = side == "left" ? 14.2 : device_width - 14.2;
+    label_y = kind == "bumper" ? device_height - 4.7
+                               : device_height - 4.5;
+    label_z = kind == "bumper" ? front_z + 0.83 : 8.63;
     embossed_label([label_x, label_y, label_z],
                    label, kind == "bumper" ? 2.5 : 2.2,
                    0.13, "center", "center",

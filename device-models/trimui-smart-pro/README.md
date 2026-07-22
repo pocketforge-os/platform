@@ -26,9 +26,11 @@ say which protrusions are included.
 | Stick centres | (19.5, 24.9), mirrored; 19.4 mm outer ring | FCC ruler view plus both owner front close-ups | Medium-high |
 | Face cluster | centre (169.55, 55.8), pitch 7.55 × 7.75 mm, buttons 7.2 mm | Owner right-front close-up | Medium-high |
 | Menu / Select / Start centres | (26.0, 8.8) / (158.7, 8.8) / (170.4, 8.8) | Owner front close-ups and FCC front view | Medium-high |
+| Speaker grilles / front brand lockup | Two symmetric 2 × 6 arrays; three-dot mark immediately precedes `TRIMUI SMART PRO` left of the right grille | Owner left/right front close-ups and owner correction collages | High for count/order; medium-high for photo-derived placement |
 | Top-edge centres | power 0.28W, host 0.49W, volume − 0.63W, + 0.71W | Two overlapping owner top-edge photographs | Medium |
+| Top-edge control topology | Raised POWER key; rim/cavity/tongue HOST USB-C; one continuous volume rocker with centre seam | Owner top-edge macros and owner correction collages | Medium-high |
 | Bottom-edge centres | FN 0.24W, badge 0.37W, DC 0.50W, mic 0.56W, TF 0.625W, audio 0.74W | Owner bottom-edge photograph | Medium |
-| L/L2 and R/R2 surfaces | four-point curved paddles, approximately 24 mm end extent | Owner top, rear, and shoulder-macro photographs | Medium-low in Z; control identity/order is high |
+| L/L2 and R/R2 surfaces | Five-section shell-following paddles joining the top tangent at approximately 29 mm | Owner top, rear, shoulder-macro photographs, and owner correction collages | Medium-low in Z; attachment topology and control identity/order are high |
 | Rear fasteners and printing | asymmetric upper/lower inset pattern; lower printed band | Owner rear photograph and FCC rear view | Medium |
 
 Public references:
@@ -38,8 +40,10 @@ Public references:
   <https://fcc.report/FCC-ID/2BD9O-TG5040/7016363.pdf>
 
 The locally reviewed owner photographs are named `20260721_192724.jpg` through
-`20260721_192845.jpg`.  They are intentionally not copied into this repository:
-the originals contain precise GPS EXIF.  The comparison script strips metadata
+`20260721_192845.jpg`.  Six follow-up correction collages are named
+`20260721_213243-COLLAGE.jpg` through `20260721_214420-COLLAGE~2.jpg`.  Neither
+set is copied into this repository: the originals contain EXIF and the primary
+set includes precise GPS coordinates.  The comparison script strips metadata
 by decoding pixels and writing new PNG files.
 
 ## Semantic contract
@@ -81,11 +85,15 @@ python3 device-models/trimui-smart-pro/compare.py \
   --output out/tg5040-comparison
 ```
 
-`--write` updates the checked-in neutral/all-lit PNGs and records the camera,
-source hash, output hashes, and derived control rectangles in
+`--write` updates the checked-in neutral PNG and composes the shared all-lit
+atlas from one-control renders after proving every crop rectangle pairwise
+disjoint.  This matters for the diagonal shoulder arcs: their exposed bands are
+split/trimmed so L/L2 and R/R2 remain independent without a shoulder press
+painting the D-pad or a face button.  The command records the camera, source and
+renderer hashes, output hashes, atlas policy, and derived rectangles in
 `skins/a133/model-render.json`.  `--check` rerenders from source and fails if a
-PNG or capability rectangle has drifted.  The comparison output is review
-evidence only and remains under ignored `out/`.
+PNG, capability rectangle, atlas pixel, or non-overlap invariant has drifted.
+The comparison output is review evidence only and remains under ignored `out/`.
 
 ## Known limits and next measurement gate
 

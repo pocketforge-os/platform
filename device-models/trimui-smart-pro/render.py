@@ -4,11 +4,14 @@
 The existing application contract is intentionally simple:
 
 * body.png is the neutral device;
-* body_lit.png is the identical camera/geometry with every control red;
+* body_lit.png is a pairwise-safe atlas composed from individual red-control
+  renders with identical camera/geometry;
 * [skin.parts] rectangles select one crop from body_lit at runtime.
 
 This tool derives those rectangles from one-at-a-time semantic highlight
-renders, so control geometry and sprite coordinates cannot silently drift.
+renders, makes the rectangles pairwise disjoint, and then builds the atlas
+from those same renders. Control geometry, sprite coordinates, and atlas
+contents therefore cannot silently drift or light a neighbouring control.
 It never reads or modifies the owner's photographs.
 """
 
@@ -16,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+from itertools import combinations
 import json
 import os
 from pathlib import Path
@@ -43,7 +47,8 @@ CANVAS = (1480, 640)
 RAW_SIZE = (3200, 1400)
 PADDING = 12
 DIFF_THRESHOLD = 24
-RECT_PADDING = 5
+RECT_PADDING = 1
+SHOULDER_HORIZONTAL_SAFETY = 4
 
 # The six-number camera is eye XYZ, target XYZ. OpenSCAD chooses an inverted
 # up vector for this top-biased view, so the raw image is rotated 180 degrees
@@ -296,25 +301,87 @@ def split_shoulder_overlaps(
         bumper["h"] = bumper_bottom - split
 
     # When both stacked paddles are red, OpenSCAD's shared curved seam can
-    # contribute one antialiased pixel beyond either one-at-a-time diff.  Keep
-    # the vertical bands disjoint, but add one horizontal safety pixel so the
-    # atlas union covers that seam without lighting the neighbouring paddle.
+    # contribute a few antialiased pixels beyond either one-at-a-time diff.
+    # Keep the vertical bands disjoint, but add a horizontal safety margin so
+    # the atlas union covers that seam without lighting the neighbouring
+    # paddle. Four pixels is the measured maximum at the fixed 1480 px camera.
     for control_id in ("btn_l1", "btn_r1", "trig_l", "trig_r"):
         rectangle = rectangles[control_id]
-        right = min(CANVAS[0], rectangle["x"] + rectangle["w"] + 1)
-        rectangle["x"] = max(0, rectangle["x"] - 1)
+        right = min(
+            CANVAS[0],
+            rectangle["x"] + rectangle["w"] + SHOULDER_HORIZONTAL_SAFETY,
+        )
+        rectangle["x"] = max(
+            0,
+            rectangle["x"] - SHOULDER_HORIZONTAL_SAFETY,
+        )
         rectangle["w"] = right - rectangle["x"]
+
+
+def overlap_box(
+    first: dict[str, int],
+    second: dict[str, int],
+) -> tuple[int, int, int, int] | None:
+    left = max(first["x"], second["x"])
+    top = max(first["y"], second["y"])
+    right = min(first["x"] + first["w"], second["x"] + second["w"])
+    bottom = min(first["y"] + first["h"], second["y"] + second["h"])
+    if right <= left or bottom <= top:
+        return None
+    return left, top, right, bottom
+
+
+def trim_shoulder_bumpers_from_front_controls(
+    rectangles: dict[str, dict[str, int]],
+) -> None:
+    """Keep diagonal shoulder crops from covering a front control.
+
+    The physical L/R bumper arcs pass above the D-pad and north face button,
+    but a rectangular bounding box contains the empty triangular space below
+    each arc. pf-hwprobe tints the whole rectangle, so that empty space must not
+    include another control. Preserve every front-control rect and trim only
+    the lower edge of the bumper crop to the first protected control.
+    """
+    shoulder_ids = {"btn_l1", "btn_r1", "trig_l", "trig_r"}
+    for bumper_id in ("btn_l1", "btn_r1"):
+        bumper = rectangles[bumper_id]
+        bumper_bottom = bumper["y"] + bumper["h"]
+        limits = []
+        for control_id, rectangle in rectangles.items():
+            if control_id in shoulder_ids:
+                continue
+            horizontal_overlap = min(
+                bumper["x"] + bumper["w"],
+                rectangle["x"] + rectangle["w"],
+            ) - max(bumper["x"], rectangle["x"])
+            if (horizontal_overlap > 0 and
+                    bumper["y"] < rectangle["y"] < bumper_bottom):
+                limits.append(rectangle["y"])
+        if limits:
+            bumper["h"] = min(limits) - bumper["y"]
+        if bumper["h"] <= 0:
+            raise RuntimeError(f"shoulder crop collapsed: {bumper_id}={bumper}")
+
+
+def rectangle_overlaps(
+    rectangles: dict[str, dict[str, int]],
+) -> list[tuple[str, str, tuple[int, int, int, int]]]:
+    overlaps = []
+    for (first_id, first), (second_id, second) in combinations(
+        rectangles.items(), 2
+    ):
+        overlap = overlap_box(first, second)
+        if overlap is not None:
+            overlaps.append((first_id, second_id, overlap))
+    return overlaps
 
 
 def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
     raw_neutral = work / "neutral-raw.png"
-    raw_lit = work / "all-lit-raw.png"
     raw_screen = work / "screen-raw.png"
     run_openscad(raw_neutral, camera=APP_CAMERA)
     # OpenSCAD 2021.01 occasionally corrupts back-to-back off-screen frames
     # while the prior GL context settles. Keep the proven one-second guard.
-    time.sleep(1)
-    run_openscad(raw_lit, camera=APP_CAMERA, highlight="*")
     time.sleep(1)
     # Render the complete assembly with only the active screen recoloured.
     # Keeping the same assembly is essential: OpenSCAD --viewall would scale a
@@ -322,15 +389,14 @@ def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
     run_openscad(raw_screen, camera=APP_CAMERA, screen_marker=True)
 
     neutral_source = normalized_raw(raw_neutral, APP_ROTATE)
-    lit_source = normalized_raw(raw_lit, APP_ROTATE)
     screen_source = normalized_raw(raw_screen, APP_ROTATE)
     crop = foreground_bbox(neutral_source)
     neutral = fit_transform(neutral_source, crop)
-    lit = fit_transform(lit_source, crop)
     screen = fit_transform(screen_source, crop)
     display_rect = exact_diff_rect(neutral, screen)
 
     rectangles: dict[str, dict[str, int]] = {}
+    control_frames: dict[str, Image.Image] = {}
     for control_id in CONTROL_IDS:
         time.sleep(1)
         raw_control = work / f"{control_id}-raw.png"
@@ -341,11 +407,35 @@ def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
         )
         control_source = normalized_raw(raw_control, APP_ROTATE)
         control = fit_transform(control_source, crop)
+        control_frames[control_id] = control
         rectangles[control_id] = diff_rect(neutral, control)
     split_shoulder_overlaps(rectangles)
+    trim_shoulder_bumpers_from_front_controls(rectangles)
+
+    overlaps = rectangle_overlaps(rectangles)
+    if overlaps:
+        rendered = ", ".join(
+            f"{first}/{second}={box}"
+            for first, second, box in overlaps
+        )
+        raise RuntimeError(f"semantic rectangles overlap: {rendered}")
+
+    # Compose the shared atlas from one-control renders only after the crops
+    # are proven disjoint. This preserves the existing one-PNG runtime contract
+    # without letting an all-lit crop carry pixels from a neighbouring control.
+    lit = neutral.copy()
+    for control_id in CONTROL_IDS:
+        rectangle = rectangles[control_id]
+        box = (
+            rectangle["x"],
+            rectangle["y"],
+            rectangle["x"] + rectangle["w"],
+            rectangle["y"] + rectangle["h"],
+        )
+        lit.paste(control_frames[control_id].crop(box), box)
 
     metadata = {
-        "schema_version": 2,
+        "schema_version": 3,
         "device": "a133",
         "model": "TrimUI Smart Pro",
         "model_number": "TG5040",
@@ -365,7 +455,11 @@ def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
         },
         "display_rect": display_rect,
         "controls": rectangles,
-        "shoulder_crop_policy": "split-overlap-midpoint+1px-horizontal",
+        "atlas_composition": "pairwise-disjoint-one-control-renders",
+        "shoulder_crop_policy": (
+            "split-overlap-midpoint+"
+            f"{SHOULDER_HORIZONTAL_SAFETY}px-horizontal+front-control-trim"
+        ),
     }
     return neutral, lit, metadata
 
@@ -465,20 +559,11 @@ def check_outputs(neutral: Image.Image, lit: Image.Image, metadata: dict) -> Non
                 f"{uncovered.getbbox()}"
             )
 
-        for bumper_id, trigger_id in (
-            ("btn_l1", "trig_l"),
-            ("btn_r1", "trig_r"),
-        ):
-            bumper = derived[bumper_id]
-            trigger = derived[trigger_id]
-            vertical_overlap = min(
-                bumper["y"] + bumper["h"],
-                trigger["y"] + trigger["h"],
-            ) - max(bumper["y"], trigger["y"])
-            if vertical_overlap > 0:
-                failures.append(
-                    f"shoulder sprite bands overlap: {bumper_id}/{trigger_id}"
-                )
+        for first_id, second_id, overlap in rectangle_overlaps(derived):
+            failures.append(
+                "semantic sprite rectangles overlap: "
+                f"{first_id}/{second_id}={overlap}"
+            )
 
         expected_metadata = dict(metadata)
         expected_metadata["body_sha256"] = sha256(generated_body)

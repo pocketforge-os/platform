@@ -13,6 +13,8 @@ Each model directory should contain:
 - deterministic rendering and stale-artifact checks;
 - semantic control selection (`PART="control"`, `CONTROL_ID="…"`) and
   highlighting (`HIGHLIGHT="…"` or `"*"`);
+- pairwise-disjoint runtime rectangles and an atlas composed from individual
+  highlight renders, so a rectangular crop cannot light a neighbouring part;
 - a clear limitations section.  Millimetre coordinates do not turn uncertain
   photo-derived surfaces into manufacturing-tolerance geometry.
 
