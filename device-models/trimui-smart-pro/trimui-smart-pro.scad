@@ -262,29 +262,41 @@ module xz_rounded_rect(point, size, thickness, radius) {
                 rounded_rect_2d(size, radius);
 }
 
+module label_text_2d(message, size, halign, valign, font,
+                     ink_spread = 0) {
+    if (ink_spread > 0)
+        offset(r = ink_spread)
+            text(message, size = size, halign = halign,
+                 valign = valign, font = font);
+    else
+        text(message, size = size, halign = halign,
+             valign = valign, font = font);
+}
+
 module edge_label(point, message, size, side,
                   height = 0.10, colour = legend_color,
                   halign = "center", valign = "center",
-                  font = ui_font, yaw = 0) {
+                  font = ui_font, yaw = 0, ink_spread = 0) {
     if (SHOW_GLYPHS)
         color(colour)
             translate([point.x, point.y, point.z])
                 rotate([0, 0, yaw])
                     rotate([side == "top" ? -90 : 90, 0, 0])
                         linear_extrude(height = height)
-                            text(message, size = size, halign = halign,
-                                 valign = valign, font = font);
+                            label_text_2d(message, size, halign, valign,
+                                          font, ink_spread);
 }
 
 module embossed_label(point, message, size, height = 0.16,
                       halign = "center", valign = "center",
-                      colour = legend_color, font = ui_font) {
+                      colour = legend_color, font = ui_font,
+                      ink_spread = 0) {
     if (SHOW_GLYPHS)
         color(colour)
             translate([point.x, point.y, point.z])
                 linear_extrude(height = height)
-                    text(message, size = size, halign = halign,
-                         valign = valign, font = font);
+                    label_text_2d(message, size, halign, valign,
+                                  font, ink_spread);
 }
 
 module triangle_2d(radius) {
@@ -419,15 +431,15 @@ module front_legends() {
             linear_extrude(height = 0.06)
                 trimui_mark_2d();
 
-    embossed_label([menu_centre.x, 4.00, front_z + 0.03],
+    embossed_label([menu_centre.x, 4.35, front_z + 0.03],
                    "MENU", 1.25, 0.06, "center", "center",
-                   silkscreen_color, silkscreen_font);
-    embossed_label([select_centre.x, 4.00, front_z + 0.03],
+                   silkscreen_color, silkscreen_font, 0.045);
+    embossed_label([select_centre.x, 4.35, front_z + 0.03],
                    "SELECT", 1.25, 0.06, "center", "center",
-                   silkscreen_color, silkscreen_font);
-    embossed_label([start_centre.x, 4.00, front_z + 0.03],
+                   silkscreen_color, silkscreen_font, 0.045);
+    embossed_label([start_centre.x - 1.00, 4.35, front_z + 0.03],
                    "START", 1.25, 0.06, "center", "center",
-                   silkscreen_color, silkscreen_font);
+                   silkscreen_color, silkscreen_font, 0.045);
 }
 
 module top_edge_details() {
@@ -466,10 +478,10 @@ module top_edge_details() {
     if (SHOW_MICRO_DETAILS) {
         edge_label([power_centre_x - 11.3, device_height + 0.16, 6.2],
                    "POWER", 1.25, "top", 0.10, silkscreen_color,
-                   "center", "center", silkscreen_font);
+                   "center", "center", silkscreen_font, 0, 0.045);
         edge_label([host_centre_x - 9.5, device_height + 0.16, 6.2],
                    "HOST", 1.25, "top", 0.10, silkscreen_color,
-                   "center", "center", silkscreen_font);
+                   "center", "center", silkscreen_font, 0, 0.045);
         edge_label([volume_minus_centre_x, device_height + 0.43, 6.15],
                    "-", 1.8, "top", 0.10, control_edge_color);
         edge_label([volume_plus_centre_x, device_height + 0.43, 6.15],
@@ -519,17 +531,17 @@ module bottom_edge_details() {
     if (SHOW_MICRO_DETAILS) {
         edge_label([fn_centre_x - 8.5, -0.16, 6.2],
                    "FN", 1.25, "bottom", 0.10, silkscreen_color,
-                   "center", "center", silkscreen_font);
+                   "center", "center", silkscreen_font, 0, 0.045);
         edge_label([badge_centre_x, -0.18, 6.75],
                    "TRIMUI", 1.15, "bottom", 0.10, control_edge_color);
         edge_label([badge_centre_x, -0.18, 4.95],
                    "TG5040", 0.72, "bottom", 0.10, control_edge_color);
         edge_label([dc_centre_x, -0.16, 8.55],
                    "DC", 1.20, "bottom", 0.10, silkscreen_color,
-                   "center", "center", silkscreen_font);
+                   "center", "center", silkscreen_font, 0, 0.045);
         edge_label([mic_centre_x, -0.16, 8.55],
                    "MIC", 1.10, "bottom", 0.10, silkscreen_color,
-                   "center", "center", silkscreen_font);
+                   "center", "center", silkscreen_font, 0, 0.045);
     }
 }
 
