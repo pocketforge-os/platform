@@ -43,7 +43,11 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-myp1.8.6: +image#51 (tsp-myp1.8.5 Lane C2 v4 config-regression fixes —
+ref  = "main"          # tsp-ga7s.2: +image#58 (MVP menu — pocketforge-menu app + systemd unit +
+                       # install lines, LRADC-navigable 3-entry launcher — Button Tester, Steam
+                       # Link, poolside.fm — after boot animation on the a133 dev variant; sibling
+                       # bead tsp-ga7s.1 landed the app+unit on image main).
+                       # Prior: tsp-myp1.8.6: +image#51 (tsp-myp1.8.5 Lane C2 v4 config-regression fixes —
                        # TCP buffer maxes restored + net sysctl config corrections; folded into the
                        # same lock PR as this bump's kernel fq_codel+regdb enable per wifi-perf-coord
                        # ruling, so the lock resolves the complete round-2 WiFi stack in ONE bump —
@@ -93,7 +97,7 @@ ref  = "main"          # tsp-myp1.8.6: +image#51 (tsp-myp1.8.5 Lane C2 v4 config
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "c2ed31f8bbe0aa10e634674dc168fa0181a2bef7"
+sha  = "45c480888d695d58038188f211abba6db5922004"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
