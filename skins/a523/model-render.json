@@ -1,0 +1,133 @@
+{
+  "atlas_composition": "pairwise-disjoint-one-control-renders",
+  "body_lit_sha256": "da75542aea2c05c219681cce559be62500f219e5a172de838a0edf628809363c",
+  "body_sha256": "8b2779c80fe385df7b3087ea35bd9eb51bf1a139f08440c01801bc8033c9fbdc",
+  "camera": {
+    "colorscheme": "Tomorrow",
+    "crop": [
+      971,
+      428,
+      2229,
+      972
+    ],
+    "eye_target": "94.175,125,330,94.175,39.885,5.5",
+    "padding": 12,
+    "projection": "ortho",
+    "raw_rotation_degrees": 180
+  },
+  "canvas": {
+    "h": 640,
+    "w": 1480
+  },
+  "controls": {
+    "btn_east": {
+      "h": 55,
+      "w": 55,
+      "x": 1297,
+      "y": 190
+    },
+    "btn_guide": {
+      "h": 54,
+      "w": 55,
+      "x": 234,
+      "y": 539
+    },
+    "btn_home": {
+      "h": 12,
+      "w": 39,
+      "x": 567,
+      "y": 27
+    },
+    "btn_l1": {
+      "h": 53,
+      "w": 189,
+      "x": 75,
+      "y": 94
+    },
+    "btn_north": {
+      "h": 56,
+      "w": 56,
+      "x": 1241,
+      "y": 134
+    },
+    "btn_r1": {
+      "h": 40,
+      "w": 189,
+      "x": 1216,
+      "y": 94
+    },
+    "btn_select": {
+      "h": 54,
+      "w": 55,
+      "x": 1164,
+      "y": 526
+    },
+    "btn_south": {
+      "h": 56,
+      "w": 56,
+      "x": 1241,
+      "y": 245
+    },
+    "btn_start": {
+      "h": 53,
+      "w": 54,
+      "x": 1224,
+      "y": 527
+    },
+    "btn_west": {
+      "h": 55,
+      "w": 56,
+      "x": 1185,
+      "y": 190
+    },
+    "dpad": {
+      "h": 142,
+      "w": 145,
+      "x": 120,
+      "y": 147
+    },
+    "stick_l": {
+      "h": 143,
+      "w": 147,
+      "x": 143,
+      "y": 366
+    },
+    "stick_r": {
+      "h": 143,
+      "w": 147,
+      "x": 1190,
+      "y": 366
+    },
+    "trig_l": {
+      "h": 69,
+      "w": 196,
+      "x": 67,
+      "y": 25
+    },
+    "trig_r": {
+      "h": 69,
+      "w": 196,
+      "x": 1217,
+      "y": 25
+    }
+  },
+  "device": "a523",
+  "display_rect": {
+    "h": 444,
+    "w": 816,
+    "x": 332,
+    "y": 106
+  },
+  "model": "TrimUI Smart Pro S",
+  "model_number": "TG5050",
+  "raw_canvas": {
+    "h": 1400,
+    "w": 3200
+  },
+  "renderer": "device-models/trimui-smart-pro-s/render.py",
+  "renderer_sha256": "8e4c40758597e9a956bb3489fcd1bd61f928a7a4326b8276843fce8bb36add72",
+  "schema_version": 3,
+  "shoulder_crop_policy": "split-overlap-midpoint+4px-horizontal+front-control-trim",
+  "source": "device-models/trimui-smart-pro-s/trimui-smart-pro-s.scad",
+  "source_sha256": "0d5c8153639537d5e70941492ad2cc930f5fb1c93f3694e9a160f5770693224d"
+}
