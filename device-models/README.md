@@ -29,3 +29,47 @@ controls map directly to the A133 capability descriptor. Its shared-chassis
 derivative [`trimui-smart-pro-s/`](trimui-smart-pro-s/README.md) carries the
 TG5050 identity, cooling details and fifteenth semantic `btn_home` control for
 the A523 descriptor without redrawing the accepted TG5040 baseline.
+
+## Drift gate (CI) — `check-skin-drift.py`
+
+The model, the rendered atlas, and the descriptor rects are **one chain**: the sim
+GUI and `check-skin` consume `skins/<id>/{body,body_lit}.png` +
+`skins/<id>/model-render.json` and `devices/<id>/capabilities.toml [skin.parts]`,
+so they must stay in lockstep. [`check-skin-drift.py`](check-skin-drift.py) is the
+CI gate that keeps them from silently diverging (infra-113 §6 Phase B5, decision
+D9; wired as `.github/workflows/skin-drift.yml`, advisory — the required-check flip
+is Phase B2).
+
+It is **data-driven by auto-discovery** (it globs `skins/*/model-render.json`, so
+committing a model's rendered skin is all it takes to enrol a new device — no code
+edit) and runs **without OpenSCAD**, so it is byte-stable and fires on every PR
+touching `device-models/**`, `skins/**`, or `devices/**`. For each discovered
+device it asserts that `model-render.json`'s recorded `source` / `renderer` /
+`body` / `body_lit` sha256 still match the committed `.scad` / `render.py` / PNGs
+(the source and renderer paths are read from the metadata itself), and that its
+control rects **equal** `devices/<id>/capabilities.toml [skin.parts]` and its
+`display_rect` matches. A device with only legacy bezel art (no `model-render.json`)
+is simply not discovered and not gated here. Run it locally exactly as CI does:
+
+```bash
+python3 device-models/check-skin-drift.py
+```
+
+**Coverage & the one known gap (honesty contract).** Every guarantee above is a
+**strict subset** of `render.py --check`: that command recomputes the same hashes
+and rects from a fresh render, so a repo that passes `render.py --check` necessarily
+passes this gate. The render-free gate catches every accidental "edit one artifact,
+forget to regenerate the rest" drift, but it **cannot** catch a *consistent*
+hand-edit of a rect in **both** `model-render.json` and `capabilities.toml` without
+re-rendering — the two files still agree and the `.scad`/PNG hashes are untouched,
+so the rect silently points where the rendered atlas no longer highlights. That
+narrow, semi-adversarial case is closed by running **`render.py --check` locally**
+(the full OpenSCAD re-render) whenever you touch a model — see each model's README.
+
+`render.py --check` is deliberately **not** wired into CI: it byte-compares
+freshly-rendered PNGs, which cannot be a green-on-main gate (the `.scad`'s
+"Ubuntu Sans" variable font is absent from Debian bookworm → different silkscreen
+pixels → red on main; the render suite times out under headless software GL; and
+GPU-vs-`llvmpipe` anti-aliasing risks flaky reds). A flaky gate would poison the
+gate-trust infra-113 exists to build, so the full re-render stays the local
+full-fidelity companion.

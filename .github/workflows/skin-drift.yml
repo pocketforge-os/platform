@@ -1,0 +1,110 @@
+# skin-drift - the anti-drift gate for the .scad -> rendered-skin -> [skin.parts] chain
+# (infra-113 §6 Phase B5, decision D9).
+#
+# WHY THIS EXISTS. The 3D device model (device-models/<model>/*.scad), the rendered skin
+# atlas (skins/<id>/{body,body_lit}.png + model-render.json), and the device descriptor
+# rects (devices/<id>/capabilities.toml [skin.parts]) are one chain: the sim GUI and
+# check-skin consume the atlas + the descriptor rects. Before this gate, nothing stopped a
+# descriptor/skin change from silently diverging from the model (the 2026-07-22 model+skin
+# change merged with zero sim validation - the exact drift class the sim exists to catch,
+# infra-113 finding 4 / §1). This gate closes that hole on the platform side.
+#
+# WHAT THE GATE RUNS (one leg, render-free, every relevant PR). check-skin-drift.py proves the
+# committed chain is mutually consistent WITHOUT OpenSCAD: for every discovered rendered skin
+# (it auto-discovers skins/*/model-render.json, so committing a model's skin enrols the device
+# with no code edit) model-render.json's recorded source / renderer / body / body_lit hashes
+# still match the committed files, and its control rects + display_rect equal the descriptor's
+# [skin.parts] / screens.display_rect. This is byte-stable and deterministic (no GL backend,
+# fonts, or render non-determinism to fight), so it runs on the pf-pr-review VM lane on every
+# relevant PR and catches every "edit one artifact, forget to regenerate the rest" drift,
+# including the [skin.parts] rect nudge the bead's negative-proof exercises.
+#
+# COVERAGE / HONESTY (infra-113 D9, coordinator-adjudicated 2026-07-26; HONESTY-CONTRACT house
+# style). This gate's guarantees are a STRICT SUBSET of `render.py --check` (the full OpenSCAD
+# re-render): render.py --check recomputes the same hashes and rects from a fresh render and
+# compares them to the committed metadata, so a repo passing render.py --check necessarily passes
+# this gate. What this render-free gate CANNOT catch: a consistent hand-edit of a rect in BOTH
+# model-render.json AND capabilities.toml (without re-rendering) — the two files still agree, and
+# the .scad/PNG hashes are untouched, so the rect points at a location the actual rendered atlas
+# no longer highlights. That is the narrow, semi-adversarial residue outside the accidental
+# "edit one, forget the rest" drift class D9 targets; `render.py --check` run LOCALLY is the
+# full-fidelity companion a developer runs when touching a model (see device-models/README.md and
+# device-models/<model>/README.md).
+#
+# WHY NOT WIRE render.py --check ITSELF (evidence, 2026-07-26). It byte-COMPARES freshly-rendered
+# PNGs against committed, which cannot be a green-on-main CI gate: (a) the .scad renders
+# "Ubuntu Sans" (a variable font) which is NOT in debian bookworm's fonts-ubuntu, so a stock
+# container falls back and the silkscreen pixels differ -> red on unmodified main; (b) the
+# 16-frame render suite times out at 550s under headless software GL (xvfb/llvmpipe) — far too
+# slow/expensive per-PR; (c) even with fonts pinned, GPU-vs-llvmpipe anti-aliasing risks flaky
+# red-on-main. A flaky gate poisons the gate-trust infra-113 exists to build (D3 currency-before-
+# teeth applies to gate quality too), so render.py --check stays developer-local.
+#
+# PATHS FILTER - DELIBERATE, and SAFE ONLY WHILE ADVISORY. Unlike abi-drift (a REQUIRED check,
+# which must have NO paths filter or it hangs "expected" forever on unrelated PRs), this gate is
+# ADVISORY (the required-check flip is infra-113 Phase B2, a separate governance bead). An
+# advisory check may be path-filtered to the only paths that can move the chain, which is the
+# cheaper trigger surface the bead asks for. IF THIS GATE IS EVER PROMOTED TO REQUIRED, REMOVE
+# THE paths: FILTERS (mirror abi-drift's no-filter rationale) or it will block unrelated PRs.
+#
+# NO MARKETPLACE ACTIONS - DELIBERATE (matches abi-drift + the org pr-review-gate). The org
+# requires SHA-pinned actions (org Actions policy sha_pinning_required=true), so a bare
+# actions/checkout@v4 tag ref yields a startup_failure. This job uses ZERO `uses:` actions: it
+# checks the PR ref out with plain git + the ephemeral github.token and runs the check with the
+# first Python 3.11+ (tomllib) interpreter it finds (check-skin-drift.py has no third-party deps).
+#
+# RUNNER ROUTING - DELIBERATE (matches abi-drift, tsp-ikk0.22). The consistency leg targets the
+# pf-review-vm lane by its specific `pf-pr-review` label: the review VMs are the org's designed
+# lane for running untrusted PR code read-only - exactly what a sub-second, side-effect-free data
+# check does - so no fork guard is needed and the lane load is negligible.
+
+name: skin drift gate
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'device-models/**'
+      - 'skins/**'
+      - 'devices/**'
+      - '.github/workflows/skin-drift.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'device-models/**'
+      - 'skins/**'
+      - 'devices/**'
+      - '.github/workflows/skin-drift.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  consistency:
+    name: skin-drift
+    runs-on: [self-hosted, pf-pr-review]
+    steps:
+      - name: checkout the PR ref + render-free chain consistency
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          wd="$RUNNER_TEMP/platform-skin-drift-$GITHUB_RUN_ID"
+          rm -rf "$wd"
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
+          cd "$wd"
+          git fetch --quiet origin "$GITHUB_SHA"
+          git checkout --quiet --detach "$GITHUB_SHA"
+          # Pick a Python 3.11+ (tomllib) interpreter.
+          PY=""
+          for c in python3.12 python3.11 python3; do
+            if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys;raise SystemExit(0 if sys.version_info>=(3,11) else 1)'; then
+              PY="$c"; break
+            fi
+          done
+          if [ -z "$PY" ]; then
+            echo "FATAL: no Python 3.11+ (tomllib) on this runner: $(python3 -V 2>&1 || echo none)" >&2
+            exit 3
+          fi
+          echo "using $PY ($("$PY" -V 2>&1)) on runner $RUNNER_NAME"
+          "$PY" device-models/check-skin-drift.py
