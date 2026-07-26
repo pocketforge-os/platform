@@ -10,8 +10,9 @@ The Pro S deliberately derives from the owner-approved TG5040 model in
 their outer chassis, display and primary front-control layout, so retaining the
 accepted baseline is both more accurate and more reviewable than drawing a
 second approximation. The TG5050 source adds the visible Pro S identity and
-hardware deltas: the semantic Home key, revised top-edge labels, reset pinhole,
-`SMART PRO S` / `TG5050` markings, front status motif, and active-cooling vents.
+hardware deltas: the semantic Home key, revised top-edge labels, recessed `R`
+reset key, microphone pinhole, `SMART PRO S` / `TG5050` markings, front status
+motif, and active-cooling vents.
 
 This remains a 1:1 nominal visual/UI model. It is suitable for device identity,
 input highlighting, layout studies and early clearance concepts. It is not a
@@ -26,9 +27,11 @@ manufacturing-tolerance enclosure drawing.
 | Shell, display and primary front controls | Inherited from TG5040 source | Shared chassis, owner TG5050 front photo, FCC/product multi-view photos | High for topology; TG5040 confidence table continues to govern individual photo-derived dimensions |
 | Home key centre | X = 0.39W (73.46 mm), round 4.75 mm crown in 6.30 mm bezel | Owner top-edge macro plus TG5050 multi-view photography | Medium-high |
 | TG5050 top-edge order | POWER → HOME → HOST → split volume rocker | Owner top-edge macro and public TG5050 multi-view photography | High |
-| Reset pinhole | X = 0.82W on bottom edge | Public TG5050 bottom elevation | Medium |
+| Top-edge depth placement | Controls centred at Z = 5.35 mm; smaller legends on the screen-facing side | Owner visual review against the top-edge macro | Medium-high |
+| Reset / microphone | Recessed `R` key at X = 0.55W; MIC pinhole at X = 0.82W on the bottom edge | Owner reset-key macro and visual correction | High for topology and identity; medium for photo-derived size |
 | Front identity | `TRIMUI SMART PRO S`, central TrimUI mark and four-bar status motif | Owner front photo and public TG5050 front elevations | Medium-high |
-| Speaker centres | X = 39.0 / 158.0 mm | Owner TG5050 front photo, ratio-calibrated against the measured envelope | Medium |
+| Front control insets | Stick centres X = 21.5 / 166.85 mm; ABXY centre X = 167.55 mm | Owner visual review against the physical TG5050 | Medium-high |
+| Speaker centres | X = 33.25 / 155.10 mm; aligned rows stop clear of the screen glass | Owner visual review against the physical TG5050 | Medium-high |
 | Rear active cooling | Two-row upper exhaust plus three striped circular fan-intake fields | FCC/public rear elevations | High for topology; medium for photo-derived size and placement |
 | Clear-edge shell depth | 10.7 mm | Shared-chassis TG5040 owner-fit cradle proxy | Medium |
 

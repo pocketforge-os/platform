@@ -61,19 +61,19 @@ screen_centre = [device_width / 2, 40.0];
 // Photo-derived front landmarks. Bilateral pairs intentionally share Y and
 // mirrored X unless repeat evidence proves a real enclosure asymmetry.
 dpad_centre = [18.8, 55.7];
-stick_left_centre = [19.5, 24.9];
-stick_right_centre = [device_width - 19.5, 24.9];
-face_centre = [device_width - 18.8, 55.8];
+stick_left_centre = [21.5, 24.9];
+stick_right_centre = [device_width - 21.5, 24.9];
+face_centre = [device_width - 20.8, 55.8];
 face_pitch = [7.55, 7.75];
 menu_centre = [26.0, 8.8];
 select_centre = [156.4, 8.8];
 start_centre = [165.8, 8.8];
 
-// Photo-derived speaker grille lattice.  Each side has two staggered rows of
-// six shallow hexagonal recesses; the upper row steps toward its nearest
-// endcap and the lower row steps toward the display.
-speaker_left_centre_x = 39.0;
-speaker_right_centre_x = 158.0;
+// Photo-derived speaker grille lattice. Each side has two right/left-aligned
+// rows of six shallow hexagonal recesses. The inside opening remains clear of
+// the adjacent glass edge rather than continuing beneath the screen.
+speaker_left_centre_x = 33.25;
+speaker_right_centre_x = device_width - speaker_left_centre_x;
 speaker_pitch_x = 1.50;
 speaker_pitch_y = 1.30;
 speaker_bottom_y = 1.75;
@@ -97,16 +97,18 @@ home_centre_x = 0.39 * device_width;
 host_centre_x = 0.50 * device_width;
 volume_minus_centre_x = 0.63 * device_width;
 volume_plus_centre_x = 0.69 * device_width;
+edge_feature_z = local_shell_depth / 2;
+edge_label_z = edge_feature_z + 3.25;
 
 // Bottom-edge feature centres are photo-derived and remain non-interactive
 // presentation details (the FN slider is not an evdev row in the descriptor).
 fn_centre_x = 0.24 * device_width;
 badge_centre_x = 0.37 * device_width;
 dc_centre_x = 0.50 * device_width;
-mic_centre_x = 0.56 * device_width;
+reset_button_centre_x = 0.55 * device_width;
 card_centre_x = 0.625 * device_width;
 audio_centre_x = 0.74 * device_width;
-reset_centre_x = 0.82 * device_width;
+mic_centre_x = 0.82 * device_width;
 
 CONTROL_IDS = [
     "dpad",
@@ -177,13 +179,10 @@ function active_dark_color(id, neutral = control_edge_color) =
     is_active(id) ? highlight_dark_color : neutral;
 function speaker_positions(side) = [
     for (row = [0 : 1], column = [0 : 5])
-        let(outward = side == "left" ? -1 : 1,
-            row_stagger = (row == 1 ? 1 : -1) *
-                          outward * speaker_pitch_x / 4)
-            [(side == "left" ? speaker_left_centre_x
-                              : speaker_right_centre_x) +
-                 (column - 2.5) * speaker_pitch_x + row_stagger,
-             speaker_bottom_y + row * speaker_pitch_y]
+        [(side == "left" ? speaker_left_centre_x
+                          : speaker_right_centre_x) +
+             (column - 2.5) * speaker_pitch_x,
+         speaker_bottom_y + row * speaker_pitch_y]
 ];
 
 // ---- Reusable geometry ----------------------------------------------------
@@ -486,9 +485,9 @@ module front_legends() {
                    "SMART PRO S", 1.88, 0.06, "left", "center",
                    legend_color, brand_companion_font);
     color(legend_color)
-        translate([108.3, 5.42, front_z + 0.03])
+        translate([110.25, 5.42, front_z + 0.03])
             linear_extrude(height = 0.06)
-                trimui_mark_2d();
+                trimui_mark_2d(0.55, 0.60);
     color(legend_color)
         translate([device_centre.x, 4.80, front_z + 0.03])
             linear_extrude(height = 0.06)
@@ -522,48 +521,57 @@ module top_edge_details() {
 
     // POWER is a raised, lighter key in a dark shallow bezel.
     color(control_edge_color)
-        xz_pill([power_centre_x, top_y, 6.1], [11.0, 4.25], 0.58);
+        xz_pill([power_centre_x, top_y, edge_feature_z],
+                [11.0, 4.25], 0.58);
     color([0.255, 0.265, 0.272, 1.0])
-        xz_pill([power_centre_x, top_y + 0.12, 6.1], [9.35, 3.25], 0.64);
+        xz_pill([power_centre_x, top_y + 0.12, edge_feature_z],
+                [9.35, 3.25], 0.64);
 
     // HOST USB-C: visible metal rim, black cavity, and centre tongue.  Each
     // layer is deliberately stepped towards +Y so the top camera cannot hide
     // the tongue behind the recess (the previous solid-black capsule).
     color([0.62, 0.64, 0.65, 1.0])
-        xz_pill([host_centre_x, top_y + 0.01, 5.8], [10.4, 4.15], 0.62);
+        xz_pill([host_centre_x, top_y + 0.01, edge_feature_z],
+                [10.4, 4.15], 0.62);
     color(control_edge_color)
-        xz_pill([host_centre_x, top_y + 0.10, 5.8], [9.15, 3.10], 0.66);
+        xz_pill([host_centre_x, top_y + 0.10, edge_feature_z],
+                [9.15, 3.10], 0.66);
     color([0.70, 0.71, 0.70, 1.0])
-        xz_pill([host_centre_x, top_y + 0.19, 5.8], [6.65, 0.78], 0.70);
+        xz_pill([host_centre_x, top_y + 0.19, edge_feature_z],
+                [6.65, 0.78], 0.70);
 
     // One continuous two-half volume rocker: pill outside ends and a narrow,
     // straight centre seam, matching the photographed moulded part.
     rocker_centre_x = (volume_minus_centre_x + volume_plus_centre_x) / 2;
     rocker_width = volume_plus_centre_x - volume_minus_centre_x + 11.0;
     color(control_edge_color)
-        xz_pill([rocker_centre_x, top_y, 6.1],
+        xz_pill([rocker_centre_x, top_y, edge_feature_z],
                 [rocker_width + 1.0, 4.25], 0.58);
     color([0.235, 0.245, 0.252, 1.0])
-        xz_pill([rocker_centre_x, top_y + 0.12, 6.1],
+        xz_pill([rocker_centre_x, top_y + 0.12, edge_feature_z],
                 [rocker_width, 3.25], 0.64);
     color(control_edge_color)
-        xz_rounded_rect([rocker_centre_x, top_y + 0.22, 6.1],
+        xz_rounded_rect([rocker_centre_x, top_y + 0.22, edge_feature_z],
                         [0.42, 3.10], 0.68, 0.08);
 
     if (SHOW_MICRO_DETAILS) {
-        edge_label([power_centre_x, device_height + 0.16, 2.85],
-                   "POWER", 1.25, "top", 0.10, silkscreen_color,
-                   "center", "center", silkscreen_font, 0, 0.045);
-        edge_label([home_centre_x, device_height + 0.16, 2.85],
-                   "HOME", 1.15, "top", 0.10, silkscreen_color,
-                   "center", "center", silkscreen_font, 0, 0.045);
-        edge_label([host_centre_x, device_height + 0.16, 2.85],
-                   "HOST", 1.25, "top", 0.10, silkscreen_color,
-                   "center", "center", silkscreen_font, 0, 0.045);
-        edge_label([volume_minus_centre_x, device_height + 0.43, 6.15],
-                   "-", 1.8, "top", 0.10, control_edge_color);
-        edge_label([volume_plus_centre_x, device_height + 0.43, 6.15],
-                   "+", 1.8, "top", 0.10, control_edge_color);
+        // The legends are moulded on the screen-facing (+Z) side of their
+        // centred controls, not behind them on the rear half of the edge.
+        edge_label([power_centre_x, device_height + 0.16, edge_label_z],
+                   "POWER", 0.95, "top", 0.10, silkscreen_color,
+                   "center", "center", silkscreen_font, 0, 0.035);
+        edge_label([home_centre_x, device_height + 0.16, edge_label_z],
+                   "HOME", 0.90, "top", 0.10, silkscreen_color,
+                   "center", "center", silkscreen_font, 0, 0.035);
+        edge_label([host_centre_x, device_height + 0.16, edge_label_z],
+                   "HOST", 0.95, "top", 0.10, silkscreen_color,
+                   "center", "center", silkscreen_font, 0, 0.035);
+        edge_label([volume_minus_centre_x, device_height + 0.43,
+                    edge_feature_z],
+                   "-", 1.20, "top", 0.10, control_edge_color);
+        edge_label([volume_plus_centre_x, device_height + 0.43,
+                    edge_feature_z],
+                   "+", 1.20, "top", 0.10, control_edge_color);
     }
 }
 
@@ -591,13 +599,17 @@ module bottom_edge_details() {
         xz_rounded_rect([badge_centre_x, bottom_y, 5.8],
                         [21.8, 4.7], 0.62, 0.90);
 
-    // DC USB-C, microphone, TF slot, and 3.5 mm audio jack.
+    // DC USB-C, recessed R reset key, TF slot, 3.5 mm audio, and MIC pinhole.
     color(control_edge_color)
         xz_pill([dc_centre_x, bottom_y, 5.8], [9.5, 3.7], 0.62);
     color([0.62, 0.64, 0.65, 1.0])
         xz_pill([dc_centre_x, bottom_y - 0.05, 5.8], [6.2, 1.2], 0.68);
     color(control_edge_color)
-        xz_pill([mic_centre_x, bottom_y, 5.8], [1.9, 1.9], 0.65);
+        xz_pill([reset_button_centre_x, bottom_y, edge_feature_z],
+                [5.35, 5.35], 0.65);
+    color([0.22, 0.23, 0.24, 1.0])
+        xz_pill([reset_button_centre_x, bottom_y - 0.07, edge_feature_z],
+                [3.85, 3.85], 0.70);
     color(control_edge_color)
         xz_pill([card_centre_x, bottom_y, 5.8], [15.5, 1.5], 0.64);
     color(control_edge_color)
@@ -606,7 +618,7 @@ module bottom_edge_details() {
         xz_pill([audio_centre_x, bottom_y - 0.06, 5.8],
                 [3.3, 3.3], 0.70);
     color(control_edge_color)
-        xz_pill([reset_centre_x, bottom_y, 5.8], [1.35, 1.35], 0.66);
+        xz_pill([mic_centre_x, bottom_y, 5.8], [1.35, 1.35], 0.66);
 
     if (SHOW_MICRO_DETAILS) {
         edge_label([fn_centre_x - 8.5, -0.16, 6.2],
@@ -617,13 +629,13 @@ module bottom_edge_details() {
         edge_label([badge_centre_x, -0.18, 4.95],
                    "TG5050", 0.72, "bottom", 0.10, control_edge_color);
         edge_label([dc_centre_x, -0.16, 8.55],
-                   "DC", 1.20, "bottom", 0.10, silkscreen_color,
-                   "center", "center", silkscreen_font, 0, 0.045);
+                   "DC", 1.05, "bottom", 0.10, silkscreen_color,
+                   "center", "center", silkscreen_font, 0, 0.040);
+        edge_label([reset_button_centre_x, -0.18, edge_feature_z],
+                   "R", 1.35, "bottom", 0.10, legend_color,
+                   "center", "center", ui_font, 0, 0.025);
         edge_label([mic_centre_x, -0.16, 8.55],
-                   "MIC", 1.10, "bottom", 0.10, silkscreen_color,
-                   "center", "center", silkscreen_font, 0, 0.045);
-        edge_label([reset_centre_x, -0.16, 8.55],
-                   "RST", 0.82, "bottom", 0.10, silkscreen_color,
+                   "MIC", 0.85, "bottom", 0.10, silkscreen_color,
                    "center", "center", silkscreen_font, 0, 0.035);
     }
 }
@@ -727,9 +739,10 @@ module home_button_control() {
     // Both the narrow bezel and crown stay semantic so the highlight pass can
     // derive one complete, independently selectable runtime rectangle.
     color(active_dark_color(id))
-        xz_pill([home_centre_x, top_y, 6.05], [6.30, 6.30], 0.60);
+        xz_pill([home_centre_x, top_y, edge_feature_z],
+                [6.30, 6.30], 0.60);
     color(active_color(id))
-        xz_pill([home_centre_x, top_y + 0.13, 6.05],
+        xz_pill([home_centre_x, top_y + 0.13, edge_feature_z],
                 [4.75, 4.75], 0.68);
 }
 
