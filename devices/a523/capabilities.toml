@@ -34,7 +34,7 @@ role          = "primary"
 present       = "portrait"
 rotation      = "cw90"
 render_canvas = { w = 1280, h = 720 }
-display_rect  = { x = 304, y = 75, w = 872, h = 490 }
+display_rect  = { x = 332, y = 106, w = 816, h = 444 }
 
 # ---- INPUTS: the a133 set, verbatim (POSITIONAL face ids + label; see the a133 note) ----
 # Face labels are NINTENDO-arranged on the chassis (SPIKE-0 press-test on silicon, 2026-07-11:
@@ -202,18 +202,18 @@ body     = "skins/a523/body.png"
 lit_body = "skins/a523/body_lit.png"
 
 [skin.parts]
-dpad       = { x = 92,   y = 140, w = 116, h = 116 }
-stick_l    = { x = 95,   y = 382, w = 116, h = 116 }
-stick_r    = { x = 1272, y = 382, w = 116, h = 116 }
-btn_north  = { x = 1306, y = 128, w = 48,  h = 48 }
-btn_east   = { x = 1356, y = 176, w = 48,  h = 48 }
-btn_south  = { x = 1306, y = 224, w = 48,  h = 48 }
-btn_west   = { x = 1256, y = 176, w = 48,  h = 48 }
-btn_select = { x = 600,  y = 586, w = 56,  h = 30 }
-btn_guide  = { x = 712,  y = 586, w = 56,  h = 30 }
-btn_start  = { x = 824,  y = 586, w = 56,  h = 30 }
-btn_home   = { x = 1200, y = 10,  w = 44,  h = 28 }
-btn_l1     = { x = 80,   y = 34,  w = 150, h = 22 }
-btn_r1     = { x = 1250, y = 34,  w = 150, h = 22 }
-trig_l     = { x = 80,   y = 8,   w = 150, h = 22 }
-trig_r     = { x = 1250, y = 8,   w = 150, h = 22 }
+dpad       = { x = 120,  y = 147, w = 145, h = 142 }
+stick_l    = { x = 143,  y = 366, w = 147, h = 143 }
+stick_r    = { x = 1190, y = 366, w = 147, h = 143 }
+btn_north  = { x = 1241, y = 134, w = 56,  h = 56 }
+btn_east   = { x = 1297, y = 190, w = 55,  h = 55 }
+btn_south  = { x = 1241, y = 245, w = 56,  h = 56 }
+btn_west   = { x = 1185, y = 190, w = 56,  h = 55 }
+btn_select = { x = 1164, y = 526, w = 55,  h = 54 }
+btn_guide  = { x = 234,  y = 539, w = 55,  h = 54 }
+btn_start  = { x = 1224, y = 527, w = 54,  h = 53 }
+btn_home   = { x = 567,  y = 27,  w = 39,  h = 12 }
+btn_l1     = { x = 75,   y = 94,  w = 189, h = 53 }
+btn_r1     = { x = 1216, y = 94,  w = 189, h = 40 }
+trig_l     = { x = 67,   y = 25,  w = 196, h = 69 }
+trig_r     = { x = 1217, y = 25,  w = 196, h = 69 }
