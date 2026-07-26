@@ -98,6 +98,14 @@ renderer hashes, output hashes, atlas policy, and derived rectangles in
 PNG, capability rectangle, atlas pixel, or non-overlap invariant has drifted.
 The comparison output is review evidence only and remains under ignored `out/`.
 
+`--check` is the **full-fidelity local companion** to the CI skin-drift gate
+([`../check-skin-drift.py`](../README.md#drift-gate-ci--check-skin-driftpy)). CI
+runs the render-free gate on every relevant PR; because a full OpenSCAD re-render
+cannot be a byte-stable green-on-main check, **run `render.py --check` yourself
+whenever you touch this model or its skin** — it is what catches a rect that was
+hand-edited consistently in both `model-render.json` and `capabilities.toml`
+without re-rendering, the one drift class the CI gate cannot see.
+
 ## Known limits and next measurement gate
 
 - The front/rear X/Y envelope and control layout are substantially constrained;

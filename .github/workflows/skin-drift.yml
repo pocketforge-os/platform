@@ -9,15 +9,35 @@
 # change merged with zero sim validation - the exact drift class the sim exists to catch,
 # infra-113 finding 4 / §1). This gate closes that hole on the platform side.
 #
-# TWO LEGS, DELIBERATE:
-#   * consistency (render-free, every relevant PR) - check-skin-drift.py proves the committed
-#     chain is mutually consistent WITHOUT OpenSCAD: model-render.json's recorded source /
-#     renderer / body / body_lit hashes still match the committed files, and its control rects
-#     + display_rect equal the descriptor's [skin.parts] / screens.display_rect. This is byte-
-#     stable and deterministic (no GL backend, fonts, or render non-determinism to fight), so
-#     it runs on the pf-pr-review VM lane on every relevant PR and catches every "edit one
-#     artifact, forget to regenerate the rest" drift, including the [skin.parts] rect nudge the
-#     bead's negative-proof exercises.
+# WHAT THE GATE RUNS (one leg, render-free, every relevant PR). check-skin-drift.py proves the
+# committed chain is mutually consistent WITHOUT OpenSCAD: model-render.json's recorded source /
+# renderer / body / body_lit hashes still match the committed files, and its control rects +
+# display_rect equal the descriptor's [skin.parts] / screens.display_rect. This is byte-stable
+# and deterministic (no GL backend, fonts, or render non-determinism to fight), so it runs on the
+# pf-pr-review VM lane on every relevant PR and catches every "edit one artifact, forget to
+# regenerate the rest" drift, including the [skin.parts] rect nudge the bead's negative-proof
+# exercises.
+#
+# COVERAGE / HONESTY (infra-113 D9, coordinator-adjudicated 2026-07-26; HONESTY-CONTRACT house
+# style). This gate's guarantees are a STRICT SUBSET of `render.py --check` (the full OpenSCAD
+# re-render): render.py --check recomputes the same hashes and rects from a fresh render and
+# compares them to the committed metadata, so a repo passing render.py --check necessarily passes
+# this gate. What this render-free gate CANNOT catch: a consistent hand-edit of a rect in BOTH
+# model-render.json AND capabilities.toml (without re-rendering) — the two files still agree, and
+# the .scad/PNG hashes are untouched, so the rect points at a location the actual rendered atlas
+# no longer highlights. That is the narrow, semi-adversarial residue outside the accidental
+# "edit one, forget the rest" drift class D9 targets; `render.py --check` run LOCALLY is the
+# full-fidelity companion a developer runs when touching a model (see device-models/README.md and
+# device-models/<model>/README.md).
+#
+# WHY NOT WIRE render.py --check ITSELF (evidence, 2026-07-26). It byte-COMPARES freshly-rendered
+# PNGs against committed, which cannot be a green-on-main CI gate: (a) the .scad renders
+# "Ubuntu Sans" (a variable font) which is NOT in debian bookworm's fonts-ubuntu, so a stock
+# container falls back and the silkscreen pixels differ -> red on unmodified main; (b) the
+# 16-frame render suite times out at 550s under headless software GL (xvfb/llvmpipe) — far too
+# slow/expensive per-PR; (c) even with fonts pinned, GPU-vs-llvmpipe anti-aliasing risks flaky
+# red-on-main. A flaky gate poisons the gate-trust infra-113 exists to build (D3 currency-before-
+# teeth applies to gate quality too), so render.py --check stays developer-local.
 #
 # PATHS FILTER - DELIBERATE, and SAFE ONLY WHILE ADVISORY. Unlike abi-drift (a REQUIRED check,
 # which must have NO paths filter or it hangs "expected" forever on unrelated PRs), this gate is
