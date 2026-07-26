@@ -268,6 +268,11 @@ def build_args(dev_id):
         "PF_GPU_MODULES": " ".join(gpu.get("modules", []) or []),
         "PF_LIBSDL3_SHA": sha("libsdl3-sunxifb"),
         "PF_WPA_SHA": sha("wpa-supplicant-tsp"),
+        # E2 runtime layer (tsp-e1b.11): the image's `runtime` Dockerfile.pf stage cross-builds
+        # pf-input-decode from this SHA. Literal-name lookup like libsdl3/wpa — not-per-device, so
+        # it is not driven off a profile section. Missing SHA fails at pf_stage_sources (not in the
+        # `needed` list below — same as libsdl3/wpa, which are also universal userspace repos).
+        "PF_RUNTIME_SHA": sha("runtime"),
         "PF_IMAGE_SHA": sha("image"),
         "PF_IMAGE_NAME": img.get("image_name", ""),
         "PF_IMAGE_ASSEMBLER": img.get("assembler", ""),
