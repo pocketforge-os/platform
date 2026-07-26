@@ -55,9 +55,12 @@ screen_active = [
     screen_diagonal * 16 / sqrt(16 * 16 + 9 * 9),
     screen_diagonal * 9 / sqrt(16 * 16 + 9 * 9)
 ];
-screen_glass = [111.6, 63.2];
-screen_centre = [device_width / 2, 40.0];
+screen_glass = [111.6, 66.2];
+screen_centre = [device_width / 2, 41.5];
 front_lower_row_y = 7.15;
+front_speaker_row_y = 6.50;
+front_identity_y = 5.20;
+status_bar_start_x = 135.80;
 
 // Photo-derived front landmarks. Bilateral pairs intentionally share Y and
 // mirrored X unless repeat evidence proves a real enclosure asymmetry.
@@ -73,11 +76,11 @@ start_centre = [170.5, front_lower_row_y];
 // Photo-derived speaker grille lattice. Each side has two right/left-aligned
 // rows of six shallow hexagonal recesses. The inside opening remains clear of
 // the adjacent glass edge rather than continuing beneath the screen.
-speaker_left_centre_x = 33.25;
+speaker_left_centre_x = 42.75;
 speaker_right_centre_x = device_width - speaker_left_centre_x;
 speaker_pitch_x = 1.50;
 speaker_pitch_y = 1.30;
-speaker_bottom_y = front_lower_row_y - speaker_pitch_y / 2;
+speaker_bottom_y = front_speaker_row_y - speaker_pitch_y / 2;
 speaker_opening_diameter = 1.30;
 speaker_throat_diameter = 0.90;
 
@@ -477,20 +480,20 @@ module speaker_array(side) {
 }
 
 module front_legends() {
-    // The complete lower-face treatment shares one optical centreline:
-    // Menu, both grilles, centre mark, identity/status, Select, and Start.
-    embossed_label([111.6, front_lower_row_y, front_z + 0.03],
+    // The identity/status artwork occupies the low strip beneath the display.
+    // System controls and the two grille rows sit immediately above it.
+    embossed_label([108.1, front_identity_y, front_z + 0.03],
                    "TRIMUI", 2.15, 0.06, "left", "center",
                    legend_color, brand_font);
-    embossed_label([122.8, front_lower_row_y, front_z + 0.03],
+    embossed_label([119.3, front_identity_y, front_z + 0.03],
                    "SMART PRO S", 1.88, 0.06, "left", "center",
                    legend_color, brand_companion_font);
     color(legend_color)
-        translate([110.25, front_lower_row_y, front_z + 0.03])
+        translate([106.75, front_identity_y, front_z + 0.03])
             linear_extrude(height = 0.06)
                 trimui_mark_2d(0.55, 0.60);
     color(legend_color)
-        translate([device_centre.x, front_lower_row_y, front_z + 0.03])
+        translate([device_centre.x, front_identity_y, front_z + 0.03])
             linear_extrude(height = 0.06)
                 trimui_mark_2d(1.05, 1.18);
 
@@ -502,8 +505,8 @@ module front_legends() {
     ];
     for (index = [0 : 3])
         color(status_bar_colors[index])
-            translate([144.9 + index * 1.35,
-                       front_lower_row_y, front_z + 0.03])
+            translate([status_bar_start_x + index * 1.35,
+                       front_identity_y, front_z + 0.03])
                 linear_extrude(height = 0.06)
                     rounded_rect_2d([0.78, 2.30], 0.18);
 
