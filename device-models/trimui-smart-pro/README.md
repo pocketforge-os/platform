@@ -12,6 +12,23 @@ not yet a tolerance drawing for a snap fit: the owner-photo set does not include
 coplanar ruler views of both short sides, and the 17 mm published depth does not
 say which protrusions are included.
 
+## Fixture/manufacturing handoff
+
+[`fixture-contract.json`](fixture-contract.json) is the manufacturing handoff;
+this `.scad` file is not. Fixture-interface revision 1 records the measured
+188.35 × 79.77 mm envelope, the six physically accepted contact windows, the
+11 mm rear trigger/wiring clearance, rear service access and display optical
+keep-out. Its interface SHA-256 is
+`637aa67b32e284af2d5ad1b1655e630392e06fa80af1996f498f8d3cdecb20d5`.
+
+Qualification is deliberately scoped to the six-hook holder accepted under
+`tsp-bcx.21.22` and `test-node-hw` merge `0495919`. The 10.7 mm clear-edge
+depth remains a fit-derived proxy, while the published 17 mm depth lacks a
+defined Z datum. Exact per-contact depth, unit variation and complete
+port/vent/control volumes remain open measurements in the contract. Cosmetic
+model or skin changes do not change its fixture hash; fit-bearing contract
+changes do and must invalidate or renew physical qualification.
+
 ## Measurement and provenance table
 
 | Feature | Value used | Evidence | Confidence |

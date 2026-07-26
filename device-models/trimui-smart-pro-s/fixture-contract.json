@@ -1,0 +1,74 @@
+{
+  "$schema": "../../schemas/device-fixture-contract.schema.json",
+  "schema_version": 1,
+  "kind": "shared_chassis_alias",
+  "device": {
+    "slug": "trimui-smart-pro-s",
+    "platform_device_ids": [
+      "a523"
+    ],
+    "manufacturer": "TrimUI",
+    "product": "Smart Pro S",
+    "model_number": "TG5050",
+    "hardware_revisions": [
+      "TG5050"
+    ],
+    "chassis_family": "trimui-smart-pro-family"
+  },
+  "visual_model": {
+    "path": "trimui-smart-pro-s.scad",
+    "role": "shared_chassis_visual_derivative",
+    "manufacturing_source": false
+  },
+  "extends": "../trimui-smart-pro/fixture-contract.json",
+  "expected_fixture_interface_sha256": "637aa67b32e284af2d5ad1b1655e630392e06fa80af1996f498f8d3cdecb20d5",
+  "relationship": {
+    "basis": "shared_chassis",
+    "evidence_refs": [
+      "bead:tsp-bcx.21.22",
+      "device-models/trimui-smart-pro-s/README.md#measurement-and-provenance"
+    ],
+    "fit_relevant_deltas": [],
+    "visual_only_deltas": [
+      "Home and reset controls",
+      "Revised labels and identity artwork",
+      "Screen-glass/recess height within the conservative family visibility keep-out",
+      "Active-cooling vent details"
+    ]
+  },
+  "qualification": {
+    "status": "physically_qualified",
+    "scope": "Shared six-hook perimeter retention, carrier rear clearance, central service access and unobstructed display visibility only",
+    "qualified_fixture_interface_sha256": "637aa67b32e284af2d5ad1b1655e630392e06fa80af1996f498f8d3cdecb20d5",
+    "accepted_on": "2026-07-21",
+    "acceptance_ref": "bead:tsp-bcx.21.22",
+    "interface_refs": [
+      "access:rear_service",
+      "clearance:rear_trigger_and_wiring",
+      "contact:bottom_left",
+      "contact:bottom_right",
+      "contact:left_datum",
+      "contact:right_datum",
+      "contact:top_left",
+      "contact:top_right",
+      "datum:camera_visibility_target_xy",
+      "datum:rear_perimeter_support_plane",
+      "datum:shell_center_xy",
+      "depth:clear_perimeter_edge",
+      "envelope:xy",
+      "keepout:front_display_visibility"
+    ],
+    "holder_evidence": {
+      "repository": "pocketforge-os/test-node-hw",
+      "revision": "04959196e12e20d8dddea686f3ff54cedce0590b",
+      "qualification_path": "mechanical/dut-cradle-v1/qualification/trimui-smart-pro-family-v1.json"
+    },
+    "exclusions": [
+      "TG5050 Home/reset and cooling details, which are visual deltas outside the six contact windows",
+      "The published 17 mm overall depth and an exact Z envelope",
+      "Device-specific pixel/sub-millimetre camera registration inside the conservative visibility region",
+      "Alternative hook locations elsewhere inside each allowed contact interval",
+      "Snap fits, sealed interfaces and any retention geometry other than the accepted six-hook family"
+    ]
+  }
+}

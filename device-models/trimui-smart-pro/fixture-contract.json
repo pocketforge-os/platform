@@ -1,0 +1,452 @@
+{
+  "$schema": "../../schemas/device-fixture-contract.schema.json",
+  "schema_version": 1,
+  "kind": "fixture_interface",
+  "device": {
+    "slug": "trimui-smart-pro",
+    "platform_device_ids": [
+      "a133"
+    ],
+    "manufacturer": "TrimUI",
+    "product": "Smart Pro",
+    "model_number": "TG5040",
+    "hardware_revisions": [
+      "TG5040"
+    ],
+    "chassis_family": "trimui-smart-pro-family"
+  },
+  "visual_model": {
+    "path": "trimui-smart-pro.scad",
+    "role": "visual_reference_only",
+    "manufacturing_source": false
+  },
+  "interface_revision": 1,
+  "fixture_interface_sha256": "637aa67b32e284af2d5ad1b1655e630392e06fa80af1996f498f8d3cdecb20d5",
+  "coordinate_system": {
+    "units": "mm",
+    "handedness": "right_handed",
+    "origin": "rear_left_bottom_nominal_shell_datum",
+    "axes": {
+      "x": "physical_left_to_right",
+      "y": "physical_bottom_to_top",
+      "z": "physical_rear_to_front"
+    }
+  },
+  "fixture_interface": {
+    "envelope": {
+      "xy_bounds_mm": {
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          188.35,
+          79.77
+        ]
+      },
+      "xy_measurement_uncertainty_mm": null,
+      "overall_depth": {
+        "nominal_mm": 17,
+        "basis": "published_nominal",
+        "measurement_uncertainty_mm": null,
+        "manufacturing_ready": false
+      }
+    },
+    "local_depths": [
+      {
+        "id": "clear_perimeter_edge",
+        "region_refs": [
+          "bottom_left",
+          "bottom_right",
+          "left_datum",
+          "right_datum",
+          "top_left",
+          "top_right"
+        ],
+        "nominal_mm": 10.7,
+        "basis": "fit_derived_proxy",
+        "measurement_uncertainty_mm": null,
+        "manufacturing_ready": false
+      }
+    ],
+    "contact_regions": [
+      {
+        "id": "bottom_left",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "bottom_edge",
+          "axis": "x",
+          "min_mm": 24,
+          "max_mm": 35
+        },
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "contact_modes": [
+          "padded",
+          "retention",
+          "support"
+        ],
+        "local_depth_ref": "clear_perimeter_edge"
+      },
+      {
+        "id": "bottom_right",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "bottom_edge",
+          "axis": "x",
+          "min_mm": 153.35,
+          "max_mm": 164.35
+        },
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "contact_modes": [
+          "padded",
+          "retention",
+          "support"
+        ],
+        "local_depth_ref": "clear_perimeter_edge"
+      },
+      {
+        "id": "left_datum",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "left_edge",
+          "axis": "y",
+          "min_mm": 34.885,
+          "max_mm": 44.885
+        },
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "contact_modes": [
+          "datum",
+          "padded",
+          "retention"
+        ],
+        "local_depth_ref": "clear_perimeter_edge"
+      },
+      {
+        "id": "right_datum",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "right_edge",
+          "axis": "y",
+          "min_mm": 34.885,
+          "max_mm": 44.885
+        },
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "contact_modes": [
+          "datum",
+          "padded",
+          "retention"
+        ],
+        "local_depth_ref": "clear_perimeter_edge"
+      },
+      {
+        "id": "top_left",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "top_edge",
+          "axis": "x",
+          "min_mm": 35.41,
+          "max_mm": 50
+        },
+        "normal": [
+          0,
+          -1,
+          0
+        ],
+        "contact_modes": [
+          "padded",
+          "retention"
+        ],
+        "local_depth_ref": "clear_perimeter_edge"
+      },
+      {
+        "id": "top_right",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "top_edge",
+          "axis": "x",
+          "min_mm": 138.35,
+          "max_mm": 154.35
+        },
+        "normal": [
+          0,
+          -1,
+          0
+        ],
+        "contact_modes": [
+          "padded",
+          "retention"
+        ],
+        "local_depth_ref": "clear_perimeter_edge"
+      }
+    ],
+    "keepouts": [
+      {
+        "id": "front_display_visibility",
+        "category": "optical",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "front",
+          "axes": [
+            "x",
+            "y"
+          ],
+          "min_mm": [
+            38.375,
+            6
+          ],
+          "max_mm": [
+            149.975,
+            74.6
+          ]
+        },
+        "clearance_mm": 0
+      }
+    ],
+    "access_regions": [
+      {
+        "id": "rear_service",
+        "category": "service",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "rear",
+          "axes": [
+            "x",
+            "y"
+          ],
+          "min_mm": [
+            15.175,
+            13.885
+          ],
+          "max_mm": [
+            173.175,
+            65.885
+          ]
+        },
+        "must_remain_open": true
+      }
+    ],
+    "datums": [
+      {
+        "id": "camera_visibility_target_xy",
+        "kind": "point_2d",
+        "axes": [
+          "x",
+          "y"
+        ],
+        "value_mm": [
+          94.175,
+          39.885
+        ]
+      },
+      {
+        "id": "rear_perimeter_support_plane",
+        "kind": "plane",
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "offset_mm": 0
+      },
+      {
+        "id": "shell_center_xy",
+        "kind": "point_2d",
+        "axes": [
+          "x",
+          "y"
+        ],
+        "value_mm": [
+          94.175,
+          39.885
+        ]
+      }
+    ],
+    "clearance_requirements": [
+      {
+        "id": "rear_trigger_and_wiring",
+        "direction": "rearward",
+        "minimum_mm": 11,
+        "from_datum": "rear_perimeter_support_plane",
+        "protects": [
+          "cable",
+          "thermal",
+          "trigger"
+        ]
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "owner_xy_envelope",
+      "method": "owner_caliper",
+      "confidence": "high",
+      "reference": "bead:tsp-bcx.21.22",
+      "interface_refs": [
+        "datum:shell_center_xy",
+        "envelope:xy"
+      ],
+      "note": "The accepted cradle records the 188.35 x 79.77 mm owner-caliper envelope; the centre datum is derived exactly from it."
+    },
+    {
+      "id": "published_depth",
+      "method": "official_specification",
+      "confidence": "high",
+      "reference": "device-models/trimui-smart-pro/README.md#measurement-and-provenance-table",
+      "interface_refs": [
+        "envelope:overall_depth"
+      ],
+      "note": "The published 17 mm maximum is nominal and does not identify the Z datum or which projections it includes, so it is not manufacturing-ready."
+    },
+    {
+      "id": "accepted_retention_fit",
+      "method": "owner_physical_fit",
+      "confidence": "high",
+      "reference": "bead:tsp-bcx.21.22; test-node-hw@04959196e12e20d8dddea686f3ff54cedce0590b",
+      "interface_refs": [
+        "clearance:rear_trigger_and_wiring",
+        "contact:bottom_left",
+        "contact:bottom_right",
+        "contact:left_datum",
+        "contact:right_datum",
+        "contact:top_left",
+        "contact:top_right"
+      ],
+      "note": "The owner printed and accepted the final six-hook carrier at these contact windows and with the 11 mm rear trigger/wiring clearance."
+    },
+    {
+      "id": "perimeter_depth_proxy",
+      "method": "owner_physical_fit",
+      "confidence": "medium",
+      "reference": "bead:tsp-bcx.21.22",
+      "interface_refs": [
+        "datum:rear_perimeter_support_plane",
+        "depth:clear_perimeter_edge"
+      ],
+      "note": "10.7 mm is a fit-derived preview proxy retained beneath the accepted 11.3 mm hook throat; it is not a caliper map of every edge contact."
+    },
+    {
+      "id": "family_display_visibility",
+      "method": "photo_derived",
+      "confidence": "medium",
+      "reference": "device-models/trimui-smart-pro/README.md#measurement-and-provenance-table; device-models/trimui-smart-pro-s/README.md#measurement-and-provenance",
+      "interface_refs": [
+        "keepout:front_display_visibility"
+      ],
+      "note": "The conservative rectangle is the union of the documented TG5040 and TG5050 display/glass regions; it is a visibility keep-out, not a pressure-fit surface."
+    },
+    {
+      "id": "accepted_camera_target",
+      "method": "owner_physical_fit",
+      "confidence": "high",
+      "reference": "bead:tsp-bcx.21.22",
+      "interface_refs": [
+        "datum:camera_visibility_target_xy"
+      ],
+      "note": "The accepted holder targets the shared shell centre and preserves the complete conservative display region; device-specific pixel registration remains a runtime camera calibration."
+    },
+    {
+      "id": "accepted_rear_access",
+      "method": "accepted_fixture_design",
+      "confidence": "high",
+      "reference": "bead:tsp-bcx.21.22; test-node-hw@04959196e12e20d8dddea686f3ff54cedce0590b",
+      "interface_refs": [
+        "access:rear_service"
+      ],
+      "note": "The accepted carrier leaves this central rear region open for wiring, service and airflow."
+    }
+  ],
+  "qualification": {
+    "status": "physically_qualified",
+    "scope": "Six-hook perimeter retention, carrier rear clearance, central service access and unobstructed display visibility only",
+    "qualified_fixture_interface_sha256": "637aa67b32e284af2d5ad1b1655e630392e06fa80af1996f498f8d3cdecb20d5",
+    "accepted_on": "2026-07-21",
+    "acceptance_ref": "bead:tsp-bcx.21.22",
+    "interface_refs": [
+      "access:rear_service",
+      "clearance:rear_trigger_and_wiring",
+      "contact:bottom_left",
+      "contact:bottom_right",
+      "contact:left_datum",
+      "contact:right_datum",
+      "contact:top_left",
+      "contact:top_right",
+      "datum:camera_visibility_target_xy",
+      "datum:rear_perimeter_support_plane",
+      "datum:shell_center_xy",
+      "depth:clear_perimeter_edge",
+      "envelope:xy",
+      "keepout:front_display_visibility"
+    ],
+    "holder_evidence": {
+      "repository": "pocketforge-os/test-node-hw",
+      "revision": "04959196e12e20d8dddea686f3ff54cedce0590b",
+      "qualification_path": "mechanical/dut-cradle-v1/qualification/trimui-smart-pro-family-v1.json"
+    },
+    "exclusions": [
+      "The published 17 mm overall depth and an exact Z envelope",
+      "Photo-derived control, port, vent, screw and shell-curvature dimensions",
+      "Device-specific pixel/sub-millimetre camera registration inside the conservative visibility region",
+      "Alternative hook locations elsewhere inside each allowed contact interval",
+      "Snap fits, sealed interfaces and any retention geometry other than the accepted six-hook family"
+    ]
+  },
+  "unresolved_measurements": [
+    {
+      "id": "contact_depth_map",
+      "status": "open",
+      "required_before": "new_retention_family",
+      "interface_refs": [
+        "depth:clear_perimeter_edge"
+      ],
+      "needed": "Caliper measurements of local shell depth at all six contact windows, including variation and applied pad thickness."
+    },
+    {
+      "id": "exact_z_envelope",
+      "status": "open",
+      "required_before": "geometry_qualification",
+      "interface_refs": [
+        "envelope:overall_depth"
+      ],
+      "needed": "A defined rear Z datum plus caliper measurements of shell, controls and shoulder/trigger projections."
+    },
+    {
+      "id": "edge_feature_volumes",
+      "status": "open",
+      "required_before": "sealed_fixture",
+      "interface_refs": [
+        "contact:bottom_left",
+        "contact:bottom_right",
+        "contact:left_datum",
+        "contact:right_datum",
+        "contact:top_left",
+        "contact:top_right"
+      ],
+      "needed": "Perpendicular ruler views or caliper dimensions for ports, switches, vents and trigger sweeps outside the already accepted contact windows."
+    },
+    {
+      "id": "xy_caliper_uncertainty",
+      "status": "open",
+      "required_before": "precision_fit",
+      "interface_refs": [
+        "envelope:xy"
+      ],
+      "needed": "Record caliper resolution, repeatability and unit-to-unit envelope variation; the current accepted holder uses adjustable hooks."
+    }
+  ]
+}

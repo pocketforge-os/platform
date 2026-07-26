@@ -1,0 +1,1032 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pocketforge.dev/schemas/device-fixture-contract.schema.json",
+  "title": "PocketForge device fixture contract",
+  "description": "Manufacturing handoff from a semantic handheld model to fixture and holder design.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/full_contract"
+    },
+    {
+      "$ref": "#/$defs/shared_chassis_alias"
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "git_revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "semantic_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "interface_ref": {
+      "type": "string",
+      "pattern": "^(envelope:(xy|overall_depth)|(depth|contact|keepout|access|datum|clearance):[a-z][a-z0-9_]*)$"
+    },
+    "number_or_null": {
+      "oneOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "vector2": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "vector3": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "axis": {
+      "enum": [
+        "x",
+        "y",
+        "z"
+      ]
+    },
+    "surface": {
+      "enum": [
+        "front",
+        "rear",
+        "top_edge",
+        "bottom_edge",
+        "left_edge",
+        "right_edge"
+      ]
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slug",
+        "platform_device_ids",
+        "manufacturer",
+        "product",
+        "model_number",
+        "hardware_revisions",
+        "chassis_family"
+      ],
+      "properties": {
+        "slug": {
+          "$ref": "#/$defs/slug"
+        },
+        "platform_device_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/slug"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "manufacturer": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "product": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "model_number": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "hardware_revisions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "chassis_family": {
+          "$ref": "#/$defs/slug"
+        }
+      }
+    },
+    "visual_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "role",
+        "manufacturing_source"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*\\.scad$"
+        },
+        "role": {
+          "enum": [
+            "visual_reference_only",
+            "shared_chassis_visual_derivative"
+          ]
+        },
+        "manufacturing_source": {
+          "const": false
+        }
+      }
+    },
+    "coordinate_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "units",
+        "handedness",
+        "origin",
+        "axes"
+      ],
+      "properties": {
+        "units": {
+          "const": "mm"
+        },
+        "handedness": {
+          "const": "right_handed"
+        },
+        "origin": {
+          "const": "rear_left_bottom_nominal_shell_datum"
+        },
+        "axes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "x",
+            "y",
+            "z"
+          ],
+          "properties": {
+            "x": {
+              "const": "physical_left_to_right"
+            },
+            "y": {
+              "const": "physical_bottom_to_top"
+            },
+            "z": {
+              "const": "physical_rear_to_front"
+            }
+          }
+        }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nominal_mm",
+        "basis",
+        "measurement_uncertainty_mm",
+        "manufacturing_ready"
+      ],
+      "properties": {
+        "nominal_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "basis": {
+          "enum": [
+            "owner_caliper",
+            "published_nominal",
+            "inherited_shared_chassis",
+            "fit_derived_proxy",
+            "photo_derived"
+          ]
+        },
+        "measurement_uncertainty_mm": {
+          "$ref": "#/$defs/number_or_null"
+        },
+        "manufacturing_ready": {
+          "type": "boolean"
+        }
+      }
+    },
+    "edge_interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "surface",
+        "axis",
+        "min_mm",
+        "max_mm"
+      ],
+      "properties": {
+        "kind": {
+          "const": "edge_interval"
+        },
+        "surface": {
+          "$ref": "#/$defs/surface"
+        },
+        "axis": {
+          "$ref": "#/$defs/axis"
+        },
+        "min_mm": {
+          "type": "number"
+        },
+        "max_mm": {
+          "type": "number"
+        }
+      }
+    },
+    "surface_rectangle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "surface",
+        "axes",
+        "min_mm",
+        "max_mm"
+      ],
+      "properties": {
+        "kind": {
+          "const": "surface_rectangle"
+        },
+        "surface": {
+          "$ref": "#/$defs/surface"
+        },
+        "axes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/axis"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "min_mm": {
+          "$ref": "#/$defs/vector2"
+        },
+        "max_mm": {
+          "$ref": "#/$defs/vector2"
+        }
+      }
+    },
+    "aabb": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "min_mm",
+        "max_mm"
+      ],
+      "properties": {
+        "kind": {
+          "const": "aabb"
+        },
+        "min_mm": {
+          "$ref": "#/$defs/vector3"
+        },
+        "max_mm": {
+          "$ref": "#/$defs/vector3"
+        }
+      }
+    },
+    "shape": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/edge_interval"
+        },
+        {
+          "$ref": "#/$defs/surface_rectangle"
+        },
+        {
+          "$ref": "#/$defs/aabb"
+        }
+      ]
+    },
+    "local_depth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "region_refs",
+        "nominal_mm",
+        "basis",
+        "measurement_uncertainty_mm",
+        "manufacturing_ready"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/semantic_id"
+        },
+        "region_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/semantic_id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "nominal_mm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "basis": {
+          "enum": [
+            "owner_caliper",
+            "published_nominal",
+            "inherited_shared_chassis",
+            "fit_derived_proxy",
+            "photo_derived"
+          ]
+        },
+        "measurement_uncertainty_mm": {
+          "$ref": "#/$defs/number_or_null"
+        },
+        "manufacturing_ready": {
+          "type": "boolean"
+        }
+      }
+    },
+    "contact_region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "shape",
+        "normal",
+        "contact_modes",
+        "local_depth_ref"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/semantic_id"
+        },
+        "shape": {
+          "$ref": "#/$defs/shape"
+        },
+        "normal": {
+          "$ref": "#/$defs/vector3"
+        },
+        "contact_modes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "support",
+              "retention",
+              "datum",
+              "padded"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "local_depth_ref": {
+          "$ref": "#/$defs/semantic_id"
+        }
+      }
+    },
+    "keepout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "shape",
+        "clearance_mm"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/semantic_id"
+        },
+        "category": {
+          "enum": [
+            "control",
+            "port",
+            "vent",
+            "display",
+            "optical",
+            "cable",
+            "trigger",
+            "fastener",
+            "service",
+            "thermal"
+          ]
+        },
+        "shape": {
+          "$ref": "#/$defs/shape"
+        },
+        "clearance_mm": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "access_region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "shape",
+        "must_remain_open"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/semantic_id"
+        },
+        "category": {
+          "enum": [
+            "service",
+            "cable",
+            "airflow",
+            "optical"
+          ]
+        },
+        "shape": {
+          "$ref": "#/$defs/shape"
+        },
+        "must_remain_open": {
+          "const": true
+        }
+      }
+    },
+    "point_2d_datum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "axes",
+        "value_mm"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/semantic_id"
+        },
+        "kind": {
+          "const": "point_2d"
+        },
+        "axes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/axis"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "value_mm": {
+          "$ref": "#/$defs/vector2"
+        }
+      }
+    },
+    "plane_datum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "normal",
+        "offset_mm"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/semantic_id"
+        },
+        "kind": {
+          "const": "plane"
+        },
+        "normal": {
+          "$ref": "#/$defs/vector3"
+        },
+        "offset_mm": {
+          "type": "number"
+        }
+      }
+    },
+    "datum": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/point_2d_datum"
+        },
+        {
+          "$ref": "#/$defs/plane_datum"
+        }
+      ]
+    },
+    "clearance_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "direction",
+        "minimum_mm",
+        "from_datum",
+        "protects"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/semantic_id"
+        },
+        "direction": {
+          "enum": [
+            "rearward",
+            "frontward",
+            "radial"
+          ]
+        },
+        "minimum_mm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "from_datum": {
+          "$ref": "#/$defs/semantic_id"
+        },
+        "protects": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "control",
+              "port",
+              "vent",
+              "display",
+              "optical",
+              "cable",
+              "trigger",
+              "service",
+              "thermal"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "fixture_interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "envelope",
+        "local_depths",
+        "contact_regions",
+        "keepouts",
+        "access_regions",
+        "datums",
+        "clearance_requirements"
+      ],
+      "properties": {
+        "envelope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "xy_bounds_mm",
+            "xy_measurement_uncertainty_mm",
+            "overall_depth"
+          ],
+          "properties": {
+            "xy_bounds_mm": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "min",
+                "max"
+              ],
+              "properties": {
+                "min": {
+                  "$ref": "#/$defs/vector2"
+                },
+                "max": {
+                  "$ref": "#/$defs/vector2"
+                }
+              }
+            },
+            "xy_measurement_uncertainty_mm": {
+              "$ref": "#/$defs/number_or_null"
+            },
+            "overall_depth": {
+              "$ref": "#/$defs/measurement"
+            }
+          }
+        },
+        "local_depths": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/local_depth"
+          },
+          "minItems": 1
+        },
+        "contact_regions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contact_region"
+          },
+          "minItems": 1
+        },
+        "keepouts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/keepout"
+          }
+        },
+        "access_regions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/access_region"
+          }
+        },
+        "datums": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/datum"
+          },
+          "minItems": 1
+        },
+        "clearance_requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/clearance_requirement"
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "method",
+        "confidence",
+        "reference",
+        "interface_refs",
+        "note"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/semantic_id"
+        },
+        "method": {
+          "enum": [
+            "owner_caliper",
+            "owner_physical_fit",
+            "official_specification",
+            "photo_derived",
+            "accepted_fixture_design",
+            "inherited_shared_chassis"
+          ]
+        },
+        "confidence": {
+          "enum": [
+            "high",
+            "medium_high",
+            "medium",
+            "low"
+          ]
+        },
+        "reference": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "interface_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/interface_ref"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "note": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      }
+    },
+    "holder_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "revision",
+        "qualification_path"
+      ],
+      "properties": {
+        "repository": {
+          "const": "pocketforge-os/test-node-hw"
+        },
+        "revision": {
+          "$ref": "#/$defs/git_revision"
+        },
+        "qualification_path": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "scope",
+        "qualified_fixture_interface_sha256",
+        "accepted_on",
+        "acceptance_ref",
+        "interface_refs",
+        "holder_evidence",
+        "exclusions"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "unqualified",
+            "fit_evidence_recorded",
+            "physically_qualified"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "qualified_fixture_interface_sha256": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "accepted_on": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "acceptance_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "interface_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/interface_ref"
+          },
+          "uniqueItems": true
+        },
+        "holder_evidence": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/holder_evidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exclusions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "unresolved_measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "required_before",
+        "interface_refs",
+        "needed"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/semantic_id"
+        },
+        "status": {
+          "const": "open"
+        },
+        "required_before": {
+          "enum": [
+            "new_retention_family",
+            "geometry_qualification",
+            "precision_fit",
+            "sealed_fixture"
+          ]
+        },
+        "interface_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/interface_ref"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "needed": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      }
+    },
+    "full_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$schema",
+        "schema_version",
+        "kind",
+        "device",
+        "visual_model",
+        "interface_revision",
+        "fixture_interface_sha256",
+        "coordinate_system",
+        "fixture_interface",
+        "evidence",
+        "qualification",
+        "unresolved_measurements"
+      ],
+      "properties": {
+        "$schema": {
+          "const": "../../schemas/device-fixture-contract.schema.json"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "fixture_interface"
+        },
+        "device": {
+          "$ref": "#/$defs/device"
+        },
+        "visual_model": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/visual_model"
+            },
+            {
+              "properties": {
+                "role": {
+                  "const": "visual_reference_only"
+                }
+              }
+            }
+          ]
+        },
+        "interface_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fixture_interface_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "coordinate_system": {
+          "$ref": "#/$defs/coordinate_system"
+        },
+        "fixture_interface": {
+          "$ref": "#/$defs/fixture_interface"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidence"
+          },
+          "minItems": 1
+        },
+        "qualification": {
+          "$ref": "#/$defs/qualification"
+        },
+        "unresolved_measurements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/unresolved_measurement"
+          }
+        }
+      }
+    },
+    "shared_chassis_relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basis",
+        "evidence_refs",
+        "fit_relevant_deltas",
+        "visual_only_deltas"
+      ],
+      "properties": {
+        "basis": {
+          "const": "shared_chassis"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "fit_relevant_deltas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "maxItems": 0
+        },
+        "visual_only_deltas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "shared_chassis_alias": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "$schema",
+        "schema_version",
+        "kind",
+        "device",
+        "visual_model",
+        "extends",
+        "expected_fixture_interface_sha256",
+        "relationship",
+        "qualification"
+      ],
+      "properties": {
+        "$schema": {
+          "const": "../../schemas/device-fixture-contract.schema.json"
+        },
+        "schema_version": {
+          "const": 1
+        },
+        "kind": {
+          "const": "shared_chassis_alias"
+        },
+        "device": {
+          "$ref": "#/$defs/device"
+        },
+        "visual_model": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/visual_model"
+            },
+            {
+              "properties": {
+                "role": {
+                  "const": "shared_chassis_visual_derivative"
+                }
+              }
+            }
+          ]
+        },
+        "extends": {
+          "type": "string",
+          "pattern": "^\\.\\./[a-z0-9][a-z0-9-]*/fixture-contract\\.json$"
+        },
+        "expected_fixture_interface_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "relationship": {
+          "$ref": "#/$defs/shared_chassis_relationship"
+        },
+        "qualification": {
+          "$ref": "#/$defs/qualification"
+        }
+      }
+    }
+  }
+}
