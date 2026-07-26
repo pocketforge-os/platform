@@ -183,7 +183,7 @@ dpad       = { x = 109,  y = 147, w = 144, h = 142 }
 stick_l    = { x = 113,  y = 366, w = 147, h = 143 }
 stick_r    = { x = 1220, y = 366, w = 147, h = 143 }
 btn_north  = { x = 1271, y = 134, w = 55,  h = 56 }
-btn_east   = { x = 1326, y = 190, w = 57,  h = 55 }
+btn_east   = { x = 1333, y = 190, w = 57,  h = 55 }
 btn_south  = { x = 1271, y = 245, w = 55,  h = 56 }
 btn_west   = { x = 1215, y = 190, w = 56,  h = 55 }
 btn_select = { x = 1174, y = 528, w = 55,  h = 52 }
