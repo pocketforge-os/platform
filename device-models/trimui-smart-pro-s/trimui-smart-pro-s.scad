@@ -64,14 +64,33 @@ front_identity_y = front_detail_row_y;
 status_bar_start_x = 133.20;
 status_bar_pitch = 1.18;
 
+// Photo-derived front-control dimensions.
+dpad_size = 19.2;
+dpad_arm = 7.2;
+stick_ring_diameter = 19.4;
+stick_recess_diameter = 16.1;
+stick_cap_diameter = 12.8;
+face_button_diameter = 7.2;
+system_button_diameter = 6.25;
+system_button_recess_diameter = 7.15;
+
 // Photo-derived front landmarks. Bilateral pairs intentionally share Y and
 // mirrored X unless repeat evidence proves a real enclosure asymmetry.
-dpad_centre = [18.8, 55.7];
 stick_left_centre = [23.5, 24.9];
 stick_right_centre = [device_width - 23.5, 24.9];
+// The D-pad's right edge aligns with the interactive stick-cap edge, excluding
+// the surrounding LED ring. Menu's outer bezel aligns with that ring's edge.
+dpad_centre = [
+    stick_left_centre.x + stick_cap_diameter / 2 - dpad_size / 2,
+    55.7
+];
 face_centre = [device_width - 22.8, 55.8];
 face_pitch = [7.55, 7.75];
-menu_centre = [25.0, front_lower_row_y];
+menu_centre = [
+    stick_left_centre.x + stick_ring_diameter / 2
+        - system_button_recess_diameter / 2,
+    front_lower_row_y
+];
 select_centre = [162.5, front_lower_row_y];
 start_centre = [170.5, front_lower_row_y];
 
@@ -85,15 +104,6 @@ speaker_pitch_y = 1.30;
 speaker_bottom_y = front_speaker_row_y - speaker_pitch_y / 2;
 speaker_opening_diameter = 1.30;
 speaker_throat_diameter = 0.90;
-
-dpad_size = 19.2;
-dpad_arm = 7.2;
-stick_ring_diameter = 19.4;
-stick_recess_diameter = 16.1;
-stick_cap_diameter = 12.8;
-face_button_diameter = 7.2;
-system_button_diameter = 6.25;
-system_button_recess_diameter = 7.15;
 
 // Shoulder extents and top-edge feature centres are photo-derived. TG5050
 // preserves the TG5040 order and inserts HOME between POWER and HOST.

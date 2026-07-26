@@ -31,8 +31,8 @@ manufacturing-tolerance enclosure drawing.
 | Top-edge depth placement | Controls centred at Z = 5.35 mm; smaller legends on the screen-facing side | Owner visual review against the top-edge macro | Medium-high |
 | Reset / microphone | Recessed `R` key at X = 0.55W; MIC pinhole at X = 0.82W on the bottom edge | Owner reset-key macro and visual correction | High for topology and identity; medium for photo-derived size |
 | Front identity | `TRIMUI SMART PRO S`, central TrimUI mark and four-bar status motif | Owner front photo and public TG5050 front elevations | Medium-high |
-| Front control insets | Stick centres X = 23.5 / 164.85 mm; ABXY centre X = 165.55 mm | Owner visual review against the physical TG5050 | Medium-high |
-| Lower controls | Y = 7.15 mm optical centre; Menu X = 25.0 mm, Select X = 162.5 mm, Start X = 170.5 mm | Owner visual review against the physical TG5050 | Medium-high |
+| Front control insets | Stick centres X = 23.5 / 164.85 mm; D-pad centre X = 20.30 mm so its right edge aligns with the left stick cap (LED ring excluded); ABXY centre X = 165.55 mm | Owner visual review against the physical TG5050 | Medium-high |
+| Lower controls | Y = 7.15 mm optical centre; Menu X = 29.625 mm so its outer right edge aligns with the left stick LED ring; Select X = 162.5 mm, Start X = 170.5 mm | Owner visual review against the physical TG5050 | Medium-high |
 | Speaker centres | X = 42.75 / 145.60 mm, Y = 3.15 mm; aligned rows sit immediately beneath and inside the screen ends | Owner visual review against the physical TG5050 | Medium-high |
 | Front identity row | Y = 3.15 mm shared with the grille centres; reduced name starts at X = 108.10 mm and the four-bar motif begins at X = 133.20 mm with clear space before the right grille | Owner visual review against the physical TG5050 | Medium-high |
 | Rear active cooling | Two-row upper exhaust plus three striped circular fan-intake fields | FCC/public rear elevations | High for topology; medium for photo-derived size and placement |
