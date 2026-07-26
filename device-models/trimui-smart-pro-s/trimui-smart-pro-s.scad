@@ -61,7 +61,7 @@ front_lower_row_y = 7.15;
 front_detail_row_y = 3.15;
 front_speaker_row_y = front_detail_row_y;
 front_identity_y = front_detail_row_y;
-status_bar_start_x = 133.20;
+status_bar_start_x = 134.20;
 status_bar_pitch = 1.18;
 
 // Photo-derived front-control dimensions.
@@ -91,8 +91,11 @@ menu_centre = [
         - system_button_recess_diameter / 2,
     front_lower_row_y
 ];
-select_centre = [162.5, front_lower_row_y];
-start_centre = [170.5, front_lower_row_y];
+// Keep the paired right system controls seated inside the curved endcap while
+// preserving their inherited 8 mm spacing and common optical centreline.
+right_system_inset_x = 2.5;
+select_centre = [162.5 - right_system_inset_x, front_lower_row_y];
+start_centre = [170.5 - right_system_inset_x, front_lower_row_y];
 
 // Photo-derived speaker grille lattice. Each side has two right/left-aligned
 // rows of six shallow hexagonal recesses. The inside opening remains clear of
@@ -495,10 +498,10 @@ module front_legends() {
     // The identity/status artwork occupies the low strip beneath the display.
     // System controls and the two grille rows sit immediately above it.
     embossed_label([108.1, front_identity_y, front_z + 0.03],
-                   "TRIMUI", 1.90, 0.06, "left", "center",
+                   "TRIMUI", 1.80, 0.06, "left", "center",
                    legend_color, brand_font);
     embossed_label([118.0, front_identity_y, front_z + 0.03],
-                   "SMART PRO S", 1.66, 0.06, "left", "center",
+                   "SMART PRO S", 1.56, 0.06, "left", "center",
                    legend_color, brand_companion_font);
     color(legend_color)
         translate([106.85, front_identity_y, front_z + 0.03])
