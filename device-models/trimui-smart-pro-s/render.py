@@ -43,6 +43,16 @@ BODY = SKIN_DIR / "body.png"
 BODY_LIT = SKIN_DIR / "body_lit.png"
 METADATA = SKIN_DIR / "model-render.json"
 
+# Additional clickable VIEWS beyond the front APP_CAMERA (tsp-65jc.27). Each is the
+# same .scad rendered from another camera into its own neutral/lit atlas, restricted
+# to the controls actually visible from that angle, so the sim GUI can rotate the
+# device to a dedicated top-edge view whose shoulder/trigger controls are prominent
+# and clickable. A view carries NO display_rect (the screen is a front-face feature).
+# ADDITIVE by construction: the front body/body_lit/top-level model-render.json are
+# never touched, so the owner-accepted baseline art stays byte-identical.
+TOP_BODY = SKIN_DIR / "body_top.png"
+TOP_BODY_LIT = SKIN_DIR / "body_lit_top.png"
+
 CANVAS = (1480, 640)
 RAW_SIZE = (3200, 1400)
 PADDING = 12
@@ -82,6 +92,20 @@ VIEW_CAMERAS = {
     "bottom": ("94.175,-280,40,94.175,39.885,5.5", 0),
     "left": ("-350,39.885,35,94.175,39.885,5.5", 90),
     "right": ("540,39.885,35,94.175,39.885,5.5", 270),
+}
+
+# The clickable non-front views this device carries (see the base trimui-smart-pro
+# render.py for the full contract). The TG5050 exposes the four top-edge paddles PLUS
+# btn_home (its top-edge home button) from the top. Rendered by --write-views into
+# TOP_BODY/TOP_BODY_LIT + model-render.json["views"][name]; front is untouched.
+SKIN_VIEWS = {
+    "top": {
+        "camera": VIEW_CAMERAS["top"][0],
+        "rotate": VIEW_CAMERAS["top"][1],
+        "controls": ("btn_l1", "trig_l", "btn_r1", "trig_r", "btn_home"),
+        "body": TOP_BODY,
+        "body_lit": TOP_BODY_LIT,
+    },
 }
 
 
@@ -465,6 +489,200 @@ def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
     return neutral, lit, metadata
 
 
+def split_view_paddle_overlaps(
+    rectangles: dict[str, dict[str, int]],
+) -> None:
+    """Disjoint the stacked bumper/trigger pairs for a non-front view.
+
+    Same midpoint split + horizontal safety margin as ``split_shoulder_overlaps``
+    (the two physical paddles overlap in any oblique projection), but guarded so a
+    view whose control subset omits a paddle simply skips that pair instead of
+    raising. A top view carries no front controls, so the front-control trim does
+    not apply here.
+    """
+    for bumper_id, trigger_id in (("btn_l1", "trig_l"), ("btn_r1", "trig_r")):
+        if bumper_id not in rectangles or trigger_id not in rectangles:
+            continue
+        bumper = rectangles[bumper_id]
+        trigger = rectangles[trigger_id]
+        overlap_top = max(bumper["y"], trigger["y"])
+        overlap_bottom = min(
+            bumper["y"] + bumper["h"], trigger["y"] + trigger["h"]
+        )
+        if overlap_bottom <= overlap_top:
+            continue
+        split = round((overlap_top + overlap_bottom) / 2)
+        trigger["h"] = split - trigger["y"]
+        bumper_bottom = bumper["y"] + bumper["h"]
+        bumper["y"] = split
+        bumper["h"] = bumper_bottom - split
+    for control_id in ("btn_l1", "btn_r1", "trig_l", "trig_r"):
+        rectangle = rectangles.get(control_id)
+        if rectangle is None:
+            continue
+        right = min(
+            CANVAS[0], rectangle["x"] + rectangle["w"] + SHOULDER_HORIZONTAL_SAFETY
+        )
+        rectangle["x"] = max(0, rectangle["x"] - SHOULDER_HORIZONTAL_SAFETY)
+        rectangle["w"] = right - rectangle["x"]
+
+
+def render_view_set(
+    work: Path, name: str, view: dict
+) -> tuple[Image.Image, Image.Image, dict]:
+    """Render one additional clickable view (e.g. ``top``) into a neutral/lit atlas.
+
+    Additive sibling of ``render_skin_set``: same one-control-at-a-time disjoint-atlas
+    composition and the SAME helpers (run_openscad/normalized_raw/fit_transform/
+    diff_rect), but driven by the view's own camera + control subset and carrying NO
+    screen marker / display_rect. The front render path is untouched.
+    """
+    camera = view["camera"]
+    rotate = view["rotate"]
+    control_ids = tuple(view["controls"])
+
+    raw_neutral = work / f"{name}-neutral-raw.png"
+    run_openscad(raw_neutral, camera=camera)
+    time.sleep(1)
+
+    neutral_source = normalized_raw(raw_neutral, rotate)
+    crop = foreground_bbox(neutral_source)
+    neutral = fit_transform(neutral_source, crop)
+
+    rectangles: dict[str, dict[str, int]] = {}
+    control_frames: dict[str, Image.Image] = {}
+    for control_id in control_ids:
+        time.sleep(1)
+        raw_control = work / f"{name}-{control_id}-raw.png"
+        run_openscad(raw_control, camera=camera, highlight=control_id)
+        control_source = normalized_raw(raw_control, rotate)
+        control = fit_transform(control_source, crop)
+        control_frames[control_id] = control
+        rectangles[control_id] = diff_rect(neutral, control)
+    split_view_paddle_overlaps(rectangles)
+
+    overlaps = rectangle_overlaps(rectangles)
+    if overlaps:
+        rendered = ", ".join(
+            f"{first}/{second}={box}" for first, second, box in overlaps
+        )
+        raise RuntimeError(f"{name}: semantic rectangles overlap: {rendered}")
+
+    lit = neutral.copy()
+    for control_id in control_ids:
+        rectangle = rectangles[control_id]
+        box = (
+            rectangle["x"],
+            rectangle["y"],
+            rectangle["x"] + rectangle["w"],
+            rectangle["y"] + rectangle["h"],
+        )
+        lit.paste(control_frames[control_id].crop(box), box)
+
+    metadata = {
+        "body": str(view["body"].relative_to(ROOT)),
+        "body_lit": str(view["body_lit"].relative_to(ROOT)),
+        "camera": {
+            "projection": "ortho",
+            "eye_target": camera,
+            "raw_rotation_degrees": rotate,
+            "crop": list(crop),
+            "padding": PADDING,
+            "colorscheme": "Tomorrow",
+        },
+        "canvas": {"w": CANVAS[0], "h": CANVAS[1]},
+        "controls": rectangles,
+        "atlas_composition": "pairwise-disjoint-one-control-renders",
+        "shoulder_crop_policy": (
+            f"split-overlap-midpoint+{SHOULDER_HORIZONTAL_SAFETY}px-horizontal"
+        ),
+    }
+    return neutral, lit, metadata
+
+
+def _load_committed_metadata() -> dict:
+    if not METADATA.is_file():
+        raise RuntimeError(
+            f"{METADATA.relative_to(ROOT)} absent — run --write (front) before --write-views"
+        )
+    return json.loads(METADATA.read_text(encoding="utf-8"))
+
+
+def write_views() -> dict[str, dict]:
+    """Render every SKIN_VIEWS entry and merge them under model-render.json['views'],
+    writing ONLY the view PNGs + the 'views' block — the front top-level stays as-is."""
+    metadata = _load_committed_metadata()
+    # Adding view code edits this render.py, so the recorded renderer hash drifts.
+    # Refresh the shared source/renderer hashes (the .scad is untouched; the front
+    # render path is textually unchanged, so the committed front art still stands).
+    metadata["source_sha256"] = sha256(MODEL)
+    metadata["renderer_sha256"] = sha256(RENDERER)
+    views = dict(metadata.get("views", {}))
+    with tempfile.TemporaryDirectory(prefix="tsp-view-render-") as directory:
+        work = Path(directory)
+        for name, view in SKIN_VIEWS.items():
+            neutral, lit, view_meta = render_view_set(work, name, view)
+            save_png(neutral, view["body"])
+            save_png(lit, view["body_lit"])
+            view_meta["body_sha256"] = sha256(view["body"])
+            view_meta["body_lit_sha256"] = sha256(view["body_lit"])
+            views[name] = view_meta
+    metadata["views"] = views
+    METADATA.write_text(
+        json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return views
+
+
+def descriptor_view_rects(name: str) -> dict[str, dict[str, int]]:
+    with DESCRIPTOR.open("rb") as stream:
+        data = tomllib.load(stream)
+    view = data.get("skin", {}).get("views", {}).get(name, {})
+    return {
+        cid: {key: int(value) for key, value in rect.items()}
+        for cid, rect in view.get("parts", {}).items()
+    }
+
+
+def check_views() -> None:
+    """Re-render every view and prove the committed view PNGs + descriptor
+    [skin.views.<name>.parts] still match (the view half of --check; host-local)."""
+    committed = _load_committed_metadata()
+    failures: list[str] = []
+    with tempfile.TemporaryDirectory(prefix="tsp-view-check-") as directory:
+        work = Path(directory)
+        for name, view in SKIN_VIEWS.items():
+            neutral, lit, view_meta = render_view_set(work, name, view)
+            generated_body = work / f"{name}-body.png"
+            generated_lit = work / f"{name}-body_lit.png"
+            save_png(neutral, generated_body)
+            save_png(lit, generated_lit)
+            for committed_path, generated in (
+                (view["body"], generated_body),
+                (view["body_lit"], generated_lit),
+            ):
+                if not committed_path.is_file():
+                    failures.append(f"{name}: missing committed asset {committed_path}")
+                elif committed_path.read_bytes() != generated.read_bytes():
+                    failures.append(
+                        f"{name}: stale generated asset {committed_path.relative_to(ROOT)}"
+                    )
+            declared = descriptor_view_rects(name)
+            derived = view_meta["controls"]
+            if set(declared) != set(derived):
+                failures.append(
+                    f"{name}: descriptor/model ids differ: "
+                    f"declared={sorted(declared)} derived={sorted(derived)}"
+                )
+            for cid in sorted(set(declared) & set(derived)):
+                if declared[cid] != derived[cid]:
+                    failures.append(
+                        f"{name}: {cid}: descriptor={declared[cid]} derived={derived[cid]}"
+                    )
+    if failures:
+        raise RuntimeError("\n".join(failures))
+
+
 def save_png(image: Image.Image, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     image.save(path, format="PNG", optimize=False, compress_level=9)
@@ -573,6 +791,9 @@ def check_outputs(neutral: Image.Image, lit: Image.Image, metadata: dict) -> Non
             failures.append(f"missing render metadata: {METADATA.relative_to(ROOT)}")
         else:
             committed_metadata = json.loads(METADATA.read_text(encoding="utf-8"))
+            # The additive 'views' block is verified separately by check_views();
+            # the front check only owns the top-level (front) metadata.
+            committed_metadata.pop("views", None)
             if committed_metadata != expected_metadata:
                 failures.append(
                     f"stale render metadata: {METADATA.relative_to(ROOT)}"
@@ -615,6 +836,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         type=Path,
         help="render front/rear/top/bottom/side evidence views",
     )
+    mode.add_argument(
+        "--write-views",
+        action="store_true",
+        help="render the clickable non-front views (top) additively into "
+        "body_top/body_lit_top + model-render.json['views']; front untouched",
+    )
     return parser.parse_args(argv)
 
 
@@ -625,6 +852,19 @@ def main(argv: list[str]) -> int:
     if args.views is not None:
         render_views(args.views)
         print(f"views=pass output={args.views}")
+        return 0
+
+    if args.write_views:
+        views = write_views()
+        for name, view_meta in sorted(views.items()):
+            print(
+                f"view_write=pass view={name} "
+                f"body={view_meta['body']} lit={view_meta['body_lit']}"
+            )
+            print(
+                f"view_rects[{name}]="
+                + json.dumps(view_meta["controls"], sort_keys=True)
+            )
         return 0
 
     with tempfile.TemporaryDirectory(prefix="tsp-skin-render-") as directory:
@@ -640,7 +880,11 @@ def main(argv: list[str]) -> int:
             print("derived_rects=" + json.dumps(metadata["controls"], sort_keys=True))
         else:
             check_outputs(neutral, lit, metadata)
-            print("skin_check=pass assets=2 controls=15")
+            if SKIN_VIEWS:
+                check_views()
+            print(
+                f"skin_check=pass assets=2 controls=15 views={len(SKIN_VIEWS)}"
+            )
     return 0
 
 

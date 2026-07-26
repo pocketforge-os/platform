@@ -73,3 +73,29 @@ pixels → red on main; the render suite times out under headless software GL; a
 GPU-vs-`llvmpipe` anti-aliasing risks flaky reds). A flaky gate would poison the
 gate-trust infra-113 exists to build, so the full re-render stays the local
 full-fidelity companion.
+
+## Additional clickable views — the rotatable top-edge view (tsp-65jc.27)
+
+Beyond the front atlas, a model may carry extra **views** rendered from other
+cameras so a UI surface (the sim GUI) can rotate the device and expose controls a
+front-on orthographic render only shows as slivers — above all the top-edge
+shoulders/triggers (and the TG5050's HOME button). A view is the same `.scad`
+rendered from a `VIEW_CAMERAS` camera into its **own** neutral/lit atlas restricted
+to the controls visible from that angle, carrying **no** `display_rect` (the screen
+is a front-face feature).
+
+- **Generate/regenerate** with `render.py --write-views`. This is **additive**: it
+  writes only `skins/<id>/body_<view>.png` + `body_lit_<view>.png` and the
+  `model-render.json["views"]` block, and refreshes the shared `source`/`renderer`
+  hashes — the **front** `body.png`/`body_lit.png` and the front top-level metadata
+  are never touched, so the owner-accepted front baseline stays byte-identical.
+- **Descriptor:** each view adds `[skin.views.<name>]` (body/lit_body) +
+  `[skin.views.<name>.parts]`. Controls not visible from a view are simply absent.
+- **Drift gate:** `check-skin-drift.py` gates every view exactly like the front —
+  the view PNGs must hash to what `model-render.json` recorded, and each view's
+  control rects must equal `[skin.views.<name>.parts]`. Adding a view = committing
+  its rendered atlas + view block; no per-device code.
+- **Host note:** `render.py --check` byte-exactness is host-blocked on some GPUs
+  (tsp-vevy); the drift gate proves self-consistency without OpenSCAD, so a view
+  rendered on any host is drift-green. A view's silkscreen may want a canonical
+  re-render before a final owner visual-OK, but that is a mechanical follow-up.

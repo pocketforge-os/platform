@@ -217,3 +217,23 @@ btn_l1     = { x = 75,   y = 94,  w = 189, h = 53 }
 btn_r1     = { x = 1216, y = 94,  w = 189, h = 40 }
 trig_l     = { x = 67,   y = 25,  w = 196, h = 69 }
 trig_r     = { x = 1217, y = 25,  w = 196, h = 69 }
+
+# ---- Additional CLICKABLE VIEWS (tsp-65jc.27) ----
+# The sim GUI can rotate the device to a dedicated TOP-EDGE view whose shoulder/
+# trigger controls — plus the TG5050's top-edge HOME button — are prominent and
+# clickable. Each view is the same .scad rendered from another camera into its own
+# body_<view>/body_lit_<view> atlas (render.py --write-views) with its OWN parts
+# table; a view carries NO display_rect. The rects below are the model-derived crops
+# for the `top` camera and are kept in lockstep with skins/a523/model-render.json
+# ["views"]["top"] by check-skin-drift.py — do not hand-edit; regenerate with
+# render.py --write-views. Controls not visible from a view are simply absent here.
+[skin.views.top]
+body     = "skins/a523/body_top.png"
+lit_body = "skins/a523/body_lit_top.png"
+
+[skin.views.top.parts]
+btn_home   = { x = 563,  y = 258, w = 40,  h = 39 }
+btn_l1     = { x = 60,   y = 310, w = 193, h = 26 }
+trig_l     = { x = 52,   y = 255, w = 200, h = 55 }
+btn_r1     = { x = 1227, y = 310, w = 193, h = 26 }
+trig_r     = { x = 1228, y = 255, w = 200, h = 55 }
