@@ -93,7 +93,7 @@ menu_centre = [
 ];
 // Keep the paired right system controls seated inside the curved endcap while
 // preserving their inherited 8 mm spacing and shared optical centreline.
-right_system_inset_x = 6.5;
+right_system_inset_x = 8.5;
 right_system_row_y = front_lower_row_y + 1.70;
 select_centre = [162.5 - right_system_inset_x, right_system_row_y];
 start_centre = [170.5 - right_system_inset_x, right_system_row_y];
