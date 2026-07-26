@@ -55,3 +55,5 @@ This is the **ungated B1 skeleton**: the registry + `core/` + `families/sunxi/` 
 
 See `docs/DECISIONS.md` for the architecture decisions + rejected alternatives, and the
 infra-019 kickoff for the full B1..B10 plan.
+
+<!-- CI evidence (tsp-65jc.5): unrelated-path change; sim-descriptor-gate must NOT trigger. -->
