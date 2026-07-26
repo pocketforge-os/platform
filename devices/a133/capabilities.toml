@@ -18,7 +18,7 @@
 accept_default = "south"
 
 [identity]
-id           = "a133"
+id           = "a133x"
 manufacturer = "TrimUI"
 model        = "Smart Pro"
 codename     = "5040"                                # Android-picker leaf: TrimUI > 5040 (Pro)
