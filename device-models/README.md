@@ -25,4 +25,7 @@ write fresh PNGs without copying EXIF metadata.
 
 The first implementation is
 [`trimui-smart-pro/`](trimui-smart-pro/README.md), whose fourteen semantic
-controls map directly to the A133 capability descriptor.
+controls map directly to the A133 capability descriptor. Its shared-chassis
+derivative [`trimui-smart-pro-s/`](trimui-smart-pro-s/README.md) carries the
+TG5050 identity, cooling details and fifteenth semantic `btn_home` control for
+the A523 descriptor without redrawing the accepted TG5040 baseline.
