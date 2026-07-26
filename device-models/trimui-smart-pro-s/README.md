@@ -25,12 +25,12 @@ manufacturing-tolerance enclosure drawing.
 | Maximum X/Y envelope | 188.35 × 79.77 mm | Owner TG5050 cradle measurement drawing and near-orthographic front photo; identical to the accepted TG5040 caliper envelope | High |
 | Published overall envelope | 188 × 80 × 17 mm | TrimUI product specification | High as a nominal envelope; Z datum remains unspecified |
 | Shell, display and primary front controls | Inherited from TG5040 source | Shared chassis, owner TG5050 front photo, FCC/product multi-view photos | High for topology; TG5040 confidence table continues to govern individual photo-derived dimensions |
-| Home key centre | X = 0.39W (73.46 mm), round 4.75 mm crown in 6.30 mm bezel | Owner top-edge macro plus TG5050 multi-view photography | Medium-high |
+| Home key centre | X = 0.39W (73.46 mm), round 3.60 mm crown in 5.00 mm bezel | Owner top-edge macro plus owner visual review against the physical TG5050 | Medium-high |
 | TG5050 top-edge order | POWER → HOME → HOST → split volume rocker | Owner top-edge macro and public TG5050 multi-view photography | High |
 | Top-edge depth placement | Controls centred at Z = 5.35 mm; smaller legends on the screen-facing side | Owner visual review against the top-edge macro | Medium-high |
 | Reset / microphone | Recessed `R` key at X = 0.55W; MIC pinhole at X = 0.82W on the bottom edge | Owner reset-key macro and visual correction | High for topology and identity; medium for photo-derived size |
 | Front identity | `TRIMUI SMART PRO S`, central TrimUI mark and four-bar status motif | Owner front photo and public TG5050 front elevations | Medium-high |
-| Front control insets | Stick centres X = 21.5 / 166.85 mm; ABXY centre X = 167.55 mm | Owner visual review against the physical TG5050 | Medium-high |
+| Front control insets | Stick centres X = 23.5 / 164.85 mm; ABXY centre X = 165.55 mm | Owner visual review against the physical TG5050 | Medium-high |
 | Speaker centres | X = 33.25 / 155.10 mm; aligned rows stop clear of the screen glass | Owner visual review against the physical TG5050 | Medium-high |
 | Rear active cooling | Two-row upper exhaust plus three striped circular fan-intake fields | FCC/public rear elevations | High for topology; medium for photo-derived size and placement |
 | Clear-edge shell depth | 10.7 mm | Shared-chassis TG5040 owner-fit cradle proxy | Medium |

@@ -61,9 +61,9 @@ screen_centre = [device_width / 2, 40.0];
 // Photo-derived front landmarks. Bilateral pairs intentionally share Y and
 // mirrored X unless repeat evidence proves a real enclosure asymmetry.
 dpad_centre = [18.8, 55.7];
-stick_left_centre = [21.5, 24.9];
-stick_right_centre = [device_width - 21.5, 24.9];
-face_centre = [device_width - 20.8, 55.8];
+stick_left_centre = [23.5, 24.9];
+stick_right_centre = [device_width - 23.5, 24.9];
+face_centre = [device_width - 22.8, 55.8];
 face_pitch = [7.55, 7.75];
 menu_centre = [26.0, 8.8];
 select_centre = [156.4, 8.8];
@@ -740,10 +740,10 @@ module home_button_control() {
     // derive one complete, independently selectable runtime rectangle.
     color(active_dark_color(id))
         xz_pill([home_centre_x, top_y, edge_feature_z],
-                [6.30, 6.30], 0.60);
+                [5.00, 5.00], 0.60);
     color(active_color(id))
         xz_pill([home_centre_x, top_y + 0.13, edge_feature_z],
-                [4.75, 4.75], 0.68);
+                [3.60, 3.60], 0.68);
 }
 
 module dpad_control() {
