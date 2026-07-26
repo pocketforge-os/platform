@@ -30,6 +30,9 @@
 # "edit one, forget the rest" drift class D9 targets; `render.py --check` run LOCALLY is the
 # full-fidelity companion a developer runs when touching a model (see device-models/README.md and
 # device-models/<model>/README.md).
+# ADD A DEVICE = ADD DATA — this gate auto-discovers skins/*/model-render.json, so committing a
+# device's rendered skin enrols it here with NO workflow edit. Cold-start walkthrough (descriptor +
+# .scad skin + posture row + what auto-joins in CI): sim/docs/ADD-A-DEVICE.md.
 #
 # WHY NOT WIRE render.py --check ITSELF (evidence, 2026-07-26). It byte-COMPARES freshly-rendered
 # PNGs against committed, which cannot be a green-on-main CI gate: (a) the .scad renders
