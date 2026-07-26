@@ -1,0 +1,149 @@
+# sim-descriptor-gate — the platform-side sim gate (infra-113 §6 Phase B3, decision D5 / tsp-65jc.5).
+#
+# WHY THIS EXISTS. The device descriptors (devices/<id>/capabilities.toml), the rendered skins
+# (skins/<id>/*), the 3D device models (device-models/<model>/*), and the schemas (schemas/**) are
+# what the pocketforge-sim toolchain consumes to prove a device's control/sensor/skin behaviour.
+# Before this gate, a platform-side descriptor/skin/model change could merge with ZERO sim
+# validation — exactly what happened on 2026-07-22 (a descriptor + skin change merged unvalidated;
+# infra-113 §1 / finding 4). The sim repo's own `sim-gate.yml` only runs the suite when SIM changes;
+# nothing ran it when the PLATFORM data those suites consume changed. This gate closes that hole on
+# the platform side: on a PR that touches the descriptor chain, it builds the reproducible
+# pocketforge-sim image with sim PINNED (current sim main) and the platform descriptors OVERRIDDEN
+# to THIS PR's head, then runs the headless suite. So the PR's own CI run proves the sim still
+# passes against the descriptors the PR is proposing.
+#
+# THE PIN-OVERRIDE MECHANIC (infra-113 D5; no sim-side PR needed). The sim Dockerfile already builds
+# its `platform` stage from a `PLATFORM_REPO` + `PLATFORM_COMMIT` build-arg pair (default = the pin
+# of record, sim's docker/platform.pin). We reuse that first-class override: clone sim at main
+# (the pinned sim), then `docker build --build-arg PLATFORM_COMMIT=<this PR's head sha>`. sim's build
+# is otherwise identical to its own gate; only the descriptor source moves to the PR head. Reachable
+# because the fork guard (below) restricts us to same-repo PRs, whose head sha is a branch tip a full
+# `git clone` of public platform necessarily fetches — no extra fetch or sim change required. On
+# `workflow_dispatch` (no PR) the build-arg is omitted and the image uses sim's baked pin, so a manual
+# run smoke-tests the gate against pinned main.
+#
+# ADVISORY POSTURE — DELIBERATE (infra-113 D5, B4/B2 ladder). This is NOT a required status check: a
+# red run reports, it does not block merge. Promotion to REQUIRED is a separate governance bead under
+# the B4 posture ladder (per-device blocking/advisory derived from platform data), NOT flipped here.
+#
+# PATHS FILTER — DELIBERATE, and SAFE ONLY WHILE ADVISORY (same rationale as skin-drift.yml). An
+# advisory check may be path-filtered to the only paths that can move the descriptor chain, which is
+# the cheaper trigger surface the bead asks for and keeps this ~30-40min build off unrelated PRs. IF
+# THIS GATE IS EVER PROMOTED TO REQUIRED, REMOVE THE `paths:` FILTERS (mirror abi-drift's no-filter
+# rationale) — a required check gated by `paths:` hangs "expected" forever on unrelated PRs.
+#
+# NO `push: main` TRIGGER — DELIBERATE (matches sim/sim-gate.yml, NOT the cheap abi-drift/skin-drift
+# checks). This is an expensive full image build + nested suite (~30-40min on the Dell); a post-merge
+# rebuild of every descriptor merge would burn the build-lab for a signal the PR run already gave.
+# `workflow_dispatch` covers the "run it on demand against main" case.
+#
+# NO MARKETPLACE ACTIONS — DELIBERATE (matches abi-drift/skin-drift + the org pr-review-gate). The org
+# requires SHA-pinned actions (org Actions policy sha_pinning_required=true), so a bare tag ref yields
+# a startup_failure. This job uses ZERO `uses:` actions: it needs no platform checkout at all (the
+# descriptors reach the build via the sim Dockerfile's own pinned git clone of platform @ the PR head
+# sha), so it just `git clone`s sim with the ephemeral github.token and drives docker directly.
+#
+# RUNNER ROUTING + FORK GUARD — DELIBERATE (build-lab confinement invariant, tsp-20u1). The nested sim
+# needs /dev/uinput + SYS_ADMIN + unconfined seccomp/apparmor (the tsp-qc1.2 verdict; infra-113
+# finding 9 — irreducible, self-hosted only), so this targets the Dell build-lab runner
+# (`[self-hosted, docker]`, org runner group `build-lab`). That runner has docker = host-root
+# equivalence and must NEVER execute code authored outside the org. The job-level `if:` fork guard
+# below makes that MECHANICAL: the job skips whenever the PR head repo is not this repository, so even
+# a maintainer-APPROVED fork PR never executes here (advisory, so a skip blocks nobody). platform is
+# added to the build-lab runner group's allow-list for this gate (precedent: pf-hwprobe via
+# tsp-78ta; runner exposure kept within infra-113 D11 — Option B, tsp-65jc.16, is the eventual
+# off-Dell builder end-state). Canonical doc: mission-control BUILD_PIPELINE.md "Build-lab
+# confinement invariant".
+
+name: sim descriptor gate
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'devices/**'
+      - 'skins/**'
+      - 'device-models/**'
+      - 'schemas/**'
+      - '.github/workflows/sim-descriptor-gate.yml'
+  workflow_dispatch:
+
+# Least-privilege GITHUB_TOKEN for a job that executes untrusted (org-authored, per the fork guard)
+# code on the build-lab runner. The build clones public sim + public platform over https and neither
+# reads this repo beyond nothing nor writes anything back, so read-only contents is sufficient.
+permissions:
+  contents: read
+
+concurrency:
+  group: sim-descriptor-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sim-suite:
+    # Build-lab confinement invariant (tsp-20u1): this self-hosted runner has docker = host root and
+    # must NEVER execute fork/public-PR code — the org approval gate alone still lets an APPROVED fork
+    # PR run here, so this guard makes the invariant MECHANICAL: skip the job whenever the PR head is
+    # not this repository. Advisory check, so a skip blocks nobody. Canonical doc: mission-control
+    # BUILD_PIPELINE.md "Build-lab confinement invariant".
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, docker]
+    timeout-minutes: 45
+    env:
+      IMG: pocketforge-sim:plat-ci-${{ github.run_id }}
+      # The platform descriptor source the sim image builds against: THIS PR's head sha on a
+      # pull_request; empty on workflow_dispatch (=> sim's baked pin, docker/platform.pin, wins).
+      PLATFORM_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Ensure uinput module (host node is required for the nested sim)
+        run: sudo modprobe uinput || true
+
+      - name: Clone sim @ main (the pinned sim) + build with platform overridden to the PR head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          wd="$RUNNER_TEMP/sim-src-$GITHUB_RUN_ID"
+          rm -rf "$wd"
+          # sim is public; the ephemeral token clones it fine. --depth 1 of main = the pinned sim tip.
+          git clone --quiet --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/pocketforge-os/sim.git" "$wd"
+          echo "sim @ $(git -C "$wd" rev-parse HEAD)"
+          cd "$wd"
+          # PLATFORM_REPO stays the Dockerfile default (public platform). PLATFORM_COMMIT is the ONLY
+          # override — the PR head sha (or omitted on dispatch so the baked pin wins).
+          args=(--build-arg "PLATFORM_REPO=https://github.com/${GITHUB_REPOSITORY}.git")
+          if [ -n "${PLATFORM_SHA:-}" ]; then
+            echo "building sim image with platform descriptors OVERRIDDEN to PR head $PLATFORM_SHA"
+            args+=(--build-arg "PLATFORM_COMMIT=${PLATFORM_SHA}")
+          else
+            echo "workflow_dispatch: no PR head — building against sim's baked platform pin"
+          fi
+          docker build "${args[@]}" -t "$IMG" .
+
+      # --network none on the RUN phase: the headless suite runs entirely from baked, pinned artifacts
+      # (no out-of-band input — sim docker/README.md), so denying the run any network shrinks the blast
+      # radius of the elevated caps. The caps mirror sim/sim-gate.yml's proven set (the tsp-qc1.2
+      # nesting verdict): /dev/uinput + evdev nodes + SYS_ADMIN + unconfined apparmor/seccomp.
+      - name: check-control a133 a523 (descriptors @ PR head)
+        run: |
+          docker run --rm --network none \
+            --device /dev/uinput --device-cgroup-rule "c 13:* rmw" -v /dev/input:/dev/input \
+            --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
+            "$IMG" check-control a133 a523
+
+      - name: check-sensor a133 a523 (descriptors @ PR head)
+        run: |
+          docker run --rm --network none \
+            --device /dev/uinput --device-cgroup-rule "c 13:* rmw" -v /dev/input:/dev/input \
+            --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
+            "$IMG" check-sensor a133 a523
+
+      - name: check-skin a133 a523 (descriptors @ PR head)
+        run: |
+          docker run --rm --network none \
+            --device /dev/uinput --device-cgroup-rule "c 13:* rmw" -v /dev/input:/dev/input \
+            --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
+            "$IMG" check-skin a133 a523
+
+      - name: Cleanup CI image
+        if: always()
+        run: docker image rm -f "$IMG" || true
