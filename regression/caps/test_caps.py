@@ -443,6 +443,99 @@ def main():
         if r.returncode != 0:
             print("  gen --check stderr: " + (r.stderr or "").strip())
 
+    # ── CI gate matrix (infra-113 B4 / D6): ci-matrix.toml posture data + validation ──────────
+    # Device-free: build a synthetic devices/ tree (empty capabilities.toml = "descriptor
+    # present"; a bare profile.toml dir = "build-only profile") and drive caps' matrix engine
+    # against temp ci-matrix.toml variants by monkeypatching the module path globals. Proves
+    # the data model the three gate workflows derive their rows from: a bad posture is rejected,
+    # an unclassified profile-only dir is rejected (never a silent skip), a gating posture
+    # without a descriptor is rejected, a stale row is rejected, and a NEW descriptor auto-joins
+    # as advisory with no matrix edit (the "add a device = add data" keystone).
+    _mtmp = tempfile.mkdtemp()
+    _saved = (caps.ROOT, caps.DEVICES, caps.MATRIX_PATH)
+    try:
+        _mdev = os.path.join(_mtmp, "devices")
+        for _d in ("a133", "a523"):                       # descriptor'd devices
+            os.makedirs(os.path.join(_mdev, _d))
+            open(os.path.join(_mdev, _d, caps.CAPS_FILE), "w").close()
+        for _d in ("a133-owned", "sdm845"):               # build-only profile dirs (no caps)
+            os.makedirs(os.path.join(_mdev, _d))
+            open(os.path.join(_mdev, _d, "profile.toml"), "w").close()
+        caps.ROOT, caps.DEVICES = _mtmp, _mdev
+        caps.MATRIX_PATH = os.path.join(_mtmp, caps.MATRIX_FILE)
+
+        def _write_matrix(body):
+            with open(caps.MATRIX_PATH, "w") as _f:
+                _f.write(body)
+
+        # GOOD: the shipped posture (a133 blocking, a523 advisory, profile-only dirs excluded).
+        _write_matrix('schema = 1\n[devices]\na133 = "blocking"\na523 = "advisory"\n'
+                      'a133-owned = "excluded"\nsdm845 = "excluded"\n')
+        _e, _w = caps.matrix_errors()
+        check("matrix: shipped posture validates clean", _e == [])
+        _rows = dict(caps.resolve_matrix())
+        check("matrix: a133 resolves blocking", _rows.get("a133") == "blocking")
+        check("matrix: a523 resolves advisory", _rows.get("a523") == "advisory")
+        check("matrix: sdm845 resolves excluded", _rows.get("sdm845") == "excluded")
+
+        # NEG: an unknown posture value is rejected (the bead's "bad posture rejected" AC).
+        _write_matrix('schema = 1\n[devices]\na133 = "blockign"\na523 = "advisory"\n'
+                      'a133-owned = "excluded"\nsdm845 = "excluded"\n')
+        _e, _ = caps.matrix_errors()
+        check("matrix: unknown posture 'blockign' rejected",
+              any("unknown posture" in x and "a133" in x for x in _e))
+
+        # NEG: a profile-only dir with no explicit posture is a SILENT-SKIP error.
+        _write_matrix('schema = 1\n[devices]\na133 = "blocking"\na523 = "advisory"\n'
+                      'a133-owned = "excluded"\n')  # sdm845 dropped
+        _e, _ = caps.matrix_errors()
+        check("matrix: unclassified profile-only dir rejected (never a silent skip)",
+              any("sdm845" in x and "SILENT SKIP" in x for x in _e))
+
+        # NEG: a gating posture on a dir with no descriptor cannot run.
+        _write_matrix('schema = 1\n[devices]\na133 = "blocking"\na523 = "advisory"\n'
+                      'a133-owned = "excluded"\nsdm845 = "blocking"\n')
+        _e, _ = caps.matrix_errors()
+        check("matrix: blocking posture without a descriptor rejected",
+              any("sdm845" in x and "requires a" in x for x in _e))
+
+        # NEG: a stale row pointing at a non-existent device dir is rejected.
+        _write_matrix('schema = 1\n[devices]\na133 = "blocking"\na523 = "advisory"\n'
+                      'a133-owned = "excluded"\nsdm845 = "excluded"\nghost = "advisory"\n')
+        _e, _ = caps.matrix_errors()
+        check("matrix: stale row (no devices/ dir) rejected",
+              any("ghost" in x and "stale" in x for x in _e))
+
+        # POS (D6 auto-join): a NEW descriptor'd dir with NO matrix entry -> advisory, no error.
+        os.makedirs(os.path.join(_mdev, "synthetic"))
+        open(os.path.join(_mdev, "synthetic", caps.CAPS_FILE), "w").close()
+        _write_matrix('schema = 1\n[devices]\na133 = "blocking"\na523 = "advisory"\n'
+                      'a133-owned = "excluded"\nsdm845 = "excluded"\n')
+        _e, _ = caps.matrix_errors()
+        _rows = dict(caps.resolve_matrix())
+        check("matrix: new descriptor auto-joins as advisory with zero matrix edit (D6)",
+              _e == [] and _rows.get("synthetic") == "advisory")
+
+        # FAIL-CLOSED (pin cascade): with ci-matrix.toml ABSENT (a pre-B4 baked platform pin),
+        # `matrix list` must default every descriptor'd device to BLOCKING — never silently relax
+        # a device to non-blocking — while validate FLAGS the missing file as a source-repo error.
+        import shutil as _sh
+        os.remove(caps.MATRIX_PATH)
+        _rows = dict(caps.resolve_matrix())
+        check("matrix: ci-matrix absent -> descriptor'd devices fail-closed to blocking",
+              _rows.get("a133") == "blocking" and _rows.get("synthetic") == "blocking"
+              and _rows.get("a523") == "blocking")
+        check("matrix: ci-matrix absent -> profile-only dirs stay unrun (None)",
+              _rows.get("sdm845") is None and _rows.get("a133-owned") is None)
+        _e, _ = caps.matrix_errors()
+        check("matrix: validate FLAGS a missing ci-matrix.toml as a source-repo error",
+              any("missing" in x for x in _e))
+        _sh.rmtree(os.path.join(_mdev, "synthetic"), ignore_errors=True)
+    finally:
+        caps.ROOT, caps.DEVICES, caps.MATRIX_PATH = _saved
+        import shutil as _shutil
+        _shutil.rmtree(_mtmp, ignore_errors=True)
+
     print()
     if _failures:
         print(f"{len(_failures)} FAILURE(S): " + ", ".join(_failures))

@@ -78,8 +78,75 @@ concurrency:
   group: sim-descriptor-gate-${{ github.ref }}
   cancel-in-progress: true
 
+# DATA-DRIVEN MATRIX — TWO JOBS (infra-113 B4 / D6). The device rows + per-device posture are NOT a
+# hardcoded list; they come from platform ci-matrix.toml via `pf caps matrix`. The gate is split so
+# the DATA is validated + derived CHEAPLY on every descriptor PR, and only the expensive sim build
+# runs the suites:
+#   1. descriptor-matrix (pf-pr-review VM lane, sub-second): `pf caps matrix validate` fails fast on a
+#      bad posture / an unclassified device dir / a gating posture with no descriptor; then it derives
+#      the blocking + advisory device lists (job outputs). A NEW descriptor auto-joins as advisory and
+#      is VISIBLE in this job's log with zero workflow edits (infra-113 §8.4 auto-join proof).
+#   2. sim-suite (build-lab, needs descriptor-matrix): builds the sim image with platform overridden to
+#      the PR head, then runs the suites over the derived lists — BLOCKING devices hard (a failure
+#      fails the job), ADVISORY devices reported-but-non-blocking. Excluded devices never run.
+# This gate stays ADVISORY overall (D5: advisory first, required after stability) — the posture VALUES
+# in the data are the per-device blocking/advisory keys the sim/pf-hwprobe required checks consume.
 jobs:
+  descriptor-matrix:
+    # Cheap data-derivation + validation on the pf-pr-review VM lane — the org's designed lane for
+    # running untrusted PR code read-only (same routing rationale as skin-drift/abi-drift). It executes
+    # the PR head's core/caps.py (sub-second, side-effect-free), so no fork guard is needed here.
+    runs-on: [self-hosted, pf-pr-review]
+    outputs:
+      blocking: ${{ steps.derive.outputs.blocking }}
+      advisory: ${{ steps.derive.outputs.advisory }}
+    steps:
+      - name: Checkout the PR head + validate & derive the data-driven CI matrix
+        id: derive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # PR head sha on a pull_request; empty on workflow_dispatch (=> derive from the dispatch ref).
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          wd="$RUNNER_TEMP/platform-matrix-$GITHUB_RUN_ID"
+          rm -rf "$wd"
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
+          cd "$wd"
+          # Prefer the PR head sha (matches what sim-suite builds the image from). A same-repo PR head
+          # is a branch tip the full clone already has; a FORK PR's head lives in the fork (not here) —
+          # so fall back to $GITHUB_SHA (the merge ref, always present). sim-suite skips fork PRs via its
+          # fork guard anyway, so the fork path here is only about not spuriously reding this advisory job.
+          sha="${HEAD_SHA:-$GITHUB_SHA}"
+          git checkout --quiet --detach "$sha" 2>/dev/null || {
+            echo "head sha $sha not in base repo (fork PR?) — deriving the matrix from the merge ref $GITHUB_SHA"
+            git checkout --quiet --detach "$GITHUB_SHA"
+          }
+          # Pick a Python 3.11+ (tomllib) interpreter — no third-party deps (core/caps.py is stdlib-only).
+          PY=""
+          for c in python3.12 python3.11 python3; do
+            if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys;raise SystemExit(0 if sys.version_info>=(3,11) else 1)'; then
+              PY="$c"; break
+            fi
+          done
+          [ -n "$PY" ] || { echo "FATAL: no Python 3.11+ (tomllib) on this runner: $(python3 -V 2>&1 || echo none)" >&2; exit 3; }
+          echo "using $PY ($("$PY" -V 2>&1)) on runner $RUNNER_NAME @ $sha"
+          # Validate the posture data — a bad posture / unclassified device dir / gating posture with no
+          # descriptor / stale row fails HERE, fast, on every descriptor PR (also folded into
+          # `pf caps validate --all`).
+          "$PY" core/caps.py matrix validate
+          # Full picture — a NEW descriptor shows here as advisory with zero workflow edits (auto-join).
+          echo "── CI gate matrix (data-driven from ci-matrix.toml) ──"
+          "$PY" core/caps.py matrix list
+          blocking="$("$PY" core/caps.py matrix list --posture blocking --format ids)"
+          advisory="$("$PY" core/caps.py matrix list --posture advisory --format ids)"
+          echo "blocking (a failure fails sim-suite): ${blocking:-(none)}"
+          echo "advisory (reported, non-blocking):    ${advisory:-(none)}"
+          echo "blocking=${blocking}" >> "$GITHUB_OUTPUT"
+          echo "advisory=${advisory}" >> "$GITHUB_OUTPUT"
+
   sim-suite:
+    needs: descriptor-matrix
     # Build-lab confinement invariant (tsp-20u1): this self-hosted runner has docker = host root and
     # must NEVER execute fork/public-PR code — the org approval gate alone still lets an APPROVED fork
     # PR run here, so this guard makes the invariant MECHANICAL: skip the job whenever the PR head is
@@ -91,8 +158,13 @@ jobs:
     env:
       IMG: pocketforge-sim:plat-ci-${{ github.run_id }}
       # The platform descriptor source the sim image builds against: THIS PR's head sha on a
-      # pull_request; empty on workflow_dispatch (=> sim's baked pin, docker/platform.pin, wins).
+      # pull_request; empty on workflow_dispatch (=> sim's baked pin, docker/platform.pin, wins). NOTE:
+      # on workflow_dispatch the descriptor-matrix job derives from the dispatch ref while the image is
+      # built from sim's baked pin, so a device added on main but not yet re-pinned would be listed but
+      # absent from the image — a benign manual-smoke corner, not the pull_request path.
       PLATFORM_SHA: ${{ github.event.pull_request.head.sha }}
+      BLOCKING: ${{ needs.descriptor-matrix.outputs.blocking }}
+      ADVISORY: ${{ needs.descriptor-matrix.outputs.advisory }}
     steps:
       - name: Ensure uinput module (host node is required for the nested sim)
         run: sudo modprobe uinput || true
@@ -123,26 +195,36 @@ jobs:
       # (no out-of-band input — sim docker/README.md), so denying the run any network shrinks the blast
       # radius of the elevated caps. The caps mirror sim/sim-gate.yml's proven set (the tsp-qc1.2
       # nesting verdict): /dev/uinput + evdev nodes + SYS_ADMIN + unconfined apparmor/seccomp.
-      - name: check-control a133 a523 (descriptors @ PR head)
+      #
+      # Device lists are DATA-DRIVEN from the descriptor-matrix job (platform ci-matrix.toml), NOT a
+      # hardcoded list. BLOCKING devices run hard (a failure fails this job); ADVISORY devices are
+      # reported but never fail the (already advisory) gate. Each list is passed via env (validated
+      # [a-z0-9-] ids) and expanded unquoted so multiple devices become separate args.
+      - name: check suites — BLOCKING devices (control/sensor/skin @ PR head)
+        if: needs.descriptor-matrix.outputs.blocking != ''
         run: |
-          docker run --rm --network none \
-            --device /dev/uinput --device-cgroup-rule "c 13:* rmw" -v /dev/input:/dev/input \
-            --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
-            "$IMG" check-control a133 a523
+          set -euo pipefail
+          for suite in control sensor skin; do
+            echo "== check-$suite (blocking): $BLOCKING =="
+            docker run --rm --network none \
+              --device /dev/uinput --device-cgroup-rule "c 13:* rmw" -v /dev/input:/dev/input \
+              --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
+              "$IMG" "check-$suite" $BLOCKING
+          done
 
-      - name: check-sensor a133 a523 (descriptors @ PR head)
+      - name: check suites — ADVISORY devices (reported, non-blocking)
+        if: needs.descriptor-matrix.outputs.advisory != ''
         run: |
-          docker run --rm --network none \
-            --device /dev/uinput --device-cgroup-rule "c 13:* rmw" -v /dev/input:/dev/input \
-            --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
-            "$IMG" check-sensor a133 a523
-
-      - name: check-skin a133 a523 (descriptors @ PR head)
-        run: |
-          docker run --rm --network none \
-            --device /dev/uinput --device-cgroup-rule "c 13:* rmw" -v /dev/input:/dev/input \
-            --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
-            "$IMG" check-skin a133 a523
+          rc=0
+          for suite in control sensor skin; do
+            echo "== check-$suite (advisory): $ADVISORY =="
+            docker run --rm --network none \
+              --device /dev/uinput --device-cgroup-rule "c 13:* rmw" -v /dev/input:/dev/input \
+              --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
+              "$IMG" "check-$suite" $ADVISORY \
+              || { rc=1; echo "::warning title=advisory sim descriptor gate::check-$suite FAILED for advisory devices ($ADVISORY) — reported, does not block"; }
+          done
+          [ "$rc" = 0 ] && echo "✓ advisory suites passed: $ADVISORY" || echo "advisory suites had failures (non-blocking): $ADVISORY"
 
       - name: Cleanup CI image
         if: always()
