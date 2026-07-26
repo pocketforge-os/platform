@@ -31,7 +31,8 @@ manufacturing-tolerance enclosure drawing.
 | Reset / microphone | Recessed `R` key at X = 0.55W; MIC pinhole at X = 0.82W on the bottom edge | Owner reset-key macro and visual correction | High for topology and identity; medium for photo-derived size |
 | Front identity | `TRIMUI SMART PRO S`, central TrimUI mark and four-bar status motif | Owner front photo and public TG5050 front elevations | Medium-high |
 | Front control insets | Stick centres X = 23.5 / 164.85 mm; ABXY centre X = 165.55 mm | Owner visual review against the physical TG5050 | Medium-high |
-| Speaker centres | X = 33.25 / 155.10 mm; aligned rows stop clear of the screen glass | Owner visual review against the physical TG5050 | Medium-high |
+| Lower face row | Y = 7.15 mm optical centre; Menu X = 25.0 mm, Select X = 162.5 mm, Start X = 170.5 mm | Owner visual review against the physical TG5050 | Medium-high |
+| Speaker centres | X = 33.25 / 155.10 mm, Y = 7.15 mm; aligned rows terminate at the adjacent screen edges | Owner visual review against the physical TG5050 | Medium-high |
 | Rear active cooling | Two-row upper exhaust plus three striped circular fan-intake fields | FCC/public rear elevations | High for topology; medium for photo-derived size and placement |
 | Clear-edge shell depth | 10.7 mm | Shared-chassis TG5040 owner-fit cradle proxy | Medium |
 

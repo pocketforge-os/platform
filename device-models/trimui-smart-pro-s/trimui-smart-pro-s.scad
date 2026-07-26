@@ -57,6 +57,7 @@ screen_active = [
 ];
 screen_glass = [111.6, 63.2];
 screen_centre = [device_width / 2, 40.0];
+front_lower_row_y = 7.15;
 
 // Photo-derived front landmarks. Bilateral pairs intentionally share Y and
 // mirrored X unless repeat evidence proves a real enclosure asymmetry.
@@ -65,9 +66,9 @@ stick_left_centre = [23.5, 24.9];
 stick_right_centre = [device_width - 23.5, 24.9];
 face_centre = [device_width - 22.8, 55.8];
 face_pitch = [7.55, 7.75];
-menu_centre = [26.0, 8.8];
-select_centre = [156.4, 8.8];
-start_centre = [165.8, 8.8];
+menu_centre = [25.0, front_lower_row_y];
+select_centre = [162.5, front_lower_row_y];
+start_centre = [170.5, front_lower_row_y];
 
 // Photo-derived speaker grille lattice. Each side has two right/left-aligned
 // rows of six shallow hexagonal recesses. The inside opening remains clear of
@@ -76,7 +77,7 @@ speaker_left_centre_x = 33.25;
 speaker_right_centre_x = device_width - speaker_left_centre_x;
 speaker_pitch_x = 1.50;
 speaker_pitch_y = 1.30;
-speaker_bottom_y = 1.75;
+speaker_bottom_y = front_lower_row_y - speaker_pitch_y / 2;
 speaker_opening_diameter = 1.30;
 speaker_throat_diameter = 0.90;
 
@@ -476,20 +477,20 @@ module speaker_array(side) {
 }
 
 module front_legends() {
-    // TG5050 retains the right-side lockup, adds the S suffix and a short
-    // four-bar status motif, and places a second TrimUI mark at bottom centre.
-    embossed_label([111.6, 5.42, front_z + 0.03],
+    // The complete lower-face treatment shares one optical centreline:
+    // Menu, both grilles, centre mark, identity/status, Select, and Start.
+    embossed_label([111.6, front_lower_row_y, front_z + 0.03],
                    "TRIMUI", 2.15, 0.06, "left", "center",
                    legend_color, brand_font);
-    embossed_label([122.8, 5.42, front_z + 0.03],
+    embossed_label([122.8, front_lower_row_y, front_z + 0.03],
                    "SMART PRO S", 1.88, 0.06, "left", "center",
                    legend_color, brand_companion_font);
     color(legend_color)
-        translate([110.25, 5.42, front_z + 0.03])
+        translate([110.25, front_lower_row_y, front_z + 0.03])
             linear_extrude(height = 0.06)
                 trimui_mark_2d(0.55, 0.60);
     color(legend_color)
-        translate([device_centre.x, 4.80, front_z + 0.03])
+        translate([device_centre.x, front_lower_row_y, front_z + 0.03])
             linear_extrude(height = 0.06)
                 trimui_mark_2d(1.05, 1.18);
 
@@ -501,19 +502,20 @@ module front_legends() {
     ];
     for (index = [0 : 3])
         color(status_bar_colors[index])
-            translate([144.9 + index * 1.35, 5.42, front_z + 0.03])
+            translate([144.9 + index * 1.35,
+                       front_lower_row_y, front_z + 0.03])
                 linear_extrude(height = 0.06)
                     rounded_rect_2d([0.78, 2.30], 0.18);
 
-    embossed_label([menu_centre.x, 4.35, front_z + 0.03],
-                   "MENU", 1.25, 0.06, "center", "center",
-                   silkscreen_color, silkscreen_font, 0.045);
-    embossed_label([select_centre.x, 4.35, front_z + 0.03],
-                   "SELECT", 1.25, 0.06, "center", "center",
-                   silkscreen_color, silkscreen_font, 0.045);
-    embossed_label([start_centre.x - 1.00, 4.35, front_z + 0.03],
-                   "START", 1.25, 0.06, "center", "center",
-                   silkscreen_color, silkscreen_font, 0.045);
+    embossed_label([menu_centre.x, 2.70, front_z + 0.03],
+                   "MENU", 1.05, 0.06, "center", "center",
+                   silkscreen_color, silkscreen_font, 0.035);
+    embossed_label([select_centre.x, 2.70, front_z + 0.03],
+                   "SELECT", 1.05, 0.06, "center", "center",
+                   silkscreen_color, silkscreen_font, 0.035);
+    embossed_label([start_centre.x, 2.70, front_z + 0.03],
+                   "START", 1.05, 0.06, "center", "center",
+                   silkscreen_color, silkscreen_font, 0.035);
 }
 
 module top_edge_details() {
