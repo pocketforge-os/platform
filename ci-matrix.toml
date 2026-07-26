@@ -1,0 +1,47 @@
+# platform/ci-matrix.toml — the data-driven CI gate matrix (infra-113 §5 / D6, Phase B4).
+#
+# THE FLEET KEYSTONE. This file is the SINGLE source of truth for which devices the sim CI
+# suites (check-control / check-sensor / check-skin) run and each device's POSTURE. All three
+# gate workflows derive their device rows + posture from HERE via `pf caps matrix`, so adding
+# a device to CI is a DATA change in this repo — never a workflow edit ("add a device = add
+# data"). The workflows that consume it:
+#   - sim/.github/workflows/sim-gate.yml            (`./sim check` -> pf caps matrix, in-image)
+#   - pf-hwprobe/.github/workflows/hwprobe-smoke.yml (pf caps matrix, in the baked sim image)
+#   - platform/.github/workflows/sim-descriptor-gate.yml (pf caps matrix, on the PR head)
+#
+# POSTURE (validated by `pf caps matrix validate`; also folded into `pf caps validate --all`):
+#   blocking — a suite failure BLOCKS merge (the required-check goes red). Promotion of a row
+#              to blocking is the deliberate data change gated by infra-113 §5's promotion
+#              rules: (a) descriptor silicon-reconciled, (b) baselines current vs platform
+#              main, (c) N stable green runs.
+#   advisory — a suite failure REPORTS but does not block. This is the DEFAULT for any device
+#              that ships a devices/<id>/capabilities.toml and is NOT listed below (D6
+#              auto-join: a new descriptor joins the matrix as advisory with zero workflow
+#              edits). Listing such a device as advisory here is therefore optional but
+#              self-documenting.
+#   excluded — deliberately NOT run and NOT gated. This MUST be EXPLICIT. A device directory
+#              that carries only a profile.toml (a build-profile variant, no capabilities.toml)
+#              is a `pf caps matrix validate` ERROR until it is explicitly excluded here — so a
+#              non-participating device is never a SILENT SKIP.
+
+schema = 1
+
+[devices]
+# a133 = the base TrimUI Smart Pro (Allwinner A133). Live rev-5.0 DUT on pf-node-01 + the HIL
+# drift lane (infra-113 §5). BLOCKING: the a133 row is the blocking key of the whole gate
+# (infra-113 D2 — a523 hardware is descoped, so a133 is the sole blocking device today).
+a133       = "blocking"
+
+# a523 = the TrimUI Smart Pro S (Allwinner A523). The sim rows STAY (pure data, device-free,
+# they carry the multi-device zero-per-device-code proof — infra-104 LOCKED decision 2), but
+# a523 hardware work is descoped (owner, 2026-07-25; infra-113 D2), so the row runs ADVISORY:
+# a failure reports, it does not block. Explicit here to document the descope; a descriptor'd
+# device with no entry would default to advisory anyway.
+a523       = "advisory"
+
+# a133-owned + sdm845 carry ONLY a profile.toml (a build-profile variant / porting target) —
+# no capabilities.toml, so there is nothing for the sim suites to run against. They are
+# EXPLICITLY excluded so the completeness check proves they were considered and deliberately
+# left out of the gate, never silently dropped.
+a133-owned = "excluded"
+sdm845     = "excluded"

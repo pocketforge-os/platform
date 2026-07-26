@@ -23,6 +23,9 @@ asserts that agreement when the library is present.
 Usage:
   caps.py list                      # device ids that have a capabilities.toml
   caps.py validate <id|--all>       # schema + semantic validation; non-zero exit on error
+                                    #   (with --all also validates the CI gate matrix)
+  caps.py matrix list [--posture blocking|advisory|excluded] [--format tsv|ids]
+  caps.py matrix validate           # validate ci-matrix.toml vs the devices/ tree
   caps.py emit-sdldb --device <id>  # emit the SDL gamecontrollerdb mapping line for a device
   caps.py probe-diff --device <id> --probe <capture.json>   # SPIKE-0 asymmetric diff vs silicon
 """
@@ -47,6 +50,29 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEVICES = os.path.join(ROOT, "devices")
 SCHEMA_PATH = os.path.join(ROOT, "schemas", "capabilities.schema.json")
 CAPS_FILE = "capabilities.toml"
+
+# ---------------------------------------------------------------------------
+# The data-driven CI gate matrix (infra-113 §5 / D6, Phase B4). ci-matrix.toml
+# is the SINGLE source of truth for WHICH devices the sim CI suites run and each
+# device's POSTURE. All three gate workflows (sim-gate, hwprobe-smoke, platform
+# sim-descriptor-gate) derive their device rows + posture from it via
+# `pf caps matrix` — so adding a device to CI is a DATA change here, never a
+# workflow edit ("add a device = add data" — the fleet keystone).
+#
+#   blocking — a suite failure BLOCKS merge (required-check red). Promotion to
+#              blocking is the deliberate data change gated by §5's promotion rules.
+#   advisory — a suite failure REPORTS but does not block. This is the DEFAULT for
+#              any device that ships a capabilities.toml and carries no explicit
+#              matrix entry (D6 auto-join: a new descriptor joins as advisory with
+#              zero workflow edits).
+#   excluded — deliberately NOT run and NOT gated. MUST be EXPLICIT: a device dir
+#              with no capabilities.toml (a build-only profile like a133-owned /
+#              sdm845) is a VALIDATION ERROR until it is explicitly excluded here —
+#              never a silent skip.
+MATRIX_FILE = "ci-matrix.toml"
+MATRIX_PATH = os.path.join(ROOT, MATRIX_FILE)
+POSTURES = ("blocking", "advisory", "excluded")
+DEFAULT_POSTURE = "advisory"  # a capabilities.toml device with no explicit entry auto-joins here
 
 # ---------------------------------------------------------------------------
 # Canonical Linux input-event-codes we accept (gamepad/handheld-relevant subset).
@@ -563,6 +589,161 @@ def cmd_probe_diff(argv):
 
 
 # ---------------------------------------------------------------------------
+# CI gate matrix (infra-113 B4 / D6): derive device rows + per-device posture
+# from ci-matrix.toml, and validate that data for completeness + coherence.
+# ---------------------------------------------------------------------------
+def _device_dirs():
+    """Every subdirectory under devices/ — the full set that MUST be classified."""
+    if not os.path.isdir(DEVICES):
+        return []
+    return sorted(d for d in os.listdir(DEVICES)
+                  if os.path.isdir(os.path.join(DEVICES, d)))
+
+
+def _has_caps(dev_id):
+    return os.path.isfile(os.path.join(DEVICES, dev_id, CAPS_FILE))
+
+
+def load_matrix():
+    """Parse ci-matrix.toml -> {device_id: posture}. Returns ({}, None) if the file is
+    absent (validation then flags every unclassified dir), or ({}, error) on a parse error."""
+    if not os.path.isfile(MATRIX_PATH):
+        return {}, None
+    try:
+        data = _load(MATRIX_PATH)
+    except Exception as e:  # noqa: BLE001 — surface any TOML error as a validation error
+        return {}, f"cannot parse {MATRIX_FILE}: {e}"
+    return dict(data.get("devices", {})), None
+
+
+def resolve_matrix():
+    """Resolve every devices/ dir to a posture.
+
+    Returns rows = [(dev_id, posture)] sorted. Posture is:
+      - the explicit ci-matrix value when listed;
+      - when ci-matrix.toml is PRESENT: DEFAULT_POSTURE (advisory) for an unlisted
+        descriptor'd dir (D6 auto-join), else None (UNCLASSIFIED — a profile-only dir
+        with no explicit entry; validate() flags it as a silent-skip error);
+      - when ci-matrix.toml is ABSENT (a pre-B4 baked platform pin whose tree predates
+        this file): FAIL-CLOSED — every descriptor'd dir defaults to 'blocking' (the
+        pre-B4 "every device gates" behavior, so a consumer on a stale pin never SILENTLY
+        relaxes a device to non-blocking), profile-only dirs stay None (never ran).
+    This makes the three gate workflows robust to the pin cascade: they derive a correct,
+    list-free device matrix whether or not the baked/checked platform yet carries the data;
+    the a523→advisory relaxation activates only once the consumed pin includes ci-matrix.toml.
+    """
+    explicit, perr = load_matrix()
+    present = os.path.isfile(MATRIX_PATH) and not perr
+    unlisted_default = DEFAULT_POSTURE if present else "blocking"
+    rows = []
+    for d in _device_dirs():
+        if d in explicit:
+            rows.append((d, explicit[d]))
+        elif _has_caps(d):
+            rows.append((d, unlisted_default))
+        else:
+            rows.append((d, None))  # profile-only dir — never silently skipped (flagged when present)
+    return rows
+
+
+def matrix_errors():
+    """Validate ci-matrix.toml against the devices/ tree. Returns (errors, warnings).
+
+    Enforces (infra-113 §5): every device dir is EXPLICITLY accounted for (a profile-only
+    dir must be excluded — never a silent skip); every posture is legal; a gating posture
+    (blocking/advisory) requires a real descriptor; no stale entry points at a missing dir.
+    """
+    errs, warns = [], []
+    if not os.path.isfile(MATRIX_PATH):
+        # The platform repo MUST carry the matrix data (infra-113 B4). Its absence is a data
+        # error HERE (guards the source repo). Consumers never call validate against a stale
+        # baked pin — they call `matrix list`, whose resolve_matrix() fail-closes to blocking.
+        return [f"ci-matrix: {MATRIX_FILE} is missing (the data-driven CI gate matrix — "
+                f"infra-113 B4 / D6); create it classifying every devices/ directory)"], []
+    explicit, perr = load_matrix()
+    if perr:
+        return [perr], []
+    dirs = set(_device_dirs())
+
+    # Stale entries: a matrix row must point at a real devices/<id>/ dir.
+    for dev_id, posture in explicit.items():
+        if posture not in POSTURES:
+            errs.append(f"ci-matrix: device '{dev_id}' has unknown posture {posture!r} "
+                        f"(must be one of {', '.join(POSTURES)})")
+        if dev_id not in dirs:
+            errs.append(f"ci-matrix: entry '{dev_id}' has no devices/{dev_id}/ directory "
+                        f"(stale row — remove it or add the device)")
+
+    # Completeness + coherence: every dir classified, gating posture ⇒ descriptor present.
+    for d in sorted(dirs):
+        posture = explicit.get(d)
+        has_caps = _has_caps(d)
+        if posture is None:
+            if not has_caps:
+                errs.append(f"ci-matrix: devices/{d}/ has no {CAPS_FILE} and no explicit "
+                            f"posture — classify it (add '{d} = \"excluded\"' for a build-only "
+                            f"profile) so it is never a SILENT SKIP")
+            # else: descriptor'd + unlisted -> auto-joins as advisory (D6), no error.
+        elif posture in ("blocking", "advisory") and not has_caps:
+            errs.append(f"ci-matrix: devices/{d}/ posture {posture!r} requires a {CAPS_FILE} "
+                        f"but none exists (a gate cannot run a device with no descriptor)")
+        elif posture == "excluded" and has_caps:
+            warns.append(f"ci-matrix: devices/{d}/ is excluded but ships a {CAPS_FILE} "
+                         f"(descriptor present but deliberately not gated — confirm intended)")
+    return errs, warns
+
+
+def cmd_matrix(argv):
+    if not argv:
+        sys.stderr.write("matrix: usage: matrix {list|validate} [--posture P] [--format tsv|ids]\n")
+        return 2
+    sub = argv[0]
+    rest = argv[1:]
+    if sub == "validate":
+        errs, warns = matrix_errors()
+        for w in warns:
+            print(f"WARN  {w}")
+        for e in errs:
+            print(f"ERROR {e}")
+        if not errs:
+            rows = [f"{d}={p}" for d, p in resolve_matrix() if p]
+            print(f"OK    ci-matrix valid: {', '.join(rows)}")
+        return 1 if errs else 0
+    if sub == "list":
+        posture_filter = None
+        fmt = "tsv"
+        i = 0
+        while i < len(rest):
+            if rest[i] == "--posture" and i + 1 < len(rest):
+                posture_filter = rest[i + 1]; i += 2
+            elif rest[i] == "--format" and i + 1 < len(rest):
+                fmt = rest[i + 1]; i += 2
+            else:
+                sys.stderr.write(f"matrix list: unknown arg {rest[i]!r}\n"); return 2
+        if posture_filter is not None and posture_filter not in POSTURES:
+            sys.stderr.write(f"matrix list: --posture must be one of {', '.join(POSTURES)}\n")
+            return 2
+        rows = resolve_matrix()
+        if posture_filter is not None:
+            ids = [d for d, p in rows if p == posture_filter]
+            if fmt == "ids":
+                print(" ".join(ids))
+            else:
+                for d in ids:
+                    print(f"{d}\t{posture_filter}")
+            return 0
+        # No filter: full picture (UNCLASSIFIED rendered explicitly, never hidden).
+        if fmt == "ids":
+            print(" ".join(d for d, p in rows if p in ("blocking", "advisory")))
+        else:
+            for d, p in rows:
+                print(f"{d}\t{p or 'UNCLASSIFIED'}")
+        return 0
+    sys.stderr.write(f"matrix: unknown subcommand {sub!r} (use list|validate)\n")
+    return 2
+
+
+# ---------------------------------------------------------------------------
 # Driver
 # ---------------------------------------------------------------------------
 def list_caps_devices():
@@ -594,11 +775,11 @@ def cmd_validate(argv):
     except OSError as e:
         sys.stderr.write(f"FATAL: cannot read schema {SCHEMA_PATH}: {e}\n")
         return 3
-    if argv and argv[0] == "--all":
+    validate_all = bool(argv) and argv[0] == "--all"
+    if validate_all:
         targets = list_caps_devices()
         if not targets:
             print("(no capabilities.toml descriptors found)")
-            return 0
     else:
         targets = argv
         if not targets:
@@ -614,6 +795,17 @@ def cmd_validate(argv):
         if not errs:
             print(f"OK    {d}: capabilities valid")
         total_err += len(errs)
+    # --all also validates the CI gate matrix (infra-113 B4): a bad posture, an
+    # unclassified device dir, or a gating posture without a descriptor is an error.
+    if validate_all:
+        merrs, mwarns = matrix_errors()
+        for w in mwarns:
+            print(f"WARN  {w}")
+        for e in merrs:
+            print(f"ERROR {e}")
+        if not merrs:
+            print("OK    ci-matrix: posture data valid")
+        total_err += len(merrs)
     return 1 if total_err else 0
 
 
@@ -627,6 +819,8 @@ def main(argv):
         return 0
     if cmd == "validate":
         return cmd_validate(argv[1:])
+    if cmd == "matrix":
+        return cmd_matrix(argv[1:])
     if cmd == "emit-sdldb":
         return cmd_emit_sdldb(argv[1:])
     if cmd == "probe-diff":
