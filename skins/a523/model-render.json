@@ -125,9 +125,68 @@
     "w": 3200
   },
   "renderer": "device-models/trimui-smart-pro-s/render.py",
-  "renderer_sha256": "8e4c40758597e9a956bb3489fcd1bd61f928a7a4326b8276843fce8bb36add72",
+  "renderer_sha256": "54af3a2710b03bd25e7092e74d9e113d14078bd4d04608dc13ef842f75271cba",
   "schema_version": 3,
   "shoulder_crop_policy": "split-overlap-midpoint+4px-horizontal+front-control-trim",
   "source": "device-models/trimui-smart-pro-s/trimui-smart-pro-s.scad",
-  "source_sha256": "0d5c8153639537d5e70941492ad2cc930f5fb1c93f3694e9a160f5770693224d"
+  "source_sha256": "0d5c8153639537d5e70941492ad2cc930f5fb1c93f3694e9a160f5770693224d",
+  "views": {
+    "top": {
+      "atlas_composition": "pairwise-disjoint-one-control-renders",
+      "body": "skins/a523/body_top.png",
+      "body_lit": "skins/a523/body_lit_top.png",
+      "body_lit_sha256": "1171f6b8d70c5ca1394a02ed20e4895d7b00085d7a9cda2462a30f891d317756",
+      "body_sha256": "fca53c591e429dc85243030e9355c05db31982877aad0bea374bd3cf38f3a9e8",
+      "camera": {
+        "colorscheme": "Tomorrow",
+        "crop": [
+          971,
+          626,
+          2229,
+          790
+        ],
+        "eye_target": "94.175,360,40,94.175,39.885,5.5",
+        "padding": 12,
+        "projection": "ortho",
+        "raw_rotation_degrees": 180
+      },
+      "canvas": {
+        "h": 640,
+        "w": 1480
+      },
+      "controls": {
+        "btn_home": {
+          "h": 39,
+          "w": 40,
+          "x": 563,
+          "y": 258
+        },
+        "btn_l1": {
+          "h": 26,
+          "w": 193,
+          "x": 60,
+          "y": 310
+        },
+        "btn_r1": {
+          "h": 26,
+          "w": 193,
+          "x": 1227,
+          "y": 310
+        },
+        "trig_l": {
+          "h": 55,
+          "w": 200,
+          "x": 52,
+          "y": 255
+        },
+        "trig_r": {
+          "h": 55,
+          "w": 200,
+          "x": 1228,
+          "y": 255
+        }
+      },
+      "shoulder_crop_policy": "split-overlap-midpoint+4px-horizontal"
+    }
+  }
 }

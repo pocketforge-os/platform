@@ -159,6 +159,68 @@ def check_skin(metadata_path: Path) -> list[str]:
                     f"model-render.json={derived_display}"
                 )
 
+    # 5. Additional CLICKABLE VIEWS (tsp-65jc.27). model-render.json may carry a
+    #    "views" block ({name: {body, body_lit, body_sha256, body_lit_sha256,
+    #    controls}}) for extra rendered atlases (e.g. the top-edge view the sim GUI
+    #    rotates to). Each view is gated exactly like the front: its committed
+    #    body/body_lit PNGs must hash to what the metadata recorded, and its control
+    #    rects must EQUAL the descriptor's [skin.views.<name>.parts]. A view present
+    #    on one side but not the other is drift. Shared source/renderer hashes are
+    #    already covered by section 1 (same .scad/render.py). A device with no views
+    #    block simply skips this — no per-device code, same auto-discovery property.
+    metadata_views = metadata.get("views", {})
+    descriptor_views = descriptor.get("skin", {}).get("views", {})
+    if set(metadata_views) != set(descriptor_views):
+        failures.append(
+            f"{device}: view sets differ: "
+            f"model-render.json.views={sorted(metadata_views)} "
+            f"descriptor[skin.views]={sorted(descriptor_views)}"
+        )
+    for view_name in sorted(set(metadata_views) & set(descriptor_views)):
+        view_meta = metadata_views[view_name]
+        for field, label in (("body_sha256", "body"), ("body_lit_sha256", "body_lit")):
+            rel = view_meta.get(label)
+            if not rel:
+                failures.append(
+                    f"{device}/{view_name}: metadata missing the {label} path"
+                )
+                continue
+            path = ROOT / rel
+            if not path.is_file():
+                failures.append(
+                    f"{device}/{view_name}: missing committed {label} file {rel}"
+                )
+                continue
+            recorded = view_meta.get(field)
+            actual = sha256(path)
+            if recorded != actual:
+                failures.append(
+                    f"{device}/{view_name}: {field} drift for {rel}: "
+                    f"metadata={recorded} committed={actual} "
+                    f"(regenerate with render.py --write-views)"
+                )
+        view_declared = {
+            name: norm_rect(rect)
+            for name, rect in descriptor_views[view_name].get("parts", {}).items()
+        }
+        view_derived = {
+            name: norm_rect(rect)
+            for name, rect in view_meta.get("controls", {}).items()
+        }
+        if set(view_declared) != set(view_derived):
+            failures.append(
+                f"{device}/{view_name}: control id sets differ: "
+                f"descriptor[skin.views.{view_name}.parts]={sorted(view_declared)} "
+                f"model-render.json.views.{view_name}.controls={sorted(view_derived)}"
+            )
+        for control_id in sorted(set(view_declared) & set(view_derived)):
+            if view_declared[control_id] != view_derived[control_id]:
+                failures.append(
+                    f"{device}/{view_name}: {control_id} rect drift: "
+                    f"descriptor={view_declared[control_id]} "
+                    f"model-render.json={view_derived[control_id]}"
+                )
+
     return failures
 
 

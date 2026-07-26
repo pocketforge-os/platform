@@ -119,9 +119,62 @@
     "w": 3200
   },
   "renderer": "device-models/trimui-smart-pro/render.py",
-  "renderer_sha256": "1f652756500cb854add16c6e7730ae78cc0979095568a06a602a6b683518499a",
+  "renderer_sha256": "214699ffde896a541e5d7c5a121a279bf5af30986c3245ac63e741a6734fb783",
   "schema_version": 3,
   "shoulder_crop_policy": "split-overlap-midpoint+4px-horizontal+front-control-trim",
   "source": "device-models/trimui-smart-pro/trimui-smart-pro.scad",
-  "source_sha256": "75f9455ab6d2fe799630cf3a0da52964ec5013da7cfa72e6c1dc634e2f6104e4"
+  "source_sha256": "75f9455ab6d2fe799630cf3a0da52964ec5013da7cfa72e6c1dc634e2f6104e4",
+  "views": {
+    "top": {
+      "atlas_composition": "pairwise-disjoint-one-control-renders",
+      "body": "skins/a133/body_top.png",
+      "body_lit": "skins/a133/body_lit_top.png",
+      "body_lit_sha256": "222a8be066a0bbb9af8e83a9a7f52b4969ed4accf482b3c0dcde3e46bb237cdd",
+      "body_sha256": "47ae9e7b6f1c959ce6fbfab2d99a63a24b8e3559f96f6cc87a55bfdebd94e28c",
+      "camera": {
+        "colorscheme": "Tomorrow",
+        "crop": [
+          971,
+          626,
+          2229,
+          790
+        ],
+        "eye_target": "94.175,360,40,94.175,39.885,5.5",
+        "padding": 12,
+        "projection": "ortho",
+        "raw_rotation_degrees": 180
+      },
+      "canvas": {
+        "h": 640,
+        "w": 1480
+      },
+      "controls": {
+        "btn_l1": {
+          "h": 26,
+          "w": 193,
+          "x": 60,
+          "y": 310
+        },
+        "btn_r1": {
+          "h": 26,
+          "w": 193,
+          "x": 1227,
+          "y": 310
+        },
+        "trig_l": {
+          "h": 55,
+          "w": 200,
+          "x": 52,
+          "y": 255
+        },
+        "trig_r": {
+          "h": 55,
+          "w": 200,
+          "x": 1228,
+          "y": 255
+        }
+      },
+      "shoulder_crop_policy": "split-overlap-midpoint+4px-horizontal"
+    }
+  }
 }
