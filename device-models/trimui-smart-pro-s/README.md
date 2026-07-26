@@ -18,6 +18,21 @@ This remains a 1:1 nominal visual/UI model. It is suitable for device identity,
 input highlighting, layout studies and early clearance concepts. It is not a
 manufacturing-tolerance enclosure drawing.
 
+## Fixture/manufacturing handoff
+
+[`fixture-contract.json`](fixture-contract.json) is a validated shared-chassis
+alias of the TG5040 fixture interface. It preserves TG5050/a523 identity while
+resolving exactly the same revision-1 interface SHA-256,
+`637aa67b32e284af2d5ad1b1655e630392e06fa80af1996f498f8d3cdecb20d5`.
+Home/reset controls, labels and cooling details are visual-only deltas outside
+the physically accepted six contact windows. Any future TG5050 enclosure or
+contact delta must replace the alias with a full fixture contract rather than
+quietly overriding shared geometry.
+
+The qualification scope and open measurement gaps are inherited honestly: the
+accepted six-hook holder does not turn the photo-derived cooling, port or exact
+Z geometry into manufacturing-tolerance data.
+
 ## Measurement and provenance
 
 | Feature | Value used | Evidence | Confidence |

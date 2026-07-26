@@ -1,0 +1,77 @@
+# Render-free validation for the device-model -> manufacturing-fixture boundary.
+#
+# A semantic OpenSCAD model is a visual/UI asset, not a tolerance drawing.  A
+# device-models/*/fixture-contract.json is the explicit manufacturing handoff
+# consumed by holder tooling.  This gate validates every contract, exercises
+# canonical-hash negative cases, resolves shared-chassis aliases, and compares
+# the PR against its base so a geometry change must bump the interface revision
+# and invalidate (or genuinely renew) physical qualification.
+#
+# The job intentionally uses no marketplace actions.  It runs the PR's
+# stdlib-only validator/tests on the pf-pr-review lane and never renders
+# OpenSCAD, reads owner photos, or writes repository files.
+
+name: fixture contract gate
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'device-models/**'
+      - 'schemas/device-fixture-contract.schema.json'
+      - '.github/workflows/fixture-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'device-models/**'
+      - 'schemas/device-fixture-contract.schema.json'
+      - '.github/workflows/fixture-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: fixture-contract
+    runs-on: [self-hosted, pf-pr-review]
+    steps:
+      - name: Checkout, validate contracts, and compare the PR base
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          runner_temp="${RUNNER_TEMP:?RUNNER_TEMP is required}"
+          wd="$runner_temp/platform-fixture-contract-$GITHUB_RUN_ID"
+          baseline="$runner_temp/platform-fixture-baseline-$GITHUB_RUN_ID"
+          rm -rf "$wd" "$baseline"
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
+          cd "$wd"
+          sha="${HEAD_SHA:-$GITHUB_SHA}"
+          git fetch --quiet origin "$sha"
+          git checkout --quiet --detach "$sha"
+
+          PY=""
+          for candidate in python3.12 python3.11 python3; do
+            if command -v "$candidate" >/dev/null 2>&1 && \
+               "$candidate" -c 'import sys;raise SystemExit(0 if sys.version_info>=(3,11) else 1)'; then
+              PY="$candidate"
+              break
+            fi
+          done
+          if [ -z "$PY" ]; then
+            echo "FATAL: no Python 3.11+ on this runner" >&2
+            exit 3
+          fi
+
+          echo "using $PY ($("$PY" -V 2>&1)) on runner $RUNNER_NAME @ $sha"
+          "$PY" device-models/validate_fixture_contracts.py
+          "$PY" device-models/test_fixture_contracts.py
+
+          if [ -n "${BASE_SHA:-}" ]; then
+            git worktree add --quiet --detach "$baseline" "$BASE_SHA"
+            "$PY" device-models/validate_fixture_contracts.py \
+              --compare-root "$baseline"
+            git worktree remove --force "$baseline"
+          fi

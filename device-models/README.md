@@ -52,6 +52,92 @@ before runtime-skin integration.
 Other agents can follow the same `SKILL.md`, its evidence checklist, and its
 deterministic validator directly.
 
+## Fixture contracts — the manufacturing handoff
+
+The semantic `.scad` model is intentionally **not** the input to a pressure fit,
+clamp, or DUT carrier. A model package may additionally carry
+`fixture-contract.json`, validated by
+[`schemas/device-fixture-contract.schema.json`](../schemas/device-fixture-contract.schema.json).
+That file is the explicit, evidence-backed handoff to `test-node-hw`:
+
+- a fixed millimetre coordinate system and measured/nominal envelope;
+- local contact-depth facts or honest fit-derived proxies;
+- allowed contact regions plus control, port, vent, optical and cable
+  keep-outs;
+- service/access regions, optical/mechanical datums and clearance
+  requirements;
+- per-field provenance, confidence and unresolved measurements; and
+- a qualification state scoped to the exact interface features physically
+  exercised.
+
+There are two contract forms. A `fixture_interface` owns complete fit-bearing
+data. A `shared_chassis_alias` carries its own product/device identity but
+resolves a sibling contract and must have the exact same interface hash. An
+alias is forbidden from declaring a fit-relevant delta; make a new full
+contract when the enclosure or contact interface actually differs.
+
+The current examples are the canonical
+[`trimui-smart-pro/fixture-contract.json`](trimui-smart-pro/fixture-contract.json)
+and the
+[`trimui-smart-pro-s/fixture-contract.json`](trimui-smart-pro-s/fixture-contract.json)
+shared-chassis alias. Their physical qualification is limited to the accepted
+six-hook contact windows, rear clearance, central service access and display
+visibility recorded by `tsp-bcx.21.22`. The contracts explicitly leave exact
+edge-depth variation and the full Z/control/port/vent envelope unresolved.
+
+### Identity and invalidation
+
+`fixture_interface_sha256` is the content identity consumed by downstream
+holder profiles. Its versioned canonicalization includes only the coordinate
+system and fit-bearing `fixture_interface` payload. It normalizes object-key
+order, decimal spelling/signed zero, ID-keyed collection order and set-like
+reference order. It deliberately excludes:
+
+- the semantic OpenSCAD source and rendered skins;
+- product prose, evidence notes and unresolved-measurement prose;
+- qualification/acceptance metadata; and
+- `interface_revision`, which is the human-readable monotonic revision rather
+  than geometry identity.
+
+Therefore a label, shader, camera, visual control or skin change does not
+invalidate a fixture. A changed coordinate, range, tolerance, contact,
+keep-out, access region, datum or clearance changes the hash. PR comparison
+also requires the revision to increase when that hash changes, rejects a
+meaningless revision bump when it does not, and forces a previously qualified
+interface back to `unqualified` unless new physical acceptance evidence is
+recorded.
+
+Validate every discovered contract and run its regression suite with:
+
+```bash
+python3 device-models/validate_fixture_contracts.py
+python3 device-models/test_fixture_contracts.py
+```
+
+Both commands are render-free and the validator is read-only. To review the
+hash produced by an intentional edit:
+
+```bash
+python3 device-models/validate_fixture_contracts.py \
+  --print-interface-hash \
+  device-models/<slug>/fixture-contract.json
+```
+
+Do not treat that output as permission to preserve qualification. For an
+intentional fit change:
+
+1. edit the interface and increment `interface_revision`;
+2. record the reviewed hash and set qualification to `unqualified`;
+3. let the downstream holder-profile validation show the geometric impact;
+4. print the coupon or affected parts and obtain explicit physical acceptance;
+5. only then record the new acceptance reference and qualified hash.
+
+Generated STLs remain owned by `test-node-hw`; they are never committed here.
+Regenerating an already accepted holder must require only committed sources,
+contracts and toolchains—not an AI model. An agent may help author a new
+contract or retention family, but the resulting data and code become the
+reproducible interface.
+
 ## Drift gate (CI) — `check-skin-drift.py`
 
 The model, the rendered atlas, and the descriptor rects are **one chain**: the sim
