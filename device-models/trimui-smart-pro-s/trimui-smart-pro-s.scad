@@ -55,12 +55,13 @@ screen_active = [
     screen_diagonal * 16 / sqrt(16 * 16 + 9 * 9),
     screen_diagonal * 9 / sqrt(16 * 16 + 9 * 9)
 ];
-screen_glass = [111.6, 66.2];
-screen_centre = [device_width / 2, 41.5];
+screen_glass = [111.6, 68.6];
+screen_centre = [device_width / 2, 40.3];
 front_lower_row_y = 7.15;
-front_speaker_row_y = 6.50;
-front_identity_y = 5.20;
-status_bar_start_x = 135.80;
+front_speaker_row_y = 4.05;
+front_identity_y = 2.25;
+status_bar_start_x = 133.20;
+status_bar_pitch = 1.18;
 
 // Photo-derived front landmarks. Bilateral pairs intentionally share Y and
 // mirrored X unless repeat evidence proves a real enclosure asymmetry.
@@ -483,19 +484,19 @@ module front_legends() {
     // The identity/status artwork occupies the low strip beneath the display.
     // System controls and the two grille rows sit immediately above it.
     embossed_label([108.1, front_identity_y, front_z + 0.03],
-                   "TRIMUI", 2.15, 0.06, "left", "center",
+                   "TRIMUI", 1.90, 0.06, "left", "center",
                    legend_color, brand_font);
-    embossed_label([119.3, front_identity_y, front_z + 0.03],
-                   "SMART PRO S", 1.88, 0.06, "left", "center",
+    embossed_label([118.0, front_identity_y, front_z + 0.03],
+                   "SMART PRO S", 1.66, 0.06, "left", "center",
                    legend_color, brand_companion_font);
     color(legend_color)
-        translate([106.75, front_identity_y, front_z + 0.03])
+        translate([106.85, front_identity_y, front_z + 0.03])
             linear_extrude(height = 0.06)
-                trimui_mark_2d(0.55, 0.60);
+                trimui_mark_2d(0.48, 0.53);
     color(legend_color)
         translate([device_centre.x, front_identity_y, front_z + 0.03])
             linear_extrude(height = 0.06)
-                trimui_mark_2d(1.05, 1.18);
+                trimui_mark_2d(0.90, 1.00);
 
     status_bar_colors = [
         [0.75, 0.77, 0.76, 1.0],
@@ -505,10 +506,10 @@ module front_legends() {
     ];
     for (index = [0 : 3])
         color(status_bar_colors[index])
-            translate([status_bar_start_x + index * 1.35,
+            translate([status_bar_start_x + index * status_bar_pitch,
                        front_identity_y, front_z + 0.03])
                 linear_extrude(height = 0.06)
-                    rounded_rect_2d([0.78, 2.30], 0.18);
+                    rounded_rect_2d([0.68, 1.95], 0.16);
 
     embossed_label([menu_centre.x, 2.70, front_z + 0.03],
                    "MENU", 1.05, 0.06, "center", "center",
