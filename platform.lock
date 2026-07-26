@@ -106,7 +106,15 @@ sha  = "5e18e9d5ea0264df6c1fa424f75fe82b26cb3a9c"
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"          # tsp-ozbp.8: bump a6b19832d3c4 -> aaad7d8a8cf1 = device/a133 tip after #21
+ref  = "device/a133"          # tsp-ozbp.8 HOTFIX: bump aaad7d8a8cf1 -> 6c9fcfebf9e7 = device/a133 tip after #22
+                              # (REVERT of #21's gpio-hog: it bricked a133 boot. On sunxi 4.9 the pio
+                              # gpiochip and pinctrl are the SAME node, so the hog applied during gpiochip_add
+                              # hit perpetual EPROBE_DEFER while pinctrl was mid-registration -> GPIOs 0..319
+                              # never registered -> mmc/i2c/uart3-4/disp/wlan all dead. Only the 3 DT hog
+                              # nodes reverted; the gpiolib of_parse_own_gpio patch is KEPT (correct latent-
+                              # bug fix, unexercised without hogs). GPIO enable re-approached as a
+                              # regulator-fixed under tsp-ozbp.8.)
+                              # Prior (aaad7d8a8, tsp-ozbp.8): bump a6b19832d3c4 -> aaad7d8a8cf1 = device/a133 tip after #21
                               # (gamepad-MCU enable: static output-high gpio-hog on PD11+PD14+PD18 so the
                               # A133 pad streams from a COLD boot with no vendor daemon — stock drove these
                               # from proprietary userspace. Also fixes a latent gpiolib bug this is the first
@@ -161,7 +169,7 @@ ref  = "device/a133"          # tsp-ozbp.8: bump a6b19832d3c4 -> aaad7d8a8cf1 = 
                               # vendor image, load-bearing only for the owned-SPL path.
                               # Prior (ed7b3638, tsp-myp1.5.1.1): WORKQUEUE-DEFERRED fb0 g2d
                               # rotation + #6 xr829 HT20-only + #8 revert of the 3s-cap regression.
-sha  = "aaad7d8a8cf189ad171026386035f9e5783d245b"
+sha  = "6c9fcfebf9e7208b1f0212cb3accba577a4fcdd8"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch

@@ -15,9 +15,9 @@
       "kernel": {
         "ref": "device/a133",
         "repo": "kernel-sunxi-4.9",
-        "sha": "aaad7d8a8cf189ad171026386035f9e5783d245b"
+        "sha": "6c9fcfebf9e7208b1f0212cb3accba577a4fcdd8"
       },
-      "platform_version": "9",
+      "platform_version": "10",
       "provenance_ref": "tsp-1dl.4.5, tsp-cv7.6.1",
       "reproducible": true,
       "sdl": {
