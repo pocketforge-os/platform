@@ -1,0 +1,13 @@
+# devices/synthetic-autojoin/capabilities.toml — THROWAWAY synthetic descriptor for the
+# infra-113 B4 auto-join proof (tsp-65jc.6). Adding this dir with a capabilities.toml is the
+# ENTIRE change: it must appear in the CI matrix as ADVISORY with ZERO workflow edits (D6).
+# This branch is discarded (PR closed unmerged) after the run URL is recorded.
+accept_default = "south"
+
+[identity]
+id           = "synthetic-autojoin"
+manufacturer = "SyntheticCo"
+model        = "AutoJoin Proof"
+codename     = "9999"
+sdl_guid     = "03000000000000009999000000000000"
+match        = { evdev_name = "SYNTHETIC Player1", vid = "0000", pid = "9999" }

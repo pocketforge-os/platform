@@ -1,0 +1,3 @@
+# Minimal build profile for the synthetic auto-join proof device (throwaway).
+[device]
+id = "synthetic-autojoin"
