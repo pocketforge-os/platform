@@ -30,6 +30,28 @@ derivative [`trimui-smart-pro-s/`](trimui-smart-pro-s/README.md) carries the
 TG5050 identity, cooling details and fifteenth semantic `btn_home` control for
 the A523 descriptor without redrawing the accepted TG5040 baseline.
 
+## Start a new model
+
+Follow the PocketForge admin chapter
+[Model a handheld](https://pocketforge-os.github.io/handbook/hardware/model-handheld/)
+before generating a device-specific DUT holder. It separates the useful
+photo-derived first pass from the later caliper-backed acceptance gate and
+defines the evidence, privacy, semantic, and handoff contracts.
+
+Codex discovers the repository skill at
+[`../.agents/skills/model-handheld-device/`](../.agents/skills/model-handheld-device/SKILL.md)
+when launched anywhere in this repository. Invoke it explicitly with:
+
+```text
+$model-handheld-device Build the source model for <manufacturer> <product and
+model number> as device ID <id>. Start from public evidence, derive from an
+accepted shared chassis when appropriate, and stop for owner visual review
+before runtime-skin integration.
+```
+
+Other agents can follow the same `SKILL.md`, its evidence checklist, and its
+deterministic validator directly.
+
 ## Drift gate (CI) — `check-skin-drift.py`
 
 The model, the rendered atlas, and the descriptor rects are **one chain**: the sim

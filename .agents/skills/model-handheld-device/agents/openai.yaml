@@ -1,0 +1,4 @@
+interface:
+  display_name: "Model Handheld Device"
+  short_description: "Build evidence-backed semantic handheld models"
+  default_prompt: "Use $model-handheld-device to build and validate an accurate semantic OpenSCAD model for this handheld."
