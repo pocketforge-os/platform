@@ -33,7 +33,7 @@
 # rationale) — a required check gated by `paths:` hangs "expected" forever on unrelated PRs.
 #
 # NO `push: main` TRIGGER — DELIBERATE (matches sim/sim-gate.yml, NOT the cheap abi-drift/skin-drift
-# checks). This is an expensive full image build + nested suite (~30-40min on the Dell); a post-merge
+# checks). This is an expensive full image build + nested suite (~30-40min on the builder VM); a post-merge
 # rebuild of every descriptor merge would burn the build-lab for a signal the PR run already gave.
 # `workflow_dispatch` covers the "run it on demand against main" case.
 #
@@ -45,15 +45,15 @@
 #
 # RUNNER ROUTING + FORK GUARD — DELIBERATE (build-lab confinement invariant, tsp-20u1). The nested sim
 # needs /dev/uinput + SYS_ADMIN + unconfined seccomp/apparmor (the tsp-qc1.2 verdict; infra-113
-# finding 9 — irreducible, self-hosted only), so this targets the Dell build-lab runner
-# (`[self-hosted, docker]`, org runner group `build-lab`). That runner has docker = host-root
-# equivalence and must NEVER execute code authored outside the org. The job-level `if:` fork guard
-# below makes that MECHANICAL: the job skips whenever the PR head repo is not this repository, so even
-# a maintainer-APPROVED fork PR never executes here (advisory, so a skip blocks nobody). platform is
-# added to the build-lab runner group's allow-list for this gate (precedent: pf-hwprobe via
-# tsp-78ta; runner exposure kept within infra-113 D11 — Option B, tsp-65jc.16, is the eventual
-# off-Dell builder end-state). Canonical doc: mission-control BUILD_PIPELINE.md "Build-lab
-# confinement invariant".
+# finding 9 — irreducible, self-hosted only), so this targets the self-hosted builder VM (org runner
+# `mm-build-vm`, label `pf-builder-vm`; a KVM guest on modelmaker) — the infra-113 Option B off-Dell
+# builder end-state, now REALIZED (tsp-65jc.24), which moves this docker = host-root-equivalent
+# workload OFF the labgrid arbitration host. That runner still must NEVER execute code authored
+# outside the org. The job-level `if:` fork guard below makes that MECHANICAL: the job skips whenever
+# the PR head repo is not this repository, so even a maintainer-APPROVED fork PR never executes here
+# (advisory, so a skip blocks nobody). platform reaches the builder VM through its runner group
+# (build-lab today; moving to a dedicated public-repo-scoped `pf-builder` group in the same bead).
+# Canonical doc: mission-control BUILD_PIPELINE.md "Build-lab confinement invariant".
 
 name: sim descriptor gate
 
@@ -157,7 +157,7 @@ jobs:
     # not this repository. Advisory check, so a skip blocks nobody. Canonical doc: mission-control
     # BUILD_PIPELINE.md "Build-lab confinement invariant".
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, docker]
+    runs-on: [self-hosted, pf-builder-vm]
     timeout-minutes: 45
     env:
       IMG: pocketforge-sim:plat-ci-${{ github.run_id }}
