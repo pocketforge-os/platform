@@ -25,7 +25,10 @@ write fresh PNGs without copying EXIF metadata.
 
 The first implementation is
 [`trimui-smart-pro/`](trimui-smart-pro/README.md), whose fourteen semantic
-controls map directly to the A133 capability descriptor.
+controls map directly to the A133 capability descriptor. Its shared-chassis
+derivative [`trimui-smart-pro-s/`](trimui-smart-pro-s/README.md) carries the
+TG5050 identity, cooling details and fifteenth semantic `btn_home` control for
+the A523 descriptor without redrawing the accepted TG5040 baseline.
 
 ## Drift gate (CI) — `check-skin-drift.py`
 
@@ -37,13 +40,16 @@ CI gate that keeps them from silently diverging (infra-113 §6 Phase B5, decisio
 D9; wired as `.github/workflows/skin-drift.yml`, advisory — the required-check flip
 is Phase B2).
 
-It is **data-driven** (add a modelled device = add a row to its `MODELS` list) and
-runs **without OpenSCAD**, so it is byte-stable and fires on every PR touching
-`device-models/**`, `skins/**`, or `devices/**`. For each modelled device it
-asserts that `model-render.json`'s recorded `source` / `renderer` / `body` /
-`body_lit` sha256 still match the committed `.scad` / `render.py` / PNGs, and that
-its control rects **equal** `capabilities.toml [skin.parts]` and its `display_rect`
-matches. Run it locally exactly as CI does:
+It is **data-driven by auto-discovery** (it globs `skins/*/model-render.json`, so
+committing a model's rendered skin is all it takes to enrol a new device — no code
+edit) and runs **without OpenSCAD**, so it is byte-stable and fires on every PR
+touching `device-models/**`, `skins/**`, or `devices/**`. For each discovered
+device it asserts that `model-render.json`'s recorded `source` / `renderer` /
+`body` / `body_lit` sha256 still match the committed `.scad` / `render.py` / PNGs
+(the source and renderer paths are read from the metadata itself), and that its
+control rects **equal** `devices/<id>/capabilities.toml [skin.parts]` and its
+`display_rect` matches. A device with only legacy bezel art (no `model-render.json`)
+is simply not discovered and not gated here. Run it locally exactly as CI does:
 
 ```bash
 python3 device-models/check-skin-drift.py

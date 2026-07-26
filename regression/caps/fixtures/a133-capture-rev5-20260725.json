@@ -1,0 +1,39 @@
+{
+  "nodes": [
+    {
+      "path": "/dev/input/event0",
+      "name": "sunxi-keyboard",
+      "bustype": 25,
+      "vendor": "0001",
+      "product": "0001",
+      "version": "0100",
+      "ev": [
+        "EV_SYN",
+        "EV_KEY"
+      ],
+      "keys": [
+        "KEY_VOLUMEDOWN",
+        "KEY_VOLUMEUP"
+      ]
+    },
+    {
+      "path": "/dev/input/event1",
+      "name": "audiocodec sunxi Audio Jack",
+      "bustype": 0,
+      "vendor": "0000",
+      "product": "0000",
+      "version": "0000",
+      "ev": [
+        "EV_SYN",
+        "EV_KEY",
+        "EV_SW"
+      ],
+      "keys": [
+        "KEY_VOLUMEDOWN",
+        "KEY_VOLUMEUP",
+        "0xe2",
+        "0x246"
+      ]
+    }
+  ]
+}

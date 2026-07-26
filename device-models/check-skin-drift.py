@@ -7,7 +7,17 @@ proves the chain cannot silently diverge WITHOUT running OpenSCAD, so it is chea
 and byte-stable enough to run on every relevant PR (no GL backend, no fonts, no
 rendering non-determinism to fight).
 
-For each modelled device it asserts:
+DATA-DRIVEN BY AUTO-DISCOVERY. Every device whose skin has been rendered from a
+model carries a ``skins/<id>/model-render.json`` (written by that model's
+``render.py --write``). This check discovers those files and needs NO per-device
+code: each ``model-render.json`` already records its own OpenSCAD ``source`` and
+``renderer`` paths, the device id, the asset hashes, the derived control rects, and
+the projected ``display_rect``. So adding a modelled device = committing its
+rendered skin (its ``model-render.json``); this gate picks it up automatically. A
+device with a descriptor but no model-rendered skin (only legacy bezel art, no
+``model-render.json``) simply is not discovered and is not gated here.
+
+For each discovered device it asserts:
 
 * the OpenSCAD source and renderer recorded in ``model-render.json`` still hash to
   the committed ``.scad`` / ``render.py`` (edit the model, forget to regenerate the
@@ -20,15 +30,17 @@ For each modelled device it asserts:
   to stop;
 * the projected screen ``display_rect`` matches on both sides.
 
-Every guarantee here is a strict subset of what ``render.py --check`` proves by a
-full re-render: ``render.py --check`` recomputes the recorded hashes and rects from
-a fresh OpenSCAD render and compares them to the committed metadata, so a repo that
+COVERAGE / HONESTY (infra-113 D9). Every guarantee here is a strict SUBSET of
+``render.py --check``: that command recomputes the recorded hashes and rects from a
+fresh OpenSCAD render and compares them to the committed metadata, so a repo that
 passes ``render.py --check`` necessarily passes this check. This is the fast,
-byte-stable floor; ``render.py --check`` is the heavier OpenSCAD-dependent companion
-(see the workflow that runs both, and each model's README).
-
-Data-driven: adding a modelled device = adding a row to ``MODELS`` (or, later, a
-descriptor-discovery pass); nothing else in this file is device-specific.
+byte-stable floor; ``render.py --check`` is the heavier OpenSCAD-dependent
+companion. The ONE drift class this render-free gate cannot catch is a *consistent*
+hand-edit of a rect in BOTH ``model-render.json`` AND ``capabilities.toml`` without
+re-rendering -- the two files still agree and the ``.scad``/PNG hashes are
+untouched, so the rect silently points where the rendered atlas no longer
+highlights. That narrow, semi-adversarial case is closed by running
+``render.py --check`` locally when touching a model (see device-models/README.md).
 """
 
 from __future__ import annotations
@@ -41,23 +53,7 @@ import tomllib
 
 # device-models/check-skin-drift.py -> repo root is one level up.
 ROOT = Path(__file__).resolve().parents[1]
-
-# One row per modelled device. Paths are repo-root-relative. Add a modelled
-# device = add a row here (keep it data-driven; do not special-case in the logic
-# below). A device with a descriptor but no .scad model simply has no row and is
-# not gated by this check.
-MODELS: list[dict[str, str]] = [
-    {
-        "id": "a133",
-        "model": "TrimUI Smart Pro (TG5040)",
-        "scad": "device-models/trimui-smart-pro/trimui-smart-pro.scad",
-        "renderer": "device-models/trimui-smart-pro/render.py",
-        "metadata": "skins/a133/model-render.json",
-        "body": "skins/a133/body.png",
-        "body_lit": "skins/a133/body_lit.png",
-        "descriptor": "devices/a133/capabilities.toml",
-    },
-]
+SKINS = ROOT / "skins"
 
 
 def sha256(path: Path) -> str:
@@ -72,26 +68,36 @@ def norm_rect(rect: dict) -> dict[str, int]:
     return {key: int(value) for key, value in rect.items()}
 
 
-def check_model(entry: dict[str, str]) -> list[str]:
-    """Return a list of human-readable drift failures for one modelled device."""
+def check_skin(metadata_path: Path) -> list[str]:
+    """Return a list of human-readable drift failures for one rendered skin."""
+    skin_dir = metadata_path.parent
+    device = skin_dir.name
+    rel_meta = metadata_path.relative_to(ROOT)
     failures: list[str] = []
-    device = entry["id"]
 
-    metadata_path = ROOT / entry["metadata"]
-    if not metadata_path.is_file():
-        return [f"{device}: missing render metadata {entry['metadata']}"]
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    if metadata.get("device") and metadata["device"] != device:
+        failures.append(
+            f"{device}: model-render.json.device={metadata['device']!r} does not "
+            f"match its skin directory skins/{device}/"
+        )
 
     # 1. Recorded source/renderer/asset hashes still match the committed files.
-    for field, rel in (
-        ("source_sha256", entry["scad"]),
-        ("renderer_sha256", entry["renderer"]),
-        ("body_sha256", entry["body"]),
-        ("body_lit_sha256", entry["body_lit"]),
-    ):
+    #    The source and renderer paths are recorded (repo-relative) in the metadata
+    #    itself, so the check stays model-agnostic.
+    hash_targets = [
+        ("source_sha256", metadata.get("source"), "source"),
+        ("renderer_sha256", metadata.get("renderer"), "renderer"),
+        ("body_sha256", f"skins/{device}/body.png", "body"),
+        ("body_lit_sha256", f"skins/{device}/body_lit.png", "body_lit"),
+    ]
+    for field, rel, label in hash_targets:
+        if not rel:
+            failures.append(f"{device}: {rel_meta} is missing the {label} path")
+            continue
         path = ROOT / rel
         if not path.is_file():
-            failures.append(f"{device}: missing committed file {rel}")
+            failures.append(f"{device}: missing committed {label} file {rel}")
             continue
         recorded = metadata.get(field)
         actual = sha256(path)
@@ -103,9 +109,11 @@ def check_model(entry: dict[str, str]) -> list[str]:
             )
 
     # 2/3. Descriptor rects equal the model-derived rects.
-    descriptor_path = ROOT / entry["descriptor"]
+    descriptor_path = ROOT / "devices" / device / "capabilities.toml"
     if not descriptor_path.is_file():
-        failures.append(f"{device}: missing descriptor {entry['descriptor']}")
+        failures.append(
+            f"{device}: missing descriptor devices/{device}/capabilities.toml"
+        )
         return failures
     with descriptor_path.open("rb") as stream:
         descriptor = tomllib.load(stream)
@@ -155,15 +163,27 @@ def check_model(entry: dict[str, str]) -> list[str]:
 
 
 def main(argv: list[str]) -> int:
+    metadata_paths = sorted(SKINS.glob("*/model-render.json"))
+    if not metadata_paths:
+        print(
+            "skin_drift=fail: no skins/*/model-render.json found -- a modelled skin "
+            "was expected (a mass deletion would silently disable this gate)",
+            file=sys.stderr,
+        )
+        return 1
+
     all_failures: list[str] = []
-    for entry in MODELS:
-        all_failures.extend(check_model(entry))
+    for metadata_path in metadata_paths:
+        all_failures.extend(check_skin(metadata_path))
+
     if all_failures:
         print("skin_drift=fail", file=sys.stderr)
         for failure in all_failures:
             print(f"  - {failure}", file=sys.stderr)
         return 1
-    print(f"skin_drift=pass models={len(MODELS)}")
+
+    devices = ",".join(p.parent.name for p in metadata_paths)
+    print(f"skin_drift=pass models={len(metadata_paths)} devices={devices}")
     return 0
 
 

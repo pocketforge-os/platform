@@ -10,13 +10,14 @@
 # infra-113 finding 4 / §1). This gate closes that hole on the platform side.
 #
 # WHAT THE GATE RUNS (one leg, render-free, every relevant PR). check-skin-drift.py proves the
-# committed chain is mutually consistent WITHOUT OpenSCAD: model-render.json's recorded source /
-# renderer / body / body_lit hashes still match the committed files, and its control rects +
-# display_rect equal the descriptor's [skin.parts] / screens.display_rect. This is byte-stable
-# and deterministic (no GL backend, fonts, or render non-determinism to fight), so it runs on the
-# pf-pr-review VM lane on every relevant PR and catches every "edit one artifact, forget to
-# regenerate the rest" drift, including the [skin.parts] rect nudge the bead's negative-proof
-# exercises.
+# committed chain is mutually consistent WITHOUT OpenSCAD: for every discovered rendered skin
+# (it auto-discovers skins/*/model-render.json, so committing a model's skin enrols the device
+# with no code edit) model-render.json's recorded source / renderer / body / body_lit hashes
+# still match the committed files, and its control rects + display_rect equal the descriptor's
+# [skin.parts] / screens.display_rect. This is byte-stable and deterministic (no GL backend,
+# fonts, or render non-determinism to fight), so it runs on the pf-pr-review VM lane on every
+# relevant PR and catches every "edit one artifact, forget to regenerate the rest" drift,
+# including the [skin.parts] rect nudge the bead's negative-proof exercises.
 #
 # COVERAGE / HONESTY (infra-113 D9, coordinator-adjudicated 2026-07-26; HONESTY-CONTRACT house
 # style). This gate's guarantees are a STRICT SUBSET of `render.py --check` (the full OpenSCAD
