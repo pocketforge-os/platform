@@ -92,10 +92,11 @@ menu_centre = [
     front_lower_row_y
 ];
 // Keep the paired right system controls seated inside the curved endcap while
-// preserving their inherited 8 mm spacing and common optical centreline.
-right_system_inset_x = 4.5;
-select_centre = [162.5 - right_system_inset_x, front_lower_row_y];
-start_centre = [170.5 - right_system_inset_x, front_lower_row_y];
+// preserving their inherited 8 mm spacing and shared optical centreline.
+right_system_inset_x = 6.5;
+right_system_row_y = front_lower_row_y + 0.85;
+select_centre = [162.5 - right_system_inset_x, right_system_row_y];
+start_centre = [170.5 - right_system_inset_x, right_system_row_y];
 
 // Photo-derived speaker grille lattice. Each side has two right/left-aligned
 // rows of six shallow hexagonal recesses. The inside opening remains clear of
