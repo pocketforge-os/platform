@@ -79,7 +79,11 @@ concurrency:
   cancel-in-progress: true
 
 # DATA-DRIVEN MATRIX — TWO JOBS (infra-113 B4 / D6). The device rows + per-device posture are NOT a
-# hardcoded list; they come from platform ci-matrix.toml via `pf caps matrix`. The gate is split so
+# hardcoded list; they come from platform ci-matrix.toml via `pf caps matrix`.
+# ADD A DEVICE = ADD DATA — adding a device is a pure data change (descriptor + .scad skin + posture
+# row), NOT a workflow edit; a new descriptor auto-joins as advisory. Cold-start walkthrough:
+# sim/docs/ADD-A-DEVICE.md.
+# The gate is split so
 # the DATA is validated + derived CHEAPLY on every descriptor PR, and only the expensive sim build
 # runs the suites:
 #   1. descriptor-matrix (pf-pr-review VM lane, sub-second): `pf caps matrix validate` fails fast on a
