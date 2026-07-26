@@ -58,8 +58,9 @@ screen_active = [
 screen_glass = [111.6, 68.6];
 screen_centre = [device_width / 2, 40.3];
 front_lower_row_y = 7.15;
-front_speaker_row_y = 4.05;
-front_identity_y = 2.25;
+front_detail_row_y = 3.15;
+front_speaker_row_y = front_detail_row_y;
+front_identity_y = front_detail_row_y;
 status_bar_start_x = 133.20;
 status_bar_pitch = 1.18;
 
