@@ -581,6 +581,30 @@ def main():
         import shutil as _shutil
         _shutil.rmtree(_mtmp, ignore_errors=True)
 
+    # --- SHIPPED-DESCRIPTOR COVERAGE (tsp-ozbp.13 fast-follow, guards-must-be-shown-to-fail) ---
+    # Everything above validates a SYNTHETIC `valid_descriptor()` fixture and NEVER the real
+    # devices/*/capabilities.toml. That structural blindness is exactly why this self-test sat
+    # GREEN while `pf caps validate --all` was RED on main (the skin.views gap), and why the a133
+    # stick-range correction shipped with NO guard — reverting it to signed16 left every test green.
+    # Assert against the SHIPPED artifacts here so a regression in the real descriptors fails HERE,
+    # deterministically, unit-independently — not only in a live probe-diff WARN that nothing checks.
+    for _dev in caps.list_caps_devices():
+        _errs, _ = caps.validate_one(_dev, SCHEMA)
+        check(f"shipped {_dev}/{caps.CAPS_FILE} validates clean (schema + semantic)", _errs == [])
+
+    # a133 sticks are UNSIGNED 12-bit (0..4095), NOT signed16 (tsp-ozbp.13). The descriptor is the
+    # contract the sim + tests validate against; a silent revert to -32768..32767 describes a device
+    # we do not ship (a resting stick ~2048 would read ~6% deflected forever) and degrades silently.
+    # This is the guard the correction lacked: revert either stick axis to signed16 → this goes RED.
+    _a133 = caps._load(os.path.join(caps.DEVICES, "a133", caps.CAPS_FILE))
+    for _sid in ("lstick", "rstick"):
+        _row = next((i for i in _a133.get("inputs", []) if i.get("id") == _sid), None)
+        check(f"a133 {_sid} row present", _row is not None)
+        for _ax in ("x", "y"):
+            _a = (_row or {}).get(_ax, {})
+            check(f"a133 {_sid}.{_ax} pinned unsigned 12-bit min=0/max=4095 [tsp-ozbp.13]",
+                  _a.get("min") == 0 and _a.get("max") == 4095)
+
     print()
     if _failures:
         print(f"{len(_failures)} FAILURE(S): " + ", ".join(_failures))

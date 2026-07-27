@@ -588,6 +588,14 @@ def probe_diff(dev_id, capture):
                 p = pad_abs[code]
                 for k in ("min", "max"):
                     if k in ax and p.get(k) is not None and ax[k] != p[k]:
+                        # WARN, deliberately NOT ERROR (tsp-ozbp.13): probe-diff compares the
+                        # descriptor against ONE live unit's EVIOCGABS, where per-unit min/max
+                        # variation is expected (a stick that doesn't quite reach 4095, a slightly
+                        # shifted rest). A hard ERROR here would false-fail on normal unit variance.
+                        # The DECLARED range is instead pinned deterministically + unit-independently
+                        # by the shipped-descriptor self-test (regression/caps/test_caps.py), which is
+                        # where a signed16↔unsigned-12bit regression is caught. Keep this a reconcile
+                        # HINT against silicon, not the range guard.
                         warns.append(f"{dev_id}: input '{iid}' {code}.{k}={ax[k]} but probe "
                                      f"reads {p[k]} (reconcile descriptor to ground truth)")
 
