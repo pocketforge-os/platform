@@ -508,6 +508,22 @@ def probe_diff(dev_id, capture):
     for n in nodes:
         all_keys.update(n.get("keys", []))
 
+    # BTN_* comparison is by CODE VALUE, not name spelling (tsp-ozbp.14). The kernel gives the
+    # four face buttons two names for one number -- BTN_A==BTN_SOUTH 0x130, BTN_B==BTN_EAST
+    # 0x131, BTN_X==BTN_NORTH 0x133, BTN_Y==BTN_WEST 0x134 -- and the two sides of this diff
+    # legitimately choose different ones: a probe capture names a code via evdev-probe.py's
+    # alias-preferred table (0x134 -> "BTN_Y"), while a descriptor may spell the same code
+    # positionally ("BTN_WEST") because its `id` IS the position. Comparing the strings makes a
+    # descriptor that is CORRECT to the byte look absent from the probe, which is a false ERROR
+    # on the exact axis this project just spent a bug on. Resolve both sides through CODE_VAL and
+    # compare numbers; names outside the table (KEY_*, anything new) fall back to the name so an
+    # unknown code can never silently compare equal.
+    def _key_id(name):
+        """A comparable identity for an EV_KEY name: its numeric code if known, else the name."""
+        return CODE_VAL.get(name, name)
+
+    pad_key_ids = {_key_id(k) for k in pad_keys}
+
     used_keys, used_abs = set(), set()
     for inp in data.get("inputs", []):
         iid = inp.get("id", "?")
@@ -520,7 +536,7 @@ def probe_diff(dev_id, capture):
                                 f"does not advertise it (descriptor not subset-of probe)")
             elif c.startswith("BTN_"):
                 used_keys.add(c)
-                if c not in pad_keys:
+                if _key_id(c) not in pad_key_ids:
                     errs.append(f"{dev_id}: input '{iid}' claims {c} but the gamepad node "
                                 f"does not advertise it")
             elif c.startswith("KEY_"):
@@ -541,8 +557,13 @@ def probe_diff(dev_id, capture):
                         warns.append(f"{dev_id}: input '{iid}' {code}.{k}={ax[k]} but probe "
                                      f"reads {p[k]} (reconcile descriptor to ground truth)")
 
-    # Extra advertised codes = expected X360 superset (INFO, not error).
-    extra_keys = sorted(k for k in pad_keys if k.startswith("BTN_") and k not in used_keys)
+    # Extra advertised codes = expected X360 superset (INFO, not error). Value-compared for the
+    # same reason as above, so a positionally-spelled descriptor row does not make the probe's
+    # alias spelling of the SAME code look like an extra one.
+    used_key_ids = {_key_id(k) for k in used_keys}
+    extra_keys = sorted(
+        k for k in pad_keys if k.startswith("BTN_") and _key_id(k) not in used_key_ids
+    )
     if extra_keys:
         infos.append(f"{dev_id}: gamepad advertises {len(extra_keys)} BTN_* code(s) the "
                      f"descriptor omits (expected HID superset): {', '.join(extra_keys)}")
