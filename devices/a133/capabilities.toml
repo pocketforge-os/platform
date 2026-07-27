@@ -129,22 +129,44 @@ ev_type = "EV_ABS"
 code = "ABS_HAT0X,ABS_HAT0Y"
 skin_part = "dpad"
 # Analog sticks — NOT clickable on the base unit (no L3/R3 rows; the Pro S adds them).
+# Ranges are UNSIGNED 12-bit (0..4095), NOT signed16 (tsp-ozbp.13). The old { -32768..32767 }
+# described a device we do not ship: it was wrong in span (~16x) AND in sign convention. THREE
+# independent lines of evidence say unsigned-12-bit-centred-at-mid-scale:
+#   - OUR OWN decoder: pf-input-decode (runtime) declares ABS_X/Y/RX/RY EVIOCGABS as 0..4095
+#     (crates/pf-input-decode/src/lib.rs, STICK_MAX=4095). The descriptor was contradicting the
+#     very decoder that feeds it — the exact "contract vs hardware disagree, silently" defect.
+#   - owner-actuated on-silicon sweep (tsp-bwrg.14, 2026-07-27): every observed value ∈ 0..4095,
+#     rests near mid-scale — lstick ABS_X min1054 max3422 rest2092 / ABS_Y 755..3301 rest2137;
+#     rstick ABS_RX 898..3329 rest2014 / ABS_RY 939..3363 rest2133.
+#   - tsp-ozbp.9's independent rest capture corroborated those rests within tol 40.
+# DELIBERATE SHAPE CHOICE (the bead asked us to decide and say why):
+#   min/max = 0/4095 — the honest full-scale ELECTRICAL range, not one human sweep's extremes
+#     (those under-report the range: a hand never hits the mechanical stops, and per-unit variation
+#     is real; freezing 1054..3422 as the class min/max would repeat the "one node/one unit → class"
+#     over-generalization this lane exists to kill).
+#   fuzz/flat = 0 — NOT measured. The old 16/128 were signed16-scale absolute counts that do not
+#     survive a range change, and no deadzone was ever measured. We claim NO deadzone rather than
+#     invent one — the SAME honest convention as the a523 sibling's sticks (fuzz=0, flat=0). The
+#     measured rest offset (~+70 above 2048, consistent across axes) and a real deadzone are a
+#     future calibration follow-up; the rests are RECORDED here in-comment, deliberately NOT frozen
+#     into a machine `value`/`flat` that would present one unit's reading as the device class.
+# `probe-diff` reconciles these min/max against the live EVIOCGABS (0..4095) → now clean.
 [[inputs]]
 id = "lstick"
 kind = "stick"
 ev_type = "EV_ABS"
 code = "ABS_X,ABS_Y"
 skin_part = "stick_l"
-x = { min = -32768, max = 32767, fuzz = 16, flat = 128 }
-y = { min = -32768, max = 32767, fuzz = 16, flat = 128 }
+x = { min = 0, max = 4095, fuzz = 0, flat = 0 }
+y = { min = 0, max = 4095, fuzz = 0, flat = 0 }
 [[inputs]]
 id = "rstick"
 kind = "stick"
 ev_type = "EV_ABS"
 code = "ABS_RX,ABS_RY"
 skin_part = "stick_r"
-x = { min = -32768, max = 32767, fuzz = 16, flat = 128 }
-y = { min = -32768, max = 32767, fuzz = 16, flat = 128 }
+x = { min = 0, max = 4095, fuzz = 0, flat = 0 }
+y = { min = 0, max = 4095, fuzz = 0, flat = 0 }
 # L2/R2 — a BINARY ACTUATOR reported on ANALOG wire channels (same switch hardware as the
 # Pro S; owner ground truth), modeled on the Xbox-360 TRIGGER AXES, not BTN_TL2/TR2.
 # Evidence (SPIKE-0, 2026-07-11): the stock a133 probe (hardware-firmware-probes.md §13)
@@ -169,6 +191,42 @@ code = "ABS_RZ"
 semantics = "binary"
 range = { min = 0, max = 255, fuzz = 0, flat = 0 }
 skin_part = "trig_r"
+
+# Volume rocker — VOL+ / VOL- (tsp-bwrg.16). These are REAL physical controls, but they do NOT
+# live on the gamepad node: the a133 exposes THREE input nodes, and the volume keys are on the
+# LRADC `sunxi-keyboard` node (event0), firing KEY_VOLUMEUP(115)/KEY_VOLUMEDOWN(114) — proven on
+# silicon by tsp-ozbp.2's VOL± negative control (pressing VOL± fired 117 event0 KEY_VOLUME* events,
+# zero UART bytes). The gamepad node (event2 "TRIMUI Player1") does NOT advertise 114/115 at all
+# (word1 of its KEY bitmap is zero), which is why the single-`--source` collector could never
+# capture them — the structural miss this bead exists to fix.
+#
+# class = "system" (NOT the default "gamepad"): the E2 broker must never hand VOL± to an app as a
+# bindable control (they are ambient system authority — volume is a platform/settings concern).
+# This is a POLICY marker on an HONEST device description, not a reason to omit the row: describe
+# the whole device, gate access in the broker (owner ruling 2026-07-27, on this bead). Because
+# class=system, caps.py's SDL emit skips them — no `sdl_guid` gamepad binding is ever synthesised
+# for the volume rocker.
+# source = "sunxi-keyboard" — the evdev NODE these live on. Every other input here omits `source`
+# and defaults to the primary gamepad node (identity.match.evdev_name = "TRIMUI Player1"); VOL±
+# name their real node explicitly so the multi-source collector reads event0 for them, not event2.
+# NOTE `event1` (audiocodec Audio Jack) ALSO advertises 114/115 — the inline-remote keys of a wired
+# headset — so "volume" is ambiguous at the evdev layer; this row is the CHASSIS rocker on event0.
+# Whether the shim also merges the headset-remote node is a broker/collection decision (tracked with
+# the multi-source work), deliberately NOT frozen here.
+[[inputs]]
+id = "vol_up"
+kind = "button"
+ev_type = "EV_KEY"
+code = "KEY_VOLUMEUP"
+class = "system"
+source = "sunxi-keyboard"
+[[inputs]]
+id = "vol_down"
+kind = "button"
+ev_type = "EV_KEY"
+code = "KEY_VOLUMEDOWN"
+class = "system"
+source = "sunxi-keyboard"
 
 # ---- ACTUATORS ----
 # 23 addressable RGB LEDs (sunxi_led0..22 ×rgb) = the analog-stick rings + edge (probe §14).

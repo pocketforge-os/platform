@@ -171,6 +171,45 @@ def main():
     sem_neg("semantics on kind=stick rejected", "a133",
             lambda d: d["inputs"][2].update(semantics="analog"), "only meaningful on kind=trigger")
 
+    # --- class/source frame invariants (tsp-bwrg.16). These pin the exact defect this lane
+    #     exists to kill: a SYSTEM key described as if it lived on the gamepad node (a
+    #     device-scoped claim from node-scoped evidence). Shown-to-fail per
+    #     guards-must-be-shown-to-fail: each negative constructs the broken state and asserts
+    #     the validator goes RED for the RIGHT reason.
+    def _vol(**over):
+        row = {"id": "vol_up", "kind": "button", "ev_type": "EV_KEY", "code": "KEY_VOLUMEUP",
+               "class": "system", "source": "sunxi-keyboard"}
+        row.update(over)
+        return row
+    # POSITIVE: a well-formed system key on a NAMED non-gamepad node validates clean.
+    good = copy.deepcopy(base); good["inputs"].append(_vol())
+    check("class=system on named non-gamepad node: schema clean",
+          caps.schema_errors(good, SCHEMA) == [])
+    ge, _ = caps.semantic_errors("a133", good)
+    check("class=system on named non-gamepad node: semantic clean", ge == [])
+    # NEGATIVE 1: class=system with NO source — the "it's on the pad by default" frame error.
+    sem_neg("class=system without an explicit source", "a133",
+            lambda d: d["inputs"].append({"id": "vol_up", "kind": "button", "ev_type": "EV_KEY",
+                                          "code": "KEY_VOLUMEUP", "class": "system"}),
+            "requires an explicit 'source'")
+    # NEGATIVE 2: class=system claiming the PRIMARY gamepad node — a system key does not live
+    #             on the gamepad node; this is the device-scoped-from-node-scoped regression.
+    sem_neg("class=system claiming the primary gamepad node", "a133",
+            lambda d: d["inputs"].append(_vol(source="TRIMUI Player1")),
+            "primary gamepad node")
+
+    # --- SDL emit excludes system keys (owner ruling pt 3). Prove the class=system SKIP is
+    #     LOAD-BEARING, not incidental: give the system row a REAL gamepad BTN code (BTN_TL2,
+    #     which WOULD map to `lefttrigger`), and confirm the mapping is UNCHANGED from base —
+    #     the row contributes zero bindings. Remove the class gate in caps.py and this goes RED.
+    base_map = caps.build_sdldb_mapping(base)[2]
+    assert "guide" not in base_map  # base has no BTN_MODE — so a leak below is unambiguous
+    sys_btn = copy.deepcopy(base)
+    sys_btn["inputs"].append({"id": "sys_x", "kind": "button", "ev_type": "EV_KEY",
+                              "code": "BTN_MODE", "class": "system", "source": "sunxi-keyboard"})
+    check("SDL emit: a class=system row contributes no gamepad binding",
+          caps.build_sdldb_mapping(sys_btn)[2] == base_map)
+
     # --- semantics field positive: on the REAL descriptors, ltrig/rtrig carry binary
     #     (SPIKE-0 tsp-9sx.1: L2/R2 are binary-on-analog-wire on both units) and every
     #     other kind of input omits it. This is the "one field, three consumers" truth
@@ -267,7 +306,7 @@ def main():
               all(f in caps.SDL_FIELDS for f in m))
 
     # --- SPIKE-0 probe-diff (asymmetric rule) against a synthetic xpad capture ---
-    def xpad_capture(home=True, drop=None, absx_min=-32768):
+    def xpad_capture(home=True, drop=None, absx_min=0):
         # BTN_TL2/BTN_TR2 = the DIGITAL L2/R2 the node advertises (tsp-5p1). The X360-presented
         # ABS_Z/ABS_RZ axes below stay too -> they're now an unused advertised superset (INFO).
         keys = ["BTN_A", "BTN_B", "BTN_C", "BTN_X", "BTN_Y", "BTN_Z", "BTN_TL", "BTN_TR",
@@ -275,7 +314,9 @@ def main():
                 "BTN_SELECT", "BTN_START", "BTN_MODE", "BTN_THUMBL", "BTN_THUMBR"]
         if drop:
             keys = [k for k in keys if k != drop]
-        absd = {a: {"min": -32768, "max": 32767, "fuzz": 16, "flat": 128, "resolution": 0}
+        # Sticks are UNSIGNED 12-bit on real silicon (0..4095, tsp-ozbp.13) — the fixture models
+        # ground truth, NOT the old signed16 fiction the descriptor used to (and now doesn't) claim.
+        absd = {a: {"min": 0, "max": 4095, "fuzz": 0, "flat": 0, "resolution": 0}
                 for a in ("ABS_X", "ABS_Y", "ABS_RX", "ABS_RY")}
         absd["ABS_X"]["min"] = absx_min
         absd["ABS_Z"] = {"min": 0, "max": 255, "fuzz": 0, "flat": 0, "resolution": 0}
@@ -284,8 +325,12 @@ def main():
         absd["ABS_HAT0Y"] = {"min": -1, "max": 1, "fuzz": 0, "flat": 0, "resolution": 0}
         pad = {"path": "/dev/input/event3", "name": "TRIMUI Player1", "vendor": "045e",
                "product": "028e", "ev": ["EV_SYN", "EV_KEY", "EV_ABS"], "keys": keys, "abs": absd}
+        # The LRADC sunxi-keyboard node (event0) carries the SYSTEM keys: VOL± always (both
+        # descriptors now claim them, class=system source=sunxi-keyboard, tsp-bwrg.16), plus
+        # KEY_HOMEPAGE on the a523 (`home=True`). This is the node the gamepad node does NOT carry
+        # 114/115 on — the whole point of the multi-node model.
         kbd = {"path": "/dev/input/event0", "name": "sunxi-keyboard",
-               "keys": (["KEY_HOMEPAGE"] if home else [])}
+               "keys": (["KEY_HOMEPAGE"] if home else []) + ["KEY_VOLUMEUP", "KEY_VOLUMEDOWN"]}
         return {"nodes": [kbd, pad]}
 
     e, w, i = caps.probe_diff("a133", xpad_capture())
