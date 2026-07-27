@@ -112,9 +112,10 @@ Validate every discovered contract and run its regression suite with:
 ```bash
 python3 device-models/validate_fixture_contracts.py
 python3 device-models/test_fixture_contracts.py
+python3 device-models/test_fixture_snapshot.py
 ```
 
-Both commands are render-free and the validator is read-only. To review the
+These commands are render-free and the validator is read-only. To review the
 hash produced by an intentional edit:
 
 ```bash
@@ -122,6 +123,46 @@ python3 device-models/validate_fixture_contracts.py \
   --print-interface-hash \
   device-models/<slug>/fixture-contract.json
 ```
+
+### Deterministic downstream snapshot
+
+[`export_fixture_snapshot.py`](export_fixture_snapshot.py) is the only
+machine-readable cross-repository export. It produces canonical JSON containing:
+
+- the exact platform fixture-state revision and contract-schema hash;
+- one sorted record per device, including aliases, with the raw contract hash
+  and resolved interface hash; and
+- one full, deduplicated fit-bearing payload per resolved interface hash.
+
+The source revision is the newest **first-parent** commit that changed any
+`fixture-contract.json` or the contract schema. It is deliberately not the
+current visual-model `HEAD`. A later SCAD, skin, camera, label, shader, or
+render-evidence commit therefore produces byte-identical snapshot output.
+Changing even non-fit contract metadata changes that contract's raw hash and
+the fixture-state revision; changing a fit-bearing value additionally changes
+the resolved interface hash and payload. Shared-chassis device records remain
+distinct while their identical interface payload is stored once.
+
+Generate twice and verify exactly as CI does:
+
+```bash
+snapshot_dir="$(mktemp -d)"
+python3 device-models/export_fixture_snapshot.py export \
+  --output "$snapshot_dir/fixture-dependencies-a.json"
+python3 device-models/export_fixture_snapshot.py export \
+  --output "$snapshot_dir/fixture-dependencies-b.json"
+python3 device-models/export_fixture_snapshot.py verify \
+  --snapshot "$snapshot_dir/fixture-dependencies-a.json"
+cmp "$snapshot_dir/fixture-dependencies-a.json" \
+  "$snapshot_dir/fixture-dependencies-b.json"
+```
+
+Generation requires a clean Git tree and writes only outside the repository.
+Snapshots are transport artifacts, not platform source: do not commit them.
+Downstream automation must verify the snapshot against the named platform
+revision before proposing a holder-profile update. The fixture-contract CI gate
+runs the regression suite, generates twice, verifies the first result, and
+byte-compares both outputs.
 
 Do not treat that output as permission to preserve qualification. For an
 intentional fit change:
