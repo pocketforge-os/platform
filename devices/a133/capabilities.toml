@@ -42,11 +42,24 @@ display_rect  = { x = 332, y = 108, w = 816, h = 443 }  # model-derived projecte
 # positional ids/codes are unchanged. Owner visual OK rides the .3 skin gate.
 # Face buttons — POSITIONAL ids (south/east/west/north, SDL3-aligned); the printed glyph
 # is in `label`. Binding is by POSITION so a Switch-format device differs by DATA only
-# (swap the labels + accept_default), never code or skin. `code` is the xpad driver's
-# EMITTED symbol (BTN_A/B/X/Y = 0x130/0x131/0x133/0x134) = ground truth; note id="west"
-# carries BTN_X (0x133, whose spatial alias is "NORTH") because physical X/left emits
-# 0x133 — trust the id for position, the code for the wire. SPIKE-0 confirms the numeric
-# code per physical button. Emits the canonical X360 gamecontrollerdb (a:b0,b:b1,x:b2,y:b3).
+# (swap the labels + accept_default), never code or skin. `code` is what the DRIVER EMITS
+# for that position (the wire), which the broker remaps onto the canonical positional code
+# for the `id` — trust the id for position, the code for the wire.
+#
+# All four rows are now CANONICAL POSITIONAL codes (tsp-ozbp.14), i.e. the a133 broker remap
+# is an IDENTITY. That is the honest state because we OWN this device's input source: it is
+# pf-input-decode (our Rust MCU decoder), not the vendor xpad driver, and as of tsp-ozbp.14 it
+# emits kernel-canonical positional codes directly. The pre-ownership west/north rows recorded
+# xpad's west↔north quirk (west=BTN_X 0x133, north=BTN_Y 0x134); describing a quirk is right for
+# a driver you cannot fix and wrong for one you can, so the quirk was fixed at the source and
+# these rows follow. South/east were already canonical and are UNCHANGED.
+#
+# The positional spelling is deliberate: BTN_WEST/BTN_NORTH are the same NUMBERS as BTN_Y/BTN_X
+# (the kernel aliases them), but a lettered spelling cannot say whether it means the printed
+# glyph or the position — and on this Nintendo-arranged faceplate those disagree. That ambiguity
+# is what shipped an A/B swap. probe-diff compares BTN_* by resolved code VALUE, so a capture
+# that names 0x134 "BTN_Y" still matches this row. Emits the canonical X360 gamecontrollerdb
+# (a:b0,b:b1,x:b2,y:b3) unchanged — build_sdldb_mapping is keyed by value, not spelling.
 [[inputs]]
 id = "south"
 kind = "button"
@@ -65,14 +78,14 @@ skin_part = "btn_east"
 id = "west"
 kind = "button"
 ev_type = "EV_KEY"
-code = "BTN_X"
+code = "BTN_WEST"
 label = "Y"
 skin_part = "btn_west"
 [[inputs]]
 id = "north"
 kind = "button"
 ev_type = "EV_KEY"
-code = "BTN_Y"
+code = "BTN_NORTH"
 label = "X"
 skin_part = "btn_north"
 # System buttons. guide = BTN_MODE (advertised + listed for the base unit; SPIKE-0 confirms
