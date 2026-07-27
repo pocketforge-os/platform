@@ -43,7 +43,15 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-ozbp.3: +image#59 (i2c-tools in the a133 dev-variant rootfs —
+ref  = "main"          # tsp-e1b.11: +image#60 (runtime layer packaged into the a133 image — the
+                       # `runtime` cross-build stage builds pf-input-decode (the A133 gamepad-MCU
+                       # decoder) to a static aarch64 binary, and build-rootfs.sh installs it to
+                       # /usr/bin + ENABLES it (both variants), so the pad works from a COLD boot
+                       # and survives reflashes; first runtime-layer component in the image. Paired
+                       # with the `runtime` pin added this same bead — THIS image bump is what makes
+                       # that runtime stage actually REACH the hermetic build (pf build resolves the
+                       # image repo on `sha`, so the runtime stage ships only once this pin moves).
+                       # Prior: tsp-ozbp.3: +image#59 (i2c-tools in the a133 dev-variant rootfs —
                        # i2cget/i2cset/i2cdetect/i2cdump/i2ctransfer for on-device AXP2202 PMU
                        # register access on /dev/i2c-6; unblocks the gamepad-MCU rail-enable
                        # diagnosis under parent tsp-ozbp; dev variant only, no release-image effect).
@@ -101,7 +109,7 @@ ref  = "main"          # tsp-ozbp.3: +image#59 (i2c-tools in the a133 dev-varian
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "5e18e9d5ea0264df6c1fa424f75fe82b26cb3a9c"
+sha  = "fc2d38f1725760e748dc00166236789f3dc5f144"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
