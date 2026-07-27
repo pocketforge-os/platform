@@ -99,7 +99,9 @@
         "range":      { "$ref": "#/$defs/axis" },
         "x":          { "$ref": "#/$defs/axis" },
         "y":          { "$ref": "#/$defs/axis" },
-        "semantics":  { "enum": ["analog", "binary"] }
+        "semantics":  { "enum": ["analog", "binary"] },
+        "class":      { "enum": ["gamepad", "system"] },
+        "source":     { "type": "string", "minLength": 1 }
       }
     },
     "sensor": {
@@ -136,6 +138,17 @@
       }
     },
     "skin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["body", "parts"],
+      "properties": {
+        "body":     { "type": "string", "minLength": 1 },
+        "lit_body": { "type": "string", "minLength": 1 },
+        "parts":    { "type": "object", "additionalProperties": { "$ref": "#/$defs/skinpart" } },
+        "views":    { "type": "object", "additionalProperties": { "$ref": "#/$defs/skinview" } }
+      }
+    },
+    "skinview": {
       "type": "object",
       "additionalProperties": false,
       "required": ["body", "parts"],

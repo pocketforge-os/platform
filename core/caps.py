@@ -271,6 +271,32 @@ def semantic_errors(dev_id, data):
             errs.append(f"{where}: 'semantics' is only meaningful on kind=trigger "
                         f"(this input's kind={kind!r} has an unambiguous wire semantics)")
 
+        # INPUT CLASS + SOURCE (tsp-bwrg.16). Two orthogonal, per-input facts a device with more
+        # than one evdev node needs, so a consumer never has to INFER them:
+        #   class  = "gamepad" (default) | "system". A `system` control is NOT app-bindable — the
+        #            E2 broker must never hand it to an app (VOL±, etc.). It is a POLICY marker on
+        #            the honest device description, NOT a reason to omit the row (owner ruling
+        #            2026-07-27: describe the whole device; gate access in the broker).
+        #   source = the evdev NODE NAME the control lives on. DEFAULT (absent) = the primary
+        #            gamepad node, i.e. identity.match.evdev_name. Named explicitly only when the
+        #            control is on a DIFFERENT node (the a133 has three: the TRIMUI Player1 gamepad,
+        #            the sunxi-keyboard LRADC where VOL± live, and the audiocodec Audio Jack).
+        # The FRAME-HONESTY invariant this lane exists to enforce (guards-must-be-shown-to-fail):
+        # a `system` control must NAME its node and must NOT claim the primary gamepad node — a
+        # system key on the gamepad node would be a device-scoped claim from node-scoped evidence,
+        # the exact defect that shipped "the device has EXACTLY these controls and NOTHING ELSE".
+        cls = inp.get("class")
+        src_node = inp.get("source")
+        primary_node = ident.get("match", {}).get("evdev_name")
+        if cls == "system":
+            if src_node is None:
+                errs.append(f"{where}: class=system requires an explicit 'source' (a system key "
+                            f"is not a primary-gamepad-node control — name its evdev node)")
+            elif primary_node is not None and src_node == primary_node:
+                errs.append(f"{where}: class=system claims the primary gamepad node "
+                            f"'{primary_node}' as its source — a system control does not live on "
+                            f"the gamepad node; name its real node (e.g. 'sunxi-keyboard')")
+
     # 2b) accept_default hint (if present) must reference a real input id.
     accept = data.get("accept_default")
     if accept is not None and accept not in seen_input_ids:
@@ -384,8 +410,14 @@ def build_sdldb_mapping(data):
     guid, name = ident.get("sdl_guid", ""), ident.get("model", "")
     mapping = {}
     # Buttons: only true gamepad BTN_* codes; index = rank by ascending evdev value.
+    # class=system rows (VOL±, etc.) are NEVER gamepad bindings — skip them so a system key
+    # can never be synthesised into the SDL gamepad mapping (tsp-bwrg.16 owner ruling pt 3).
+    # (KEY_* codes are already outside CODE_VAL, so this is belt-and-suspenders; it also guards
+    # the hypothetical future system control that reuses a BTN_* code.)
     btn_inputs = []
     for inp in data.get("inputs", []):
+        if inp.get("class") == "system":
+            continue
         codes = [c for c in inp.get("code", "").split(",") if c]
         if inp.get("ev_type") == "EV_KEY" and len(codes) == 1 and codes[0] in CODE_VAL:
             btn_inputs.append(codes[0])
@@ -395,6 +427,8 @@ def build_sdldb_mapping(data):
             mapping[field] = f"b{idx}"
     # Axes + dpad hat.
     for inp in data.get("inputs", []):
+        if inp.get("class") == "system":
+            continue
         if inp.get("ev_type") != "EV_ABS":
             continue
         codes = [c for c in inp.get("code", "").split(",") if c]

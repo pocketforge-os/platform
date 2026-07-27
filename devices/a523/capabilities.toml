@@ -147,16 +147,49 @@ semantics = "binary"
 range = { min = 0, max = 255, fuzz = 0, flat = 0 }
 skin_part = "trig_r"
 
+# Volume rocker — VOL+ / VOL- (tsp-bwrg.16), class=system, source=sunxi-keyboard. Same rationale
+# as the a133 (see that descriptor): real physical controls that live on the LRADC sunxi-keyboard
+# node (event0), NOT the gamepad node — the shared chassis + the fact that this unit's Home key
+# ALREADY fires KEY_HOMEPAGE on that same event0 LRADC node (SPIKE-0, 2026-07-11) is the direct
+# evidence the node exists here. class=system keeps them out of app bindings and the SDL mapping.
+# PROVENANCE HONESTY: unlike the a133, the a523 VOL± codes are authored by shared-chassis analogy —
+# a523-specific SPIKE-0 evdev-probe of the sunxi-keyboard KEY bitmap has NOT been captured (the
+# adjacent Home-key press-test confirmed the NODE, not the VOL± thresholds). Included per the owner
+# ruling to describe VOL± on both units; confirm the a523 sunxi-keyboard bitmap when a device window
+# is brokered (same deferred-live-confirm posture as the a133 VOL± capture).
+[[inputs]]
+id = "vol_up"
+kind = "button"
+ev_type = "EV_KEY"
+code = "KEY_VOLUMEUP"
+class = "system"
+source = "sunxi-keyboard"
+[[inputs]]
+id = "vol_down"
+kind = "button"
+ev_type = "EV_KEY"
+code = "KEY_VOLUMEDOWN"
+class = "system"
+source = "sunxi-keyboard"
+
 # ---- ... PLUS the Pro S-only PURE ADDED ROWS ----
 # Home: a dedicated system button physically NEXT TO POWER — a system key, NOT the gamepad's
 # guide (BTN_MODE, already mapped above). ADJUDICATED on silicon (SPIKE-0 press-test,
 # 2026-07-11, stock 5.15.147): the press fires KEY_HOMEPAGE (172) on the sunxi-keyboard
 # LRADC node (event0), confirming the KEY_HOMEPAGE authoring over the kickoff's BTN_MODE.
+# source = "sunxi-keyboard": Home fires KEY_HOMEPAGE on the LRADC event0 node, NOT the gamepad
+# node (SPIKE-0 press-test above) — so it carries an explicit `source` for the multi-source
+# collector, exactly like VOL±. `class` is left at the default (gamepad = app-bindable): making
+# Home class=system would REMOVE it from app bindings, a behavioural change with a blast radius
+# beyond this descriptor (owner ruling pt 1, EVIOCGRAB), so that policy call is left to the broker
+# lane rather than silently flipped here. Adding `source` is pure frame-honesty (it was defaulting
+# to the gamepad node, which is where Home does NOT live) and changes no binding.
 [[inputs]]
 id = "home"
 kind = "button"
 ev_type = "EV_KEY"
 code = "KEY_HOMEPAGE"
+source = "sunxi-keyboard"
 skin_part = "btn_home"
 # Clickable thumbsticks (L3/R3) — the press of the existing sticks (lights the stick part).
 [[inputs]]
