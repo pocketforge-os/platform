@@ -262,19 +262,20 @@ sha  = "089aab801088a87484565d4b708c5c9df671fd9b"
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
-ref  = "main"                 # tsp-e1b.11: +runtime#29 (pf-input-decode — the A133 gamepad-MCU decoder
-                              # daemon: reads the pad MCU's two RX-only UARTs (ttyS3/ttyS4, 19200 8N1),
-                              # decodes the 8-byte frames, and presents ONE standard evdev gamepad via
-                              # /dev/uinput; installed to /usr/bin + enabled at boot so the pad works
-                              # out of the box. FIRST runtime-layer component packaged into the image —
-                              # establishes the runtime->image cross-build path every future runtime
-                              # component follows). Pinned at the main TIP 7cafa5d, NOT the #29 merge
-                              # 926aeb0: crates/pf-input-decode is byte-identical at both, but the
-                              # .cargo/config.toml musl-target + rust-lld linker pin the cross-build
-                              # REQUIRES was added later (tsp-bwrg.8, #31 merge 7cafa5d). Only
-                              # pf-input-decode is built (`cargo build -p pf-input-decode`), so the
-                              # parallel tsp-bwrg app crates carried in this pin are inert here.
-sha  = "7cafa5d2fa4feab7bfdd3bb249f1120799e0a857"
+ref  = "main"                 # tsp-e1b.11: +runtime#33 (position-key the face buttons — the tsp-ozbp.14
+                              # P1 fix). crates/pf-input-decode/src/codes.rs now defines POSITIONAL
+                              # constants only (BTN_SOUTH 0x130 / BTN_EAST 0x131 / BTN_NORTH 0x133 /
+                              # BTN_WEST 0x134) and decode.rs maps 0x20->BTN_SOUTH (BOTTOM) /
+                              # 0x10->BTN_EAST (RIGHT). The prior pin (glyph-keyed) reported A/B
+                              # transposed on the raw evdev node — an owner-confirmed defect. Pinned at
+                              # the #33 MERGE commit 15c0a7e (= origin/main tip); its tree is IDENTICAL
+                              # to the change commit 3b3fe6d, so the git-archive is byte-identical, and
+                              # the merge commit is the canonical pin (tsp-ozbp.6). Only pf-input-decode
+                              # is built (`cargo build -p pf-input-decode`); parallel runtime crates inert.
+                              # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
+                              # FIRST runtime-layer component packaged into the image, established the
+                              # runtime->image cross-build path. Superseded by the #33 fix above).
+sha  = "15c0a7e1be31128f63db95b1702fbbc6e92fad41"
 
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy
