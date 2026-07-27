@@ -275,8 +275,8 @@ sha  = "5c3c412a47c654f2bce158886738baaef4b8d5b1"
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
-ref  = "main"                # tsp-147u.8.5: +libsdl3-sunxifb#12 (pf-gfxbench stage-schedule CALIBRATION from the A133 device window — per-stage fill table tuned to the owner's ~60->~2fps gradient, measured 60.41->2.00 on tsp-base; plasma visibility + particle size; constants only). Prior: #9 (pf-gfxbench app, additive beside testgles2); tsp-ve5 #5 (eglBindAPI return check); UM blob path reorg tsp/ -> sunxi/a133/ (#2).
-sha  = "8066078b6b6cc6ca5cf25f9e1b90d841789e4860"
+ref  = "main"                # tsp-4i6u #14: SDL_Renderer on sunxifb now works — SUNXIFB_CreateWindow loads EGL via the refcounted SDL_GL_LoadLibrary(NULL) wrapper (not the raw hook), fixing the egl_data/driver_loaded desync that made SDL_CreateRenderer fail ("EGL context already created" / "no matching render driver"); preserves Fix A's eager-surface invariant (tsp-osr NULL+0x8 deref stays fixed). Prior: tsp-147u.8.5 #12 (pf-gfxbench stage-schedule CALIBRATION, 60.41->2.00fps on tsp-base); #9 (pf-gfxbench app); tsp-ve5 #5 (eglBindAPI return check); UM blob path reorg tsp/ -> sunxi/a133/ (#2).
+sha  = "bb2c76aa4134e9f8c5f6a505a003157b25cc9323"
 
 [[repos]]
 name = "wpa-supplicant-tsp"   # owned wpa_supplicant 2.10 fork (GREAT_SNR 25->45 roam hysteresis,

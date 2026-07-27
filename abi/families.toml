@@ -39,7 +39,13 @@ device           = "a133"                        # -> devices/a133/profile.toml 
 gpu_ip           = "powervr"                     # PowerVR DDK 1.19 (Rogue)
 sdl_repo         = "libsdl3-sunxifb"             # OWNED SDL3 fbdev backend; links the PowerVR UM (a133-only)
 sdl_backend      = "sunxifb"                     # SDL_VIDEODRIVER (fbdev via the sunxi disp engine)
-platform_version = "12"                          # bump when the resolved kernel/gpu/sdl SHA-set changes
+platform_version = "13"                          # bump when the resolved kernel/gpu/sdl SHA-set changes
+                                                 #   v13 (tsp-4i6u): libsdl3-sunxifb 8066078b -> bb2c76aa (#14
+                                                 #   SDL_Renderer fix: SUNXIFB_CreateWindow loads EGL via the
+                                                 #   refcounted SDL_GL_LoadLibrary(NULL) wrapper, fixing the
+                                                 #   egl_data/driver_loaded desync that broke SDL_CreateRenderer;
+                                                 #   preserves Fix A's eager-surface invariant. Behavior-only,
+                                                 #   ABI-neutral, but the resolved SDL SHA moved -> version bumps.)
                                                  #   v12 (tsp-woy3.1): kernel-sunxi-4.9 09f1668b -> 017beb5c (#19
                                                  #   g2d/iommu boot-lottery fix: re-assert G2D iommu master-5
                                                  #   enable on g2d_open/g2d_resume [one-shot add-time enable can
