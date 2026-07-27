@@ -251,6 +251,23 @@ ref  = "main"                 # image's device-gated `wpa` Dockerfile.pf stage (
                               # are governance/workflow only).
 sha  = "089aab801088a87484565d4b708c5c9df671fd9b"
 
+[[repos]]
+name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
+url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
+ref  = "main"                 # tsp-e1b.11: +runtime#29 (pf-input-decode — the A133 gamepad-MCU decoder
+                              # daemon: reads the pad MCU's two RX-only UARTs (ttyS3/ttyS4, 19200 8N1),
+                              # decodes the 8-byte frames, and presents ONE standard evdev gamepad via
+                              # /dev/uinput; installed to /usr/bin + enabled at boot so the pad works
+                              # out of the box. FIRST runtime-layer component packaged into the image —
+                              # establishes the runtime->image cross-build path every future runtime
+                              # component follows). Pinned at the main TIP 7cafa5d, NOT the #29 merge
+                              # 926aeb0: crates/pf-input-decode is byte-identical at both, but the
+                              # .cargo/config.toml musl-target + rust-lld linker pin the cross-build
+                              # REQUIRES was added later (tsp-bwrg.8, #31 merge 7cafa5d). Only
+                              # pf-input-decode is built (`cargo build -p pf-input-decode`), so the
+                              # parallel tsp-bwrg app crates carried in this pin are inert here.
+sha  = "7cafa5d2fa4feab7bfdd3bb249f1120799e0a857"
+
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy
 # the build consumes — NOT a reproducibility gate (kubo emits CARv1; the .car is not byte-reproducible).
