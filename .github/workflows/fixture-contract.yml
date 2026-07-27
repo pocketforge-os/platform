@@ -35,7 +35,7 @@ jobs:
     name: fixture-contract
     runs-on: [self-hosted, pf-pr-review]
     steps:
-      - name: Checkout, validate contracts, and compare the PR base
+      - name: Validate contracts, reproduce the dependency snapshot, and compare the PR base
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -68,6 +68,18 @@ jobs:
           echo "using $PY ($("$PY" -V 2>&1)) on runner $RUNNER_NAME @ $sha"
           "$PY" device-models/validate_fixture_contracts.py
           "$PY" device-models/test_fixture_contracts.py
+          "$PY" device-models/test_fixture_snapshot.py
+
+          snapshot_a="$runner_temp/platform-fixture-snapshot-$GITHUB_RUN_ID-a.json"
+          snapshot_b="$runner_temp/platform-fixture-snapshot-$GITHUB_RUN_ID-b.json"
+          rm -f "$snapshot_a" "$snapshot_b"
+          "$PY" device-models/export_fixture_snapshot.py export \
+            --output "$snapshot_a"
+          "$PY" device-models/export_fixture_snapshot.py export \
+            --output "$snapshot_b"
+          "$PY" device-models/export_fixture_snapshot.py verify \
+            --snapshot "$snapshot_a"
+          cmp "$snapshot_a" "$snapshot_b"
 
           if [ -n "${BASE_SHA:-}" ]; then
             git worktree add --quiet --detach "$baseline" "$BASE_SHA"

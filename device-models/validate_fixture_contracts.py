@@ -121,6 +121,15 @@ def _reject_constant(token: str) -> None:
     raise ContractError(f"JSON contains non-finite number {token}")
 
 
+def _reject_duplicate_keys(pairs: Sequence[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ContractError(f"JSON contains duplicate object key {key!r}")
+        result[key] = value
+    return result
+
+
 def load_json(path: Path) -> Any:
     try:
         return json.loads(
@@ -128,6 +137,7 @@ def load_json(path: Path) -> Any:
             parse_float=Decimal,
             parse_int=Decimal,
             parse_constant=_reject_constant,
+            object_pairs_hook=_reject_duplicate_keys,
         )
     except OSError as exc:
         raise ContractError(f"{path}: cannot read: {exc}") from exc
