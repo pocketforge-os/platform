@@ -114,7 +114,17 @@ sha  = "fc2d38f1725760e748dc00166236789f3dc5f144"
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"          # tsp-ozbp.8: bump 6c9fcfebf9e7 -> 09f1668bc663 = device/a133 tip after #23
+ref  = "device/a133"          # tsp-woy3.1: bump 09f1668bc663 -> 017beb5cf6d1 = device/a133 tip after #19
+                              # (g2d/iommu boot-lottery fix: G2D's iommu master-5 enable is a ONE-SHOT at
+                              # device-add time and can fail SILENTLY -> master 5 left in BYPASS for the whole
+                              # boot, so g2d treats IOVAs as physical, its rot-dst writes vanish beyond DRAM,
+                              # and the DE scans stale pages forever -> the panel shows a previous-boot frame
+                              # for every disp client [the tsp-woy3.1 display boot lottery]. #19 re-asserts
+                              # sunxi_enable_device_iommu(5, true) on g2d_open first-open + g2d_resume
+                              # [idempotent, spinlocked; fb_g2d_rot_create->g2d_open runs before every rotation
+                              # window, so it self-heals where the add-time enable was lost] + fail-loud logging
+                              # on every previously-silent bypass path. Bead tsp-woy3.1; kernel-sunxi-4.9#19.)
+                              # Prior (09f1668b, tsp-ozbp.8): bump 6c9fcfebf9e7 -> 09f1668bc663 = device/a133 tip after #23
                               # (gamepad-MCU 5V pad-rail enable, re-approached as a regulator-fixed on PD11
                               # after the #21 gpio-hog bricked boot [reverted #22]. reg-fixed probes AFTER
                               # pinctrl as a normal platform_device and consumes the gpio via of_get_named_gpio
@@ -184,7 +194,7 @@ ref  = "device/a133"          # tsp-ozbp.8: bump 6c9fcfebf9e7 -> 09f1668bc663 = 
                               # vendor image, load-bearing only for the owned-SPL path.
                               # Prior (ed7b3638, tsp-myp1.5.1.1): WORKQUEUE-DEFERRED fb0 g2d
                               # rotation + #6 xr829 HT20-only + #8 revert of the 3s-cap regression.
-sha  = "09f1668bc6637980d51e6d1f0cd077347602133f"
+sha  = "017beb5cf6d1c5927e4741268a95b8473d03100e"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
