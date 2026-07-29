@@ -29,6 +29,11 @@ controls map directly to the A133 capability descriptor. Its shared-chassis
 derivative [`trimui-smart-pro-s/`](trimui-smart-pro-s/README.md) carries the
 TG5050 identity, cooling details and fifteenth semantic `btn_home` control for
 the A523 descriptor without redrawing the accepted TG5040 baseline.
+The [`trimui-brick/`](trimui-brick/README.md) package is the independent TG3040
+vertical-handheld source model. It preserves the owner-measured stepped
+envelope and exposes all eighteen visible physical controls across front, rear
+shoulder-shelf, and side review views; descriptor and runtime-skin integration
+remain a separate post-approval task.
 
 ## Start a new model
 
