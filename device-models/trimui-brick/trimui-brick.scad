@@ -904,14 +904,6 @@ module bottom_ports() {
                  bottom_feature_z],
                 [3.30, 3.30], 0.08);
 
-    if (SHOW_MICRO_DETAILS) {
-        edge_label([bottom_sd_centre_x, -0.44, 15.7],
-                   "TF", 1.12, "bottom",
-                   0.05, silkscreen_color, micro_font);
-        edge_label([bottom_usb_centre_x, -0.44, 15.7],
-                   "DC", 1.12, "bottom",
-                   0.05, silkscreen_color, micro_font);
-    }
 }
 
 module screw_cross(point, z, rear_surface) {
