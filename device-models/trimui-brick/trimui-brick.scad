@@ -130,8 +130,46 @@ regulatory_lockup_width =
 speaker_left_x = 13.4;
 speaker_right_x = device_width - speaker_left_x;
 speaker_y = 13.15;
-speaker_pitch_x = 1.35;
-speaker_pitch_y = 1.22;
+speaker_columns = 6;
+speaker_block_size = [8.61, 1.75];
+speaker_hole_diameter = 0.70;
+speaker_hole_inner_diameter = 0.38;
+speaker_stagger = 0.34;
+speaker_pitch_x =
+    (speaker_block_size.x - speaker_hole_diameter -
+     speaker_stagger) / (speaker_columns - 1);
+speaker_pitch_y = speaker_block_size.y - speaker_hole_diameter;
+
+bottom_feature_z = 10.4;
+bottom_sd_left = 10.0;
+bottom_sd_width = 12.45;
+bottom_sd_height = 1.45;          // visual estimate; card is 1.0 mm thick
+bottom_sd_centre_x = bottom_sd_left + bottom_sd_width / 2;
+
+bottom_sd_reset_gap = 2.36;
+bottom_reset_diameter = 3.15;
+bottom_reset_recess = 1.0;
+bottom_reset_centre_x =
+    bottom_sd_left + bottom_sd_width + bottom_sd_reset_gap +
+    bottom_reset_diameter / 2;
+
+bottom_reset_usb_gap = 3.20;
+bottom_usb_width = host_opening_width;
+bottom_usb_centre_x =
+    bottom_reset_centre_x + bottom_reset_diameter / 2 +
+    bottom_reset_usb_gap + bottom_usb_width / 2;
+
+bottom_usb_mic_gap = 4.75;
+bottom_mic_diameter = 0.70;       // visual estimate; owner reports pinhole
+bottom_mic_centre_x =
+    bottom_usb_centre_x + bottom_usb_width / 2 +
+    bottom_usb_mic_gap + bottom_mic_diameter / 2;
+
+bottom_mic_audio_gap = 5.0;
+bottom_audio_diameter = 5.16;
+bottom_audio_centre_x =
+    bottom_mic_centre_x + bottom_mic_diameter / 2 +
+    bottom_mic_audio_gap + bottom_audio_diameter / 2;
 
 CONTROL_IDS = [
     "dpad",
@@ -189,6 +227,26 @@ assert(abs(light_diffuser_size.x - 38.0) < 0.001 &&
        abs(light_diffuser_size.y - 3.56) < 0.001 &&
        abs(light_rear_drop - 2.0) < 0.001,
        "Owner-measured top diffuser dimensions changed");
+assert(abs((speaker_columns - 1) * speaker_pitch_x +
+           speaker_stagger + speaker_hole_diameter -
+           speaker_block_size.x) < 0.001 &&
+       abs(speaker_pitch_y + speaker_hole_diameter -
+           speaker_block_size.y) < 0.001,
+       "Speaker-array measured bounding box changed");
+assert(abs(bottom_sd_left - 10.0) < 0.001 &&
+       abs((bottom_reset_centre_x - bottom_reset_diameter / 2) -
+           (bottom_sd_left + bottom_sd_width) -
+           bottom_sd_reset_gap) < 0.001 &&
+       abs((bottom_usb_centre_x - bottom_usb_width / 2) -
+           (bottom_reset_centre_x + bottom_reset_diameter / 2) -
+           bottom_reset_usb_gap) < 0.001 &&
+       abs((bottom_mic_centre_x - bottom_mic_diameter / 2) -
+           (bottom_usb_centre_x + bottom_usb_width / 2) -
+           bottom_usb_mic_gap) < 0.001 &&
+       abs((bottom_audio_centre_x - bottom_audio_diameter / 2) -
+           (bottom_mic_centre_x + bottom_mic_diameter / 2) -
+           bottom_mic_audio_gap) < 0.001,
+       "Owner-measured bottom feature chain changed");
 assert(abs(sqrt(screen_active.x * screen_active.x +
                 screen_active.y * screen_active.y) -
            screen_diagonal) < 0.001,
@@ -329,6 +387,16 @@ module xz_pill(point, size, thickness) {
                 pill_2d(size.x, size.y);
 }
 
+module xz_ring(point, outer_diameter, inner_diameter, thickness) {
+    translate([point.x, point.y, point.z])
+        rotate([90, 0, 0])
+            linear_extrude(height = thickness, center = true)
+                difference() {
+                    circle(d = outer_diameter, $fn = 40);
+                    circle(d = inner_diameter, $fn = 40);
+                }
+}
+
 module yz_rounded_rect(point, size, thickness, radius) {
     translate([point.x, point.y, point.z])
         rotate([90, 0, 90])
@@ -386,9 +454,12 @@ module edge_label(point, message, size, side,
 }
 
 module trimui_mark_2d(dot_diameter = 0.65, orbit = 0.72) {
-    for (angle = [90, 210, 330])
-        translate([orbit * cos(angle), orbit * sin(angle)])
-            circle(d = dot_diameter, $fn = 18);
+    // The three-circle triangle's raw bounds sit orbit/4 above its origin.
+    // Re-centre the actual bounds so brand lockups align geometrically.
+    translate([0, -orbit / 4])
+        for (angle = [90, 210, 330])
+            translate([orbit * cos(angle), orbit * sin(angle)])
+                circle(d = dot_diameter, $fn = 18);
 }
 
 module line_segment_2d(first, second, width) {
@@ -424,12 +495,55 @@ module rear_vector_art(point, size, height = 0.055,
                             children();
 }
 
-module trimui_brick_lockup_2d() {
-    label_text_2d("TRIMUI", 3.0, "left", "center", brand_font);
-    translate([13.25, 0])
-        trimui_mark_2d(1.05, 1.15);
-    translate([16.15, 0])
-        label_text_2d("BRICK", 3.0, "left", "center", brand_font);
+module front_brand_art(point, size, height = 0.06,
+                       colour = silkscreen_color) {
+    if (SHOW_GLYPHS)
+        color(colour)
+            translate(point)
+                linear_extrude(height = height)
+                    trimui_brick_lockup_2d(size);
+}
+
+module rear_brand_art(point, size, height = 0.055,
+                      colour = silkscreen_color) {
+    if (SHOW_GLYPHS)
+        color(colour)
+            translate(point)
+                mirror([1, 0, 0])
+                    linear_extrude(height = height)
+                        trimui_brick_lockup_2d(size);
+}
+
+module trimui_brick_lockup_2d(size) {
+    logo_dot = 1.05;
+    logo_orbit = 1.15;
+    logo_aspect =
+        (sqrt(3) * logo_orbit + logo_dot) /
+        (1.5 * logo_orbit + logo_dot);
+    logo_height = 0.90 * size.y;
+    logo_width = logo_aspect * logo_height;
+    gap = 0.25 * size.y;
+    copy_width = size.x - logo_width - 2 * gap;
+    trimui_width = 0.545 * copy_width;
+    brick_width = copy_width - trimui_width;
+    left = -size.x / 2;
+    trimui_x = left + trimui_width / 2;
+    logo_x = left + trimui_width + gap + logo_width / 2;
+    brick_x =
+        left + trimui_width + gap + logo_width + gap +
+        brick_width / 2;
+
+    translate([trimui_x, 0])
+        exact_centred_art_2d([trimui_width, size.y])
+            label_text_2d(
+                "TRIMUI", 3.0, "center", "center", brand_font);
+    translate([logo_x, 0])
+        exact_centred_art_2d([logo_width, logo_height])
+            trimui_mark_2d(logo_dot, logo_orbit);
+    translate([brick_x, 0])
+        exact_centred_art_2d([brick_width, size.y])
+            label_text_2d(
+                "BRICK", 3.0, "center", "center", brand_font);
 }
 
 module regulatory_copy_2d() {
@@ -597,11 +711,25 @@ module stepped_profile_volume() {
             ]);
 }
 
+module bottom_reset_cutout() {
+    translate([bottom_reset_centre_x,
+               bottom_reset_recess + 0.10,
+               bottom_feature_z])
+        rotate([90, 0, 0])
+            cylinder(
+                d = bottom_reset_diameter + 0.55,
+                h = bottom_reset_recess + 0.35,
+                $fn = 40);
+}
+
 module shell_volume() {
     color(shell_side_color)
-        intersection() {
-            rolled_outer_volume();
-            stepped_profile_volume();
+        difference() {
+            intersection() {
+                rolled_outer_volume();
+                stepped_profile_volume();
+            }
+            bottom_reset_cutout();
         }
 }
 
@@ -648,12 +776,16 @@ module screen() {
 }
 
 function speaker_positions(side) = [
-    for (row = [0 : 1], column = [0 : 7])
+    for (row = [0 : 1], column = [0 : speaker_columns - 1])
         let(base_x = side == "left" ? speaker_left_x : speaker_right_x,
             direction = side == "left" ? 1 : -1,
-            stagger = row == 0 ? 0 : 0.34)
+            row_offset =
+                row == 0 ? -speaker_stagger / 2 :
+                           speaker_stagger / 2)
             [base_x +
-                 direction * ((column - 3.5) * speaker_pitch_x + stagger),
+                 direction *
+                     ((column - (speaker_columns - 1) / 2) *
+                      speaker_pitch_x + row_offset),
              speaker_y + row * speaker_pitch_y]
 ];
 
@@ -661,19 +793,20 @@ module speaker_array(side) {
     for (point = speaker_positions(side)) {
         color([0.006, 0.007, 0.009, 1.0])
             translate([point.x, point.y, front_z + 0.015])
-                cylinder(d = 0.82, h = 0.13, $fn = 12);
+                cylinder(d = speaker_hole_diameter,
+                         h = 0.13, $fn = 12);
         color([0.18, 0.18, 0.18, 1.0])
             translate([point.x, point.y, front_z + 0.13])
-                cylinder(d = 0.44, h = 0.025, $fn = 12);
+                cylinder(d = speaker_hole_inner_diameter,
+                         h = 0.025, $fn = 12);
     }
 }
 
 module front_printing() {
     // Owner-measured 15.9 mm lockup, kept tight and left justified.
-    front_vector_art(
+    front_brand_art(
         [3.7 + front_brand_size.x / 2, 56.20, front_z + 0.055],
-        front_brand_size, 0.05, silkscreen_color)
-            trimui_brick_lockup_2d();
+        front_brand_size, 0.05, silkscreen_color);
 }
 
 module host_port() {
@@ -720,40 +853,63 @@ module rgb_light_bar() {
 
 module bottom_ports() {
     edge_y = -0.12;
-    port_z = 10.4;
 
-    // TF slot.
+    // TF slot; its 1.45 mm opening height remains a visual estimate.
     color(control_edge_color)
-        xz_pill([10.3, edge_y, port_z], [12.6, 2.05], 0.50);
+        xz_pill([bottom_sd_centre_x, edge_y, bottom_feature_z],
+                [bottom_sd_width, bottom_sd_height], 0.50);
     color([0.16, 0.17, 0.18, 1.0])
-        xz_pill([10.3, edge_y - 0.27, port_z], [9.8, 0.55], 0.07);
+        xz_pill([bottom_sd_centre_x, edge_y - 0.27,
+                 bottom_feature_z],
+                [10.1, 0.42], 0.07);
 
-    // Reset recess.
+    // Reset button face is one millimetre behind the bottom edge.
     color(control_edge_color)
-        xz_pill([23.1, edge_y, port_z], [2.70, 2.70], 0.54);
+        xz_ring([bottom_reset_centre_x, 0.45, bottom_feature_z],
+                bottom_reset_diameter + 0.55,
+                bottom_reset_diameter + 0.08, 1.25);
+    color([0.15, 0.16, 0.17, 1.0])
+        xz_pill([bottom_reset_centre_x,
+                 bottom_reset_recess - 0.02,
+                 bottom_feature_z],
+                [bottom_reset_diameter, bottom_reset_diameter], 0.08);
+    edge_label([bottom_reset_centre_x,
+                bottom_reset_recess - 0.10,
+                bottom_feature_z],
+               "R", 1.05, "bottom", 0.05,
+               silkscreen_color, micro_font);
 
     // DC USB-C.
     color([0.62, 0.63, 0.63, 1.0])
-        xz_pill([36.4, edge_y, port_z], [10.2, 4.05], 0.54);
+        xz_pill([bottom_usb_centre_x, edge_y, bottom_feature_z],
+                [bottom_usb_width + 1.40, 4.05], 0.54);
     color(control_edge_color)
-        xz_pill([36.4, edge_y - 0.19, port_z], [8.6, 2.75], 0.58);
+        xz_pill([bottom_usb_centre_x, edge_y - 0.19,
+                 bottom_feature_z],
+                [bottom_usb_width, 2.75], 0.58);
     color([0.40, 0.41, 0.42, 1.0])
-        xz_pill([36.4, edge_y - 0.31, port_z], [6.1, 0.70], 0.06);
+        xz_pill([bottom_usb_centre_x, edge_y - 0.31,
+                 bottom_feature_z],
+                [6.10, 0.70], 0.06);
 
     // Microphone and audio.
     color(control_edge_color)
-        xz_pill([47.7, edge_y, port_z], [1.55, 1.55], 0.55);
+        xz_pill([bottom_mic_centre_x, edge_y, bottom_feature_z],
+                [bottom_mic_diameter, bottom_mic_diameter], 0.55);
     color(control_edge_color)
-        xz_pill([59.4, edge_y, port_z], [5.65, 5.65], 0.55);
+        xz_pill([bottom_audio_centre_x, edge_y, bottom_feature_z],
+                [bottom_audio_diameter, bottom_audio_diameter], 0.55);
     color([0.18, 0.19, 0.20, 1.0])
-        xz_pill([59.4, edge_y - 0.25, port_z], [3.35, 3.35], 0.08);
+        xz_pill([bottom_audio_centre_x, edge_y - 0.25,
+                 bottom_feature_z],
+                [3.30, 3.30], 0.08);
 
     if (SHOW_MICRO_DETAILS) {
-        edge_label([10.3, -0.44, 15.7], "TF", 1.12, "bottom",
+        edge_label([bottom_sd_centre_x, -0.44, 15.7],
+                   "TF", 1.12, "bottom",
                    0.05, silkscreen_color, micro_font);
-        edge_label([23.1, -0.44, 15.7], "R", 1.12, "bottom",
-                   0.05, silkscreen_color, micro_font);
-        edge_label([36.4, -0.44, 15.7], "DC", 1.12, "bottom",
+        edge_label([bottom_usb_centre_x, -0.44, 15.7],
+                   "DC", 1.12, "bottom",
                    0.05, silkscreen_color, micro_font);
     }
 }
@@ -778,10 +934,9 @@ module rear_upper_panel() {
     color(rear_panel_color)
         rounded_panel(panel_centre, panel_size, 0.22, 1.2, 7.62);
 
-    rear_vector_art([device_width / 2, 91.5, 7.52],
-                    rear_brand_size, 0.055,
-                    [0.68, 0.69, 0.70, 1.0])
-        trimui_brick_lockup_2d();
+    rear_brand_art([device_width / 2, 91.5, 7.52],
+                   rear_brand_size, 0.055,
+                   [0.68, 0.69, 0.70, 1.0]);
     rear_vector_art([device_width / 2, 88.5, 7.52],
                     rear_design_size, 0.05,
                     [0.48, 0.49, 0.50, 1.0])

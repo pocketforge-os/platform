@@ -42,15 +42,15 @@ visual approval.
 | Face cluster | centre (54.9, 38.8), 8.25 mm cardinal pitch, 7.0 mm crowns | Owner caliper measurement supplied 2026-07-29; Nintendo X/A/B/Y product elevation | High for diameter; medium-high for pitch |
 | F1/F2 controls | centres (29.8/41.2, 51.3), each 6.25 × 2.0 mm and intentionally unlabelled | Owner caliper/visual correction supplied 2026-07-29 | High |
 | Menu/Select/Start controls | 4.5 mm crowns; centres (26.6/36.4/46.2, 8.0); 5.3 mm clear gaps; 5.75 mm bottom margin | Owner caliper measurements supplied 2026-07-29 | High |
-| Front identity lockup | left-justified `TRIMUI` + three-dot mark + `BRICK`, 15.9 mm overall width | Owner caliper/visual correction supplied 2026-07-29 | High |
-| Speaker perforations | mirrored 2 × 8 arrays near Y=13.15 | Owner front photograph and manufacturer front elevation | Medium for count/placement; hole dimensions are visual |
+| Front identity lockup | left edge X=3.7 mm; `TRIMUI` + three-dot mark + `BRICK`, 15.9 mm overall width with circular logo elements | Owner caliper measurements and alignment screenshot supplied 2026-07-29 | High |
+| Speaker perforations | mirrored staggered 2 × 6 arrays, each bounded by 8.61 × 1.75 mm | Owner caliper/count correction supplied 2026-07-29 | High for count/bounds; 0.70 mm hole diameter is visual |
 | Rear shoulder shelf | L1/R1 17.51 × 8.30 mm; L2/R2 10.32 × 9.86 mm after a 2.0 mm travel gap; 3.7 mm rear bevel on all four and outer bevel on L1/R1 | Owner caliper/visual correction supplied 2026-07-29 | High in X/Y |
 | Rear USB-C housing | 13.55 × 4.44 mm beyond the thick section; 8.79 mm opening | Owner caliper measurement supplied 2026-07-29 | High |
 | Top light diffuser | one opaque 38.0 × 3.56 mm strip with a 2.0 mm rear return | Owner caliper/visual correction supplied 2026-07-29 | High |
 | Left-side controls | volume +/− each 7.82 × 3.52 mm; 2.85 mm clear gap; + top is 6.3 mm below case top | Owner caliper measurements supplied 2026-07-29 | High |
 | Right-side controls | Fn track 10.65 × 3.82 mm with 7.73 mm slider, top 18.0 mm below case top; cyan power 7.0 × 4.35 mm with 7.0 mm gap below Fn | Owner caliper/visual corrections supplied 2026-07-29 | High |
-| Bottom features | TF, reset, DC USB-C, microphone, 3.5 mm audio from left to right | FCC bottom photograph, manufacturer bottom elevation, and user manual | High for order; medium for dimensions |
-| Rear identity | `TRIMUI` + three-dot mark + `BRICK` at 22.72 × 2.88 mm; design line at 19.55 × 0.92 mm | Owner caliper measurements supplied 2026-07-29 | High |
+| Bottom features | TF opening 12.45 mm wide after 10.0 mm left clearance; 2.36 mm gap; 3.15 mm reset button recessed 1.0 mm; 3.20 mm gap; 8.79 mm USB-C opening; 4.75 mm gap; microphone pinhole; 5.0 mm gap; 5.16 mm audio opening | Owner caliper measurements supplied 2026-07-29; order corroborated by FCC/manufacturer views | High for X widths/gaps and reset depth; SD height and microphone diameter are visual |
+| Rear identity | geometrically centred at X=36.4 mm; `TRIMUI` + three-dot mark + `BRICK` at 22.72 × 2.88 mm; design line at 19.55 × 0.92 mm | Owner caliper measurements and alignment screenshot supplied 2026-07-29 | High |
 | Rear regulatory lockup | three-line verbatim copy at 36.19 × 4.14 mm; FCC/CE/recycle/WEEE marks 4.26 mm high with measured widths and gaps | Owner transcription and caliper measurements supplied 2026-07-29 | High for bounds/gaps; vector linework is a visual reconstruction |
 
 Public references:
@@ -151,8 +151,10 @@ unsuitable as a tolerance or fit claim.
 - Shoulder X/Y bounds and the 3.7 mm bevel are measured. Exact Z profile,
   paddle travel, shelf angle, and protrusion still need perpendicular macro
   photographs or a depth measurement for manufacturing accuracy.
-- Port order is verified and the rear USB-C housing/opening is measured;
-  bottom-edge opening sizes, chamfers, and insertion depths remain nominal.
+- Port order is verified. Rear and bottom USB-C widths, bottom feature X
+  spacing, reset depth, and the audio opening are measured; the SD opening
+  height, microphone-pinhole diameter, chamfers, and insertion depths remain
+  visual estimates.
 - Rear alloy finish, mould texture, rib height, compliance-mark linework,
   screw recess depth, and display-glass reflectance are representational
   OpenSCAD materials rather than scanned surface data.
