@@ -36,8 +36,9 @@ device_height = 110.75;
 front_z = 20.0;
 lower_rear_z = 0.0;
 upper_rear_z = 8.0;               // 20 mm lower / 12 mm upper depth
-rear_transition_low_y = 43.0;
-rear_transition_high_y = 49.0;
+rear_thick_length = 60.0;
+rear_transition_low_y = rear_thick_length;
+rear_transition_high_y = 64.44;
 bottom_corner_radius = 4.8;
 top_corner_radius = 2.7;
 outline_steps = QUALITY == "draft" ? 8 : 18;
@@ -55,19 +56,76 @@ face_centre = [54.9, 38.8];
 face_pitch = 8.25;
 f1_centre = [29.8, 51.3];
 f2_centre = [41.2, 51.3];
-menu_centre = [28.0, 8.8];
-select_centre = [36.4, 8.8];
-start_centre = [44.8, 8.8];
+menu_centre = [26.6, 8.0];
+select_centre = [36.4, 8.0];
+start_centre = [46.2, 8.0];
 
-dpad_size = 19.0;
-dpad_arm = 6.8;
-face_button_diameter = 8.3;
-system_button_diameter = 7.1;
+dpad_size = 18.43;
+dpad_arm = 6.6;
+face_button_diameter = 7.0;
+system_button_diameter = 4.5;
+system_button_gap = 5.3;
+f_key_size = [6.25, 2.0];
 
-shoulder_y = 47.2;
-shoulder_z = 4.15;
-shoulder_centres = [7.3, 21.0, 51.8, 65.5];
+shoulder_bevel = 3.7;
+shoulder_outer_width = 17.51;
+shoulder_inner_width = 10.32;
+shoulder_outer_extension = 8.30;
+shoulder_inner_extension = 9.86;
+shoulder_inner_gap = 0.60;
+// Symmetrical residual after the measured controls and 13.55 mm host boss.
+shoulder_host_gap = 1.195;
+host_housing_width = 13.55;
+host_housing_extension = 4.44;
+host_opening_width = 8.79;
 host_centre_x = device_width / 2;
+
+shoulder_l1_start = 0.00;
+shoulder_l2_start =
+    shoulder_l1_start + shoulder_outer_width + shoulder_inner_gap;
+host_housing_start =
+    shoulder_l2_start + shoulder_inner_width + shoulder_host_gap;
+shoulder_r2_start =
+    host_housing_start + host_housing_width + shoulder_host_gap;
+shoulder_r1_start =
+    shoulder_r2_start + shoulder_inner_width + shoulder_inner_gap;
+
+fn_track_size = [10.65, 3.82];
+fn_slider_length = 7.73;
+fn_top_y = device_height - 18.0;
+fn_centre_y = fn_top_y - fn_track_size.x / 2;
+power_key_size = [7.0, 4.35];
+power_top_y = fn_top_y - fn_track_size.x - 7.0;
+power_centre_y = power_top_y - power_key_size.x / 2;
+
+volume_key_size = [7.82, 3.52];
+volume_gap = 2.85;
+volume_up_top_y = device_height - 6.3;
+volume_up_centre_y = volume_up_top_y - volume_key_size.x / 2;
+volume_down_top_y =
+    volume_up_top_y - volume_key_size.x - volume_gap;
+volume_down_centre_y =
+    volume_down_top_y - volume_key_size.x / 2;
+
+front_brand_size = [15.9, 1.26];
+rear_brand_size = [22.72, 2.88];
+rear_design_size = [19.55, 0.92];
+light_diffuser_size = [38.0, 3.56];
+light_rear_drop = 2.0;
+regulatory_copy_size = [36.19, 4.14];
+regulatory_mark_height = 4.26;
+fcc_mark_width = 5.40;
+ce_mark_width = 4.63;
+recycle_mark_width = 4.40;
+weee_mark_width = 3.59;
+copy_fcc_gap = 0.40;
+fcc_ce_gap = 2.20;
+ce_recycle_gap = 2.27;
+recycle_weee_gap = 1.75;
+regulatory_lockup_width =
+    regulatory_copy_size.x + copy_fcc_gap + fcc_mark_width +
+    fcc_ce_gap + ce_mark_width + ce_recycle_gap +
+    recycle_mark_width + recycle_weee_gap + weee_mark_width;
 
 speaker_left_x = 13.4;
 speaker_right_x = device_width - speaker_left_x;
@@ -106,6 +164,31 @@ assert(abs(device_width - 72.8) < 0.001 &&
 assert(abs(front_z - lower_rear_z - 20.0) < 0.001 &&
        abs(front_z - upper_rear_z - 12.0) < 0.001,
        "TG3040 stepped 20/12 mm shell depth changed");
+assert(abs(dpad_size - 18.43) < 0.001 &&
+       abs(face_button_diameter - 7.0) < 0.001 &&
+       abs(system_button_diameter - 4.5) < 0.001,
+       "Owner-measured front-control dimensions changed");
+assert(abs(select_centre.x - menu_centre.x -
+           system_button_diameter - system_button_gap) < 0.001 &&
+       abs(start_centre.x - select_centre.x -
+           system_button_diameter - system_button_gap) < 0.001 &&
+       abs(menu_centre.y - system_button_diameter / 2 - 5.75) <
+           0.001,
+       "System-button spacing or bottom margin changed");
+assert(abs(shoulder_r1_start + shoulder_outer_width -
+           device_width) < 0.001,
+       "Measured shoulder/host chain no longer fills the top shelf");
+assert(abs((fn_top_y - fn_track_size.x) - power_top_y - 7.0) <
+           0.001 &&
+       abs(volume_up_top_y - volume_key_size.x -
+           volume_down_top_y - volume_gap) < 0.001,
+       "Measured side-control clearances changed");
+assert(abs(regulatory_lockup_width - 60.83) < 0.001,
+       "Rear regulatory lockup width changed");
+assert(abs(light_diffuser_size.x - 38.0) < 0.001 &&
+       abs(light_diffuser_size.y - 3.56) < 0.001 &&
+       abs(light_rear_drop - 2.0) < 0.001,
+       "Owner-measured top diffuser dimensions changed");
 assert(abs(sqrt(screen_active.x * screen_active.x +
                 screen_active.y * screen_active.y) -
            screen_diagonal) < 0.001,
@@ -308,6 +391,179 @@ module trimui_mark_2d(dot_diameter = 0.65, orbit = 0.72) {
             circle(d = dot_diameter, $fn = 18);
 }
 
+module line_segment_2d(first, second, width) {
+    hull() {
+        translate(first) circle(d = width, $fn = 18);
+        translate(second) circle(d = width, $fn = 18);
+    }
+}
+
+module exact_centred_art_2d(size) {
+    resize(newsize = size, auto = false)
+        children();
+}
+
+module front_vector_art(point, size, height = 0.06,
+                        colour = silkscreen_color) {
+    if (SHOW_GLYPHS)
+        color(colour)
+            translate(point)
+                linear_extrude(height = height)
+                    exact_centred_art_2d(size)
+                        children();
+}
+
+module rear_vector_art(point, size, height = 0.055,
+                       colour = silkscreen_color) {
+    if (SHOW_GLYPHS)
+        color(colour)
+            translate(point)
+                mirror([1, 0, 0])
+                    linear_extrude(height = height)
+                        exact_centred_art_2d(size)
+                            children();
+}
+
+module trimui_brick_lockup_2d() {
+    label_text_2d("TRIMUI", 3.0, "left", "center", brand_font);
+    translate([13.25, 0])
+        trimui_mark_2d(1.05, 1.15);
+    translate([16.15, 0])
+        label_text_2d("BRICK", 3.0, "left", "center", brand_font);
+}
+
+module regulatory_copy_2d() {
+    line_spacing = 1.33;
+    translate([0, line_spacing])
+        label_text_2d(
+            "MODEL: TG3040 . TRIMUI BRICK . DC 5V/3000mA . DESIGN BY",
+            1.0, "center", "center", micro_font);
+    label_text_2d(
+        "TRIMUI . MADE IN CHINA. Built in rechareable li-po battery .",
+        1.0, "center", "center", micro_font);
+    translate([0, -line_spacing])
+        label_text_2d(
+            "Only can use certified charger. The battery may explode in the fire.",
+            1.0, "center", "center", micro_font);
+}
+
+module fcc_mark_2d() {
+    // Source-owned reconstruction of the FCC mark: the stepped F and
+    // concentric open C arcs from the public-domain FCC vector.
+    translate([-2.38, -1.90])
+        polygon(points = [
+            [1.22, 2.00], [0.40, 2.00], [0.40, 3.33],
+            [1.38, 3.33], [1.68, 3.73], [0, 3.73],
+            [0, -0.10], [0.40, 0.17], [0.40, 1.60],
+            [1.22, 1.60]
+        ]);
+    for (arc = [
+        [[0.48, 0], 0.93, 0.20, 31],
+        [[0.33, 0], 1.78, 0.40, 35]
+    ])
+        translate(arc[0])
+            difference() {
+                difference() {
+                    circle(r = arc[1], $fn = 72);
+                    circle(r = arc[1] - arc[2], $fn = 72);
+                }
+                polygon(points = [
+                    [0, 0],
+                    [2.2 * arc[1] * cos(-arc[3]),
+                     2.2 * arc[1] * sin(-arc[3])],
+                    [2.2 * arc[1] * cos(arc[3]),
+                     2.2 * arc[1] * sin(arc[3])]
+                ]);
+            }
+}
+
+module ce_mark_2d() {
+    // Official 280:200 construction: two equal open rings, with the E's
+    // centre stroke connected to its inner arc.
+    for (centre_x = [-0.85, 0.85])
+        translate([centre_x, 0])
+            difference() {
+                difference() {
+                    circle(r = 1.0, $fn = 72);
+                    circle(r = 0.70, $fn = 72);
+                }
+                translate([0.10, -1.05])
+                    square([1.0, 2.10]);
+            }
+    translate([0.85 - 0.684, -0.15])
+        square([0.584, 0.30]);
+}
+
+module recycle_arrow_2d() {
+    polygon(points = [
+        [-0.24, 0.30], [0.17, 1.13], [0.49, 0.97],
+        [0.05, 1.87], [-0.85, 1.43], [-0.48, 1.28],
+        [-0.91, 0.43]
+    ]);
+}
+
+module recycle_mark_2d() {
+    for (angle = [0, 120, 240])
+        rotate(angle)
+            translate([0, -0.10])
+                recycle_arrow_2d();
+}
+
+module weee_mark_2d() {
+    // Crossed-out wheeled bin plus the post-2005 underline.
+    difference() {
+        translate([-0.72, -0.82])
+            polygon(points = [
+                [0, 0], [1.44, 0], [1.22, 1.82], [0.22, 1.82]
+            ]);
+        translate([-0.50, -0.58])
+            square([1.00, 1.15]);
+    }
+    translate([-0.92, 1.00]) square([1.84, 0.20]);
+    translate([-0.35, 1.18]) square([0.70, 0.16]);
+    translate([-0.51, -1.02]) circle(d = 0.30, $fn = 18);
+    translate([0.51, -1.02]) circle(d = 0.30, $fn = 18);
+    line_segment_2d([-1.04, 1.33], [1.04, -1.35], 0.20);
+    line_segment_2d([-1.04, -1.35], [1.04, 1.33], 0.20);
+    translate([-1.05, -1.56]) square([2.10, 0.20]);
+}
+
+module power_mark_2d() {
+    difference() {
+        difference() {
+            circle(d = 2.55, $fn = 48);
+            circle(d = 1.82, $fn = 48);
+        }
+        translate([-0.45, 0.35])
+            square([0.90, 1.25]);
+    }
+    line_segment_2d([0, 0.10], [0, 1.26], 0.38);
+}
+
+module regulatory_lockup_2d() {
+    fcc_x = regulatory_copy_size.x + copy_fcc_gap;
+    ce_x = fcc_x + fcc_mark_width + fcc_ce_gap;
+    recycle_x = ce_x + ce_mark_width + ce_recycle_gap;
+    weee_x = recycle_x + recycle_mark_width + recycle_weee_gap;
+
+    translate([regulatory_copy_size.x / 2, 0])
+        exact_centred_art_2d(regulatory_copy_size)
+            regulatory_copy_2d();
+    translate([fcc_x + fcc_mark_width / 2, 0])
+        exact_centred_art_2d([fcc_mark_width, regulatory_mark_height])
+            fcc_mark_2d();
+    translate([ce_x + ce_mark_width / 2, 0])
+        exact_centred_art_2d([ce_mark_width, regulatory_mark_height])
+            ce_mark_2d();
+    translate([recycle_x + recycle_mark_width / 2, 0])
+        exact_centred_art_2d(
+            [recycle_mark_width, regulatory_mark_height])
+                recycle_mark_2d();
+    translate([weee_x + weee_mark_width / 2, 0])
+        exact_centred_art_2d([weee_mark_width, regulatory_mark_height])
+            weee_mark_2d();
+}
+
 // ---- Shell and static details -------------------------------------------
 module rolled_outer_volume() {
     union() {
@@ -413,48 +669,53 @@ module speaker_array(side) {
 }
 
 module front_printing() {
-    front_label([3.7, 56.20, front_z + 0.055],
-                "TRIMUI", 1.40, 0.05, silkscreen_color,
-                "left", "center", brand_font);
-    color(silkscreen_color)
-        translate([15.2, 56.20, front_z + 0.055])
-            linear_extrude(height = 0.05)
-                trimui_mark_2d(0.43, 0.49);
-    front_label([17.2, 56.20, front_z + 0.055],
-                "BRICK", 1.40, 0.05, silkscreen_color,
-                "left", "center", brand_font);
+    // Owner-measured 15.9 mm lockup, kept tight and left justified.
+    front_vector_art(
+        [3.7 + front_brand_size.x / 2, 56.20, front_z + 0.055],
+        front_brand_size, 0.05, silkscreen_color)
+            trimui_brick_lockup_2d();
 }
 
 module host_port() {
+    // The rear USB-C housing continues 4.44 mm beyond the 60 mm grip.
+    color(shell_side_color)
+        rounded_panel(
+            [host_centre_x,
+             rear_thick_length + host_housing_extension / 2],
+            [host_housing_width, host_housing_extension],
+            7.70, 0.72, 0.20);
     color([0.56, 0.57, 0.58, 1.0])
-        xz_pill([host_centre_x, shoulder_y + 0.55, shoulder_z],
-                [10.3, 4.15], 0.52);
+        xz_pill([host_centre_x,
+                 rear_thick_length + host_housing_extension + 0.03,
+                 4.15],
+                [10.2, 3.55], 0.38);
     color(control_edge_color)
-        xz_pill([host_centre_x, shoulder_y + 0.78, shoulder_z],
-                [8.9, 2.95], 0.57);
+        xz_pill([host_centre_x,
+                 rear_thick_length + host_housing_extension + 0.16,
+                 4.15],
+                [host_opening_width, 2.55], 0.42);
     color([0.45, 0.46, 0.47, 1.0])
-        xz_pill([host_centre_x, shoulder_y + 0.87, shoulder_z],
-                [6.3, 0.70], 0.61);
+        xz_pill([host_centre_x,
+                 rear_thick_length + host_housing_extension + 0.28,
+                 4.15],
+                [6.15, 0.62], 0.46);
 }
 
 module rgb_light_bar() {
-    color([0.52, 0.55, 0.57, 1.0])
-        xz_rounded_rect([device_width / 2, device_height + 0.05, 13.25],
-                        [25.0, 2.35], 0.46, 0.40);
-    if (SHOW_MICRO_DETAILS) {
-        color([0.10, 0.74, 0.74, 1.0])
-            xz_rounded_rect([device_width / 2 - 8.0,
-                             device_height + 0.30, 13.25],
-                            [7.5, 1.55], 0.08, 0.28);
-        color([0.52, 0.30, 0.75, 1.0])
-            xz_rounded_rect([device_width / 2,
-                             device_height + 0.30, 13.25],
-                            [7.5, 1.55], 0.08, 0.28);
-        color([0.12, 0.55, 0.92, 1.0])
-            xz_rounded_rect([device_width / 2 + 8.0,
-                             device_height + 0.30, 13.25],
-                            [7.5, 1.55], 0.08, 0.28);
-    }
+    // To the user this is one opaque diffuser, not a row of visible LEDs.
+    diffuser_colour = [0.86, 0.87, 0.86, 1.0];
+    color(diffuser_colour)
+        xz_rounded_rect(
+            [device_width / 2, device_height + 0.03,
+             upper_rear_z + light_diffuser_size.y / 2],
+            light_diffuser_size, 0.40, 0.34);
+    // The same plastic turns down the rear face by 2 mm.
+    color(diffuser_colour)
+        rounded_panel(
+            [device_width / 2,
+             device_height - light_rear_drop / 2],
+            [light_diffuser_size.x, light_rear_drop],
+            0.20, 0.18, upper_rear_z - 0.19);
 }
 
 module bottom_ports() {
@@ -517,13 +778,15 @@ module rear_upper_panel() {
     color(rear_panel_color)
         rounded_panel(panel_centre, panel_size, 0.22, 1.2, 7.62);
 
-    rear_label([device_width / 2, 91.5, 7.52],
-               "TRIMUI   BRICK", 2.05, 0.055,
-               [0.68, 0.69, 0.70, 1.0], "center", "center",
-               brand_font);
-    rear_label([device_width / 2, 88.9, 7.52],
-               "DESIGN BY TRIMUI · MADE IN CHINA", 0.72, 0.05,
-               [0.48, 0.49, 0.50, 1.0]);
+    rear_vector_art([device_width / 2, 91.5, 7.52],
+                    rear_brand_size, 0.055,
+                    [0.68, 0.69, 0.70, 1.0])
+        trimui_brick_lockup_2d();
+    rear_vector_art([device_width / 2, 88.5, 7.52],
+                    rear_design_size, 0.05,
+                    [0.48, 0.49, 0.50, 1.0])
+        label_text_2d("DESIGN BY TRIMUI · MADE IN CHINA",
+                      1.0, "center", "center", micro_font);
 
     screw_cross([5.2, 105.4], 7.57, true);
     screw_cross([device_width - 5.2, 105.4], 7.57, true);
@@ -531,7 +794,7 @@ module rear_upper_panel() {
 
 module rear_lower_details() {
     // Shallow horizontal ribs on the thick lower grip.
-    for (y = [7.0 : 2.25 : 39.5])
+    for (y = [7.0 : 2.25 : 55.0])
         color(rear_rib_color)
             translate([3.2, y, -0.23])
                 cube([device_width - 6.4, 0.72, 0.20]);
@@ -540,23 +803,16 @@ module rear_lower_details() {
         translate([3.2, 18.4, -0.27])
             cube([device_width - 6.4, 8.0, 0.15]);
 
-    if (SHOW_MICRO_DETAILS) {
-        rear_label([5.6, 23.5, -0.34],
-                   "MODEL: TG3040  TRIMUI BRICK  DC 5V/3000mA",
-                   0.66, 0.05, [0.43, 0.44, 0.45, 1.0],
-                   "right", "center", micro_font);
-        rear_label([5.6, 21.9, -0.34],
-                   "DESIGN BY TRIMUI · MADE IN CHINA",
-                   0.66, 0.05, [0.43, 0.44, 0.45, 1.0],
-                   "right", "center", micro_font);
-        rear_label([54.6, 20.4, -0.34],
-                   "FC  CE", 2.05, 0.05,
-                   [0.50, 0.51, 0.52, 1.0],
-                   "center", "center", brand_font);
-    }
+    if (SHOW_MICRO_DETAILS && SHOW_GLYPHS)
+        color([0.50, 0.51, 0.52, 1.0])
+            translate([device_width / 2, 22.4, -0.34])
+                mirror([1, 0, 0])
+                    linear_extrude(height = 0.05)
+                        translate([-regulatory_lockup_width / 2, 0])
+                            regulatory_lockup_2d();
 
     for (point = [
-        [4.8, 44.9], [device_width - 4.8, 44.9],
+        [4.8, 56.0], [device_width - 4.8, 56.0],
         [4.8, 4.8], [device_width - 4.8, 4.8]
     ])
         screw_cross(point, -0.02, true);
@@ -612,47 +868,43 @@ module dpad_control() {
 module face_button(id, point, glyph) {
     color(control_edge_color)
         translate([point.x, point.y, front_z + 0.02])
-            cylinder(d = face_button_diameter + 1.7,
+            cylinder(d = face_button_diameter + 0.9,
                      h = 0.35, $fn = 40);
     color(active_color(id))
         translate([point.x, point.y, front_z + 0.30])
             bevel_cylinder(face_button_diameter, 1.45, 0.35);
     if (SHOW_GLYPHS)
         front_label([point.x, point.y, front_z + 1.74],
-                    glyph, 3.2, 0.08,
+                    glyph, 2.7, 0.08,
                     is_active(id) ? highlight_dark_color
                                   : control_glyph_color,
                     "center", "center", ui_font);
 }
 
-module function_key(id, point, glyph) {
+module function_key(id, point) {
     color(control_edge_color)
         translate([point.x, point.y, front_z + 0.02])
             linear_extrude(height = 0.28)
-                pill_2d(10.0, 4.45);
+                pill_2d(f_key_size.x + 0.55,
+                        f_key_size.y + 0.50);
     color(active_color(id, silver_key_color))
         translate([point.x, point.y, front_z + 0.27])
             linear_extrude(height = 0.76, scale = 0.94)
-                pill_2d(8.9, 3.35);
-    if (SHOW_MICRO_DETAILS)
-        front_label([point.x, point.y, front_z + 1.04],
-                    glyph, 1.45, 0.06,
-                    is_active(id) ? highlight_dark_color
-                                  : [0.43, 0.44, 0.45, 1.0],
-                    "center", "center", micro_font);
+                pill_2d(f_key_size.x, f_key_size.y);
 }
 
-module four_dot_icon(point, z, colour) {
-    for (offset = [[-0.9, 0], [0.9, 0], [0, -0.9], [0, 0.9]])
+module three_dot_icon(point, z, colour) {
+    // Menu mark: one dot over a two-dot base.
+    for (offset = [[0, 0.62], [-0.58, -0.42], [0.58, -0.42]])
         color(colour)
             translate([point.x + offset.x, point.y + offset.y, z])
-                cylinder(d = 0.88, h = 0.07, $fn = 18);
+                cylinder(d = 0.68, h = 0.07, $fn = 18);
 }
 
 module system_button(id, point, symbol) {
     color(control_edge_color)
         translate([point.x, point.y, front_z + 0.02])
-            cylinder(d = system_button_diameter + 1.55,
+            cylinder(d = system_button_diameter + 0.70,
                      h = 0.32, $fn = 36);
     color(active_color(id))
         translate([point.x, point.y, front_z + 0.30])
@@ -662,43 +914,82 @@ module system_button(id, point, symbol) {
                                  : system_glyph_color;
     if (SHOW_GLYPHS) {
         if (symbol == "menu")
-            four_dot_icon(point, front_z + 1.34, glyph_colour);
+            three_dot_icon(point, front_z + 1.34, glyph_colour);
         else if (symbol == "select")
             color(glyph_colour)
-                translate([point.x - 1.55, point.y - 0.34,
+                translate([point.x - 1.10, point.y - 0.25,
                            front_z + 1.34])
-                    cube([3.1, 0.68, 0.07]);
+                    cube([2.20, 0.50, 0.07]);
         else
             color(glyph_colour)
                 translate([point.x, point.y, front_z + 1.34])
                     linear_extrude(height = 0.07)
                         polygon(points = [
-                            [1.65, 0], [-1.05, 1.45], [-1.05, -1.45]
+                            [1.12, 0], [-0.72, 1.00], [-0.72, -1.00]
                         ]);
     }
 }
 
-module shoulder_control(id, x, glyph, outer = false) {
-    size = outer ? [12.6, 6.2] : [12.1, 6.5];
-    color(control_edge_color)
-        xz_rounded_rect([x, shoulder_y, shoulder_z],
-                        size + [0.7, 0.55], 3.05, 1.0);
+module shoulder_wedge_geometry(x_start, width, y_start, extension,
+                               outer_side = "none") {
+    back_z = 0.55;
+    screen_z = 7.55;
+    rear_top = y_start + extension - shoulder_bevel;
+    screen_top = y_start + extension;
+    rear_x0 =
+        outer_side == "left" ? x_start + shoulder_bevel : x_start;
+    rear_x1 =
+        outer_side == "right" ?
+            x_start + width - shoulder_bevel : x_start + width;
+
+    polyhedron(
+        points = [
+            [rear_x0, y_start, back_z],
+            [rear_x1, y_start, back_z],
+            [rear_x1, rear_top, back_z],
+            [rear_x0, rear_top, back_z],
+            [x_start, y_start, screen_z],
+            [x_start + width, y_start, screen_z],
+            [x_start + width, screen_top, screen_z],
+            [x_start, screen_top, screen_z]
+        ],
+        faces = [
+            [0, 3, 2, 1],
+            [4, 5, 6, 7],
+            [0, 1, 5, 4],
+            [1, 2, 6, 5],
+            [2, 3, 7, 6],
+            [3, 0, 4, 7]
+        ],
+        convexity = 4);
+}
+
+module shoulder_control(id, x_start, width, y_start, extension,
+                        glyph, outer_side = "none") {
     color(active_color(id))
-        xz_rounded_rect([x, shoulder_y + 0.22, shoulder_z],
-                        size, 3.15, outer ? 1.25 : 0.85);
+        shoulder_wedge_geometry(
+            x_start, width, y_start, extension, outer_side);
+
+    // Rear-readable artwork replaces the previous upside-down top labels.
     if (SHOW_GLYPHS)
-        edge_label([x, shoulder_y + 1.83, shoulder_z],
-                   glyph, 2.15, "top", 0.07,
-                   is_active(id) ? highlight_dark_color
-                                 : control_glyph_color,
-                   ui_font);
+        rear_label(
+            [x_start + width / 2,
+             y_start + (extension - shoulder_bevel) / 2,
+             0.43],
+            glyph, 2.15, 0.07,
+            is_active(id) ? highlight_dark_color
+                          : control_glyph_color,
+            "center", "center", ui_font);
 }
 
 module volume_control(id, y, glyph) {
     color(control_edge_color)
-        yz_rounded_rect([-0.08, y, 14.1], [8.6, 4.4], 0.70, 1.75);
+        yz_rounded_rect([-0.08, y, 14.1],
+                        volume_key_size + [0.55, 0.45],
+                        0.70, 1.55);
     color(active_color(id))
-        yz_rounded_rect([-0.42, y, 14.1], [7.6, 3.45], 0.78, 1.45);
+        yz_rounded_rect([-0.42, y, 14.1],
+                        volume_key_size, 0.78, 1.40);
     if (SHOW_GLYPHS)
         // The relief is represented as a shallow bar/cross rather than text
         // so it remains visible on a vertical side elevation.
@@ -714,36 +1005,40 @@ module volume_control(id, y, glyph) {
 module fn_control() {
     id = "btn_fn";
     color(control_edge_color)
-        yz_rounded_rect([device_width + 0.08, 72.0, 13.5],
-                        [10.3, 4.7], 0.70, 1.8);
+        yz_rounded_rect([device_width + 0.08, fn_centre_y, 13.5],
+                        fn_track_size, 0.70, 1.55);
     color(active_color(id))
-        yz_rounded_rect([device_width + 0.43, 72.0, 13.5],
-                        [8.9, 3.65], 0.80, 1.45);
+        yz_rounded_rect([device_width + 0.43,
+                         fn_centre_y - 0.65, 13.5],
+                        [fn_slider_length, fn_track_size.y],
+                        0.80, 1.45);
     if (SHOW_MICRO_DETAILS)
-        for (offset = [-2.7 : 0.9 : 2.7])
+        for (offset = [-2.2 : 0.8 : 2.2])
             color(is_active(id) ? highlight_dark_color
                                 : [0.10, 0.105, 0.11, 1.0])
                 translate([device_width + 0.83,
-                           72.0 + offset - 0.12, 12.2])
+                           fn_centre_y - 0.65 + offset - 0.12,
+                           12.2])
                     cube([0.08, 0.24, 2.6]);
 }
 
 module power_control() {
     id = "btn_power";
     color(control_edge_color)
-        yz_rounded_rect([device_width + 0.08, 57.0, 13.8],
-                        [8.5, 8.0], 0.70, 3.2);
+        yz_rounded_rect([device_width + 0.08, power_centre_y, 13.8],
+                        power_key_size + [0.55, 0.45],
+                        0.70, 1.70);
     color(active_color(id, power_key_color))
-        yz_rounded_rect([device_width + 0.43, 57.0, 13.8],
-                        [7.25, 6.7], 0.80, 2.85);
+        yz_rounded_rect([device_width + 0.43,
+                         power_centre_y, 13.8],
+                        power_key_size, 0.80, 1.55);
     color(is_active(id) ? highlight_dark_color
-                        : [0.00, 0.42, 0.45, 1.0]) {
-        translate([device_width + 0.84, 56.1, 13.65])
-            rotate([0, 90, 0])
-                cylinder(d = 3.0, h = 0.07, $fn = 32);
-        translate([device_width + 0.82, 56.8, 13.70])
-            cube([0.10, 2.0, 0.28]);
-    }
+                        : [0.00, 0.35, 0.38, 1.0])
+        translate([device_width + 0.84, power_centre_y, 13.8])
+            rotate([90, 0, 90])
+                linear_extrude(height = 0.07)
+                    rotate(-90)
+                        power_mark_2d();
 }
 
 module named_control(id) {
@@ -758,9 +1053,9 @@ module named_control(id) {
     else if (id == "btn_west")
         face_button(id, face_centre + [-face_pitch, 0], "Y");
     else if (id == "btn_f1")
-        function_key(id, f1_centre, "F1");
+        function_key(id, f1_centre);
     else if (id == "btn_f2")
-        function_key(id, f2_centre, "F2");
+        function_key(id, f2_centre);
     else if (id == "btn_menu")
         system_button(id, menu_centre, "menu");
     else if (id == "btn_select")
@@ -768,17 +1063,29 @@ module named_control(id) {
     else if (id == "btn_start")
         system_button(id, start_centre, "start");
     else if (id == "btn_l1")
-        shoulder_control(id, shoulder_centres[0], "L1", true);
+        shoulder_control(
+            id, shoulder_l1_start, shoulder_outer_width,
+            rear_thick_length, shoulder_outer_extension,
+            "L1", "left");
     else if (id == "trig_l")
-        shoulder_control(id, shoulder_centres[1], "L2");
+        shoulder_control(
+            id, shoulder_l2_start, shoulder_inner_width,
+            rear_thick_length + 2.0, shoulder_inner_extension,
+            "L2");
     else if (id == "trig_r")
-        shoulder_control(id, shoulder_centres[2], "R2");
+        shoulder_control(
+            id, shoulder_r2_start, shoulder_inner_width,
+            rear_thick_length + 2.0, shoulder_inner_extension,
+            "R2");
     else if (id == "btn_r1")
-        shoulder_control(id, shoulder_centres[3], "R1", true);
+        shoulder_control(
+            id, shoulder_r1_start, shoulder_outer_width,
+            rear_thick_length, shoulder_outer_extension,
+            "R1", "right");
     else if (id == "vol_up")
-        volume_control(id, 77.4, "+");
+        volume_control(id, volume_up_centre_y, "+");
     else if (id == "vol_down")
-        volume_control(id, 66.8, "-");
+        volume_control(id, volume_down_centre_y, "-");
     else if (id == "btn_fn")
         fn_control();
     else if (id == "btn_power")
