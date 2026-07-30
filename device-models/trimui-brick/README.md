@@ -46,6 +46,7 @@ visual approval.
 | Speaker perforations | mirrored staggered 2 × 6 arrays, each bounded by 8.61 × 1.75 mm | Owner caliper/count correction supplied 2026-07-29 | High for count/bounds; 0.70 mm hole diameter is visual |
 | Rear shoulder shelf | L1/R1 17.51 × 8.30 mm; L2/R2 10.32 × 9.86 mm after a 2.0 mm travel gap; 3.7 mm rear bevel on all four and outer bevel on L1/R1 | Owner caliper/visual correction supplied 2026-07-29 | High in X/Y |
 | Rear USB-C housing | 13.55 × 4.44 mm beyond the thick section; 8.79 mm opening | Owner caliper measurement supplied 2026-07-29 | High |
+| USB-C metal lips / bottom projection | Approximately 0.18 mm visible metal border on both sockets; bottom socket projects approximately 0.45 mm beyond the shell | Owner visual correction supplied 2026-07-29 | Medium; both are visual estimates pending a macro/profile measurement |
 | Top light diffuser | one opaque 38.0 × 3.56 mm strip with a 2.0 mm rear return | Owner caliper/visual correction supplied 2026-07-29 | High |
 | Left-side controls | volume +/− each 7.82 × 3.52 mm; 2.85 mm clear gap; + top is 6.3 mm below case top | Owner caliper measurements supplied 2026-07-29 | High |
 | Right-side controls | Fn track 10.65 × 3.82 mm with 7.73 mm slider, top 18.0 mm below case top; cyan power 7.0 × 4.35 mm with 7.0 mm gap below Fn | Owner caliper/visual corrections supplied 2026-07-29 | High |
@@ -152,9 +153,11 @@ unsuitable as a tolerance or fit claim.
   paddle travel, shelf angle, and protrusion still need perpendicular macro
   photographs or a depth measurement for manufacturing accuracy.
 - Port order is verified. Rear and bottom USB-C widths, bottom feature X
-  spacing, reset depth, and the audio opening are measured; the SD opening
-  height, microphone-pinhole diameter, chamfers, and insertion depths remain
-  visual estimates.
+  spacing, reset depth, and the audio opening are measured. The thin USB-C
+  metal borders and approximately 0.45 mm bottom-socket projection follow
+  owner visual review; their exact profile, along with the SD opening height,
+  microphone-pinhole diameter, chamfers, and insertion depths, remains a
+  visual estimate.
 - Rear alloy finish, mould texture, rib height, compliance-mark linework,
   screw recess depth, and display-glass reflectance are representational
   OpenSCAD materials rather than scanned surface data.

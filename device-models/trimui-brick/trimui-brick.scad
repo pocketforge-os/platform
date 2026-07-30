@@ -78,7 +78,12 @@ shoulder_host_gap = 1.195;
 host_housing_width = 13.55;
 host_housing_extension = 4.44;
 host_opening_width = 8.79;
+host_opening_height = 2.55;
 host_centre_x = device_width / 2;
+usb_ring_border = 0.18;           // visual estimate: thin stamped-metal lip
+bottom_usb_opening_height = 2.75;
+bottom_usb_protrusion = 0.45;     // visual estimate beyond the bottom shell
+bottom_usb_mount_overlap = 0.10;
 
 shoulder_l1_start = 0.00;
 shoulder_l2_start =
@@ -811,27 +816,32 @@ module front_printing() {
 
 module host_port() {
     // The rear USB-C housing continues 4.44 mm beyond the 60 mm grip.
+    host_face_y = rear_thick_length + host_housing_extension;
+
     color(shell_side_color)
         rounded_panel(
             [host_centre_x,
              rear_thick_length + host_housing_extension / 2],
             [host_housing_width, host_housing_extension],
             7.70, 0.72, 0.20);
+    // Both sockets have only a very thin visible stamped-metal lip.
     color([0.56, 0.57, 0.58, 1.0])
         xz_pill([host_centre_x,
-                 rear_thick_length + host_housing_extension + 0.03,
+                 host_face_y + 0.04,
                  4.15],
-                [10.2, 3.55], 0.38);
+                [host_opening_width + 2 * usb_ring_border,
+                 host_opening_height + 2 * usb_ring_border],
+                0.20);
     color(control_edge_color)
         xz_pill([host_centre_x,
-                 rear_thick_length + host_housing_extension + 0.16,
+                 host_face_y + 0.15,
                  4.15],
-                [host_opening_width, 2.55], 0.42);
+                [host_opening_width, host_opening_height], 0.04);
     color([0.45, 0.46, 0.47, 1.0])
         xz_pill([host_centre_x,
-                 rear_thick_length + host_housing_extension + 0.28,
+                 host_face_y + 0.175,
                  4.15],
-                [6.15, 0.62], 0.46);
+                [6.15, 0.62], 0.025);
 }
 
 module rgb_light_bar() {
@@ -853,6 +863,10 @@ module rgb_light_bar() {
 
 module bottom_ports() {
     edge_y = -0.12;
+    bottom_usb_lip_depth =
+        bottom_usb_protrusion + bottom_usb_mount_overlap;
+    bottom_usb_lip_y =
+        (bottom_usb_mount_overlap - bottom_usb_protrusion) / 2;
 
     // TF slot; its 1.45 mm opening height remains a visual estimate.
     color(control_edge_color)
@@ -879,18 +893,24 @@ module bottom_ports() {
                "R", 1.05, "bottom", 0.05,
                silkscreen_color, micro_font);
 
-    // DC USB-C.
+    // The bottom USB-C metal shell visibly projects beyond the case.
     color([0.62, 0.63, 0.63, 1.0])
-        xz_pill([bottom_usb_centre_x, edge_y, bottom_feature_z],
-                [bottom_usb_width + 1.40, 4.05], 0.54);
+        xz_pill([bottom_usb_centre_x, bottom_usb_lip_y,
+                 bottom_feature_z],
+                [bottom_usb_width + 2 * usb_ring_border,
+                 bottom_usb_opening_height + 2 * usb_ring_border],
+                bottom_usb_lip_depth);
     color(control_edge_color)
-        xz_pill([bottom_usb_centre_x, edge_y - 0.19,
+        xz_pill([bottom_usb_centre_x,
+                 -bottom_usb_protrusion - 0.015,
                  bottom_feature_z],
-                [bottom_usb_width, 2.75], 0.58);
+                [bottom_usb_width, bottom_usb_opening_height],
+                0.04);
     color([0.40, 0.41, 0.42, 1.0])
-        xz_pill([bottom_usb_centre_x, edge_y - 0.31,
+        xz_pill([bottom_usb_centre_x,
+                 -bottom_usb_protrusion - 0.040,
                  bottom_feature_z],
-                [6.10, 0.70], 0.06);
+                [6.10, 0.70], 0.025);
 
     // Microphone and audio.
     color(control_edge_color)
