@@ -164,8 +164,11 @@ unsuitable as a tolerance or fit claim.
 - The owner evidence set has a strong front view and measurements but no
   perpendicular owner rear/top/bottom/left/right photographs. Public TRIMUI
   and FCC views cover those surfaces for this first pass.
-- No fixture contract is added here. The existing Brick holder remains the
-  physically qualified source for contact and retention decisions.
+- `fixture-contract.json` now records the separate evidence-backed handoff to
+  holder generation: measured envelope and stepped depths, candidate contact
+  regions, service access, datums, and keep-outs. It remains unqualified until
+  the owner accepts the printed Brick holder; the visual SCAD is still not a
+  manufacturing surface.
 - No runtime descriptor, skin atlas, or simulator routing is added in this
   task. Those are a separate integration gate after explicit owner approval of
   this model's physical appearance.

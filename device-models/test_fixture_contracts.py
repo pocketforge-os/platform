@@ -19,6 +19,7 @@ import validate_fixture_contracts as fixture
 ROOT = Path(__file__).resolve().parent.parent
 BASE_PATH = ROOT / "device-models/trimui-smart-pro/fixture-contract.json"
 ALIAS_PATH = ROOT / "device-models/trimui-smart-pro-s/fixture-contract.json"
+BRICK_PATH = ROOT / "device-models/trimui-brick/fixture-contract.json"
 SCHEMA_PATH = ROOT / "schemas/device-fixture-contract.schema.json"
 
 
@@ -71,6 +72,40 @@ class FixtureContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.base = raw_document(BASE_PATH)
         self.alias = raw_document(ALIAS_PATH)
+        self.brick = raw_document(BRICK_PATH)
+
+    def test_brick_contract_is_distinct_and_stays_unqualified(self) -> None:
+        resolved = fixture.ContractRepository(ROOT).resolve(BRICK_PATH)
+        interface = self.brick["fixture_interface"]
+        self.assertEqual("unqualified", resolved.qualification["status"])
+        self.assertEqual(
+            [72.8, 110.75],
+            interface["envelope"]["xy_bounds_mm"]["max"],
+        )
+        self.assertEqual(
+            {
+                "thick_lower_shell": 20,
+                "thin_upper_shell": 12,
+            },
+            {
+                item["id"]: item["nominal_mm"]
+                for item in interface["local_depths"]
+            },
+        )
+        self.assertEqual(
+            {
+                "bottom_left_support",
+                "bottom_right_support",
+                "left_lower_datum",
+                "right_lower_datum",
+                "top_left_retainer",
+            },
+            {item["id"] for item in interface["contact_regions"]},
+        )
+        self.assertNotEqual(
+            resolved.interface_hash,
+            fixture.ContractRepository(ROOT).resolve(BASE_PATH).interface_hash,
+        )
 
     def test_repository_contracts_validate_and_checker_is_read_only(self) -> None:
         paths = sorted(ROOT.glob("device-models/*/fixture-contract.json"))
@@ -83,9 +118,20 @@ class FixtureContractTests(unittest.TestCase):
             path: hashlib.sha256(path.read_bytes()).hexdigest()
             for path in paths
         }
-        self.assertEqual(2, len(contracts))
+        self.assertEqual(3, len(contracts))
         self.assertEqual(before, after)
-        self.assertEqual(contracts[0].interface_hash, contracts[1].interface_hash)
+        by_slug = {
+            contract.document["device"]["slug"]: contract
+            for contract in contracts
+        }
+        self.assertEqual(
+            by_slug["trimui-smart-pro"].interface_hash,
+            by_slug["trimui-smart-pro-s"].interface_hash,
+        )
+        self.assertNotEqual(
+            by_slug["trimui-brick"].interface_hash,
+            by_slug["trimui-smart-pro"].interface_hash,
+        )
 
     def test_hash_ignores_json_representation_and_semantic_list_order(self) -> None:
         changed = copy.deepcopy(self.base)

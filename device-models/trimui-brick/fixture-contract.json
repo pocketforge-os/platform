@@ -1,0 +1,547 @@
+{
+  "$schema": "../../schemas/device-fixture-contract.schema.json",
+  "schema_version": 1,
+  "kind": "fixture_interface",
+  "device": {
+    "slug": "trimui-brick",
+    "platform_device_ids": [
+      "a133"
+    ],
+    "manufacturer": "TrimUI",
+    "product": "Brick",
+    "model_number": "TG3040",
+    "hardware_revisions": [
+      "TG3040"
+    ],
+    "chassis_family": "trimui-brick"
+  },
+  "visual_model": {
+    "path": "trimui-brick.scad",
+    "role": "visual_reference_only",
+    "manufacturing_source": false
+  },
+  "interface_revision": 1,
+  "fixture_interface_sha256": "e52f855585f502405e36f52b393fa34b75b141ed8cd59f678686ca564723d896",
+  "coordinate_system": {
+    "units": "mm",
+    "handedness": "right_handed",
+    "origin": "rear_left_bottom_nominal_shell_datum",
+    "axes": {
+      "x": "physical_left_to_right",
+      "y": "physical_bottom_to_top",
+      "z": "physical_rear_to_front"
+    }
+  },
+  "fixture_interface": {
+    "envelope": {
+      "xy_bounds_mm": {
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          72.8,
+          110.75
+        ]
+      },
+      "xy_measurement_uncertainty_mm": null,
+      "overall_depth": {
+        "nominal_mm": 20,
+        "basis": "owner_caliper",
+        "measurement_uncertainty_mm": null,
+        "manufacturing_ready": false
+      }
+    },
+    "local_depths": [
+      {
+        "id": "thick_lower_shell",
+        "region_refs": [
+          "bottom_left_support",
+          "bottom_right_support",
+          "left_lower_datum",
+          "right_lower_datum"
+        ],
+        "nominal_mm": 20,
+        "basis": "owner_caliper",
+        "measurement_uncertainty_mm": null,
+        "manufacturing_ready": true
+      },
+      {
+        "id": "thin_upper_shell",
+        "region_refs": [
+          "top_left_retainer"
+        ],
+        "nominal_mm": 12,
+        "basis": "owner_caliper",
+        "measurement_uncertainty_mm": null,
+        "manufacturing_ready": true
+      }
+    ],
+    "contact_regions": [
+      {
+        "id": "bottom_left_support",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "bottom_edge",
+          "axis": "x",
+          "min_mm": 13.5,
+          "max_mm": 22.5
+        },
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "contact_modes": [
+          "padded",
+          "support"
+        ],
+        "local_depth_ref": "thick_lower_shell"
+      },
+      {
+        "id": "bottom_right_support",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "bottom_edge",
+          "axis": "x",
+          "min_mm": 50.3,
+          "max_mm": 59.3
+        },
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "contact_modes": [
+          "padded",
+          "support"
+        ],
+        "local_depth_ref": "thick_lower_shell"
+      },
+      {
+        "id": "left_lower_datum",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "left_edge",
+          "axis": "y",
+          "min_mm": 9.5,
+          "max_mm": 18.5
+        },
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "contact_modes": [
+          "datum",
+          "padded",
+          "retention"
+        ],
+        "local_depth_ref": "thick_lower_shell"
+      },
+      {
+        "id": "right_lower_datum",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "right_edge",
+          "axis": "y",
+          "min_mm": 9.5,
+          "max_mm": 18.5
+        },
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "contact_modes": [
+          "datum",
+          "padded",
+          "retention"
+        ],
+        "local_depth_ref": "thick_lower_shell"
+      },
+      {
+        "id": "top_left_retainer",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "top_edge",
+          "axis": "x",
+          "min_mm": 14,
+          "max_mm": 20
+        },
+        "normal": [
+          0,
+          -1,
+          0
+        ],
+        "contact_modes": [
+          "padded",
+          "retention"
+        ],
+        "local_depth_ref": "thin_upper_shell"
+      }
+    ],
+    "keepouts": [
+      {
+        "id": "active_display_visibility",
+        "category": "optical",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "front",
+          "axes": [
+            "x",
+            "y"
+          ],
+          "min_mm": [
+            3.89,
+            59.865
+          ],
+          "max_mm": [
+            68.91,
+            108.635
+          ]
+        },
+        "clearance_mm": 0
+      },
+      {
+        "id": "bottom_io_openings",
+        "category": "port",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "bottom_edge",
+          "axes": [
+            "x",
+            "z"
+          ],
+          "min_mm": [
+            10,
+            7
+          ],
+          "max_mm": [
+            55.56,
+            14
+          ]
+        },
+        "clearance_mm": 1
+      },
+      {
+        "id": "top_usb_path",
+        "category": "cable",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "top_edge",
+          "axes": [
+            "x",
+            "z"
+          ],
+          "min_mm": [
+            28.4,
+            8
+          ],
+          "max_mm": [
+            44.4,
+            20
+          ]
+        },
+        "clearance_mm": 1
+      },
+      {
+        "id": "rear_shoulder_sweep",
+        "category": "trigger",
+        "shape": {
+          "kind": "aabb",
+          "min_mm": [
+            0,
+            92.75,
+            0
+          ],
+          "max_mm": [
+            72.8,
+            110.75,
+            8
+          ]
+        },
+        "clearance_mm": 2
+      },
+      {
+        "id": "left_volume_controls",
+        "category": "control",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "left_edge",
+          "axes": [
+            "y",
+            "z"
+          ],
+          "min_mm": [
+            84,
+            8
+          ],
+          "max_mm": [
+            104.45,
+            20
+          ]
+        },
+        "clearance_mm": 1
+      },
+      {
+        "id": "right_fn_power_controls",
+        "category": "control",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "right_edge",
+          "axes": [
+            "y",
+            "z"
+          ],
+          "min_mm": [
+            71.3,
+            8
+          ],
+          "max_mm": [
+            92.75,
+            20
+          ]
+        },
+        "clearance_mm": 1
+      }
+    ],
+    "access_regions": [
+      {
+        "id": "rear_service",
+        "category": "service",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "rear",
+          "axes": [
+            "x",
+            "y"
+          ],
+          "min_mm": [
+            8.4,
+            12.375
+          ],
+          "max_mm": [
+            64.4,
+            98.375
+          ]
+        },
+        "must_remain_open": true
+      }
+    ],
+    "datums": [
+      {
+        "id": "camera_visibility_target_xy",
+        "kind": "point_2d",
+        "axes": [
+          "x",
+          "y"
+        ],
+        "value_mm": [
+          36.4,
+          84.25
+        ]
+      },
+      {
+        "id": "shell_center_xy",
+        "kind": "point_2d",
+        "axes": [
+          "x",
+          "y"
+        ],
+        "value_mm": [
+          36.4,
+          55.375
+        ]
+      },
+      {
+        "id": "lower_rear_shell_plane",
+        "kind": "plane",
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "offset_mm": 0
+      },
+      {
+        "id": "upper_rear_shell_plane",
+        "kind": "plane",
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "offset_mm": 8
+      },
+      {
+        "id": "shared_front_contact_plane",
+        "kind": "plane",
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "offset_mm": 20
+      }
+    ],
+    "clearance_requirements": [
+      {
+        "id": "lower_rear_service_gap",
+        "direction": "rearward",
+        "minimum_mm": 10,
+        "from_datum": "lower_rear_shell_plane",
+        "protects": [
+          "service",
+          "thermal"
+        ]
+      },
+      {
+        "id": "upper_rear_trigger_gap",
+        "direction": "rearward",
+        "minimum_mm": 18,
+        "from_datum": "upper_rear_shell_plane",
+        "protects": [
+          "service",
+          "trigger"
+        ]
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "owner_envelope",
+      "method": "owner_caliper",
+      "confidence": "high",
+      "reference": "bead:tsp-bcx.21.23; device-models/trimui-brick/README.md#measurement-and-provenance",
+      "interface_refs": [
+        "datum:shell_center_xy",
+        "envelope:xy"
+      ],
+      "note": "The owner-measured 72.8 x 110.75 mm face envelope establishes the XY bounds and derived shell centre."
+    },
+    {
+      "id": "owner_stepped_depth",
+      "method": "owner_caliper",
+      "confidence": "high",
+      "reference": "bead:tsp-bcx.21.23; device-models/trimui-brick/README.md#measurement-and-provenance",
+      "interface_refs": [
+        "clearance:lower_rear_service_gap",
+        "clearance:upper_rear_trigger_gap",
+        "datum:lower_rear_shell_plane",
+        "datum:shared_front_contact_plane",
+        "datum:upper_rear_shell_plane",
+        "depth:thick_lower_shell",
+        "depth:thin_upper_shell",
+        "envelope:overall_depth"
+      ],
+      "note": "Owner measurements establish the 20 mm lower and 12 mm upper shell depths. The candidate holder places their rear datums 10 and 18 mm above the carrier to preserve one 30 mm shell-front plane with 0.6 mm passive throat play."
+    },
+    {
+      "id": "candidate_retention_geometry",
+      "method": "accepted_fixture_design",
+      "confidence": "medium_high",
+      "reference": "bead:tsp-bcx.21.23; test-node-hw branch tsp-bcx.21.23",
+      "interface_refs": [
+        "access:rear_service",
+        "contact:bottom_left_support",
+        "contact:bottom_right_support",
+        "contact:left_lower_datum",
+        "contact:right_lower_datum",
+        "contact:top_left_retainer"
+      ],
+      "note": "These are the automated-geometry-validated candidate contact windows and service aperture. They are design evidence only until the owner accepts the printed holder."
+    },
+    {
+      "id": "measured_control_and_port_keepouts",
+      "method": "owner_caliper",
+      "confidence": "high",
+      "reference": "device-models/trimui-brick/README.md#measurement-and-provenance",
+      "interface_refs": [
+        "keepout:bottom_io_openings",
+        "keepout:left_volume_controls",
+        "keepout:right_fn_power_controls",
+        "keepout:top_usb_path"
+      ],
+      "note": "Owner-caliper widths, gaps and offsets bound the bottom I/O group, both side-control groups and the centred top USB housing/path. Z extents retain conservative clearance because exact insertion volumes remain unresolved."
+    },
+    {
+      "id": "display_and_shoulders",
+      "method": "photo_derived",
+      "confidence": "medium_high",
+      "reference": "device-models/trimui-brick/README.md#measurement-and-provenance",
+      "interface_refs": [
+        "datum:camera_visibility_target_xy",
+        "keepout:active_display_visibility",
+        "keepout:rear_shoulder_sweep"
+      ],
+      "note": "The active 3.2 inch 4:3 display rectangle and screen centre derive from the official display size registered to owner imagery; measured shoulder XY bounds are expanded into a conservative rear sweep keep-out."
+    }
+  ],
+  "qualification": {
+    "status": "unqualified",
+    "scope": "Measured Brick envelope, stepped local depths, candidate contact windows, service opening and control/port/display keep-outs; no printed-holder acceptance is claimed",
+    "qualified_fixture_interface_sha256": null,
+    "accepted_on": null,
+    "acceptance_ref": null,
+    "interface_refs": [],
+    "holder_evidence": null,
+    "exclusions": [
+      "Physical fit, retention stability, service access and webcam framing until the owner accepts the printed holder",
+      "Exact Z projections and insertion volumes for ports, shoulder keys, side controls and the bottom USB-C metal lip",
+      "Unit-to-unit envelope and local-depth variation",
+      "Any pressure fit, snap fit or sealed fixture derived from the visual OpenSCAD surface"
+    ]
+  },
+  "unresolved_measurements": [
+    {
+      "id": "edge_feature_z_volumes",
+      "status": "open",
+      "required_before": "sealed_fixture",
+      "interface_refs": [
+        "keepout:bottom_io_openings",
+        "keepout:left_volume_controls",
+        "keepout:right_fn_power_controls",
+        "keepout:top_usb_path"
+      ],
+      "needed": "Perpendicular profile measurements of the complete Z insertion and actuation volumes for bottom/top ports and both side-control groups."
+    },
+    {
+      "id": "shoulder_sweep_z_profile",
+      "status": "open",
+      "required_before": "new_retention_family",
+      "interface_refs": [
+        "clearance:upper_rear_trigger_gap",
+        "keepout:rear_shoulder_sweep"
+      ],
+      "needed": "Perpendicular rear/top measurements of L1/R1/L2/R2 protrusion, travel and shelf angle."
+    },
+    {
+      "id": "unit_variation",
+      "status": "open",
+      "required_before": "precision_fit",
+      "interface_refs": [
+        "depth:thick_lower_shell",
+        "depth:thin_upper_shell",
+        "envelope:xy"
+      ],
+      "needed": "Caliper resolution, repeatability and multiple-unit variation for the face envelope and both local depth regions."
+    },
+    {
+      "id": "physical_holder_acceptance",
+      "status": "open",
+      "required_before": "geometry_qualification",
+      "interface_refs": [
+        "access:rear_service",
+        "contact:bottom_left_support",
+        "contact:bottom_right_support",
+        "contact:left_lower_datum",
+        "contact:right_lower_datum",
+        "contact:top_left_retainer",
+        "datum:camera_visibility_target_xy",
+        "keepout:active_display_visibility"
+      ],
+      "needed": "Owner print acceptance for coupon/hardware fit, stable passive retention, unobstructed controls/ports/triggers/display, rear service access and webcam framing."
+    }
+  ]
+}
