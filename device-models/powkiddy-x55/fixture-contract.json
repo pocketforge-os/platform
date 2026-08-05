@@ -471,10 +471,19 @@
       "confidence": "high",
       "reference": "https://powkiddy.com/products/powkiddy-x55-5-5-inch-1280-720-ips-screen-rk3566-handheld-game-console-jelos-system-open-source-retro-console-childrens-gifts",
       "interface_refs": [
-        "envelope:physical_xy",
         "envelope:overall_depth"
       ],
-      "note": "Powkiddy publishes a 212.5 x 94.5 x 19 mm maximum product envelope. Its XY size is registered symmetrically about the owner-traced contact-shell X center and from the shared bottom datum as physical/collision bounds; its 19 mm depth maximum is not treated as a uniform contact depth."
+      "note": "Powkiddy officially publishes a 212.5 x 94.5 x 19 mm maximum product extent. This official evidence supports the size values only; it does not establish how the published XY extent registers to the owner-traced contact shell. The 19 mm depth maximum is not treated as a uniform contact depth."
+    },
+    {
+      "id": "physical_envelope_registration_design",
+      "method": "accepted_fixture_design",
+      "confidence": "medium",
+      "reference": "bead:tsp-bcx.21.27; test-node-hw@c1aaa16c45f1087e6a9325772ba08095989bfbc4; Powkiddy published product extent",
+      "interface_refs": [
+        "envelope:physical_xy"
+      ],
+      "note": "The exact physical bounds [-1.25, 0]..[211.25, 94.5] mm combine Powkiddy's official 212.5 x 94.5 mm extent with a provisional fixture-design registration: symmetric in X about the owner-traced contact-shell center and aligned to its bottom datum. The registration is inferred, not official, and remains open in physical_envelope_registration."
     },
     {
       "id": "photo_depth_reconstruction",
