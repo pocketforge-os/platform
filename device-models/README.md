@@ -75,6 +75,14 @@ That file is the explicit, evidence-backed handoff to `test-node-hw`:
 - a qualification state scoped to the exact interface features physically
   exercised.
 
+Within `fixture_interface.envelope`, `xy_bounds_mm` is always the holder-contact
+shell datum. An interface may also declare `physical_xy_bounds_mm` when controls,
+shoulders, triggers, or other collision geometry extend beyond that contact
+shell. Keep-outs may use the larger physical bounds; contact regions, access
+regions, and XY datums remain constrained to the contact shell. Omitting the
+optional field preserves the original rule: every region must remain inside
+`xy_bounds_mm`.
+
 There are two contract forms. A `fixture_interface` owns complete fit-bearing
 data. A `shared_chassis_alias` carries its own product/device identity but
 resolves a sibling contract and must have the exact same interface hash. An

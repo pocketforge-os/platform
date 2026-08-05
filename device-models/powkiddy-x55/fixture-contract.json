@@ -1,0 +1,574 @@
+{
+  "$schema": "../../schemas/device-fixture-contract.schema.json",
+  "schema_version": 1,
+  "kind": "fixture_interface",
+  "device": {
+    "slug": "powkiddy-x55",
+    "platform_device_ids": [
+      "rk3566"
+    ],
+    "manufacturer": "Powkiddy",
+    "product": "X55",
+    "model_number": "X55",
+    "hardware_revisions": [
+      "X55"
+    ],
+    "chassis_family": "powkiddy-x55"
+  },
+  "visual_model": {
+    "path": "powkiddy-x55.scad",
+    "role": "visual_reference_only",
+    "manufacturing_source": false
+  },
+  "interface_revision": 1,
+  "fixture_interface_sha256": "4a2a3d2751480e21e9cb7b42fd92e3fca986ad227884a97ffbc227230915f032",
+  "coordinate_system": {
+    "units": "mm",
+    "handedness": "right_handed",
+    "origin": "rear_left_bottom_nominal_shell_datum",
+    "axes": {
+      "x": "physical_left_to_right",
+      "y": "physical_bottom_to_top",
+      "z": "physical_rear_to_front"
+    }
+  },
+  "fixture_interface": {
+    "envelope": {
+      "xy_bounds_mm": {
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          210,
+          88.76
+        ]
+      },
+      "physical_xy_bounds_mm": {
+        "min": [
+          -1.25,
+          0
+        ],
+        "max": [
+          211.25,
+          94.5
+        ]
+      },
+      "xy_measurement_uncertainty_mm": null,
+      "overall_depth": {
+        "nominal_mm": 19,
+        "basis": "published_nominal",
+        "measurement_uncertainty_mm": null,
+        "manufacturing_ready": false
+      }
+    },
+    "local_depths": [
+      {
+        "id": "bottom_contact_depth",
+        "region_refs": [
+          "bottom_left",
+          "bottom_right"
+        ],
+        "nominal_mm": 14.4,
+        "basis": "photo_derived",
+        "measurement_uncertainty_mm": null,
+        "manufacturing_ready": false
+      },
+      {
+        "id": "side_contact_depth",
+        "region_refs": [
+          "left_datum",
+          "right_datum"
+        ],
+        "nominal_mm": 14.6,
+        "basis": "photo_derived",
+        "measurement_uncertainty_mm": null,
+        "manufacturing_ready": false
+      },
+      {
+        "id": "top_contact_depth",
+        "region_refs": [
+          "top_left",
+          "top_right"
+        ],
+        "nominal_mm": 13.8,
+        "basis": "photo_derived",
+        "measurement_uncertainty_mm": null,
+        "manufacturing_ready": false
+      }
+    ],
+    "contact_regions": [
+      {
+        "id": "bottom_left",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "bottom_edge",
+          "axis": "x",
+          "min_mm": 48,
+          "max_mm": 76
+        },
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "contact_modes": [
+          "padded",
+          "retention",
+          "support"
+        ],
+        "local_depth_ref": "bottom_contact_depth"
+      },
+      {
+        "id": "bottom_right",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "bottom_edge",
+          "axis": "x",
+          "min_mm": 134,
+          "max_mm": 154
+        },
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "contact_modes": [
+          "padded",
+          "retention",
+          "support"
+        ],
+        "local_depth_ref": "bottom_contact_depth"
+      },
+      {
+        "id": "left_datum",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "left_edge",
+          "axis": "y",
+          "min_mm": 41,
+          "max_mm": 49
+        },
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "contact_modes": [
+          "datum",
+          "padded",
+          "retention"
+        ],
+        "local_depth_ref": "side_contact_depth"
+      },
+      {
+        "id": "right_datum",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "right_edge",
+          "axis": "y",
+          "min_mm": 41,
+          "max_mm": 49
+        },
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "contact_modes": [
+          "datum",
+          "padded",
+          "retention"
+        ],
+        "local_depth_ref": "side_contact_depth"
+      },
+      {
+        "id": "top_left",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "top_edge",
+          "axis": "x",
+          "min_mm": 46.28,
+          "max_mm": 62.64
+        },
+        "normal": [
+          0,
+          -1,
+          0
+        ],
+        "contact_modes": [
+          "padded",
+          "retention"
+        ],
+        "local_depth_ref": "top_contact_depth"
+      },
+      {
+        "id": "top_right",
+        "shape": {
+          "kind": "edge_interval",
+          "surface": "top_edge",
+          "axis": "x",
+          "min_mm": 151.41,
+          "max_mm": 166.41
+        },
+        "normal": [
+          0,
+          -1,
+          0
+        ],
+        "contact_modes": [
+          "padded",
+          "retention"
+        ],
+        "local_depth_ref": "top_contact_depth"
+      }
+    ],
+    "keepouts": [
+      {
+        "id": "front_display_visibility",
+        "category": "optical",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "front",
+          "axes": [
+            "x",
+            "y"
+          ],
+          "min_mm": [
+            44.11,
+            11.13
+          ],
+          "max_mm": [
+            165.89,
+            79.63
+          ]
+        },
+        "clearance_mm": 0
+      },
+      {
+        "id": "bottom_dual_tf_lane",
+        "category": "port",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "bottom_edge",
+          "axes": [
+            "x",
+            "z"
+          ],
+          "min_mm": [
+            76,
+            0
+          ],
+          "max_mm": [
+            134,
+            19
+          ]
+        },
+        "clearance_mm": 1
+      },
+      {
+        "id": "top_left_controls",
+        "category": "control",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "top_edge",
+          "axes": [
+            "x",
+            "z"
+          ],
+          "min_mm": [
+            5,
+            0
+          ],
+          "max_mm": [
+            46.28,
+            19
+          ]
+        },
+        "clearance_mm": 1
+      },
+      {
+        "id": "top_left_io",
+        "category": "port",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "top_edge",
+          "axes": [
+            "x",
+            "z"
+          ],
+          "min_mm": [
+            62.64,
+            0
+          ],
+          "max_mm": [
+            71.64,
+            19
+          ]
+        },
+        "clearance_mm": 1
+      },
+      {
+        "id": "top_right_io",
+        "category": "port",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "top_edge",
+          "axes": [
+            "x",
+            "z"
+          ],
+          "min_mm": [
+            143.41,
+            0
+          ],
+          "max_mm": [
+            151.41,
+            19
+          ]
+        },
+        "clearance_mm": 1
+      },
+      {
+        "id": "top_right_controls",
+        "category": "control",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "top_edge",
+          "axes": [
+            "x",
+            "z"
+          ],
+          "min_mm": [
+            166.41,
+            0
+          ],
+          "max_mm": [
+            205,
+            19
+          ]
+        },
+        "clearance_mm": 1
+      },
+      {
+        "id": "rear_shoulder_sweep",
+        "category": "trigger",
+        "shape": {
+          "kind": "aabb",
+          "min_mm": [
+            -1.25,
+            82.76,
+            0
+          ],
+          "max_mm": [
+            211.25,
+            94.5,
+            19
+          ]
+        },
+        "clearance_mm": 2
+      }
+    ],
+    "access_regions": [
+      {
+        "id": "rear_service",
+        "category": "service",
+        "shape": {
+          "kind": "surface_rectangle",
+          "surface": "rear",
+          "axes": [
+            "x",
+            "y"
+          ],
+          "min_mm": [
+            17,
+            13.38
+          ],
+          "max_mm": [
+            193,
+            75.38
+          ]
+        },
+        "must_remain_open": true
+      }
+    ],
+    "datums": [
+      {
+        "id": "camera_visibility_target_xy",
+        "kind": "point_2d",
+        "axes": [
+          "x",
+          "y"
+        ],
+        "value_mm": [
+          105,
+          45.38
+        ]
+      },
+      {
+        "id": "rear_perimeter_support_plane",
+        "kind": "plane",
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "offset_mm": 0
+      },
+      {
+        "id": "shell_center_xy",
+        "kind": "point_2d",
+        "axes": [
+          "x",
+          "y"
+        ],
+        "value_mm": [
+          105,
+          44.38
+        ]
+      }
+    ],
+    "clearance_requirements": [
+      {
+        "id": "rear_trigger_and_wiring",
+        "direction": "rearward",
+        "minimum_mm": 10,
+        "from_datum": "rear_perimeter_support_plane",
+        "protects": [
+          "cable",
+          "thermal",
+          "trigger"
+        ]
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "owner_contact_outline",
+      "method": "owner_caliper",
+      "confidence": "high",
+      "reference": "bead:tsp-bcx.21.27 (owner trace 20260721_051032.jpg retained outside git)",
+      "interface_refs": [
+        "contact:bottom_left",
+        "contact:bottom_right",
+        "contact:left_datum",
+        "contact:right_datum",
+        "contact:top_left",
+        "contact:top_right",
+        "datum:shell_center_xy",
+        "envelope:xy",
+        "keepout:bottom_dual_tf_lane",
+        "keepout:top_left_controls",
+        "keepout:top_left_io",
+        "keepout:top_right_controls",
+        "keepout:top_right_io"
+      ],
+      "note": "The owner trace establishes the 210 x 88.76 mm contact shell, 200 mm shoulder reference, top safe windows, bottom dual-TF exclusion and blank short-side tangent used by the adjustable prototype holder."
+    },
+    {
+      "id": "published_overall_envelope",
+      "method": "official_specification",
+      "confidence": "high",
+      "reference": "https://powkiddy.com/products/powkiddy-x55-5-5-inch-1280-720-ips-screen-rk3566-handheld-game-console-jelos-system-open-source-retro-console-childrens-gifts",
+      "interface_refs": [
+        "envelope:overall_depth"
+      ],
+      "note": "Powkiddy officially publishes a 212.5 x 94.5 x 19 mm maximum product extent. This official evidence supports the size values only; it does not establish how the published XY extent registers to the owner-traced contact shell. The 19 mm depth maximum is not treated as a uniform contact depth."
+    },
+    {
+      "id": "physical_envelope_registration_design",
+      "method": "accepted_fixture_design",
+      "confidence": "medium",
+      "reference": "bead:tsp-bcx.21.27; test-node-hw@c1aaa16c45f1087e6a9325772ba08095989bfbc4; Powkiddy published product extent",
+      "interface_refs": [
+        "envelope:physical_xy"
+      ],
+      "note": "The exact physical bounds [-1.25, 0]..[211.25, 94.5] mm combine Powkiddy's official 212.5 x 94.5 mm extent with a provisional fixture-design registration: symmetric in X about the owner-traced contact-shell center and aligned to its bottom datum. The registration is inferred, not official, and remains open in physical_envelope_registration."
+    },
+    {
+      "id": "photo_depth_reconstruction",
+      "method": "photo_derived",
+      "confidence": "medium",
+      "reference": "bead:tsp-bcx.21.27; test-node-hw mechanical/dut-cradle-v1/README-powkiddy-x55.md",
+      "interface_refs": [
+        "clearance:rear_trigger_and_wiring",
+        "datum:rear_perimeter_support_plane",
+        "depth:bottom_contact_depth",
+        "depth:side_contact_depth",
+        "depth:top_contact_depth",
+        "keepout:rear_shoulder_sweep"
+      ],
+      "note": "Orthogonal and oblique product photography supports a shallow core and deeper grip lobes, but the three local contact depths remain provisional until tsp-bcx.21.28 calipers."
+    },
+    {
+      "id": "display_and_service_design",
+      "method": "accepted_fixture_design",
+      "confidence": "medium",
+      "reference": "bead:tsp-bcx.21.27; test-node-hw@c1aaa16c45f1087e6a9325772ba08095989bfbc4",
+      "interface_refs": [
+        "access:rear_service",
+        "datum:camera_visibility_target_xy",
+        "keepout:front_display_visibility"
+      ],
+      "note": "The prototype carrier centers the published 5.5-inch 16:9 display proxy and leaves its 176 x 62 mm rear service aperture open; neither is a pressure-fit measurement."
+    }
+  ],
+  "qualification": {
+    "status": "unqualified",
+    "scope": "Provisional six-contact X55 fixture interface pending local-depth calipers, fit coupon, carrier retention and installed webcam framing",
+    "qualified_fixture_interface_sha256": null,
+    "accepted_on": null,
+    "acceptance_ref": null,
+    "interface_refs": [],
+    "holder_evidence": null,
+    "exclusions": [
+      "Exact bottom, top and side local contact depths until tsp-bcx.21.28 owner calipers",
+      "The published 19 mm overall depth as a uniform body depth",
+      "Unit-to-unit shell tolerance, pad compression and final screw length",
+      "Physical retention, trigger clearance, port access and camera framing until owner print acceptance"
+    ]
+  },
+  "unresolved_measurements": [
+    {
+      "id": "local_contact_depths",
+      "status": "open",
+      "required_before": "geometry_qualification",
+      "interface_refs": [
+        "depth:bottom_contact_depth",
+        "depth:side_contact_depth",
+        "depth:top_contact_depth"
+      ],
+      "needed": "Owner caliper measurements normal to the front/glass datum at the selected bottom, top and short-side contact bands, including asymmetry and pad allowance."
+    },
+    {
+      "id": "maximum_grip_depth",
+      "status": "open",
+      "required_before": "geometry_qualification",
+      "interface_refs": [
+        "envelope:physical_xy",
+        "envelope:overall_depth",
+        "keepout:rear_shoulder_sweep"
+      ],
+      "needed": "Owner caliper measurement of the deepest rear grip or trigger protrusion from the common front datum plus a level short-end profile photograph."
+    },
+    {
+      "id": "physical_envelope_registration",
+      "status": "open",
+      "required_before": "precision_fit",
+      "interface_refs": [
+        "envelope:physical_xy",
+        "keepout:rear_shoulder_sweep"
+      ],
+      "needed": "Confirm the published maximum XY envelope's registration to the owner-traced contact shell with perpendicular shoulder/trigger measurements; the provisional contract centers the published width and shares the bottom datum."
+    },
+    {
+      "id": "xy_uncertainty",
+      "status": "open",
+      "required_before": "precision_fit",
+      "interface_refs": [
+        "envelope:xy"
+      ],
+      "needed": "Record measurement resolution, repeatability and unit-to-unit X55 shell variation; the prototype remains adjustable and padded."
+    }
+  ]
+}
