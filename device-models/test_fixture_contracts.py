@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parent.parent
 BASE_PATH = ROOT / "device-models/trimui-smart-pro/fixture-contract.json"
 ALIAS_PATH = ROOT / "device-models/trimui-smart-pro-s/fixture-contract.json"
 BRICK_PATH = ROOT / "device-models/trimui-brick/fixture-contract.json"
+X55_PATH = ROOT / "device-models/powkiddy-x55/fixture-contract.json"
 SCHEMA_PATH = ROOT / "schemas/device-fixture-contract.schema.json"
 
 
@@ -73,6 +74,38 @@ class FixtureContractTests(unittest.TestCase):
         self.base = raw_document(BASE_PATH)
         self.alias = raw_document(ALIAS_PATH)
         self.brick = raw_document(BRICK_PATH)
+        self.x55 = raw_document(X55_PATH)
+
+    def test_x55_contract_records_provisional_local_depths(self) -> None:
+        resolved = fixture.ContractRepository(ROOT).resolve(X55_PATH)
+        interface = self.x55["fixture_interface"]
+        self.assertEqual("unqualified", resolved.qualification["status"])
+        self.assertEqual([210, 88.76], interface["envelope"]["xy_bounds_mm"]["max"])
+        self.assertFalse(
+            interface["envelope"]["overall_depth"]["manufacturing_ready"]
+        )
+        self.assertEqual(
+            {
+                "bottom_contact_depth": 14.4,
+                "side_contact_depth": 14.6,
+                "top_contact_depth": 13.8,
+            },
+            {row["id"]: row["nominal_mm"] for row in interface["local_depths"]},
+        )
+        self.assertTrue(
+            all(not row["manufacturing_ready"] for row in interface["local_depths"])
+        )
+        self.assertEqual(
+            {
+                "bottom_left",
+                "bottom_right",
+                "left_datum",
+                "right_datum",
+                "top_left",
+                "top_right",
+            },
+            {row["id"] for row in interface["contact_regions"]},
+        )
 
     def test_brick_contract_is_distinct_and_stays_unqualified(self) -> None:
         resolved = fixture.ContractRepository(ROOT).resolve(BRICK_PATH)
@@ -118,7 +151,7 @@ class FixtureContractTests(unittest.TestCase):
             path: hashlib.sha256(path.read_bytes()).hexdigest()
             for path in paths
         }
-        self.assertEqual(3, len(contracts))
+        self.assertEqual(4, len(contracts))
         self.assertEqual(before, after)
         by_slug = {
             contract.document["device"]["slug"]: contract
@@ -130,6 +163,10 @@ class FixtureContractTests(unittest.TestCase):
         )
         self.assertNotEqual(
             by_slug["trimui-brick"].interface_hash,
+            by_slug["trimui-smart-pro"].interface_hash,
+        )
+        self.assertNotEqual(
+            by_slug["powkiddy-x55"].interface_hash,
             by_slug["trimui-smart-pro"].interface_hash,
         )
 
