@@ -413,6 +413,19 @@ def _shape_within_xy_envelope(
             _fail(path, "AABB exceeds envelope on y")
 
 
+def _validate_xy_bounds(
+    value: Any,
+    path: str,
+) -> tuple[tuple[Decimal, Decimal], tuple[Decimal, Decimal]]:
+    bounds = _object(value, path)
+    _keys(bounds, path, {"min", "max"})
+    lower = _vector(bounds["min"], f"{path}.min", 2)
+    upper = _vector(bounds["max"], f"{path}.max", 2)
+    if any(a >= b for a, b in zip(lower, upper)):
+        _fail(path, "each min coordinate must be less than max")
+    return lower, upper
+
+
 def _add_unique_id(seen: dict[str, str], item_id: str, path: str) -> None:
     previous = seen.get(item_id)
     if previous is not None:
@@ -441,13 +454,29 @@ def _validate_fixture_interface(value: Any, path: str) -> set[str]:
         envelope,
         f"{path}.envelope",
         {"xy_bounds_mm", "xy_measurement_uncertainty_mm", "overall_depth"},
+        {"physical_xy_bounds_mm"},
     )
-    bounds = _object(envelope["xy_bounds_mm"], f"{path}.envelope.xy_bounds_mm")
-    _keys(bounds, f"{path}.envelope.xy_bounds_mm", {"min", "max"})
-    xy_min = _vector(bounds["min"], f"{path}.envelope.xy_bounds_mm.min", 2)
-    xy_max = _vector(bounds["max"], f"{path}.envelope.xy_bounds_mm.max", 2)
-    if any(a >= b for a, b in zip(xy_min, xy_max)):
-        _fail(f"{path}.envelope.xy_bounds_mm", "each min coordinate must be less than max")
+    xy_min, xy_max = _validate_xy_bounds(
+        envelope["xy_bounds_mm"],
+        f"{path}.envelope.xy_bounds_mm",
+    )
+    collision_xy_min, collision_xy_max = xy_min, xy_max
+    if "physical_xy_bounds_mm" in envelope:
+        collision_xy_min, collision_xy_max = _validate_xy_bounds(
+            envelope["physical_xy_bounds_mm"],
+            f"{path}.envelope.physical_xy_bounds_mm",
+        )
+        if any(
+            physical > contact
+            for physical, contact in zip(collision_xy_min, xy_min)
+        ) or any(
+            physical < contact
+            for physical, contact in zip(collision_xy_max, xy_max)
+        ):
+            _fail(
+                f"{path}.envelope.physical_xy_bounds_mm",
+                "must contain the complete contact-shell xy_bounds_mm",
+            )
     _nullable_number(
         envelope["xy_measurement_uncertainty_mm"],
         f"{path}.envelope.xy_measurement_uncertainty_mm",
@@ -456,6 +485,8 @@ def _validate_fixture_interface(value: Any, path: str) -> set[str]:
 
     seen_ids: dict[str, str] = {}
     interface_refs = {"envelope:xy", "envelope:overall_depth"}
+    if "physical_xy_bounds_mm" in envelope:
+        interface_refs.add("envelope:physical_xy")
 
     local_depths = _array(obj["local_depths"], f"{path}.local_depths")
     if not local_depths:
@@ -554,7 +585,17 @@ def _validate_fixture_interface(value: Any, path: str) -> set[str]:
             _enum(region["category"], f"{item_path}.category", categories)
             shape = _object(region["shape"], f"{item_path}.shape")
             _validate_shape(shape, f"{item_path}.shape")
-            _shape_within_xy_envelope(shape, f"{item_path}.shape", xy_min, xy_max)
+            region_xy_min, region_xy_max = (
+                (collision_xy_min, collision_xy_max)
+                if collection_name == "keepouts"
+                else (xy_min, xy_max)
+            )
+            _shape_within_xy_envelope(
+                shape,
+                f"{item_path}.shape",
+                region_xy_min,
+                region_xy_max,
+            )
             if collection_name == "keepouts":
                 _number(region["clearance_mm"], f"{item_path}.clearance_mm", minimum=Decimal(0))
             else:

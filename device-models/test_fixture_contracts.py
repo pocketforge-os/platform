@@ -79,8 +79,32 @@ class FixtureContractTests(unittest.TestCase):
     def test_x55_contract_records_provisional_local_depths(self) -> None:
         resolved = fixture.ContractRepository(ROOT).resolve(X55_PATH)
         interface = self.x55["fixture_interface"]
+        contacts = {row["id"]: row for row in interface["contact_regions"]}
+        keepouts = {row["id"]: row for row in interface["keepouts"]}
         self.assertEqual("unqualified", resolved.qualification["status"])
         self.assertEqual([210, 88.76], interface["envelope"]["xy_bounds_mm"]["max"])
+        self.assertEqual(
+            [-1.25, 0],
+            interface["envelope"]["physical_xy_bounds_mm"]["min"],
+        )
+        self.assertEqual(
+            [211.25, 94.5],
+            interface["envelope"]["physical_xy_bounds_mm"]["max"],
+        )
+        top_left = contacts["top_left"]["shape"]
+        self.assertEqual([46.28, 62.64], [top_left["min_mm"], top_left["max_mm"]])
+        self.assertAlmostEqual(
+            54.46,
+            (top_left["min_mm"] + top_left["max_mm"]) / 2,
+        )
+        top_left_controls = keepouts["top_left_controls"]["shape"]
+        top_left_io = keepouts["top_left_io"]["shape"]
+        self.assertEqual(46.28, top_left_controls["max_mm"][0])
+        self.assertEqual(62.64, top_left_io["min_mm"][0])
+        self.assertEqual(71.64, top_left_io["max_mm"][0])
+        shoulder = keepouts["rear_shoulder_sweep"]["shape"]
+        self.assertEqual([-1.25, 82.76, 0], shoulder["min_mm"])
+        self.assertEqual([211.25, 94.5, 19], shoulder["max_mm"])
         self.assertFalse(
             interface["envelope"]["overall_depth"]["manufacturing_ready"]
         )
@@ -171,6 +195,14 @@ class FixtureContractTests(unittest.TestCase):
         )
 
     def test_hash_ignores_json_representation_and_semantic_list_order(self) -> None:
+        self.assertNotIn(
+            "physical_xy_bounds_mm",
+            self.base["fixture_interface"]["envelope"],
+        )
+        self.assertEqual(
+            "637aa67b32e284af2d5ad1b1655e630392e06fa80af1996f498f8d3cdecb20d5",
+            fixture.interface_hash(self.base),
+        )
         changed = copy.deepcopy(self.base)
         changed["interface_revision"] = Decimal("1.000")
         changed["fixture_interface"]["envelope"]["xy_bounds_mm"]["min"][0] = Decimal("-0.000")
@@ -193,6 +225,62 @@ class FixtureContractTests(unittest.TestCase):
             clearance["protects"].reverse()
         changed = dict(reversed(list(changed.items())))
         self.assertEqual(fixture.interface_hash(self.base), fixture.interface_hash(changed))
+
+    def test_optional_physical_bounds_expand_only_collision_keepouts(self) -> None:
+        repository = fixture.ContractRepository(ROOT)
+        protrusion = {
+            "id": "collision_probe",
+            "category": "trigger",
+            "shape": {
+                "kind": "aabb",
+                "min_mm": [-1, 0, 0],
+                "max_mm": [1, 1, 1],
+            },
+            "clearance_mm": 0,
+        }
+
+        legacy = copy.deepcopy(self.base)
+        legacy["fixture_interface"]["keepouts"].append(protrusion)
+        update_full_hash(legacy)
+        with self.assertRaisesRegex(fixture.ContractError, "AABB exceeds envelope on x"):
+            repository._validate_full(BASE_PATH, legacy)
+
+        expanded = copy.deepcopy(legacy)
+        contact_bounds = expanded["fixture_interface"]["envelope"]["xy_bounds_mm"]
+        expanded["fixture_interface"]["envelope"]["physical_xy_bounds_mm"] = {
+            "min": [-1, 0],
+            "max": [contact_bounds["max"][0] + 1, contact_bounds["max"][1]],
+        }
+        expanded["evidence"][0]["interface_refs"].extend(
+            ["envelope:physical_xy", "keepout:collision_probe"]
+        )
+        update_full_hash(expanded)
+        repository._validate_full(BASE_PATH, expanded)
+
+        contact_escaped = copy.deepcopy(expanded)
+        contact_escaped["fixture_interface"]["contact_regions"][0]["shape"][
+            "max_mm"
+        ] = contact_bounds["max"][0] + 0.5
+        update_full_hash(contact_escaped)
+        with self.assertRaisesRegex(fixture.ContractError, "interval exceeds envelope on x"):
+            repository._validate_full(BASE_PATH, contact_escaped)
+
+        escaped = copy.deepcopy(expanded)
+        escaped["fixture_interface"]["keepouts"][-1]["shape"]["min_mm"][0] = -1.01
+        update_full_hash(escaped)
+        with self.assertRaisesRegex(fixture.ContractError, "AABB exceeds envelope on x"):
+            repository._validate_full(BASE_PATH, escaped)
+
+        clipped = copy.deepcopy(expanded)
+        clipped["fixture_interface"]["envelope"]["physical_xy_bounds_mm"]["max"][0] = (
+            contact_bounds["max"][0] - 0.01
+        )
+        update_full_hash(clipped)
+        with self.assertRaisesRegex(
+            fixture.ContractError,
+            "must contain the complete contact-shell xy_bounds_mm",
+        ):
+            repository._validate_full(BASE_PATH, clipped)
 
     def test_non_interface_metadata_does_not_change_hash(self) -> None:
         changed = copy.deepcopy(self.base)
@@ -415,10 +503,17 @@ class FixtureContractTests(unittest.TestCase):
         validator = jsonschema.Draft202012Validator(schema)
         validator.validate(self.base)
         validator.validate(self.alias)
+        validator.validate(self.x55)
         bad = copy.deepcopy(self.base)
         bad["surprise"] = True
         with self.assertRaises(jsonschema.ValidationError):
             validator.validate(bad)
+        malformed_physical_bounds = copy.deepcopy(self.x55)
+        malformed_physical_bounds["fixture_interface"]["envelope"][
+            "physical_xy_bounds_mm"
+        ]["surprise"] = True
+        with self.assertRaises(jsonschema.ValidationError):
+            validator.validate(malformed_physical_bounds)
 
 
 if __name__ == "__main__":

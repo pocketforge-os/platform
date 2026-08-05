@@ -8,6 +8,7 @@ import json
 import subprocess
 import tempfile
 import unittest
+from decimal import Decimal
 from pathlib import Path
 from unittest import mock
 
@@ -176,6 +177,72 @@ class FixtureSnapshotTests(unittest.TestCase):
                 for item in after["contracts"]
             },
         )
+
+    def test_snapshot_round_trips_optional_physical_collision_bounds(self) -> None:
+        changed = copy.deepcopy(self.base)
+        changed["interface_revision"] = 2
+        contact_bounds = changed["fixture_interface"]["envelope"]["xy_bounds_mm"]
+        changed["fixture_interface"]["envelope"]["physical_xy_bounds_mm"] = {
+            "min": [-1, 0],
+            "max": copy.deepcopy(contact_bounds["max"]),
+        }
+        changed["fixture_interface"]["keepouts"].append(
+            {
+                "id": "collision_probe",
+                "category": "trigger",
+                "shape": {
+                    "kind": "aabb",
+                    "min_mm": [-1, 0, 0],
+                    "max_mm": [1, 1, 1],
+                },
+                "clearance_mm": 0,
+            }
+        )
+        changed["evidence"][0]["interface_refs"].extend(
+            ["envelope:physical_xy", "keepout:collision_probe"]
+        )
+        new_hash = contracts.update_full_hash(changed)
+        alias = copy.deepcopy(self.alias)
+        alias["expected_fixture_interface_sha256"] = new_hash
+        alias["qualification"]["qualified_fixture_interface_sha256"] = new_hash
+        self.write_contracts(changed, alias)
+        self.commit("physical collision envelope")
+
+        document = snapshot.build_snapshot(self.root)
+        resolved = next(
+            interface
+            for interface in document["interfaces"]
+            if interface["sha256"] == new_hash
+        )
+        self.assertEqual(
+            {
+                "min": [Decimal("-1"), Decimal("0")],
+                "max": [Decimal(str(value)) for value in contact_bounds["max"]],
+            },
+            resolved["fixture_interface"]["envelope"]["physical_xy_bounds_mm"],
+        )
+        collision_probe = next(
+            keepout
+            for keepout in resolved["fixture_interface"]["keepouts"]
+            if keepout["id"] == "collision_probe"
+        )
+        self.assertEqual(Decimal("-1"), collision_probe["shape"]["min_mm"][0])
+        snapshot.validate_snapshot(document)
+
+        escaped = copy.deepcopy(document)
+        escaped_interface = next(
+            interface
+            for interface in escaped["interfaces"]
+            if interface["sha256"] == new_hash
+        )
+        escaped_probe = next(
+            keepout
+            for keepout in escaped_interface["fixture_interface"]["keepouts"]
+            if keepout["id"] == "collision_probe"
+        )
+        escaped_probe["shape"]["min_mm"][0] = -1.01
+        with self.assertRaisesRegex(snapshot.SnapshotError, "AABB exceeds envelope on x"):
+            snapshot.validate_snapshot(escaped)
 
     def test_dirty_source_and_repository_output_are_rejected(self) -> None:
         clean = snapshot.build_snapshot(self.root)

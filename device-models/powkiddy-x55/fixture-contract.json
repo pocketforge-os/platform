@@ -21,7 +21,7 @@
     "manufacturing_source": false
   },
   "interface_revision": 1,
-  "fixture_interface_sha256": "f80c8d7fc5b34fe9b056ed38bd358ed69c4e9e54e3ad1f813306946afab7e8f7",
+  "fixture_interface_sha256": "4a2a3d2751480e21e9cb7b42fd92e3fca986ad227884a97ffbc227230915f032",
   "coordinate_system": {
     "units": "mm",
     "handedness": "right_handed",
@@ -42,6 +42,16 @@
         "max": [
           210,
           88.76
+        ]
+      },
+      "physical_xy_bounds_mm": {
+        "min": [
+          -1.25,
+          0
+        ],
+        "max": [
+          211.25,
+          94.5
         ]
       },
       "xy_measurement_uncertainty_mm": null,
@@ -178,8 +188,8 @@
           "kind": "edge_interval",
           "surface": "top_edge",
           "axis": "x",
-          "min_mm": 46.67,
-          "max_mm": 63.03
+          "min_mm": 46.28,
+          "max_mm": 62.64
         },
         "normal": [
           0,
@@ -271,7 +281,7 @@
             0
           ],
           "max_mm": [
-            46.67,
+            46.28,
             19
           ]
         },
@@ -288,11 +298,11 @@
             "z"
           ],
           "min_mm": [
-            63.03,
+            62.64,
             0
           ],
           "max_mm": [
-            72.03,
+            71.64,
             19
           ]
         },
@@ -346,13 +356,13 @@
         "shape": {
           "kind": "aabb",
           "min_mm": [
-            0,
+            -1.25,
             82.76,
             0
           ],
           "max_mm": [
-            210,
-            88.76,
+            211.25,
+            94.5,
             19
           ]
         },
@@ -461,9 +471,10 @@
       "confidence": "high",
       "reference": "https://powkiddy.com/products/powkiddy-x55-5-5-inch-1280-720-ips-screen-rk3566-handheld-game-console-jelos-system-open-source-retro-console-childrens-gifts",
       "interface_refs": [
+        "envelope:physical_xy",
         "envelope:overall_depth"
       ],
-      "note": "Powkiddy publishes a 212.5 x 94.5 x 19 mm maximum product envelope; only its 19 mm depth maximum is recorded here, and it is not treated as a uniform contact depth."
+      "note": "Powkiddy publishes a 212.5 x 94.5 x 19 mm maximum product envelope. Its XY size is registered symmetrically about the owner-traced contact-shell X center and from the shared bottom datum as physical/collision bounds; its 19 mm depth maximum is not treated as a uniform contact depth."
     },
     {
       "id": "photo_depth_reconstruction",
@@ -525,10 +536,21 @@
       "status": "open",
       "required_before": "geometry_qualification",
       "interface_refs": [
+        "envelope:physical_xy",
         "envelope:overall_depth",
         "keepout:rear_shoulder_sweep"
       ],
       "needed": "Owner caliper measurement of the deepest rear grip or trigger protrusion from the common front datum plus a level short-end profile photograph."
+    },
+    {
+      "id": "physical_envelope_registration",
+      "status": "open",
+      "required_before": "precision_fit",
+      "interface_refs": [
+        "envelope:physical_xy",
+        "keepout:rear_shoulder_sweep"
+      ],
+      "needed": "Confirm the published maximum XY envelope's registration to the owner-traced contact shell with perpendicular shoulder/trigger measurements; the provisional contract centers the published width and shares the bottom datum."
     },
     {
       "id": "xy_uncertainty",

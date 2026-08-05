@@ -34,7 +34,7 @@
     },
     "interface_ref": {
       "type": "string",
-      "pattern": "^(envelope:(xy|overall_depth)|(depth|contact|keepout|access|datum|clearance):[a-z][a-z0-9_]*)$"
+      "pattern": "^(envelope:(xy|physical_xy|overall_depth)|(depth|contact|keepout|access|datum|clearance):[a-z][a-z0-9_]*)$"
     },
     "number_or_null": {
       "oneOf": [
@@ -614,6 +614,24 @@
           ],
           "properties": {
             "xy_bounds_mm": {
+              "description": "Holder-contact shell bounds in the fixture coordinate system. Contacts, access regions, and XY datums must remain inside these bounds.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "min",
+                "max"
+              ],
+              "properties": {
+                "min": {
+                  "$ref": "#/$defs/vector2"
+                },
+                "max": {
+                  "$ref": "#/$defs/vector2"
+                }
+              }
+            },
+            "physical_xy_bounds_mm": {
+              "description": "Optional maximum physical/collision bounds in the fixture coordinate system. They must contain xy_bounds_mm. Keep-outs may extend beyond the contact shell only when they remain inside these explicit bounds.",
               "type": "object",
               "additionalProperties": false,
               "required": [
