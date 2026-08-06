@@ -39,7 +39,9 @@ device           = "a133"                        # -> devices/a133/profile.toml 
 gpu_ip           = "powervr"                     # PowerVR DDK 1.19 (Rogue)
 sdl_repo         = "libsdl3-sunxifb"             # OWNED SDL3 fbdev backend; links the PowerVR UM (a133-only)
 sdl_backend      = "sunxifb"                     # SDL_VIDEODRIVER (fbdev via the sunxi disp engine)
-platform_version = "13"                          # bump when the resolved kernel/gpu/sdl SHA-set changes
+platform_version = "14"                          # bump when the resolved kernel/gpu/sdl SHA-set changes
+                                                 #   v14 (tsp-2z0j.3): kernel-sunxi-4.9 017beb5c -> b24e4fc8 (#25
+                                                 #   reliable removable-card reads: sdc0 capped to 25MHz DS mode.)
                                                  #   v13 (tsp-4i6u): libsdl3-sunxifb 8066078b -> bb2c76aa (#14
                                                  #   SDL_Renderer fix: SUNXIFB_CreateWindow loads EGL via the
                                                  #   refcounted SDL_GL_LoadLibrary(NULL) wrapper, fixing the
