@@ -316,6 +316,8 @@ pf_os_image_dockerbuild() {
     # (agent-docqueue re-pins at merge) or the env for a dev verify. Both opt-in; unset = FETCH defaults.
     [ -n "${PF_FETCH_MODE:-}" ] && cmd+=( --build-arg "PF_FETCH_MODE=$PF_FETCH_MODE" )
     [ -n "${PF_CAR_SHA256:-}" ] && cmd+=( --build-arg "PF_CAR_SHA256=$PF_CAR_SHA256" )
+    # Opt-in ODYSSEY capture instrumentation; unset/empty preserves the default build argv.
+    [ -n "${PF_ODYSSEY_CAPTURE:-}" ] && cmd+=( --build-arg "PF_ODYSSEY_CAPTURE=1" )
     # WiFi credentials (bd tsp-8ba, interim file source for the tsp-zbg#5 design): the
     # gitignored wifi.txt never enters the lock-ref build contexts, so it reaches the
     # assemble stage only as a BuildKit secret (never an image layer). PF_WIFI_SHA
