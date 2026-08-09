@@ -136,7 +136,10 @@ sha  = "a5528e4d81109e28a17a0de219370541b7161f6d"
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"          # tsp-2z0j.3: bump 017beb5cf6d1 -> b24e4fc8a712 = device/a133 tip after #25
+ref  = "device/a133"          # tsp-mc9m.34: bump b24e4fc8a712 -> 8bbb26a764f9 = device/a133 tip after #33
+                              # (zeros the AXP2202 battery charge current in pocketforge_tsp.dts so the PMIC
+                              # stops back-driving the bench DP100 PSU.)
+                              # Prior (b24e4fc8, tsp-2z0j.3): bump 017beb5cf6d1 -> b24e4fc8a712 = device/a133 tip after #25
                               # (reliable removable-card reads: cap sdc0 to 25MHz DS mode; tsp-2z0j.1.)
                               # Prior (017beb5c, tsp-woy3.1): bump 09f1668bc663 -> 017beb5cf6d1 = device/a133 tip after #19
                               # (g2d/iommu boot-lottery fix: G2D's iommu master-5 enable is a ONE-SHOT at
@@ -218,7 +221,7 @@ ref  = "device/a133"          # tsp-2z0j.3: bump 017beb5cf6d1 -> b24e4fc8a712 = 
                               # vendor image, load-bearing only for the owned-SPL path.
                               # Prior (ed7b3638, tsp-myp1.5.1.1): WORKQUEUE-DEFERRED fb0 g2d
                               # rotation + #6 xr829 HT20-only + #8 revert of the 3s-cap regression.
-sha  = "b24e4fc8a7120e1ff6faa78dbd3137488ed4bc7e"
+sha  = "8bbb26a764f94604140956ea020aad2deb1df28b"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
