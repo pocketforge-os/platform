@@ -39,7 +39,7 @@ device           = "a133"                        # -> devices/a133/profile.toml 
 gpu_ip           = "powervr"                     # PowerVR DDK 1.19 (Rogue)
 sdl_repo         = "libsdl3-sunxifb"             # OWNED SDL3 fbdev backend; links the PowerVR UM (a133-only)
 sdl_backend      = "sunxifb"                     # SDL_VIDEODRIVER (fbdev via the sunxi disp engine)
-platform_version = "16"                          # bump when the resolved kernel/gpu/sdl SHA-set changes
+platform_version = "17"                          # bump when the resolved kernel/gpu/sdl SHA-set changes
                                                  #   v15 (tsp-mc9m.34): kernel-sunxi-4.9 b24e4fc8 -> 8bbb26a7 (#33 zeros AXP2202 charge current — PMIC stops back-driving the bench PSU)
                                                  #   v14 (tsp-2z0j.3): kernel-sunxi-4.9 017beb5c -> b24e4fc8 (#25
                                                  #   reliable removable-card reads: sdc0 capped to 25MHz DS mode.)
