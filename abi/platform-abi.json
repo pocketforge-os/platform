@@ -9,7 +9,7 @@
       "gpu_km": {
         "ref": "main",
         "repo": "gpu-km-tsp",
-        "sha": "cfe59f2971b55103f6330f23a9678230a3669135"
+        "sha": "01fd7b2d134be356ab222d93afeb9238bd53bebb"
       },
       "id": "pocketforge/a133-powervr",
       "kernel": {
@@ -17,7 +17,7 @@
         "repo": "kernel-sunxi-4.9",
         "sha": "8bbb26a764f94604140956ea020aad2deb1df28b"
       },
-      "platform_version": "16",
+      "platform_version": "17",
       "provenance_ref": "tsp-1dl.4.5, tsp-cv7.6.1",
       "reproducible": true,
       "sdl": {
