@@ -131,7 +131,7 @@ ref  = "main"          # tsp-8sno.7.2: bump 19349afe -> a5528e4d = image/main ti
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "a5528e4d81109e28a17a0de219370541b7161f6d"
+sha  = "e0c78a744fa4110337ada4e67e39620705d95b91"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
