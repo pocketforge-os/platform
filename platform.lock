@@ -43,7 +43,10 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # bump e0c78a74 -> 83ac809 = image/main tip after image#67 (tsp-2jq dev-image reproducibility: strip baked SSH host keys + first-boot ssh-keygen oneshot + fixed-salt debug hash)
+ref  = "main"          # tsp-kcq0: bump e0fc7fb0 -> c0d640de = image/main tip after tsp-aazu/image#71
+                       # (lease-provided DNS resolver hook + build-level assertion; completes the rootfs
+                       # side of tsp-f956 AC2 together with the already-pinned clock seed/provenance fix.)
+                       # Prior: bump e0c78a74 -> 83ac809 = image/main tip after image#67 (tsp-2jq dev-image reproducibility: strip baked SSH host keys + first-boot ssh-keygen oneshot + fixed-salt debug hash)
                        # Prior: tsp-8sno.7.2: bump 19349afe -> a5528e4d = image/main tip after #62 (adds the htop
                        # package to rootfs-packages.txt — the deliberate, visible rootfs delta driving the
                        # tsp-8sno.7 end-to-end device confidence run: image PR -> lock bump -> hermetic build
@@ -132,12 +135,15 @@ ref  = "main"          # bump e0c78a74 -> 83ac809 = image/main tip after image#6
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "e0fc7fb0114342d692ec236d8c5c46f31841b0af"
+sha  = "c0d640de07c9c0d9959eaddc2c201ed8ae695333"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
 url  = "https://github.com/pocketforge-os/kernel-sunxi-4.9.git"
-ref  = "device/a133"          # tsp-mc9m.34: bump b24e4fc8a712 -> 8bbb26a764f9 = device/a133 tip after #33
+ref  = "device/a133"          # tsp-kcq0: bump 8bbb26a764f9 -> a7cfec247898 = device/a133 tip after tsp-n4ck/#34
+                              # (disable CONFIG_ANDROID_PARANOID_NETWORK for Debian userland so
+                              # systemd-timesyncd and other non-root processes may open network sockets.)
+                              # Prior: tsp-mc9m.34: bump b24e4fc8a712 -> 8bbb26a764f9 = device/a133 tip after #33
                               # (zeros the AXP2202 battery charge current in pocketforge_tsp.dts so the PMIC
                               # stops back-driving the bench DP100 PSU.)
                               # Prior (b24e4fc8, tsp-2z0j.3): bump 017beb5cf6d1 -> b24e4fc8a712 = device/a133 tip after #25
@@ -222,7 +228,7 @@ ref  = "device/a133"          # tsp-mc9m.34: bump b24e4fc8a712 -> 8bbb26a764f9 =
                               # vendor image, load-bearing only for the owned-SPL path.
                               # Prior (ed7b3638, tsp-myp1.5.1.1): WORKQUEUE-DEFERRED fb0 g2d
                               # rotation + #6 xr829 HT20-only + #8 revert of the 3s-cap regression.
-sha  = "8bbb26a764f94604140956ea020aad2deb1df28b"
+sha  = "a7cfec247898bb2c22e51bb705a7f18fd5910285"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
