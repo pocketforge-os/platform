@@ -33,6 +33,7 @@ permissions:
 jobs:
   validate:
     name: fixture-contract
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, pf-pr-review]
     steps:
       - name: Validate contracts, reproduce the dependency snapshot, and compare the PR base
