@@ -99,7 +99,9 @@ jobs:
   descriptor-matrix:
     # Cheap data-derivation + validation on the pf-pr-review VM lane — the org's designed lane for
     # running untrusted PR code read-only (same routing rationale as skin-drift/abi-drift). It executes
-    # the PR head's core/caps.py (sub-second, side-effect-free), so no fork guard is needed here.
+    # the PR head's core/caps.py (sub-second, side-effect-free). Keep fork-authored code off this
+    # persistent runner even when GitHub's fork approval gate would otherwise permit the run.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, pf-pr-review]
     outputs:
       blocking: ${{ steps.derive.outputs.blocking }}
@@ -118,9 +120,8 @@ jobs:
           git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
           cd "$wd"
           # Prefer the PR head sha (matches what sim-suite builds the image from). A same-repo PR head
-          # is a branch tip the full clone already has; a FORK PR's head lives in the fork (not here) —
-          # so fall back to $GITHUB_SHA (the merge ref, always present). sim-suite skips fork PRs via its
-          # fork guard anyway, so the fork path here is only about not spuriously reding this advisory job.
+          # is a branch tip the full clone already has. Fall back to $GITHUB_SHA defensively; the job-level
+          # fork guard prevents fork PRs from reaching this runner in the first place.
           sha="${HEAD_SHA:-$GITHUB_SHA}"
           git checkout --quiet --detach "$sha" 2>/dev/null || {
             echo "head sha $sha not in base repo (fork PR?) — deriving the matrix from the merge ref $GITHUB_SHA"

@@ -50,6 +50,7 @@ permissions:
 jobs:
   check:
     name: pf-abi-drift
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, pf-pr-review]
     steps:
       - name: checkout the PR ref + pf abi check

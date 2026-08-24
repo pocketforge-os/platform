@@ -59,7 +59,7 @@
 # RUNNER ROUTING - DELIBERATE (matches abi-drift, tsp-ikk0.22). The consistency leg targets the
 # pf-review-vm lane by its specific `pf-pr-review` label: the review VMs are the org's designed
 # lane for running untrusted PR code read-only - exactly what a sub-second, side-effect-free data
-# check does - so no fork guard is needed and the lane load is negligible.
+# check does - and the job-level fork guard keeps fork-authored code off the persistent runner.
 
 name: skin drift gate
 
@@ -85,6 +85,7 @@ permissions:
 jobs:
   consistency:
     name: skin-drift
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, pf-pr-review]
     steps:
       - name: checkout the PR ref + render-free chain consistency
