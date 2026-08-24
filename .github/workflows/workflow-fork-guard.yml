@@ -25,4 +25,5 @@ jobs:
           cd "$wd"
           git fetch --quiet origin "$GITHUB_SHA"
           git checkout --quiet --detach "$GITHUB_SHA"
+          scripts/tests/workflow-fork-guard-test.sh --self-test
           scripts/tests/workflow-fork-guard-test.sh
