@@ -1,0 +1,1 @@
+{"target":"defaults-registry","device_id":"fixture-buttonless","replace_shipped_default":{"shape":"single_press","controls":["home"]},"expected_reason":"absent-physical-control","expected_detail":"home"}

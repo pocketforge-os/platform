@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "safe_return_defaults": {
+    "a523": {
+      "descriptor": "devices/a523/capabilities.toml",
+      "contract_fixture": "fixtures/trimui-smart-pro-s.json",
+      "shipped_default": {"shape":"single_press","controls":["home"]}
+    },
+    "a133": {
+      "descriptor": "devices/a133/capabilities.toml",
+      "contract_fixture": "fixtures/trimui-smart-pro.json",
+      "shipped_default": {"shape":"single_press","controls":["guide"]}
+    },
+    "fixture-buttonless": {
+      "descriptor": "synthetic:fixture-buttonless",
+      "contract_fixture": "fixtures/fixture-buttonless.json",
+      "shipped_default": {"shape":"chord","controls":["select","start"]}
+    }
+  },
+  "re_resolution_rule": {
+    "identity_keyed": true,
+    "absent_control_behavior": "use-current-device-shipped-default",
+    "notice": "one-time-honest",
+    "invariant": "SafeReturn-never-unreachable"
+  },
+  "re_resolution_fixtures": [
+    {
+      "id": "a523-home-on-a133",
+      "stored_device_id": "a523",
+      "current_device_id": "a133",
+      "stored_binding": {"shape":"single_press","controls":["home"]},
+      "expected_binding": {"shape":"single_press","controls":["guide"]},
+      "expected_notice": true
+    },
+    {
+      "id": "guide-on-buttonless",
+      "stored_device_id": "a133",
+      "current_device_id": "fixture-buttonless",
+      "stored_binding": {"shape":"single_press","controls":["guide"]},
+      "expected_binding": {"shape":"chord","controls":["select","start"]},
+      "expected_notice": true
+    }
+  ]
+}
