@@ -220,6 +220,8 @@ def validate_defaults_registry(document: Any, source: str = "defaults registry")
         item = obj(raw, path, {"descriptor", "contract_fixture", "shipped_default"})
         if not isinstance(item["descriptor"], str) or not item["descriptor"]:
             fail(f"{path}.descriptor", "must be a non-empty descriptor reference")
+        if not isinstance(item["contract_fixture"], str) or not item["contract_fixture"]:
+            fail(f"{path}.contract_fixture", "must be a non-empty fixture reference")
         fixture = ROOT / item["contract_fixture"]
         contract = validate_contract(load(fixture), str(fixture))
         if contract["device_id"] != device_id:

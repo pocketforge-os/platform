@@ -47,7 +47,10 @@ class ShellInputContractTest(unittest.TestCase):
                 if instruction.get("target") == "defaults-registry":
                     changed = copy.deepcopy(self.defaults)
                     entry = changed["safe_return_defaults"][instruction["device_id"]]
-                    entry["shipped_default"] = instruction["replace_shipped_default"]
+                    if "replace_contract_fixture" in instruction:
+                        entry["contract_fixture"] = instruction["replace_contract_fixture"]
+                    else:
+                        entry["shipped_default"] = instruction["replace_shipped_default"]
                     validate = validator.validate_defaults_registry
                 else:
                     changed = copy.deepcopy(self.shipped)
