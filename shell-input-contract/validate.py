@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -94,7 +95,7 @@ def validate_contract(document: Any, source: str = "contract") -> dict[str, Any]
         if "printed_label" in control and (not isinstance(control["printed_label"], str) or not control["printed_label"]):
             fail(f"{path}.printed_label", "must be a non-empty string")
         glyph = obj(control["fallback_glyph"], f"{path}.fallback_glyph", {"source", "id"})
-        if glyph["source"] != "pocketforge" or not isinstance(glyph["id"], str) or not glyph["id"].startswith("pf-"):
+        if glyph["source"] != "pocketforge" or not isinstance(glyph["id"], str) or re.fullmatch(r"pf-[a-z0-9-]+", glyph["id"]) is None:
             fail(f"{path}.fallback_glyph", "must name a source-owned pf-* glyph")
 
     mappings = root["effective_map"]
@@ -108,13 +109,24 @@ def validate_contract(document: Any, source: str = "contract") -> dict[str, Any]
             fail(f"{path}.context", "must be a non-empty string")
         if item["action"] not in ACTIONS:
             fail(f"{path}.action", "unknown semantic action")
-        binding(item["binding"], f"{path}.binding")
+        parsed_binding = binding(item["binding"], f"{path}.binding")
+        absent = set(parsed_binding["controls"]) - seen
+        if absent:
+            fail(
+                f"{path}.binding.controls",
+                f"control(s) absent from physical_controls: {', '.join(sorted(absent))}",
+                "absent-physical-control",
+            )
         parsed.append(item)
     missing = REQUIRED - {item["action"] for item in parsed}
     if missing:
         fail(f"{source}.effective_map", f"missing required action(s): {', '.join(sorted(missing))}", "missing-required-action")
     for safe in (item for item in parsed if item["action"] == "SafeReturn"):
-        for face in (item for item in parsed if item["action"] in FACE_ACTIONS and item["context"] == safe["context"]):
+        for face in (
+            item for item in parsed
+            if item["action"] in FACE_ACTIONS
+            and (safe["context"] == "global" or item["context"] == safe["context"])
+        ):
             if signature(safe["binding"]) == signature(face["binding"]):
                 fail(f"{source}.effective_map", f"SafeReturn collides with {face['action']} in context {safe['context']}", "safe-return-collision")
     return root

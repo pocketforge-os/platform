@@ -49,14 +49,25 @@ class ShellInputContractTest(unittest.TestCase):
                         item for item in changed["effective_map"]
                         if item["action"] != instruction["remove_action"]
                     ]
+                elif "remove_physical_controls" in instruction:
+                    removed = set(instruction["remove_physical_controls"])
+                    changed["physical_controls"] = [
+                        item for item in changed["physical_controls"]
+                        if item["position"] not in removed
+                    ]
+                elif "invalid_fallback_glyph_id" in instruction:
+                    changed["physical_controls"][0]["fallback_glyph"]["id"] = instruction["invalid_fallback_glyph_id"]
                 else:
                     safe = next(item for item in changed["effective_map"] if item["action"] == "SafeReturn")
                     face = next(item for item in changed["effective_map"] if item["action"] == instruction["safe_return_copy_action"])
-                    safe["context"] = face["context"]
+                    if not instruction.get("preserve_safe_return_context", False):
+                        safe["context"] = face["context"]
                     safe["binding"] = copy.deepcopy(face["binding"])
                 with self.assertRaises(validator.ContractError) as raised:
                     validator.validate_contract(changed, path.name)
                 self.assertEqual(instruction["expected_reason"], raised.exception.reason)
+                if "expected_detail" in instruction:
+                    self.assertIn(instruction["expected_detail"], raised.exception.detail)
 
     def test_all_ruled_binding_shapes_round_trip(self) -> None:
         validator.validate_binding_set(self.shapes)
