@@ -4,11 +4,12 @@
   "title": "PocketForge shell input contract v1",
   "oneOf": [
     { "$ref": "#/$defs/contract" },
-    { "$ref": "#/$defs/bindingFixtureSet" }
+    { "$ref": "#/$defs/bindingFixtureSet" },
+    { "$ref": "#/$defs/defaultsRegistry" }
   ],
   "$defs": {
     "position": {
-      "enum": ["east", "south", "west", "north", "start", "select", "guide", "l1", "r1", "l2", "r2"]
+      "enum": ["east", "south", "west", "north", "start", "select", "guide", "home", "l1", "r1", "l2", "r2"]
     },
     "action": {
       "enum": ["Activate", "Back", "Move.up", "Move.down", "Move.left", "Move.right", "Quick", "Search.open", "Search.submit", "Search.cancel", "SafeReturn"]
@@ -57,6 +58,7 @@
       "properties": {
         "position": { "$ref": "#/$defs/position" },
         "printed_label": { "type": "string", "minLength": 1 },
+        "input_code": { "type": "string", "pattern": "^(BTN|KEY)_[A-Z0-9_]+$" },
         "fallback_glyph": {
           "type": "object", "additionalProperties": false,
           "required": ["source", "id"],
@@ -100,6 +102,57 @@
             "properties": { "id": { "type": "string", "minLength": 1 }, "binding": { "$ref": "#/$defs/binding" } }
           }
         }
+      }
+    },
+    "defaultsRegistry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "safe_return_defaults", "re_resolution_rule", "re_resolution_fixtures"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "safe_return_defaults": {
+          "type": "object", "additionalProperties": false,
+          "required": ["a523", "a133", "fixture-buttonless"],
+          "properties": {
+            "a523": { "$ref": "#/$defs/deviceDefault" },
+            "a133": { "$ref": "#/$defs/deviceDefault" },
+            "fixture-buttonless": { "$ref": "#/$defs/deviceDefault" }
+          }
+        },
+        "re_resolution_rule": {
+          "type": "object", "additionalProperties": false,
+          "required": ["identity_keyed", "absent_control_behavior", "notice", "invariant"],
+          "properties": {
+            "identity_keyed": { "const": true },
+            "absent_control_behavior": { "const": "use-current-device-shipped-default" },
+            "notice": { "const": "one-time-honest" },
+            "invariant": { "const": "SafeReturn-never-unreachable" }
+          }
+        },
+        "re_resolution_fixtures": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": { "$ref": "#/$defs/reResolutionFixture" }
+        }
+      }
+    },
+    "deviceDefault": {
+      "type": "object", "additionalProperties": false,
+      "required": ["descriptor", "contract_fixture", "shipped_default"],
+      "properties": {
+        "descriptor": { "type": "string", "minLength": 1 },
+        "contract_fixture": { "type": "string", "minLength": 1 },
+        "shipped_default": { "$ref": "#/$defs/binding" }
+      }
+    },
+    "reResolutionFixture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "stored_device_id", "current_device_id", "stored_binding", "expected_binding", "expected_notice"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "stored_device_id": { "type": "string", "minLength": 1 },
+        "current_device_id": { "type": "string", "minLength": 1 },
+        "stored_binding": { "$ref": "#/$defs/binding" },
+        "expected_binding": { "$ref": "#/$defs/binding" },
+        "expected_notice": { "const": true }
       }
     }
   }
