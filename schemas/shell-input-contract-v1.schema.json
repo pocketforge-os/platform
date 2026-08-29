@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pocketforge.org/schemas/shell-input-contract-v1.schema.json",
+  "title": "PocketForge shell input contract v1",
+  "oneOf": [
+    { "$ref": "#/$defs/contract" },
+    { "$ref": "#/$defs/bindingFixtureSet" }
+  ],
+  "$defs": {
+    "position": {
+      "enum": ["east", "south", "west", "north", "start", "select", "guide", "l1", "r1", "l2", "r2"]
+    },
+    "action": {
+      "enum": ["Activate", "Back", "Move.up", "Move.down", "Move.left", "Move.right", "Quick", "Search.open", "Search.submit", "Search.cancel", "SafeReturn"]
+    },
+    "binding": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["shape", "controls"],
+          "properties": {
+            "shape": { "const": "single_press" },
+            "controls": { "type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/position" } }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["shape", "controls"],
+          "properties": {
+            "shape": { "const": "chord" },
+            "controls": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/position" } }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["shape", "controls", "max_interval_ms"],
+          "properties": {
+            "shape": { "const": "double_press" },
+            "controls": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/position" } },
+            "max_interval_ms": { "type": "integer", "minimum": 100, "maximum": 2000 }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["shape", "controls", "min_duration_ms"],
+          "properties": {
+            "shape": { "const": "hold" },
+            "controls": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/position" } },
+            "min_duration_ms": { "type": "integer", "minimum": 250, "maximum": 5000 }
+          }
+        }
+      ]
+    },
+    "control": {
+      "type": "object", "additionalProperties": false,
+      "required": ["position", "fallback_glyph"],
+      "properties": {
+        "position": { "$ref": "#/$defs/position" },
+        "printed_label": { "type": "string", "minLength": 1 },
+        "fallback_glyph": {
+          "type": "object", "additionalProperties": false,
+          "required": ["source", "id"],
+          "properties": {
+            "source": { "const": "pocketforge" },
+            "id": { "type": "string", "pattern": "^pf-[a-z0-9-]+$" }
+          }
+        }
+      }
+    },
+    "mapping": {
+      "type": "object", "additionalProperties": false,
+      "required": ["context", "action", "binding"],
+      "properties": {
+        "context": { "type": "string", "minLength": 1 },
+        "action": { "$ref": "#/$defs/action" },
+        "binding": { "$ref": "#/$defs/binding" }
+      }
+    },
+    "contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "device_id", "protected_actions", "physical_controls", "effective_map"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "device_id": { "type": "string", "minLength": 1 },
+        "protected_actions": { "const": ["SafeReturn"] },
+        "physical_controls": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/control" } },
+        "effective_map": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/mapping" } }
+      }
+    },
+    "bindingFixtureSet": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "safe_return_alternatives"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "safe_return_alternatives": {
+          "type": "array", "minItems": 5, "maxItems": 5,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "binding"],
+            "properties": { "id": { "type": "string", "minLength": 1 }, "binding": { "$ref": "#/$defs/binding" } }
+          }
+        }
+      }
+    }
+  }
+}
