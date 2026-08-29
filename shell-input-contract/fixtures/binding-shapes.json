@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "safe_return_alternatives": [
+    {"id":"select-start-chord","binding":{"shape":"chord","controls":["select","start"]}},
+    {"id":"hold-guide-1s","binding":{"shape":"hold","controls":["guide"],"min_duration_ms":1000}},
+    {"id":"select-start-double-press-confirm","binding":{"shape":"double_press","controls":["select","start"],"max_interval_ms":700}},
+    {"id":"double-tap-guide","binding":{"shape":"double_press","controls":["guide"],"max_interval_ms":500}},
+    {"id":"hold-select-l1-r1","binding":{"shape":"hold","controls":["select","l1","r1"],"min_duration_ms":1000}}
+  ]
+}

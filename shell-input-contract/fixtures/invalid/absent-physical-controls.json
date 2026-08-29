@@ -1,0 +1,1 @@
+{"remove_physical_controls":["south","guide"],"expected_reason":"absent-physical-control","expected_detail":"south"}

@@ -1,0 +1,40 @@
+name: shell input contract gate
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'shell-input-contract/**'
+      - 'schemas/shell-input-contract-v1.schema.json'
+      - '.github/workflows/shell-input-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'shell-input-contract/**'
+      - 'schemas/shell-input-contract-v1.schema.json'
+      - '.github/workflows/shell-input-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: shell-input-contract
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, pf-pr-review]
+    steps:
+      - name: Validate the frozen contract and typed fixtures
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          wd="${RUNNER_TEMP:?}/platform-shell-input-$GITHUB_RUN_ID"
+          rm -rf "$wd"
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
+          cd "$wd"
+          sha="${HEAD_SHA:-$GITHUB_SHA}"
+          git fetch --quiet origin "$sha"
+          git checkout --quiet --detach "$sha"
+          python3 shell-input-contract/validate.py
+          python3 shell-input-contract/test_contract.py
