@@ -5,3 +5,6 @@ HERE="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
 
 echo "### stale-mirror SOURCE_DATE_EPOCH gate (tsp-hbpd) ###"
 bash "$HERE/epoch-test.sh"
+
+echo "### open GPU userspace source staging ###"
+bash "$HERE/gpu-um-staging-test.sh"

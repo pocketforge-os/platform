@@ -17,6 +17,10 @@ postmarketOS `flash_method`-scoped-keys discipline applied to the whole profile)
 | `[kernel]` | `repo`, `ref` | ✅ | repo name (in `platform.lock`) + branch/tag (`.lock` → SHA) |
 | | `defconfig`, `dtb`, `dts_source` | | `dts_source` = `owned`\|`vendor-rebuilt` |
 | `[gpu]` | `repo` | | repo name, or `"none"` (Adreno = in-tree msm + Mesa) |
+| `[gpu]` | `model` | | `ddk` (default for legacy profiles) or `open` |
+| `[gpu]` | `km_model` | open | `in-tree-6.x` for the open PowerVR kernel module |
+| `[gpu]` | `km_repo`, `km_ref` | open | kernel-module source identity (lock pinned) |
+| `[gpu]` | `um_repo`, `um_ref` | open | open userspace source identity (lock pinned) |
 | | `ref`, `modules` | | `modules` is a list (`.ko` names) |
 | | `kernel_driver`, `microcode_blob_group` | | (in-tree-driver families) |
 | `[bootchain]` | `model`, `boot_proto` | | family-shaped; `boot_proto` may come from family default |

@@ -136,7 +136,7 @@ pf_stage_sources() {
     local src_dir="$1" ba="$2"
     local mirror_dir="${PF_MIRROR_DIR:-$HOME/wt/.mirrors}"
     v() { sed -n "s/^$1=//p" <<< "$ba"; }
-    # logical-context-dir | repo | sha  (order matches the --build-context args below)
+    # logical-context-dir | repo | sha | required (order matches the --build-context args below)
     local -a specs=(
         "image|image|$(v PF_IMAGE_SHA)"
         "kernel|$(v PF_KERNEL_REPO)|$(v PF_KERNEL_SHA)"
@@ -149,16 +149,24 @@ pf_stage_sources() {
         "uboot|$(v PF_UBOOT_REPO)|$(v PF_UBOOT_SHA)"
         "tfa|$(v PF_TFA_REPO)|$(v PF_TFA_SHA)"
     )
-    local spec logical repo sha gitdir dest n
+    # The open stack's Mesa source is a real build input. Keep it entirely out of
+    # closed profiles, but never allow partial/dev staging to hide a missing open UM.
+    if [ "$(v PF_GPU_MODEL)" = open ]; then
+        specs+=( "gpu-um|$(v PF_GPU_UM_REPO)|$(v PF_GPU_UM_SHA)|1" )
+    fi
+    local spec logical repo sha required gitdir dest n
     for spec in "${specs[@]}"; do
-        IFS='|' read -r logical repo sha <<< "$spec"
+        IFS='|' read -r logical repo sha required <<< "$spec"
         # A device that does not use this source (e.g. no source bootchain) still gets an
         # EMPTY context dir: the --build-context args below are unconditional, and the
         # device-gated Dockerfile stages COPY from the empty context harmlessly.
-        [ -n "$repo" ] && [ "$repo" != "none" ] || { pf_log "stage: skip $logical (no repo — empty context)"; rm -rf "$src_dir/$logical"; mkdir -p "$src_dir/$logical"; continue; }
+        if [ -z "$repo" ] || [ "$repo" = "none" ]; then
+            [ "$required" != 1 ] || pf_die "stage: required source repo missing for $logical"
+            pf_log "stage: skip $logical (no repo — empty context)"; rm -rf "${src_dir:?}/$logical"; mkdir -p "$src_dir/$logical"; continue
+        fi
         [ -n "$sha" ] || pf_die "stage: no platform.lock SHA for $repo ($logical) — run \`pf lock\`"
         if ! gitdir="$(pf_find_git_source "$repo" "$mirror_dir")"; then
-            if [ "${PF_STAGE_ALLOW_MISSING:-0}" = 1 ]; then
+            if [ "${PF_STAGE_ALLOW_MISSING:-0}" = 1 ] && [ "$required" != 1 ]; then
                 pf_log "stage: WARN no local git source for $repo — skipping ($logical) [PF_STAGE_ALLOW_MISSING=1]"; continue
             fi
             pf_die "stage: no local git source for $repo — provision a bare mirror at $mirror_dir/$repo.git (\`git clone --bare <url>\`) or a checkout at \$HOME/$repo"
@@ -346,6 +354,9 @@ pf_os_image_dockerbuild() {
            --build-context "uboot-src=$src_dir/uboot"
            --build-context "tfa-src=$src_dir/tfa"
            --build-context "blobs-car=${PF_CAR_DIR:-$HOME/.pf-car}" )
+    if [ "$(printf '%s\n' "$ba" | sed -n 's/^PF_GPU_MODEL=//p')" = open ]; then
+        cmd+=( --build-context "gpu-um-src=$src_dir/gpu-um" )
+    fi
     # Local BuildKit cache export (tsp-1dl.4.7): emit ONLY for ci-dell. On a persistent dev host
     # docker's own layer cache already persists between builds for free, so an explicit
     # type=local,mode=max export buys nothing — and mode=max serializes+compresses EVERY intermediate

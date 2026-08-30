@@ -162,6 +162,23 @@ def validate(dev_id, lock):
     if mods is not None and not isinstance(mods, list):
         errs.append(f"{dev_id}: [gpu].modules must be a list")
 
+    # GPU stack selection is explicit.  Legacy profiles remain the closed/DDK
+    # model, while open profiles must completely describe both halves of the
+    # ABI; never inherit/fall back to [gpu].repo for an open stack.
+    gpu = merged.get("gpu", {})
+    model = gpu.get("model", "ddk")
+    if model not in ("ddk", "open"):
+        errs.append(f"{dev_id}: [gpu].model must be 'ddk' or 'open'")
+    if model == "open":
+        required = ("km_model", "km_repo", "km_ref", "um_repo", "um_ref")
+        for key in required:
+            if not gpu.get(key):
+                errs.append(f"{dev_id}: open [gpu].{key} is required")
+        if gpu.get("km_model") != "in-tree-6.x":
+            errs.append(f"{dev_id}: open [gpu].km_model must be 'in-tree-6.x'")
+        if gpu.get("repo") or gpu.get("ref"):
+            errs.append(f"{dev_id}: open [gpu] is ambiguous: legacy repo/ref must be cleared")
+
     # bootchain duality: either a source repo OR a blob group
     bc = merged.get("bootchain", {})
     has_src = bool(bc.get("uboot", {}).get("repo"))
@@ -178,7 +195,9 @@ def validate(dev_id, lock):
             if repo_sev is not None:
                 repo_sev.append(msg)
     check_repo(k.get("repo"), "[kernel]")
-    check_repo(merged.get("gpu", {}).get("repo"), "[gpu]")
+    check_repo(gpu.get("repo"), "[gpu]")
+    check_repo(gpu.get("km_repo"), "[gpu].km")
+    check_repo(gpu.get("um_repo"), "[gpu].um")
     check_repo(bc.get("uboot", {}).get("repo"), "[bootchain].uboot")
     check_repo(bc.get("tfa", {}).get("repo"), "[bootchain].tfa")
 
@@ -195,6 +214,8 @@ def validate(dev_id, lock):
 
 def env_lines(dev_id):
     merged, family = resolve(dev_id)
+    repos = load_lock()["repos"]
+    sha = lambda name: (repos.get(name or "", {}) or {}).get("sha", "") or ""
     dev = merged["device"]
     bc = merged.get("bootchain", {})
     gpu = merged.get("gpu", {})
@@ -208,7 +229,15 @@ def env_lines(dev_id):
         "PF_KERNEL_REF": merged.get("kernel", {}).get("ref"),
         "PF_KERNEL_DEFCONFIG": merged.get("kernel", {}).get("defconfig"),
         "PF_KERNEL_DTB": merged.get("kernel", {}).get("dtb"),
+        "PF_GPU_MODEL": gpu.get("model", "ddk"),
         "PF_GPU_REPO": gpu.get("repo"), "PF_GPU_REF": gpu.get("ref"),
+        "PF_GPU_KM_MODEL": gpu.get("km_model", "out-of-tree-ddk"),
+        "PF_GPU_KM_REPO": gpu.get("km_repo", gpu.get("repo", "")),
+        "PF_GPU_KM_REF": gpu.get("km_ref", gpu.get("ref", "")),
+        "PF_GPU_KM_SHA": sha(gpu.get("km_repo", gpu.get("repo"))),
+        "PF_GPU_UM_REPO": gpu.get("um_repo", ""),
+        "PF_GPU_UM_REF": gpu.get("um_ref", ""),
+        "PF_GPU_UM_SHA": sha(gpu.get("um_repo")),
         "PF_GPU_MODULES": " ".join(gpu.get("modules", []) or []),
         "PF_BOOTCHAIN_MODEL": bc.get("model"), "PF_BOOT_PROTO": bc.get("boot_proto"),
         "PF_BOOTCHAIN_BLOB_GROUP": bc.get("blob_group", ""),
@@ -262,10 +291,18 @@ def build_args(dev_id):
         "PF_KERNEL_SHA": sha(k.get("repo")),
         "PF_KERNEL_DEFCONFIG": k.get("defconfig", ""),
         "PF_KERNEL_DTB": k.get("dtb", ""),
+        "PF_GPU_MODEL": gpu.get("model", "ddk"),
         "PF_GPU_REPO": gpu.get("repo", ""),
         "PF_GPU_REF": gpu.get("ref", ""),
         "PF_GPU_SHA": sha(gpu.get("repo")),
         "PF_GPU_MODULES": " ".join(gpu.get("modules", []) or []),
+        "PF_GPU_KM_MODEL": gpu.get("km_model", "out-of-tree-ddk"),
+        "PF_GPU_KM_REPO": gpu.get("km_repo", gpu.get("repo", "")),
+        "PF_GPU_KM_REF": gpu.get("km_ref", gpu.get("ref", "")),
+        "PF_GPU_KM_SHA": sha(gpu.get("km_repo", gpu.get("repo"))),
+        "PF_GPU_UM_REPO": gpu.get("um_repo", ""),
+        "PF_GPU_UM_REF": gpu.get("um_ref", ""),
+        "PF_GPU_UM_SHA": sha(gpu.get("um_repo")),
         "PF_LIBSDL3_SHA": sha("libsdl3-sunxifb"),
         "PF_WPA_SHA": sha("wpa-supplicant-tsp"),
         # E2 runtime layer (tsp-e1b.11): the image's `runtime` Dockerfile.pf stage cross-builds
@@ -299,6 +336,9 @@ def build_args(dev_id):
               ("PF_BLOBS_SHA", "blobs"), ("PF_VENDOR_MANIFEST_SHA", "vendor-manifest")]
     if (gpu.get("repo") or "none") != "none":
         needed.append(("PF_GPU_SHA", gpu.get("repo")))
+    if gpu.get("model") == "open":
+        needed.extend((("PF_GPU_KM_SHA", gpu.get("km_repo")),
+                       ("PF_GPU_UM_SHA", gpu.get("um_repo"))))
     if uboot_repo:
         needed.append(("PF_UBOOT_SHA", uboot_repo))
     if tfa_repo:
@@ -343,17 +383,29 @@ def main(argv):
     if cmd == "resolve":
         if len(argv) < 2:
             sys.stderr.write("resolve: give a device id\n"); return 2
+        errors, _ = validate(argv[1], load_lock())
+        if errors:
+            print("\n".join(f"ERROR {e}" for e in errors), file=sys.stderr)
+            return 1
         merged, _ = resolve(argv[1])
         print(json.dumps(merged, indent=2, sort_keys=True))
         return 0
     if cmd == "env":
         if len(argv) < 2:
             sys.stderr.write("env: give a device id\n"); return 2
+        errors, _ = validate(argv[1], load_lock())
+        if errors:
+            print("\n".join(f"ERROR {e}" for e in errors), file=sys.stderr)
+            return 1
         print("\n".join(env_lines(argv[1])))
         return 0
     if cmd == "buildargs":
         if len(argv) < 2:
             sys.stderr.write("buildargs: give a device id\n"); return 2
+        errors, _ = validate(argv[1], load_lock())
+        if errors:
+            print("\n".join(f"ERROR {e}" for e in errors), file=sys.stderr)
+            return 1
         args, state, missing = build_args(argv[1])
         for kk in sorted(args):
             print(f"{kk}={args[kk]}")
