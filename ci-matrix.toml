@@ -39,9 +39,10 @@ a133       = "blocking"
 # device with no entry would default to advisory anyway.
 a523       = "advisory"
 
-# a133-owned + sdm845 carry ONLY a profile.toml (a build-profile variant / porting target) —
+# a133-open + a133-owned + sdm845 carry ONLY a profile.toml (a build-profile variant / porting target) —
 # no capabilities.toml, so there is nothing for the sim suites to run against. They are
 # EXPLICITLY excluded so the completeness check proves they were considered and deliberately
 # left out of the gate, never silently dropped.
+a133-open  = "excluded"
 a133-owned = "excluded"
 sdm845     = "excluded"
