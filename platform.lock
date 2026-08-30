@@ -231,6 +231,12 @@ ref  = "device/a133"          # tsp-kcq0: bump 8bbb26a764f9 -> a7cfec247898 = de
 sha  = "a7cfec247898bb2c22e51bb705a7f18fd5910285"
 
 [[repos]]
+name = "kernel-sunxi-6.x"    # A133 open-stack kernel with in-tree Imagination DRM PowerVR
+url  = "https://github.com/pocketforge-os/kernel-sunxi-6.x.git"
+ref  = "device/a133"
+sha  = "136518888335c0b23494690ed08f933e64a3f3dd"
+
+[[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
 url  = "https://github.com/pocketforge-os/kernel-sunxi-5.15.git"   #  = AvaotaSBC base for fork-tracking.
 ref  = "device/a523"
@@ -241,6 +247,12 @@ name = "gpu-km-tsp"           # PowerVR DDK 1.19 (A133) — PER-IP, unchanged (N
 url  = "https://github.com/pocketforge-os/gpu-km-tsp.git"
 ref  = "main"
 sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
+
+[[repos]]
+name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
+url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
+ref  = "main"
+sha  = "43fc908f65edb4625a3553c0b62799539be16899"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
