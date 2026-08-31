@@ -245,8 +245,8 @@ sha  = "e63004b0e9478de722571d97cd0e853194ffb9a2"
 [[repos]]
 name = "gpu-km-tsp"           # PowerVR DDK 1.19 (A133) — PER-IP, unchanged (NOT collapsed)
 url  = "https://github.com/pocketforge-os/gpu-km-tsp.git"
-ref  = "main"
-sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
+ref  = "tsp-mc9m.41.646"
+sha  = "0c014594616d7284fc8a05daa87b616117a5edb0"
 
 [[repos]]
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
