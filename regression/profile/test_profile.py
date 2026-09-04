@@ -26,6 +26,35 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_GPU_UM_SHA"], "43fc908f65edb4625a3553c0b62799539be16899")
         self.assertNotIn("pvr-ddk-22.102.54.38", opened["PF_BLOB_GROUPS"])
 
+    def test_is_a133_signal_resolves_for_every_variant(self):
+        # tsp-mc9m.41.924.2 / B1: PF_SOC is the declarative is-a133 discriminator that
+        # replaces the PF_GPU_REPO proxy in Dockerfile.pf's gates (B2-B4). It must be
+        # BASE-inherited so every a133 variant (closed/open/owned) resolves the same
+        # value, and must clearly diverge for a523.
+        for dev_id in ("a133", "a133-open", "a133-owned"):
+            args, _, missing = profile.build_args(dev_id)
+            self.assertEqual(missing, [], dev_id)
+            self.assertEqual(args["PF_SOC"], "sun50iw10p1", dev_id)
+        a523_args, _, a523_missing = profile.build_args("a523")
+        self.assertEqual(a523_missing, [])
+        self.assertEqual(a523_args["PF_SOC"], "sun55iw3")
+
+    def test_missing_soc_fails_closed(self):
+        # tsp-mc9m.41.924.2 / B1 review fix: PF_SOC is the ONLY is-a133 signal every
+        # Dockerfile.pf gate trusts. A profile that omits [device].soc must fail LOUDLY
+        # at validate() — never silently resolve to an empty PF_SOC that then silently
+        # NOT-SHIPs every gated component with no error anywhere in the chain.
+        original = profile.resolve
+        resolved, family = original("a133-open")
+        broken = copy.deepcopy(resolved)
+        del broken["device"]["soc"]
+        profile.resolve = lambda _dev: (broken, family)
+        try:
+            errors, _ = profile.validate("a133-open", profile.load_lock())
+        finally:
+            profile.resolve = original
+        self.assertIn("a133-open: [device].soc is required", errors)
+
     def test_open_profile_missing_field_fails_closed(self):
         original = profile.resolve
         resolved, family = original("a133-open")

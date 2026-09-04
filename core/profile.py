@@ -126,7 +126,7 @@ def validate(dev_id, lock):
     is_example = dev.get("status") == "example"
     repo_sev = warns if not is_example else None  # example: repo-absence is INFO (silent)
 
-    for key in ("id", "family", "arch"):
+    for key in ("id", "family", "arch", "soc"):
         if not dev.get(key):
             errs.append(f"{dev_id}: [device].{key} is required")
 
@@ -286,6 +286,11 @@ def build_args(dev_id):
         "PF_DEVICE_ID": dev.get("id", ""),
         "PF_FAMILY": dev.get("family", ""),
         "PF_ARCH": dev.get("arch", ""),
+        # Declarative device-family discriminator (tsp-mc9m.41.924.2 / B1): the ONLY
+        # sanctioned "is this an a133" build-arg — replaces the PF_GPU_REPO proxy that
+        # broke under the a133-open profile (gpu.repo == "" there). Base-inherited, so
+        # every a133 variant (closed/open/owned) resolves the same value.
+        "PF_SOC": dev.get("soc", ""),
         "PF_KERNEL_REPO": k.get("repo", ""),
         "PF_KERNEL_REF": k.get("ref", ""),
         "PF_KERNEL_SHA": sha(k.get("repo")),
