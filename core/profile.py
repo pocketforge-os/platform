@@ -126,7 +126,7 @@ def validate(dev_id, lock):
     is_example = dev.get("status") == "example"
     repo_sev = warns if not is_example else None  # example: repo-absence is INFO (silent)
 
-    for key in ("id", "family", "arch"):
+    for key in ("id", "family", "arch", "soc"):
         if not dev.get(key):
             errs.append(f"{dev_id}: [device].{key} is required")
 
