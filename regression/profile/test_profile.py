@@ -23,7 +23,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "136518888335c0b23494690ed08f933e64a3f3dd")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "43fc908f65edb4625a3553c0b62799539be16899")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "801ff67c6139f0946ba22c4004c0c23dab22a963")
         self.assertNotIn("pvr-ddk-22.102.54.38", opened["PF_BLOB_GROUPS"])
 
     def test_is_a133_signal_resolves_for_every_variant(self):
