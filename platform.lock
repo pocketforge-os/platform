@@ -234,7 +234,7 @@ sha  = "a7cfec247898bb2c22e51bb705a7f18fd5910285"
 name = "kernel-sunxi-6.x"    # A133 open-stack kernel with in-tree Imagination DRM PowerVR
 url  = "https://github.com/pocketforge-os/kernel-sunxi-6.x.git"
 ref  = "device/a133"
-sha  = "136518888335c0b23494690ed08f933e64a3f3dd"
+sha  = "554daa8e8fe7b6d0a65d161cd692d499ec6b188e"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
