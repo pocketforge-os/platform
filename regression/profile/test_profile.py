@@ -25,6 +25,13 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
         self.assertEqual(opened["PF_GPU_UM_SHA"], "801ff67c6139f0946ba22c4004c0c23dab22a963")
         self.assertNotIn("pvr-ddk-22.102.54.38", opened["PF_BLOB_GROUPS"])
+        # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
+        # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
+        # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "3fc6a8ebd71ebe7c2bf261908fcbfbd6e8df65ea")
+        self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
+        self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
+        self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
 
     def test_is_a133_signal_resolves_for_every_variant(self):
         # tsp-mc9m.41.924.2 / B1: PF_SOC is the declarative is-a133 discriminator that
@@ -38,6 +45,9 @@ class ProfileTest(unittest.TestCase):
         a523_args, _, a523_missing = profile.build_args("a523")
         self.assertEqual(a523_missing, [])
         self.assertEqual(a523_args["PF_SOC"], "sun55iw3")
+        # a523 is a ddk device: the pf-shell launcher must NOT be wired for it (open-only),
+        # so PF_LAUNCHER_SHA stays empty and it never stages/references launcher-src.
+        self.assertEqual(a523_args["PF_LAUNCHER_SHA"], "")
 
     def test_missing_soc_fails_closed(self):
         # tsp-mc9m.41.924.2 / B1 review fix: PF_SOC is the ONLY is-a133 signal every

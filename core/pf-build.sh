@@ -153,6 +153,10 @@ pf_stage_sources() {
     # closed profiles, but never allow partial/dev staging to hide a missing open UM.
     if [ "$(v PF_GPU_MODEL)" = open ]; then
         specs+=( "gpu-um|$(v PF_GPU_UM_REPO)|$(v PF_GPU_UM_SHA)|1" )
+        # pf-shell launcher source — OPEN-ONLY (tsp-mc9m.41.924.4 / top-coord RULING B). Same
+        # rationale as gpu-um above: kept entirely out of the ddk profiles (closed a133 + a523),
+        # so their launcher-ddk NOT-SHIPPED stub never references (or needs) launcher-src.
+        specs+=( "launcher|$(v PF_LAUNCHER_REPO)|$(v PF_LAUNCHER_SHA)|1" )
     fi
     local spec logical repo sha required gitdir dest n
     for spec in "${specs[@]}"; do
@@ -356,6 +360,10 @@ pf_os_image_dockerbuild() {
            --build-context "blobs-car=${PF_CAR_DIR:-$HOME/.pf-car}" )
     if [ "$(printf '%s\n' "$ba" | sed -n 's/^PF_GPU_MODEL=//p')" = open ]; then
         cmd+=( --build-context "gpu-um-src=$src_dir/gpu-um" )
+        # launcher-src — OPEN-ONLY, same rationale as gpu-um-src (tsp-mc9m.41.924.4): only the
+        # launcher-open Dockerfile stage COPYs it, reached ONLY via the `FROM launcher-${PF_GPU_MODEL}`
+        # selector, so BuildKit prunes it for ddk and the context is never needed there.
+        cmd+=( --build-context "launcher-src=$src_dir/launcher" )
     fi
     # Local BuildKit cache export (tsp-1dl.4.7): emit ONLY for ci-dell. On a persistent dev host
     # docker's own layer cache already persists between builds for free, so an explicit
