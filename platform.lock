@@ -331,7 +331,16 @@ ref  = "main"                 # tsp-e1b.11: +runtime#33 (position-key the face b
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "15c0a7e1be31128f63db95b1702fbbc6e92fad41"
+                              # tsp-mc9m.41.924.4 (top-coord RULING A): re-pin 15c0a7e -> 2478b37 =
+                              # runtime/main tip after op5a #64 (2026-08-30). Aligns the lock to
+                              # image/build/Dockerfile.pf's runtime-stage drift-check (@2478b37): the op5a
+                              # lane grew the runtime stage to build pf-session-authorityd + pf-prefsd and
+                              # bumped that drift-check, but the lock never tracked it -> EVERY a133/a523
+                              # build FATALed at the runtime stage. This re-pin removes the drift. The new
+                              # F13/F07 userspace (authorityd/prefsd) is gated OPEN-ONLY in the SAME wave
+                              # (Dockerfile launcher + runtime model-selectors) so closed a133/a523 ship
+                              # NONE of it and stay byte-identical (top-coord baseline).
+sha  = "2478b37755bc9968a49105fb9223be1f55ca7ddd"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
