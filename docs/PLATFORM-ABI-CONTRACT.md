@@ -42,22 +42,28 @@ pf abi list                       # canonical family ids
 pf abi resolve pocketforge/a523-mali   # one family's resolved SHA-set (JSON; aliases resolve too)
 pf abi view                       # the whole live-resolved view
 pf abi generate                   # (re)freeze abi/platform-abi.json from the live sources
-pf abi check                      # re-derive + diff vs the snapshot; exit 1 on drift
+pf abi check --baseline <rev>     # also enforce frozen-version transitions vs a Git baseline
 ```
 
 **Anti-drift guarantee.** The view **cannot silently diverge** from the lock because it is
 *derived* from it — a family that named a repo the lock does not carry is a hard error, not a
 stale row. `pf abi check` is the gate: it fails if the substrate SHAs (or the registry) moved
 without the snapshot being re-frozen. A moved `{kernel,gpu,sdl}` SHA-set **is a new Platform
-ABI**, so re-freezing (`pf abi generate`) must be paired with a **`platform-version` bump** for
-the affected family. Proven end-to-end by `regression/abi/drift-test.sh`.
+ABI** once the global lock is authoritative, so an authoritative re-freeze (`pf abi generate`)
+must be paired with a **`platform-version` bump** for the affected family. Interim/dev-only SHA
+moves regenerate in place without a bump. Proven end-to-end by `regression/abi/drift-test.sh`.
 
 **Enforced in CI (required, not documentary).** `pf abi check` runs on every PR via
 [`.github/workflows/abi-drift.yml`](../.github/workflows/abi-drift.yml) (job `pf-abi-drift`) and
 is wired as a **required status check** on the default branch. A `platform.lock` bump that skips
 `pf abi generate` therefore **cannot merge** — the gate goes RED until the view is re-frozen.
-This closes the enforcement hole that let `platform#42` drift the a133 view (`tsp-ziac.7`): the
-guarantee above is now mechanized, not just documented.
+This closes both enforcement holes: the snapshot must track the lock, and CI compares it with
+the PR base (or the previous main commit) so an authoritative frozen-set move cannot reuse a
+`platform_version`. The global schema-v1 lock state controls the rule: interim SHA moves may
+regenerate in place, while entering authoritative state increments every existing family even
+when its set is unchanged. Versions never decrease; skipped numbers and gratuitous increases
+are allowed. Family deletion/rename and authoritative-to-interim downgrade fail closed. A future
+per-family lock state is a schema evolution, not inferred here.
 
 **Lock state is surfaced.** The view carries `lock_state` (`interim` / `authoritative` /
 `unseeded`) straight from `platform.lock`. Today it is **`interim`** — the SHAs are dev-tips, not
