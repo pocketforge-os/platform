@@ -150,9 +150,10 @@ ref  = "main"          # tsp-kcq0: bump e0fc7fb0 -> c0d640de = image/main tip af
 # linker (mirrors runtime-src/.cargo/config; the launcher repo has none -> host-ld cross-link
 # failure). Supersedes dad4534's recovery cross-gcc. Both open-only; closed unaffected.
 # 0824374 (was e8eef75): drop PF_GPU_SHA from generate-build-id required[] (a133-open in-tree
-# KM has gpu.repo="" -> empty PF_GPU_SHA). Byte-neutral for closed (non-empty there); unblocks
-# a133-open completion. PF_LAUNCHER_SHA relaxation still pending the A'/B/C ruling.
-sha  = "08243746ec1b7d8bfed25d1120f275503a2f2953"
+# KM has gpu.repo="" -> empty PF_GPU_SHA). Byte-neutral for closed (non-empty there).
+# 4208c3b (was 0824374): drop PF_LAUNCHER_SHA from generate-build-id required[] (B-shape:
+# emit launcher= EMPTY on closed). FINAL image for the top-coord RULING-B byte-identical proof.
+sha  = "4208c3bed9138a107d7170dcccc4a40e468e8fea"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
