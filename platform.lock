@@ -146,9 +146,10 @@ ref  = "main"          # tsp-kcq0: bump e0fc7fb0 -> c0d640de = image/main tip af
 # MERGED image sha before the platform PR merges (identical tree -> proof holds).
 # e3260f4 (was 23df2ae): completes the build-rootfs recovery gating (resolve/verify block
 # was unconditional -> ddk FATAL "pinned recovery executable missing"; now open-only).
-# dad4534 (was b53673e): recovery-open rust:1.88 + aarch64-linux-gnu-gcc cross-linker
-# (b53673e's rust:1.85 hit the as_chunks_mut MSRV; 1.88 needs an aarch64 linker). open-only.
-sha  = "dad453484f7b14768ebaaa735307ad5709dfa41e"
+# e8eef75 (was dad4534): launcher-open + recovery-open pin rust-lld for the aarch64-musl
+# linker (mirrors runtime-src/.cargo/config; the launcher repo has none -> host-ld cross-link
+# failure). Supersedes dad4534's recovery cross-gcc. Both open-only; closed unaffected.
+sha  = "e8eef7537e66cc05951ca254076d138768c6ca08"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
