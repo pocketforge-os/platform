@@ -157,6 +157,9 @@ pf_stage_sources() {
         # rationale as gpu-um above: kept entirely out of the ddk profiles (closed a133 + a523),
         # so their launcher-ddk NOT-SHIPPED stub never references (or needs) launcher-src.
         specs+=( "launcher|$(v PF_LAUNCHER_REPO)|$(v PF_LAUNCHER_SHA)|1" )
+        # recovery entry source (F16) — OPEN-ONLY, same wave/rationale as launcher: the recovery-ddk
+        # NOT-SHIPPED stub (closed a133 + a523) never references recovery-src.
+        specs+=( "recovery|$(v PF_RECOVERY_REPO)|$(v PF_RECOVERY_SHA)|1" )
     fi
     local spec logical repo sha required gitdir dest n
     for spec in "${specs[@]}"; do
@@ -364,6 +367,9 @@ pf_os_image_dockerbuild() {
         # launcher-open Dockerfile stage COPYs it, reached ONLY via the `FROM launcher-${PF_GPU_MODEL}`
         # selector, so BuildKit prunes it for ddk and the context is never needed there.
         cmd+=( --build-context "launcher-src=$src_dir/launcher" )
+        # recovery-src — OPEN-ONLY, same rationale: only the recovery-open stage COPYs it, reached
+        # ONLY via the `FROM recovery-${PF_GPU_MODEL}` selector; pruned for ddk.
+        cmd+=( --build-context "recovery-src=$src_dir/recovery" )
     fi
     # Local BuildKit cache export (tsp-1dl.4.7): emit ONLY for ci-dell. On a persistent dev host
     # docker's own layer cache already persists between builds for free, so an explicit

@@ -135,7 +135,16 @@ ref  = "main"          # tsp-kcq0: bump e0fc7fb0 -> c0d640de = image/main tip af
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "aefaec0c6f246501fe536866eaf9a19becc194c8"
+# tsp-mc9m.41.924.4: bump aefaec0 (pre-op5a) -> 23df2ae = image/main tip (561c322, which
+# carries the already-merged B/C/D a133-open work: Mesa/Zink userspace wiring, initrd + SD-image
+# PF_GPU_MODEL gating, mainline package layer) PLUS this bead's image commits (launcher + recovery
+# model-selectors, runtime authorityd/prefsd open-gating, the build-rootfs recovery install guard).
+# REQUIRED for a133-open (aefaec0 predates all of B/C/D + the op5a stages) and for this bead's
+# build-rootfs.sh recovery guard to reach the build (image-src is staged at THIS sha). The whole
+# op5a userspace wave is gated OPEN-ONLY, so closed a133 + a523 stay byte-identical to the aefaec0
+# baseline (verified by the option-2 sha comparison in the PR). ⚠ TWO-PR PIN: re-point this to the
+# MERGED image sha before the platform PR merges (identical tree -> proof holds).
+sha  = "23df2ae2245773ac2e9fb1f41783118e61386393"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -352,6 +361,18 @@ ref  = "main"                 # Dockerfile.pf stage source-builds pf-shell from 
                               # libsdl3/wpa/runtime). SHA = the exact commit the launcher stage drift-checks
                               # (PF_LAUNCHER_SHA); an ancestor of launcher/main @ seed time.
 sha  = "3fc6a8ebd71ebe7c2bf261908fcbfbd6e8df65ea"
+
+[[repos]]
+name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
+url  = "https://github.com/pocketforge-os/recovery.git"   # (tsp-mc9m.41.924.4, top-coord RULING B).
+ref  = "main"                 # The image's `recovery` Dockerfile.pf stage source-builds the recovery
+                              # crate from this SHA, but ONLY for PF_GPU_MODEL=open (recovery-open) —
+                              # closed a133 + a523 land on the recovery-ddk NOT-SHIPPED stub and never
+                              # stage/reference recovery-src, keeping their images byte-identical to the
+                              # pre-op5a baseline (no recovery-entry, no recovery .path unit). Same
+                              # op5a userspace wave as the launcher/F13/F07 stack (tsp-op5a.79). SHA =
+                              # the exact commit the recovery stage drift-checks; ancestor of recovery/main.
+sha  = "7044d4980524c1d1f64e179760cbbd55c30899da"
 
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy
