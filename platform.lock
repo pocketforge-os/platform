@@ -149,7 +149,10 @@ ref  = "main"          # tsp-kcq0: bump e0fc7fb0 -> c0d640de = image/main tip af
 # e8eef75 (was dad4534): launcher-open + recovery-open pin rust-lld for the aarch64-musl
 # linker (mirrors runtime-src/.cargo/config; the launcher repo has none -> host-ld cross-link
 # failure). Supersedes dad4534's recovery cross-gcc. Both open-only; closed unaffected.
-sha  = "e8eef7537e66cc05951ca254076d138768c6ca08"
+# 0824374 (was e8eef75): drop PF_GPU_SHA from generate-build-id required[] (a133-open in-tree
+# KM has gpu.repo="" -> empty PF_GPU_SHA). Byte-neutral for closed (non-empty there); unblocks
+# a133-open completion. PF_LAUNCHER_SHA relaxation still pending the A'/B/C ruling.
+sha  = "08243746ec1b7d8bfed25d1120f275503a2f2953"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
