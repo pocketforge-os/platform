@@ -7,5 +7,8 @@ HERE="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
 echo "### abi view drift gate ###"
 bash "$HERE/drift-test.sh"
 echo
+echo "### platform version transition policy ###"
+python3 "$HERE/platform-version-test.py"
+echo
 echo "### app-descriptor validator + view unit tests ###"
 python3 "$HERE/appmanifest-test.py"

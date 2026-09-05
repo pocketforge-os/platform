@@ -5,7 +5,9 @@
 # DERIVED, so it cannot silently diverge; this test proves the GATE that enforces re-freezing:
 #   1. `pf abi check` is GREEN against the committed snapshot.
 #   2. Move a substrate SHA in a throwaway copy of platform.lock -> `pf abi check` goes RED.
-#   3. Re-freeze (`pf abi generate`) against the moved lock -> GREEN again.
+#   3. Interim re-freeze without a bump -> GREEN against the historical baseline.
+#   4. Entering authoritative state without bumps -> RED.
+#   5. Increment every existing family -> GREEN.
 # No committed file is left modified (everything happens in a temp ROOT copy).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." >/dev/null 2>&1 && pwd)"
@@ -18,6 +20,8 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 # Minimal copy: the abi_view needs core/, abi/, devices/, families/, platform.lock.
 cp -r "$ROOT/core" "$ROOT/abi" "$ROOT/devices" "$ROOT/families" "$ROOT/platform.lock" "$TMP/"
+BASELINE="$TMP/baseline.json"
+cp "$TMP/abi/platform-abi.json" "$BASELINE"
 # Flip the kernel-sunxi-4.9 SHA (which IS in the a133-powervr view) to a bogus value, COPY only.
 python3 - "$TMP/platform.lock" <<'PY'
 import re, sys
@@ -34,9 +38,38 @@ if python3 "$TMP/core/abi_view.py" check >/dev/null 2>&1; then
 fi
 echo "ok   - gate went RED on the moved SHA (drift detected)"
 
-echo "== 3. re-freezing against the moved lock restores GREEN =="
+echo "== 3. interim re-freeze without a version bump is legitimate =="
 python3 "$TMP/core/abi_view.py" generate
-python3 "$TMP/core/abi_view.py" check
-echo "ok   - re-freeze (pf abi generate) restores the gate to GREEN"
+python3 "$TMP/core/abi_view.py" check --baseline-file "$BASELINE"
+echo "ok   - interim SHA movement regenerated in place"
+
+echo "== 4. freezing without version bumps goes RED =="
+python3 - "$TMP/platform.lock" <<'PY'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace("seeded           = false", "seeded           = true")
+s = s.replace("interim_seed     = true", "interim_seed     = false")
+open(p, "w").write(s)
+PY
+python3 "$TMP/core/abi_view.py" generate
+if python3 "$TMP/core/abi_view.py" check --baseline-file "$BASELINE" >"$TMP/freeze-red.log" 2>&1; then
+    echo "FAIL: authoritative freeze reused interim platform versions"; exit 1
+fi
+grep -q 'reason=frozen_set_moved_without_version_bump' "$TMP/freeze-red.log"
+echo "ok   - authoritative freeze without bumps was rejected"
+
+echo "== 5. incrementing all existing families restores GREEN =="
+python3 - "$TMP/abi/families.toml" <<'PY'
+import re, sys
+p = sys.argv[1]
+s = open(p).read()
+s, count = re.subn(r'(platform_version\s*=\s*")(\d+)(")',
+                   lambda m: m.group(1) + str(int(m.group(2)) + 1) + m.group(3), s)
+assert count > 0
+open(p, "w").write(s)
+PY
+python3 "$TMP/core/abi_view.py" generate
+python3 "$TMP/core/abi_view.py" check --baseline-file "$BASELINE"
+echo "ok   - authoritative freeze with per-family increments passed"
 
 echo "ABI DRIFT GATE OK"

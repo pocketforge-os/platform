@@ -56,6 +56,7 @@ jobs:
       - name: checkout the PR ref + pf abi check
         env:
           GH_TOKEN: ${{ github.token }}
+          ABI_BASELINE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
         run: |
           set -euo pipefail
           wd="$RUNNER_TEMP/platform-abi-drift-$GITHUB_RUN_ID"
@@ -63,6 +64,7 @@ jobs:
           git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
           cd "$wd"
           git fetch --quiet origin "$GITHUB_SHA"
+          git fetch --quiet origin "$ABI_BASELINE"
           git checkout --quiet --detach "$GITHUB_SHA"
           # Pick a Python 3.11+ (tomllib) interpreter; the pf script honours PF_PY.
           PY=""
@@ -76,4 +78,4 @@ jobs:
             exit 3
           fi
           echo "using $PY ($("$PY" -V 2>&1)) on runner $RUNNER_NAME"
-          PF_PY="$PY" ./pf abi check
+          PF_PY="$PY" ./pf abi check --baseline "$ABI_BASELINE"

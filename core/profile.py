@@ -332,6 +332,8 @@ def build_args(dev_id):
         "PF_RECOVERY_REF": ((repos.get("recovery", {}) or {}).get("ref", "")
                             if gpu.get("model") == "open" else ""),
         "PF_RECOVERY_SHA": sha("recovery") if gpu.get("model") == "open" else "",
+        "PF_SIM_SHA": sha("sim"),
+        "PF_HWPROBE_SHA": sha("pf-hwprobe"),
         "PF_IMAGE_SHA": sha("image"),
         "PF_IMAGE_NAME": img.get("image_name", ""),
         "PF_IMAGE_ASSEMBLER": img.get("assembler", ""),
