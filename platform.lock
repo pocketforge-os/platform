@@ -153,7 +153,7 @@ ref  = "main"          # tsp-kcq0: bump e0fc7fb0 -> c0d640de = image/main tip af
 # KM has gpu.repo="" -> empty PF_GPU_SHA). Byte-neutral for closed (non-empty there).
 # 4208c3b (was 0824374): drop PF_LAUNCHER_SHA from generate-build-id required[] (B-shape:
 # emit launcher= EMPTY on closed). FINAL image for the top-coord RULING-B byte-identical proof.
-sha  = "5fff66f29da9966ae3fa5518b3f543e7033a5067"
+sha  = "9159300916d3f713ac1c8989755d7e8277ecc340"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
