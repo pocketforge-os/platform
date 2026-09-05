@@ -315,6 +315,8 @@ def build_args(dev_id):
         # it is not driven off a profile section. Missing SHA fails at pf_stage_sources (not in the
         # `needed` list below — same as libsdl3/wpa, which are also universal userspace repos).
         "PF_RUNTIME_SHA": sha("runtime"),
+        "PF_SIM_SHA": sha("sim"),
+        "PF_HWPROBE_SHA": sha("pf-hwprobe"),
         "PF_IMAGE_SHA": sha("image"),
         "PF_IMAGE_NAME": img.get("image_name", ""),
         "PF_IMAGE_ASSEMBLER": img.get("assembler", ""),

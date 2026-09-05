@@ -318,7 +318,8 @@ sha  = "089aab801088a87484565d4b708c5c9df671fd9b"
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
-ref  = "main"                 # tsp-e1b.11: +runtime#33 (position-key the face buttons — the tsp-ozbp.14
+ref  = "main"                 # tsp-h5ed.15: +runtime#86 vendor tree for hermetic --offline builds.
+                              # Prior: tsp-e1b.11: +runtime#33 (position-key the face buttons — the tsp-ozbp.14
                               # P1 fix). crates/pf-input-decode/src/codes.rs now defines POSITIONAL
                               # constants only (BTN_SOUTH 0x130 / BTN_EAST 0x131 / BTN_NORTH 0x133 /
                               # BTN_WEST 0x134) and decode.rs maps 0x20->BTN_SOUTH (BOTTOM) /
@@ -331,7 +332,20 @@ ref  = "main"                 # tsp-e1b.11: +runtime#33 (position-key the face b
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "15c0a7e1be31128f63db95b1702fbbc6e92fad41"
+sha  = "78e4754cd0d6ccdc0aa858bc2d889b7f33458ec0"
+
+[[repos]]
+name = "sim"                  # E5 simulator source; its bundled SDL3 tree supplies the static SDL build.
+url  = "https://github.com/pocketforge-os/sim.git"
+ref  = "main"                 # tsp-h5ed.15: pin selected from pf-hwprobe pins.env (sim#33 merge),
+                              # rather than the newer sim main tip, to preserve hwprobe's tested input pair.
+sha  = "b2fc5b8eec031e3f8640931a53d8e2bb93f29a7b"
+
+[[repos]]
+name = "pf-hwprobe"           # E5 hardware-probe source; staged now for the sibling image build stages.
+url  = "https://github.com/pocketforge-os/pf-hwprobe.git"
+ref  = "main"                 # tsp-h5ed.15: current main at rollout pin time.
+sha  = "9fc7c74ac83b476ee6c0772c915d590bbd3d3e03"
 
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy
