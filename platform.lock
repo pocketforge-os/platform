@@ -135,7 +135,25 @@ ref  = "main"          # tsp-kcq0: bump e0fc7fb0 -> c0d640de = image/main tip af
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "aefaec0c6f246501fe536866eaf9a19becc194c8"
+# tsp-mc9m.41.924.4: bump aefaec0 (pre-op5a) -> 23df2ae = image/main tip (561c322, which
+# carries the already-merged B/C/D a133-open work: Mesa/Zink userspace wiring, initrd + SD-image
+# PF_GPU_MODEL gating, mainline package layer) PLUS this bead's image commits (launcher + recovery
+# model-selectors, runtime authorityd/prefsd open-gating, the build-rootfs recovery guards).
+# REQUIRED for a133-open (aefaec0 predates all of B/C/D + the op5a stages) and for this bead's
+# build-rootfs.sh recovery guards to reach the build (image-src is staged at THIS sha). The whole
+# op5a userspace wave is gated OPEN-ONLY, so closed a133 + a523 stay byte-identical to the aefaec0
+# baseline (verified by the option-2 sha comparison in the PR). ⚠ TWO-PR PIN: re-point this to the
+# MERGED image sha before the platform PR merges (identical tree -> proof holds).
+# e3260f4 (was 23df2ae): completes the build-rootfs recovery gating (resolve/verify block
+# was unconditional -> ddk FATAL "pinned recovery executable missing"; now open-only).
+# e8eef75 (was dad4534): launcher-open + recovery-open pin rust-lld for the aarch64-musl
+# linker (mirrors runtime-src/.cargo/config; the launcher repo has none -> host-ld cross-link
+# failure). Supersedes dad4534's recovery cross-gcc. Both open-only; closed unaffected.
+# 0824374 (was e8eef75): drop PF_GPU_SHA from generate-build-id required[] (a133-open in-tree
+# KM has gpu.repo="" -> empty PF_GPU_SHA). Byte-neutral for closed (non-empty there).
+# 4208c3b (was 0824374): drop PF_LAUNCHER_SHA from generate-build-id required[] (B-shape:
+# emit launcher= EMPTY on closed). FINAL image for the top-coord RULING-B byte-identical proof.
+sha  = "9159300916d3f713ac1c8989755d7e8277ecc340"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -331,7 +349,39 @@ ref  = "main"                 # tsp-e1b.11: +runtime#33 (position-key the face b
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "15c0a7e1be31128f63db95b1702fbbc6e92fad41"
+                              # tsp-mc9m.41.924.4 (top-coord RULING A): re-pin 15c0a7e -> 2478b37 =
+                              # runtime/main tip after op5a #64 (2026-08-30). Aligns the lock to
+                              # image/build/Dockerfile.pf's runtime-stage drift-check (@2478b37): the op5a
+                              # lane grew the runtime stage to build pf-session-authorityd + pf-prefsd and
+                              # bumped that drift-check, but the lock never tracked it -> EVERY a133/a523
+                              # build FATALed at the runtime stage. This re-pin removes the drift. The new
+                              # F13/F07 userspace (authorityd/prefsd) is gated OPEN-ONLY in the SAME wave
+                              # (Dockerfile launcher + runtime model-selectors) so closed a133/a523 ship
+                              # NONE of it and stay byte-identical (top-coord baseline).
+sha  = "2478b37755bc9968a49105fb9223be1f55ca7ddd"
+
+[[repos]]
+name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
+url  = "https://github.com/pocketforge-os/launcher.git"   # top-coord RULING B). The image's `launcher`
+ref  = "main"                 # Dockerfile.pf stage source-builds pf-shell from this SHA, but ONLY for
+                              # PF_GPU_MODEL=open (the launcher-open stage) — closed a133 + a523 land on
+                              # the launcher-ddk NOT-SHIPPED stub and never stage/reference launcher-src,
+                              # keeping their images byte-identical. Not-per-device (literal-name lookup like
+                              # libsdl3/wpa/runtime). SHA = the exact commit the launcher stage drift-checks
+                              # (PF_LAUNCHER_SHA); an ancestor of launcher/main @ seed time.
+sha  = "3fc6a8ebd71ebe7c2bf261908fcbfbd6e8df65ea"
+
+[[repos]]
+name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
+url  = "https://github.com/pocketforge-os/recovery.git"   # (tsp-mc9m.41.924.4, top-coord RULING B).
+ref  = "main"                 # The image's `recovery` Dockerfile.pf stage source-builds the recovery
+                              # crate from this SHA, but ONLY for PF_GPU_MODEL=open (recovery-open) —
+                              # closed a133 + a523 land on the recovery-ddk NOT-SHIPPED stub and never
+                              # stage/reference recovery-src, keeping their images byte-identical to the
+                              # pre-op5a baseline (no recovery-entry, no recovery .path unit). Same
+                              # op5a userspace wave as the launcher/F13/F07 stack (tsp-op5a.79). SHA =
+                              # the exact commit the recovery stage drift-checks; ancestor of recovery/main.
+sha  = "7044d4980524c1d1f64e179760cbbd55c30899da"
 
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy

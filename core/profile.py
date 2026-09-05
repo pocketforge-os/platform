@@ -315,6 +315,23 @@ def build_args(dev_id):
         # it is not driven off a profile section. Missing SHA fails at pf_stage_sources (not in the
         # `needed` list below — same as libsdl3/wpa, which are also universal userspace repos).
         "PF_RUNTIME_SHA": sha("runtime"),
+        # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. Emitted with the
+        # real platform.lock SHA for PF_GPU_MODEL=open; resolves EMPTY for the ddk path (closed a133
+        # + a523), exactly as PF_GPU_UM_SHA is empty for non-open. The Dockerfile launcher stage's
+        # ARG-selected model-selector routes ddk to a NOT-SHIPPED stub that never COPYs launcher-src,
+        # so the ddk images stay byte-identical (the launcher is source-built ONLY on a133-open).
+        "PF_LAUNCHER_REPO": "launcher" if gpu.get("model") == "open" else "",
+        "PF_LAUNCHER_REF": ((repos.get("launcher", {}) or {}).get("ref", "")
+                            if gpu.get("model") == "open" else ""),
+        "PF_LAUNCHER_SHA": sha("launcher") if gpu.get("model") == "open" else "",
+        # recovery entry (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY, same op5a userspace
+        # wave as the launcher. Real SHA for PF_GPU_MODEL=open; empty for the ddk path (closed a133
+        # + a523) so the Dockerfile recovery-ddk NOT-SHIPPED stub never references recovery-src and
+        # the ddk images stay byte-identical (no pocketforge-recovery-entry).
+        "PF_RECOVERY_REPO": "recovery" if gpu.get("model") == "open" else "",
+        "PF_RECOVERY_REF": ((repos.get("recovery", {}) or {}).get("ref", "")
+                            if gpu.get("model") == "open" else ""),
+        "PF_RECOVERY_SHA": sha("recovery") if gpu.get("model") == "open" else "",
         "PF_IMAGE_SHA": sha("image"),
         "PF_IMAGE_NAME": img.get("image_name", ""),
         "PF_IMAGE_ASSEMBLER": img.get("assembler", ""),
@@ -344,6 +361,9 @@ def build_args(dev_id):
     if gpu.get("model") == "open":
         needed.extend((("PF_GPU_KM_SHA", gpu.get("km_repo")),
                        ("PF_GPU_UM_SHA", gpu.get("um_repo"))))
+        # OPEN builds source-build pf-shell + the recovery entry — both SHAs mandatory (tsp-mc9m.41.924.4).
+        needed.append(("PF_LAUNCHER_SHA", "launcher"))
+        needed.append(("PF_RECOVERY_SHA", "recovery"))
     if uboot_repo:
         needed.append(("PF_UBOOT_SHA", uboot_repo))
     if tfa_repo:
