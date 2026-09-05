@@ -138,13 +138,15 @@ ref  = "main"          # tsp-kcq0: bump e0fc7fb0 -> c0d640de = image/main tip af
 # tsp-mc9m.41.924.4: bump aefaec0 (pre-op5a) -> 23df2ae = image/main tip (561c322, which
 # carries the already-merged B/C/D a133-open work: Mesa/Zink userspace wiring, initrd + SD-image
 # PF_GPU_MODEL gating, mainline package layer) PLUS this bead's image commits (launcher + recovery
-# model-selectors, runtime authorityd/prefsd open-gating, the build-rootfs recovery install guard).
+# model-selectors, runtime authorityd/prefsd open-gating, the build-rootfs recovery guards).
 # REQUIRED for a133-open (aefaec0 predates all of B/C/D + the op5a stages) and for this bead's
-# build-rootfs.sh recovery guard to reach the build (image-src is staged at THIS sha). The whole
+# build-rootfs.sh recovery guards to reach the build (image-src is staged at THIS sha). The whole
 # op5a userspace wave is gated OPEN-ONLY, so closed a133 + a523 stay byte-identical to the aefaec0
 # baseline (verified by the option-2 sha comparison in the PR). ⚠ TWO-PR PIN: re-point this to the
 # MERGED image sha before the platform PR merges (identical tree -> proof holds).
-sha  = "23df2ae2245773ac2e9fb1f41783118e61386393"
+# e3260f4 (was 23df2ae): completes the build-rootfs recovery gating (resolve/verify block
+# was unconditional -> ddk FATAL "pinned recovery executable missing"; now open-only).
+sha  = "e3260f4f5d220fd172065bb828937600bcc56305"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
