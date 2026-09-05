@@ -318,8 +318,7 @@ sha  = "089aab801088a87484565d4b708c5c9df671fd9b"
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
-ref  = "main"                 # tsp-h5ed.15: +runtime#86 vendor tree for hermetic --offline builds.
-                              # Prior: tsp-e1b.11: +runtime#33 (position-key the face buttons — the tsp-ozbp.14
+ref  = "main"                 # tsp-e1b.11: +runtime#33 (position-key the face buttons — the tsp-ozbp.14
                               # P1 fix). crates/pf-input-decode/src/codes.rs now defines POSITIONAL
                               # constants only (BTN_SOUTH 0x130 / BTN_EAST 0x131 / BTN_NORTH 0x133 /
                               # BTN_WEST 0x134) and decode.rs maps 0x20->BTN_SOUTH (BOTTOM) /
@@ -332,7 +331,16 @@ ref  = "main"                 # tsp-h5ed.15: +runtime#86 vendor tree for hermeti
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "78e4754cd0d6ccdc0aa858bc2d889b7f33458ec0"
+                              # tsp-mc9m.41.924.4 (top-coord RULING A): re-pin 15c0a7e -> 2478b37 =
+                              # runtime/main tip after op5a #64 (2026-08-30). Aligns the lock to
+                              # image/build/Dockerfile.pf's runtime-stage drift-check (@2478b37): the op5a
+                              # lane grew the runtime stage to build pf-session-authorityd + pf-prefsd and
+                              # bumped that drift-check, but the lock never tracked it -> EVERY a133/a523
+                              # build FATALed at the runtime stage. This re-pin removes the drift. The new
+                              # F13/F07 userspace (authorityd/prefsd) is gated OPEN-ONLY in the SAME wave
+                              # (Dockerfile launcher + runtime model-selectors) so closed a133/a523 ship
+                              # NONE of it and stay byte-identical (top-coord baseline).
+sha  = "2478b37755bc9968a49105fb9223be1f55ca7ddd"
 
 [[repos]]
 name = "sim"                  # E5 simulator source; its bundled SDL3 tree supplies the static SDL build.
