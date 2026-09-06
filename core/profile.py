@@ -261,7 +261,7 @@ def env_lines(dev_id):
     return lines
 
 
-def build_args(dev_id):
+def build_args(dev_id, variant="dev"):
     """Resolve a device's `docker build --build-arg` surface: every source repo the
     multistage os-image build consumes, pinned to its platform.lock SHA (never a branch
     tip). Returns (args_dict, lock). The build must use these SHAs, not the profile ref
@@ -332,8 +332,8 @@ def build_args(dev_id):
         "PF_RECOVERY_REF": ((repos.get("recovery", {}) or {}).get("ref", "")
                             if gpu.get("model") == "open" else ""),
         "PF_RECOVERY_SHA": sha("recovery") if gpu.get("model") == "open" else "",
-        "PF_SIM_SHA": sha("sim"),
-        "PF_HWPROBE_SHA": sha("pf-hwprobe"),
+        "PF_SIM_SHA": sha("sim") if variant == "dev" else "",
+        "PF_HWPROBE_SHA": sha("pf-hwprobe") if variant == "dev" else "",
         "PF_IMAGE_SHA": sha("image"),
         "PF_IMAGE_NAME": img.get("image_name", ""),
         "PF_IMAGE_ASSEMBLER": img.get("assembler", ""),
@@ -433,7 +433,10 @@ def main(argv):
         if errors:
             print("\n".join(f"ERROR {e}" for e in errors), file=sys.stderr)
             return 1
-        args, state, missing = build_args(argv[1])
+        variant = argv[2] if len(argv) > 2 else "dev"
+        if variant not in ("dev", "release"):
+            sys.stderr.write("buildargs: variant must be dev or release\n"); return 2
+        args, state, missing = build_args(argv[1], variant)
         for kk in sorted(args):
             print(f"{kk}={args[kk]}")
         print(f"PF_LOCK_STATE={state}")
