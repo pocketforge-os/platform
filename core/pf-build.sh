@@ -25,7 +25,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 # shellcheck source=core/lib/common.sh
 . "$SCRIPT_DIR/lib/common.sh"
 
-DEVICE="" ARTIFACT="os-image" TARGET="dev-modelmaker" BEAD="${PF_BEAD:-adhoc}"
+DEVICE="" ARTIFACT="os-image" TARGET="dev-modelmaker" BEAD="${PF_BEAD:-adhoc}" VARIANT="dev"
 PF_DRY_RUN="${PF_DRY_RUN:-1}"
 PF_IMAGE_REPO="${PF_IMAGE_REPO:-$HOME/image}"
 
@@ -36,6 +36,7 @@ while [ "$#" -gt 0 ]; do
         --target)     TARGET="$2"; shift 2 ;;
         --bead)       BEAD="$2"; shift 2 ;;
         --image-repo) PF_IMAGE_REPO="$2"; shift 2 ;;
+        --variant)    VARIANT="$2"; shift 2 ;;
         --dry-run)    PF_DRY_RUN=1; shift ;;
         --no-dry-run) PF_DRY_RUN=0; shift ;;
         --stage-only) PF_STAGE_ONLY=1; shift ;;
@@ -46,8 +47,9 @@ done
 [ -n "$DEVICE" ] || pf_die "--device <id> is required (see: pf list)"
 case "$ARTIFACT" in os-image|containers) ;; *) pf_die "--artifact must be os-image|containers" ;; esac
 case "$TARGET"   in ci-dell|dev-modelmaker) ;; *) pf_die "--target must be ci-dell|dev-modelmaker" ;; esac
+case "$VARIANT"  in dev|release) ;; *) pf_die "--variant must be dev|release" ;; esac
 
-pf_log "build device=$DEVICE artifact=$ARTIFACT target=$TARGET bead=$BEAD dry_run=$PF_DRY_RUN"
+pf_log "build device=$DEVICE artifact=$ARTIFACT target=$TARGET variant=$VARIANT bead=$BEAD dry_run=$PF_DRY_RUN"
 pf_validate "$DEVICE"
 pf_load_env "$DEVICE"
 
@@ -144,13 +146,14 @@ pf_stage_sources() {
         "libsdl3-sunxifb|libsdl3-sunxifb|$(v PF_LIBSDL3_SHA)"
         "wpa-supplicant-tsp|wpa-supplicant-tsp|$(v PF_WPA_SHA)"
         "runtime|runtime|$(v PF_RUNTIME_SHA)"
-        "sim|sim|$(v PF_SIM_SHA)"
-        "pf-hwprobe|pf-hwprobe|$(v PF_HWPROBE_SHA)"
         "blobs|blobs|$(v PF_BLOBS_SHA)"
         "vendor-manifest|vendor-manifest|$(v PF_VENDOR_MANIFEST_SHA)"
         "uboot|$(v PF_UBOOT_REPO)|$(v PF_UBOOT_SHA)"
         "tfa|$(v PF_TFA_REPO)|$(v PF_TFA_SHA)"
     )
+    if [ "$VARIANT" = dev ]; then
+        specs+=( "sim|sim|$(v PF_SIM_SHA)" "pf-hwprobe|pf-hwprobe|$(v PF_HWPROBE_SHA)" )
+    fi
     # The open stack's Mesa source is a real build input. Keep it entirely out of
     # closed profiles, but never allow partial/dev staging to hide a missing open UM.
     if [ "$(v PF_GPU_MODEL)" = open ]; then
@@ -238,7 +241,7 @@ pf_ensure_insecure_builder() {
 
 pf_os_image_dockerbuild() {
     # Lock-pinned build-arg surface (the ONE place that reads profile+lock).
-    local ba; ba="$("$PF_PY" "$PF_PLATFORM_DIR/core/profile.py" buildargs "$DEVICE")" \
+    local ba; ba="$("$PF_PY" "$PF_PLATFORM_DIR/core/profile.py" buildargs "$DEVICE" "$VARIANT")" \
         || pf_die "profile.py buildargs failed for $DEVICE"
     local lock_state missing
     lock_state="$(printf '%s\n' "$ba" | sed -n 's/^PF_LOCK_STATE=//p')"
@@ -318,7 +321,9 @@ pf_os_image_dockerbuild() {
         --file "$dockerfile"
         --target export
         --build-arg "PF_CONTAINER=$container"
-        --build-arg "APT_SNAPSHOT_DATE=$snap" )
+        --build-arg "APT_SNAPSHOT_DATE=$snap"
+        --build-arg "PF_VARIANT=$VARIANT"
+        --build-arg "PF_HWPROBE_STAGE=$VARIANT" )
     [ -n "$sde" ]    && cmd+=( --build-arg "SOURCE_DATE_EPOCH=$sde" )
     [ -n "$k_sde" ]  && cmd+=( --build-arg "PF_KERNEL_SOURCE_DATE_EPOCH=$k_sde" )
     [ -n "$bc_sde" ] && cmd+=( --build-arg "PF_BOOTCHAIN_SOURCE_DATE_EPOCH=$bc_sde" )
@@ -358,13 +363,15 @@ pf_os_image_dockerbuild() {
            --build-context "sdl-src=$src_dir/libsdl3-sunxifb"
            --build-context "wpa-src=$src_dir/wpa-supplicant-tsp"
            --build-context "runtime-src=$src_dir/runtime"
-           --build-context "sim-src=$src_dir/sim"
-           --build-context "hwprobe-src=$src_dir/pf-hwprobe"
            --build-context "blobs-src=$src_dir/blobs"
            --build-context "vendor-manifest-src=$src_dir/vendor-manifest"
            --build-context "uboot-src=$src_dir/uboot"
            --build-context "tfa-src=$src_dir/tfa"
            --build-context "blobs-car=${PF_CAR_DIR:-$HOME/.pf-car}" )
+    if [ "$VARIANT" = dev ]; then
+        cmd+=( --build-context "sim-src=$src_dir/sim"
+               --build-context "hwprobe-src=$src_dir/pf-hwprobe" )
+    fi
     if [ "$(printf '%s\n' "$ba" | sed -n 's/^PF_GPU_MODEL=//p')" = open ]; then
         cmd+=( --build-context "gpu-um-src=$src_dir/gpu-um" )
         # launcher-src — OPEN-ONLY, same rationale as gpu-um-src (tsp-mc9m.41.924.4): only the
