@@ -336,6 +336,34 @@ ref  = "main"                 # tsp-h5ed.15: +runtime#86 vendor tree for hermeti
 sha  = "78e4754cd0d6ccdc0aa858bc2d889b7f33458ec0"
 
 [[repos]]
+name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
+url  = "https://github.com/pocketforge-os/launcher.git"   # top-coord RULING B). The image's `launcher`
+ref  = "main"                 # Dockerfile.pf stage source-builds pf-shell from this SHA, but ONLY for
+                              # PF_GPU_MODEL=open (the launcher-open stage) — closed a133 + a523 land on
+                              # the launcher-ddk NOT-SHIPPED stub and never stage/reference launcher-src,
+                              # keeping their images byte-identical. Not-per-device (literal-name lookup like
+                              # libsdl3/wpa/runtime). SHA = the exact commit the launcher stage drift-checks
+                              # (PF_LAUNCHER_SHA); an ancestor of launcher/main @ seed time.
+sha  = "3fc6a8ebd71ebe7c2bf261908fcbfbd6e8df65ea"
+
+[[repos]]
+name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
+url  = "https://github.com/pocketforge-os/recovery.git"   # (tsp-mc9m.41.924.4, top-coord RULING B).
+ref  = "main"                 # The image's `recovery` Dockerfile.pf stage source-builds the recovery
+                              # crate from this SHA, but ONLY for PF_GPU_MODEL=open (recovery-open) —
+                              # closed a133 + a523 land on the recovery-ddk NOT-SHIPPED stub and never
+                              # stage/reference recovery-src, keeping their images byte-identical to the
+                              # pre-op5a baseline (no recovery-entry, no recovery .path unit). Same
+                              # op5a userspace wave as the launcher/F13/F07 stack (tsp-op5a.79). SHA =
+                              # the exact commit the recovery stage drift-checks; ancestor of recovery/main.
+sha  = "7044d4980524c1d1f64e179760cbbd55c30899da"
+
+# Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
+# dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy
+# the build consumes — NOT a reproducibility gate (kubo emits CARv1; the .car is not byte-reproducible).
+# The reproducibility ANCHOR is the per-blob CID+sha256 in the vendor-manifest, re-verified in-stage by
+# fetch-group.py. Pinned so a build fetches a known-good .car copy.
+[[repos]]
 name = "sim"                  # E5 simulator source; its bundled SDL3 tree supplies the static SDL build.
 url  = "https://github.com/pocketforge-os/sim.git"
 ref  = "main"                 # tsp-h5ed.15: pin selected from pf-hwprobe pins.env (sim#33 merge),
