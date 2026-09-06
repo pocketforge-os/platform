@@ -8,3 +8,6 @@ bash "$HERE/epoch-test.sh"
 
 echo "### open GPU userspace source staging ###"
 bash "$HERE/gpu-um-staging-test.sh"
+
+echo "### release lock-state gate ###"
+bash "$HERE/release-lock-state-test.sh"

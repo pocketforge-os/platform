@@ -35,21 +35,21 @@ printf 'open mesa\n' > "$tmp/home/gpu-um-tsp/README"
 git -C "$tmp/home/gpu-um-tsp" add README
 git -C "$tmp/home/gpu-um-tsp" commit -qm fixture
 sha="$(git -C "$tmp/home/gpu-um-tsp" rev-parse HEAD)"
-for repo in image libsdl3-sunxifb wpa-supplicant-tsp runtime blobs vendor-manifest; do
+for repo in image libsdl3-sunxifb wpa-supplicant-tsp runtime sim pf-hwprobe blobs vendor-manifest launcher recovery; do
     ln -s gpu-um-tsp "$tmp/home/$repo"
 done
-common_args=$'PF_IMAGE_SHA='"$sha"$'\nPF_KERNEL_REPO=none\nPF_KERNEL_SHA=\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_LIBSDL3_SHA='"$sha"$'\nPF_WPA_SHA='"$sha"$'\nPF_RUNTIME_SHA='"$sha"$'\nPF_BLOBS_SHA='"$sha"$'\nPF_VENDOR_MANIFEST_SHA='"$sha"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
+common_args=$'PF_IMAGE_SHA='"$sha"$'\nPF_KERNEL_REPO=none\nPF_KERNEL_SHA=\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_LIBSDL3_SHA='"$sha"$'\nPF_WPA_SHA='"$sha"$'\nPF_RUNTIME_SHA='"$sha"$'\nPF_SIM_SHA='"$sha"$'\nPF_HWPROBE_SHA='"$sha"$'\nPF_BLOBS_SHA='"$sha"$'\nPF_VENDOR_MANIFEST_SHA='"$sha"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
 
-HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" pf_stage_sources "$tmp/open" \
-    "$common_args"$'\nPF_GPU_MODEL=open\nPF_GPU_UM_REPO=gpu-um-tsp\nPF_GPU_UM_SHA='"$sha"
+HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" VARIANT=dev pf_stage_sources "$tmp/open" \
+    "$common_args"$'\nPF_GPU_MODEL=open\nPF_GPU_UM_REPO=gpu-um-tsp\nPF_GPU_UM_SHA='"$sha"$'\nPF_LAUNCHER_REPO=launcher\nPF_LAUNCHER_SHA='"$sha"$'\nPF_RECOVERY_REPO=recovery\nPF_RECOVERY_SHA='"$sha"
 test "$(cat "$tmp/open/gpu-um/README")" = 'open mesa'
 
-HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" pf_stage_sources "$tmp/closed" \
+HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" VARIANT=dev pf_stage_sources "$tmp/closed" \
     "$common_args"$'\nPF_GPU_MODEL=ddk\nPF_GPU_UM_REPO=\nPF_GPU_UM_SHA='
 test ! -e "$tmp/closed/gpu-um"
 
 # Required open UM must fail even when partial staging is explicitly allowed.
-if ( HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" PF_STAGE_ALLOW_MISSING=1 \
+if ( HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" PF_STAGE_ALLOW_MISSING=1 VARIANT=dev \
     pf_stage_sources "$tmp/missing" \
     "$common_args"$'\nPF_GPU_MODEL=open\nPF_GPU_UM_REPO=missing-repo\nPF_GPU_UM_SHA=0123456789012345678901234567890123456789' 2>/dev/null ); then
     echo 'FAIL: unstageable open GPU UM was silently skipped' >&2

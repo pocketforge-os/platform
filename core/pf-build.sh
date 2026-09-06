@@ -248,7 +248,11 @@ pf_os_image_dockerbuild() {
     missing="$(printf '%s\n' "$ba" | sed -n 's/^PF_LOCK_MISSING_SHAS=//p')"
     case "$lock_state" in
         unseeded) pf_die "platform.lock is UNSEEDED — seed it first (\`pf lock --interim\`; tsp-1dl.1.1)" ;;
-        interim)  pf_log "platform.lock is INTERIM-seeded (dev-only) — OK for a dev build; a RELEASE build needs the authoritative seed (post-B2)" ;;
+        interim)
+            [ "$VARIANT" = dev ] \
+                || pf_die "platform.lock is INTERIM-seeded (dev-only) — a RELEASE build needs the authoritative seed (post-B2)"
+            pf_log "platform.lock is INTERIM-seeded (dev-only) — OK for a dev build"
+            ;;
     esac
     [ -z "$missing" ] || pf_die "platform.lock missing SHAs for $DEVICE: $missing — re-seed (\`pf lock\`)"
 

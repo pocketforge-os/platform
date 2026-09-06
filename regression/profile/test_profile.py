@@ -11,6 +11,16 @@ spec.loader.exec_module(profile)
 
 
 class ProfileTest(unittest.TestCase):
+    def test_hwprobe_and_sim_are_empty_only_for_release(self):
+        dev, _, dev_missing = profile.build_args("a133", "dev")
+        release, _, release_missing = profile.build_args("a133", "release")
+        self.assertEqual(dev_missing, [])
+        self.assertEqual(release_missing, [])
+        self.assertRegex(dev["PF_HWPROBE_SHA"], r"^[0-9a-f]{40}$")
+        self.assertRegex(dev["PF_SIM_SHA"], r"^[0-9a-f]{40}$")
+        self.assertEqual(release["PF_HWPROBE_SHA"], "")
+        self.assertEqual(release["PF_SIM_SHA"], "")
+
     def test_closed_and_open_resolve_exact_shas(self):
         closed, _, closed_missing = profile.build_args("a133")
         opened, _, open_missing = profile.build_args("a133-open")
