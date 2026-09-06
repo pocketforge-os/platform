@@ -28,12 +28,12 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "3fc6a8ebd71ebe7c2bf261908fcbfbd6e8df65ea")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "f3fcdd938899b18c96e26e42a1571fc84233194f")
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
         # recovery entry (F16) is the same op5a wave — also OPEN-ONLY (top-coord RULING B).
-        self.assertEqual(opened["PF_RECOVERY_SHA"], "7044d4980524c1d1f64e179760cbbd55c30899da")
+        self.assertEqual(opened["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
         self.assertEqual(opened["PF_RECOVERY_REPO"], "recovery")
         self.assertEqual(closed["PF_RECOVERY_SHA"], "")
         self.assertEqual(closed["PF_RECOVERY_REPO"], "")
