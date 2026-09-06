@@ -48,6 +48,9 @@ done
 case "$ARTIFACT" in os-image|containers) ;; *) pf_die "--artifact must be os-image|containers" ;; esac
 case "$TARGET"   in ci-dell|dev-modelmaker) ;; *) pf_die "--target must be ci-dell|dev-modelmaker" ;; esac
 case "$VARIANT"  in dev|release) ;; *) pf_die "--variant must be dev|release" ;; esac
+if [ "$VARIANT" = release ] && [ -n "${PF_CONTAINER_OVERRIDE:-}" ]; then
+    pf_die "PF_CONTAINER_OVERRIDE is dev-only — release builds must use the committed container.pin"
+fi
 
 pf_log "build device=$DEVICE artifact=$ARTIFACT target=$TARGET variant=$VARIANT bead=$BEAD dry_run=$PF_DRY_RUN"
 pf_validate "$DEVICE"
