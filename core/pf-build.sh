@@ -195,6 +195,35 @@ pf_stage_sources() {
     done
 }
 
+# pf_image_candidate_override — dev-only, non-hermetic image-repo candidate override.
+# Mutates the caller's `ba` (the lock-pinned build-arg surface) IN PLACE, replacing the
+# image SHA with env PF_IMAGE_SHA so `pf_stage_sources` archives the candidate commit
+# instead of the platform.lock pin. Without it, a `PF_IMAGE_SHA` candidate build silently
+# archives the lock pin and reproduces the pinned build byte-for-byte — a false-negative
+# device validation (tsp-hqm1p.17.13). MUST be called in the current shell (not a command
+# substitution) so pf_die is fatal to the whole build. No-op when PF_IMAGE_SHA is empty or
+# already equals the lock pin; refuses a non-dev variant or a malformed sha.
+pf_image_candidate_override() {
+    [ -n "${PF_IMAGE_SHA:-}" ] || return 0
+    [ "$VARIANT" = dev ] \
+        || pf_die "PF_IMAGE_SHA candidate override is dev-only (non-hermetic); refusing for a '$VARIANT' build"
+    case "$PF_IMAGE_SHA" in
+        *[!0-9a-f]* | "") pf_die "PF_IMAGE_SHA must be exactly 40 lowercase hex chars (got '$PF_IMAGE_SHA')" ;;
+    esac
+    [ "${#PF_IMAGE_SHA}" -eq 40 ] \
+        || pf_die "PF_IMAGE_SHA must be exactly 40 lowercase hex chars (got '$PF_IMAGE_SHA')"
+    local lock_image_sha
+    lock_image_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_IMAGE_SHA=//p')"
+    if [ "$PF_IMAGE_SHA" = "$lock_image_sha" ]; then
+        pf_log "PF_IMAGE_SHA=$PF_IMAGE_SHA matches the platform.lock image pin — hermetic build (no override)"
+        return 0
+    fi
+    # Replace ONLY the image sha; every downstream consumer ($(v PF_IMAGE_SHA): the staging
+    # archive and the commit-epoch resolution) then resolves the candidate.
+    ba="$(printf '%s\n' "$ba" | sed "s/^PF_IMAGE_SHA=.*/PF_IMAGE_SHA=$PF_IMAGE_SHA/")"
+    pf_log "!!! NON-HERMETIC CANDIDATE: image-src overridden to $PF_IMAGE_SHA (lock pin was ${lock_image_sha:-none}) — dev validation only, NEVER a release artifact"
+}
+
 # pf_os_image_dockerbuild — construct the multistage os-image `docker build` (B4.0).
 # Create-if-missing the docker-container buildx builder that grants the security.insecure
 # entitlement (the rootfs + assemble stages run privileged debootstrap/image-assembly steps that
@@ -258,6 +287,12 @@ pf_os_image_dockerbuild() {
             ;;
     esac
     [ -z "$missing" ] || pf_die "platform.lock missing SHAs for $DEVICE: $missing — re-seed (\`pf lock\`)"
+
+    # Candidate (dev-only, non-hermetic) image-repo override: rewrites the image SHA in
+    # the lock-pinned build-arg surface `ba` when env PF_IMAGE_SHA is set, so a pre-merge
+    # image change is actually staged and validated instead of silently reproducing the
+    # lock pin (tsp-hqm1p.17.13). Runs in the current shell so its pf_die is fatal.
+    pf_image_candidate_override
 
     local cache_dir="/tmp/pf-build/$BEAD/cache" src_dir="/tmp/pf-build/$BEAD/src"
 
