@@ -138,7 +138,7 @@ ref  = "main"          # tsp-mc9m.41.926.145.50.6.6: image#100 open-GPU firmware
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "f2a7810d3ef20ee57347f22435987eb9a8f5ca5f"
+sha  = "c0c0723837a5998799abba1dde6874d38005fa11"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
