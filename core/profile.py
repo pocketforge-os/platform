@@ -162,6 +162,14 @@ def validate(dev_id, lock):
     if mods is not None and not isinstance(mods, list):
         errs.append(f"{dev_id}: [gpu].modules must be a list")
 
+    # Display availability is independent of GPU acceleration. A framebuffer
+    # may be provided by a display controller with no GPU stack at all.
+    display = merged.get("display", {})
+    pipeline = display.get("pipeline")
+    if pipeline not in ("fbdev", "drm", "none"):
+        errs.append(
+            f"{dev_id}: [display].pipeline is required and must be 'fbdev', 'drm', or 'none'")
+
     # GPU stack selection is explicit.  Legacy profiles remain the closed/DDK
     # model, open profiles must completely describe both halves of the ABI, and
     # "none" profiles deliberately build without a GPU stack.  Never let a
@@ -227,6 +235,7 @@ def env_lines(dev_id):
     dev = merged["device"]
     bc = merged.get("bootchain", {})
     gpu = merged.get("gpu", {})
+    display = merged.get("display", {})
     img = merged.get("image", {})
     flash = merged.get("flash", {})
     tc = merged.get("toolchain", {})
@@ -247,6 +256,7 @@ def env_lines(dev_id):
         "PF_GPU_UM_REF": gpu.get("um_ref", ""),
         "PF_GPU_UM_SHA": sha(gpu.get("um_repo")),
         "PF_GPU_MODULES": " ".join(gpu.get("modules", []) or []),
+        "PF_DISPLAY_PIPELINE": display.get("pipeline", ""),
         "PF_BOOTCHAIN_MODEL": bc.get("model"), "PF_BOOT_PROTO": bc.get("boot_proto"),
         "PF_BOOTCHAIN_BLOB_GROUP": bc.get("blob_group", ""),
         "PF_UBOOT_REPO": bc.get("uboot", {}).get("repo", ""),
@@ -284,6 +294,7 @@ def build_args(dev_id, variant="dev"):
     dev = merged["device"]
     k = merged.get("kernel", {})
     gpu = merged.get("gpu", {})
+    display = merged.get("display", {})
     bc = merged.get("bootchain", {})
     tc = merged.get("toolchain", {})
     img = merged.get("image", {})
@@ -309,6 +320,7 @@ def build_args(dev_id, variant="dev"):
         "PF_GPU_REF": gpu.get("ref", ""),
         "PF_GPU_SHA": sha(gpu.get("repo")),
         "PF_GPU_MODULES": " ".join(gpu.get("modules", []) or []),
+        "PF_DISPLAY_PIPELINE": display.get("pipeline", ""),
         "PF_GPU_KM_MODEL": gpu.get("km_model", "out-of-tree-ddk"),
         "PF_GPU_KM_REPO": gpu.get("km_repo", gpu.get("repo", "")),
         "PF_GPU_KM_REF": gpu.get("km_ref", gpu.get("ref", "")),

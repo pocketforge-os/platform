@@ -24,6 +24,7 @@ postmarketOS `flash_method`-scoped-keys discipline applied to the whole profile)
 | | `ref`, `modules` | | `modules` is a list (`.ko` names) |
 | | GPU source/ref/module fields | `none` | must all be empty; consumers must skip GPU KM, UM, firmware, and initramfs module work |
 | | `kernel_driver`, `microcode_blob_group` | | (in-tree-driver families) |
+| `[display]` | `pipeline` | ✅ | userspace display path: `fbdev`, `drm`, or `none`; independent of `[gpu].model`, exported as `PF_DISPLAY_PIPELINE` |
 | `[bootchain]` | `model`, `boot_proto` | | family-shaped; `boot_proto` may come from family default |
 | | **either** `uboot.repo`/`tfa.repo`(+refs) **or** `blob_group` | ✅ (one of) | source-built vs vendor blob — the duality |
 | | `spl_offset_kib`, `*.defconfig`, `tfa.plat` | | source-built sunxi |

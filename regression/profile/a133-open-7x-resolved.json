@@ -4,6 +4,7 @@
   "console": {"baud": 115200, "cmdline_extra": "loglevel=8 rootwait", "dev": "ttyS0", "earlycon": "uart8250,mmio32,0x05000000"},
   "container": {"app_base": "pocketforge/oci-base-aarch64", "build_image": "pocketforge/build:10.3-2021.07-bookworm"},
   "device": {"arch": "aarch64", "base": "a133", "family": "sunxi", "id": "a133-open-7x", "name": "TrimUI Smart Pro (v7.2 bring-up)", "soc": "sun50iw10p1", "soc_friendly": "Allwinner A133 (TG5040)"},
+  "display": {"pipeline": "none"},
   "flash": {"method": "dd-sd", "slot": "base"},
   "gpu": {"km_model": "", "km_ref": "", "km_repo": "", "model": "none", "modules": [], "ref": "", "repo": "", "um_ref": "", "um_repo": ""},
   "image": {"assembler": "genimage", "boot_fs": "vfat", "boot_label": "POCKETFORGE", "fs_uuids_file": "boards/tsp/fs-uuids.env", "image_name": "pocketforge-tsp", "partition_table": "gpt", "root_fs": "ext4", "root_label": "POCKETFORGE_DATA"},

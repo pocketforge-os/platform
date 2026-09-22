@@ -23,6 +23,18 @@ sources or modules. Its build arguments consequently contain no GPU source SHA,
 module, launcher, recovery, or firmware input. Image consumers must treat
 `PF_GPU_MODEL=none` as an intentional, successful GPU-less build mode.
 
+## Display and GPU are independent
+
+GPU acceleration and display availability are separate profile facts. The 6.x
+`a133-open` profile has no dependency between them: its `sun4i-drm` display
+controller provides the fbdev path used by the launcher regardless of the GPU
+stack. The 7.x profile currently declares both `[gpu].model = "none"` and
+`[display].pipeline = "none"` because neither PowerVR nor a display pipeline is
+available on that line today. When replay plan step 5 lands, only the 7.x display
+fact flips to `fbdev`; its GPU model remains `none` until the separate GPU step.
+Image logic must therefore branch on `PF_DISPLAY_PIPELINE`, never infer display
+availability from `PF_GPU_MODEL`.
+
 ## Follow-up: pocketforge-automation
 
 In `scripts/build-owned-image.sh`, the `--kernel` parser currently accepts only

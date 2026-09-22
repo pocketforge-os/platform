@@ -34,6 +34,9 @@ ref     = "master"
 modules = ["mali_kbase.ko"]                  # Mali-G57; userspace libmali is a blob group
                                              # (obsoleted if tsp-mo2 Panfrost lands)
 
+[display]
+pipeline = "fbdev"
+
 [toolchain]
 # Shared gcc-10.3-2021.07 builds BOTH lines (A523 already uses the same pocketforge/build
 # container). cflags_extra captures that 10.3 is NOT pristine for 5.15: the A523 build

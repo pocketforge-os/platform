@@ -20,5 +20,8 @@ um_repo = "gpu-um-tsp"
 um_ref = "main"
 modules = ["powervr.ko"]
 
+[display]
+pipeline = "fbdev"
+
 [blobs]
 groups = ["sunxi-a133-boot-chain", "sunxi-a133-wifi-firmware", "pvr-fw-open-22.102.54.38"]
