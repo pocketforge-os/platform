@@ -43,7 +43,7 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.926.145.50.6.4: bump e9b0848 -> 24c55ea1 = image/main tip after image#98 (gpu-um-toolchain snapshot env + arm64 Snapshot: no stanza aligned with gpu-um-tsp 0dc9d15a, plus drift guard)
+ref  = "main"          # tsp-mc9m.41.926.145.50.6.6: image#100 open-GPU firmware integration and fail-closed headless Vulkan boot gate
                        # Prior: tsp-h5ed.30 image#95 (release-selectable empty hwprobe stage + dev/release build-id validation; keeps dev hwprobe source-pinned while release records empty hwprobe/sim identities)
                        # Prior: tsp-h5ed.16: bump aefaec0 -> 29800a07 = image/main tip after tsp-h5ed.16/image#91 (hermetic-Rust wave: container.pin r3-with-musl 7db398b; RESTORES closed a133+a523 builds from the runtime-pin fleet-main-broken state; coupled with the runtime pin already at 78e4754)
                        # Prior: tsp-kcq0: bump e0fc7fb0 -> c0d640de = image/main tip after tsp-aazu/image#71
@@ -138,7 +138,7 @@ ref  = "main"          # tsp-mc9m.41.926.145.50.6.4: bump e9b0848 -> 24c55ea1 = 
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "24c55ea1c835aa03a0781e80c73edfbc6c895c53"
+sha  = "22869bc0d77fb09a312438087cc6fa02e70fe4a9"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -236,8 +236,8 @@ sha  = "a7cfec247898bb2c22e51bb705a7f18fd5910285"
 [[repos]]
 name = "kernel-sunxi-6.x"    # A133 open-stack kernel with in-tree Imagination DRM PowerVR
 url  = "https://github.com/pocketforge-os/kernel-sunxi-6.x.git"
-ref  = "device/a133"
-sha  = "554daa8e8fe7b6d0a65d161cd692d499ec6b188e"
+ref  = "device/a133"           # includes the Odyssey img,img-rogue DTB and PFDBG-DISP silence fix
+sha  = "903044c3bd268065a51e2debc48bab35bcb5577f"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -300,8 +300,8 @@ sha  = "02ad8b7158ae39797f2693607ea9f2e6975f9ffd"
 [[repos]]
 name = "vendor-manifest"      # private; group -> SHA-256 -> CID map + fetch-group.py (B3 pins this SHA)
 url  = "https://github.com/pocketforge-os/vendor-manifest.git"
-ref  = "main"                # tsp-jet.2: +a523 groups sunxi-a523-mali + sunxi-a523-wifi-firmware (14 blobs, traced provenance). cat-1/2 54 -> 68 distinct CIDs.
-sha  = "5c3c412a47c654f2bce158886738baaef4b8d5b1"
+ref  = "main"                # vendor-manifest#14: public pvr-fw-open-22.102.54.38 firmware + redistribution notice
+sha  = "3c8c5c537028e6f749f7888b05e85aa95aa88db4"
 
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
