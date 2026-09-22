@@ -30,10 +30,11 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(closed["PF_GPU_MODEL"], "ddk")
         self.assertEqual(closed["PF_GPU_REPO"], "gpu-km-tsp")
         self.assertIn("pvr-ddk-22.102.54.38", closed["PF_BLOB_GROUPS"])
-        self.assertEqual(opened["PF_KERNEL_SHA"], "554daa8e8fe7b6d0a65d161cd692d499ec6b188e")
+        self.assertEqual(opened["PF_KERNEL_SHA"], "903044c3bd268065a51e2debc48bab35bcb5577f")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
         self.assertEqual(opened["PF_GPU_UM_SHA"], "0dc9d15a65481267b79d9123c7add84e7e03eda2")
+        self.assertIn("pvr-fw-open-22.102.54.38", opened["PF_BLOB_GROUPS"])
         self.assertNotIn("pvr-ddk-22.102.54.38", opened["PF_BLOB_GROUPS"])
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk

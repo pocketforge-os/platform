@@ -238,9 +238,6 @@ def env_lines(dev_id):
         "PF_GPU_UM_REPO": gpu.get("um_repo", ""),
         "PF_GPU_UM_REF": gpu.get("um_ref", ""),
         "PF_GPU_UM_SHA": sha(gpu.get("um_repo")),
-        "PF_GPU_FW_REPO": gpu.get("fw_repo", ""),
-        "PF_GPU_FW_REF": gpu.get("fw_ref", ""),
-        "PF_GPU_FW_SHA": sha(gpu.get("fw_repo")),
         "PF_GPU_MODULES": " ".join(gpu.get("modules", []) or []),
         "PF_BOOTCHAIN_MODEL": bc.get("model"), "PF_BOOT_PROTO": bc.get("boot_proto"),
         "PF_BOOTCHAIN_BLOB_GROUP": bc.get("blob_group", ""),
@@ -311,9 +308,6 @@ def build_args(dev_id, variant="dev"):
         "PF_GPU_UM_REPO": gpu.get("um_repo", ""),
         "PF_GPU_UM_REF": gpu.get("um_ref", ""),
         "PF_GPU_UM_SHA": sha(gpu.get("um_repo")),
-        "PF_GPU_FW_REPO": gpu.get("fw_repo", ""),
-        "PF_GPU_FW_REF": gpu.get("fw_ref", ""),
-        "PF_GPU_FW_SHA": sha(gpu.get("fw_repo")),
         "PF_LIBSDL3_SHA": sha("libsdl3-sunxifb"),
         "PF_WPA_SHA": sha("wpa-supplicant-tsp"),
         # E2 runtime layer (tsp-e1b.11): the image's `runtime` Dockerfile.pf stage cross-builds
@@ -368,8 +362,7 @@ def build_args(dev_id, variant="dev"):
         needed.append(("PF_GPU_SHA", gpu.get("repo")))
     if gpu.get("model") == "open":
         needed.extend((("PF_GPU_KM_SHA", gpu.get("km_repo")),
-                       ("PF_GPU_UM_SHA", gpu.get("um_repo")),
-                       ("PF_GPU_FW_SHA", gpu.get("fw_repo"))))
+                       ("PF_GPU_UM_SHA", gpu.get("um_repo"))))
         # OPEN builds source-build pf-shell + the recovery entry — both SHAs mandatory (tsp-mc9m.41.924.4).
         needed.append(("PF_LAUNCHER_SHA", "launcher"))
         needed.append(("PF_RECOVERY_SHA", "recovery"))

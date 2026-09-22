@@ -16,11 +16,9 @@ ref = ""
 km_model = "in-tree-6.x"
 km_repo = "kernel-sunxi-6.x"
 km_ref = "device/a133"
-fw_repo = "gpu-fw-tsp"
-fw_ref = "main"
 um_repo = "gpu-um-tsp"
 um_ref = "main"
 modules = ["powervr.ko"]
 
 [blobs]
-groups = ["sunxi-a133-boot-chain", "sunxi-a133-wifi-firmware", "sunxi-a133-open-gpu-firmware"]
+groups = ["sunxi-a133-boot-chain", "sunxi-a133-wifi-firmware", "pvr-fw-open-22.102.54.38"]
