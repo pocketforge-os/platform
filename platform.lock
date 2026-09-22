@@ -258,6 +258,12 @@ ref  = "main"
 sha  = "0dc9d15a65481267b79d9123c7add84e7e03eda2"
 
 [[repos]]
+name = "gpu-fw-tsp"           # Reproducible transforms for owned open GE8300 firmware
+url  = "https://github.com/pocketforge-os/gpu-fw-tsp.git"
+ref  = "main"
+sha  = "c2e784cd13c2f72f357b89bb71169a6c5ac19e14"
+
+[[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
 url  = "https://github.com/pocketforge-os/gpu-km-tsp-a523.git"
 ref  = "master"

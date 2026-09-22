@@ -1,5 +1,4 @@
-# Opt-in A133 open PowerVR stack. The firmware-only PowerVR blob group will be
-# added by the later vendor-manifest custody bead; boot-chain and Wi-Fi remain.
+# Opt-in A133 open PowerVR stack.
 [device]
 base = "a133"
 id = "a133-open"
@@ -8,7 +7,7 @@ id = "a133-open"
 repo = "kernel-sunxi-6.x"
 ref = "device/a133"
 defconfig = "a133_defconfig"
-dtb = "sun50i-a133-pocketforge-tsp.dtb"
+dtb = "sun50i-a133-pocketforge-odyssey.dtb"
 
 [gpu]
 model = "open"
@@ -17,9 +16,11 @@ ref = ""
 km_model = "in-tree-6.x"
 km_repo = "kernel-sunxi-6.x"
 km_ref = "device/a133"
+fw_repo = "gpu-fw-tsp"
+fw_ref = "main"
 um_repo = "gpu-um-tsp"
 um_ref = "main"
 modules = ["powervr.ko"]
 
 [blobs]
-groups = ["sunxi-a133-boot-chain", "sunxi-a133-wifi-firmware"]
+groups = ["sunxi-a133-boot-chain", "sunxi-a133-wifi-firmware", "sunxi-a133-open-gpu-firmware"]
