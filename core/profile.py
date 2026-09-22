@@ -43,6 +43,21 @@ DEVICES = os.path.join(ROOT, "devices")
 FAMILIES = os.path.join(ROOT, "families")
 LOCK = os.path.join(ROOT, "platform.lock")
 REQUIRED_HOOKS = ["build-kernel.sh", "build-bootchain.sh", "assemble-image.sh", "flash.sh"]
+PROFILE_TABLE_SECTIONS = (
+    "device", "kernel", "container", "flash", "image", "blobs", "gpu",
+    "display", "bootchain", "toolchain",
+)
+
+
+class ProfileSchemaError(ValueError):
+    """A loaded TOML document has the wrong schema shape."""
+
+
+def _require_tables(data, sections):
+    """Reject scalar/array sections before resolver code can dereference them."""
+    for section in sections:
+        if section in data and not isinstance(data[section], dict):
+            raise ProfileSchemaError(f"[{section}] must be a table")
 
 
 def list_devices():
@@ -78,6 +93,7 @@ def resolve(dev_id):
     if not os.path.isfile(ppath):
         raise FileNotFoundError(f"no profile for device '{dev_id}' at {ppath}")
     profile = _load(ppath)
+    _require_tables(profile, PROFILE_TABLE_SECTIONS)
     # Device-level inheritance (tsp-147u.13): a VARIANT profile may declare
     # [device].base = "<other-device-id>" to inherit that device's ENTIRE profile,
     # restating only the sections it needs to differ (e.g. a133-owned inherits a133
@@ -94,13 +110,16 @@ def resolve(dev_id):
         if not os.path.isfile(base_path):
             raise FileNotFoundError(
                 f"device '{dev_id}' base '{base_id}' has no profile at {base_path}")
-        _deep_fill(profile, _load(base_path))  # variant wins; base fills absent keys
+        base = _load(base_path)
+        _require_tables(base, PROFILE_TABLE_SECTIONS)
+        _deep_fill(profile, base)  # variant wins; base fills absent keys
     family_id = profile.get("device", {}).get("family")
     family = {}
     if family_id:
         fpath = os.path.join(FAMILIES, family_id, "family.toml")
         if os.path.isfile(fpath):
             family = _load(fpath)
+            _require_tables(family, ("defaults", "flash", "toolchain"))
     # Merge family defaults UNDER the profile (profile wins).
     merged = json.loads(json.dumps(profile))  # deep copy
     fam_defaults = family.get("defaults", {})
@@ -119,6 +138,8 @@ def validate(dev_id, lock):
     errs, warns = [], []
     try:
         merged, family = resolve(dev_id)
+    except ProfileSchemaError as e:
+        return ([f"{dev_id}: {e}"], [])
     except Exception as e:
         return ([f"{dev_id}: cannot load/parse: {e}"], [])
 

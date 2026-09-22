@@ -4,7 +4,10 @@ import hashlib
 import importlib.util
 import json
 import pathlib
+import re
+import tempfile
 import unittest
+from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("pf_profile", ROOT / "core/profile.py")
@@ -164,33 +167,41 @@ class ProfileTest(unittest.TestCase):
             )
 
     def test_scalar_sections_fail_on_normal_validation_path(self):
-        original = profile.resolve
-        resolved, family = original("a133")
-        sections = (
-            "device", "kernel", "container", "flash", "image", "blobs",
-            "gpu", "display", "bootchain",
-        )
-        for section in sections:
-            with self.subTest(section=section):
-                broken = copy.deepcopy(resolved)
-                broken[section] = "not-a-table"
-                profile.resolve = lambda _dev, candidate=broken: (candidate, family)
-                try:
-                    errors, _ = profile.validate("a133", profile.load_lock())
-                finally:
-                    profile.resolve = original
-                self.assertIn(f"a133: [{section}] must be a table", errors)
+        source = (ROOT / "devices/a133/profile.toml").read_text(encoding="utf-8")
+        sections = profile.PROFILE_TABLE_SECTIONS
+        with tempfile.TemporaryDirectory() as tmp:
+            devices = pathlib.Path(tmp)
+            device_dir = devices / "a133"
+            device_dir.mkdir()
+            with mock.patch.object(profile, "DEVICES", str(devices)):
+                for section in sections:
+                    with self.subTest(section=section):
+                        without_section, count = re.subn(
+                            rf"(?ms)^\[{re.escape(section)}\]\n.*?(?=^\[|\Z)",
+                            "",
+                            source,
+                        )
+                        self.assertEqual(count, 1, section)
+                        # Root keys must precede every table header in TOML; putting
+                        # this at the removed block's old position would attach it
+                        # to the preceding table instead of malformed the section.
+                        broken = f'{section} = "not-a-table"\n' + without_section
+                        (device_dir / "profile.toml").write_text(broken, encoding="utf-8")
+                        errors, _ = profile.validate("a133", profile.load_lock())
+                        self.assertIn(f"a133: [{section}] must be a table", errors)
+                        self.assertFalse(any("cannot load/parse" in error for error in errors))
 
-        for section in ("uboot", "tfa"):
-            with self.subTest(section=f"bootchain.{section}"):
-                broken = copy.deepcopy(resolved)
-                broken["bootchain"][section] = "not-a-table"
-                profile.resolve = lambda _dev, candidate=broken: (candidate, family)
-                try:
-                    errors, _ = profile.validate("a133", profile.load_lock())
-                finally:
-                    profile.resolve = original
-                self.assertIn(f"a133: [bootchain.{section}] must be a table", errors)
+                for section in ("uboot", "tfa"):
+                    with self.subTest(section=f"bootchain.{section}"):
+                        broken, count = re.subn(
+                            r"(?m)^\[bootchain\]$",
+                            f'[bootchain]\n{section} = "not-a-table"',
+                            source,
+                        )
+                        self.assertEqual(count, 1)
+                        (device_dir / "profile.toml").write_text(broken, encoding="utf-8")
+                        errors, _ = profile.validate("a133", profile.load_lock())
+                        self.assertIn(f"a133: [bootchain.{section}] must be a table", errors)
 
     def test_missing_soc_fails_closed(self):
         # tsp-mc9m.41.924.2 / B1 review fix: PF_SOC is the ONLY is-a133 signal every
