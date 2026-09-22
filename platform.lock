@@ -254,7 +254,7 @@ sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
 ref  = "main"
-sha  = "801ff67c6139f0946ba22c4004c0c23dab22a963"
+sha  = "0dc9d15a65481267b79d9123c7add84e7e03eda2"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
