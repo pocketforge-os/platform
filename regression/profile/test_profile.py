@@ -163,6 +163,35 @@ class ProfileTest(unittest.TestCase):
                 errors,
             )
 
+    def test_scalar_sections_fail_on_normal_validation_path(self):
+        original = profile.resolve
+        resolved, family = original("a133")
+        sections = (
+            "device", "kernel", "container", "flash", "image", "blobs",
+            "gpu", "display", "bootchain",
+        )
+        for section in sections:
+            with self.subTest(section=section):
+                broken = copy.deepcopy(resolved)
+                broken[section] = "not-a-table"
+                profile.resolve = lambda _dev, candidate=broken: (candidate, family)
+                try:
+                    errors, _ = profile.validate("a133", profile.load_lock())
+                finally:
+                    profile.resolve = original
+                self.assertIn(f"a133: [{section}] must be a table", errors)
+
+        for section in ("uboot", "tfa"):
+            with self.subTest(section=f"bootchain.{section}"):
+                broken = copy.deepcopy(resolved)
+                broken["bootchain"][section] = "not-a-table"
+                profile.resolve = lambda _dev, candidate=broken: (candidate, family)
+                try:
+                    errors, _ = profile.validate("a133", profile.load_lock())
+                finally:
+                    profile.resolve = original
+                self.assertIn(f"a133: [bootchain.{section}] must be a table", errors)
+
     def test_missing_soc_fails_closed(self):
         # tsp-mc9m.41.924.2 / B1 review fix: PF_SOC is the ONLY is-a133 signal every
         # Dockerfile.pf gate trusts. A profile that omits [device].soc must fail LOUDLY

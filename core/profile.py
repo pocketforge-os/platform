@@ -122,7 +122,13 @@ def validate(dev_id, lock):
     except Exception as e:
         return ([f"{dev_id}: cannot load/parse: {e}"], [])
 
-    dev = merged.get("device", {})
+    def table(section, value):
+        if isinstance(value, dict):
+            return value
+        errs.append(f"{dev_id}: {section} must be a table")
+        return {}
+
+    dev = table("[device]", merged.get("device", {}))
     is_example = dev.get("status") == "example"
     repo_sev = warns if not is_example else None  # example: repo-absence is INFO (silent)
 
@@ -142,29 +148,36 @@ def validate(dev_id, lock):
                 if not os.path.isfile(os.path.join(fdir, h)):
                     errs.append(f"{dev_id}: family '{fam}' missing hook {h}")
 
-    k = merged.get("kernel", {})
+    k = table("[kernel]", merged.get("kernel", {}))
     if not k.get("repo"):
         errs.append(f"{dev_id}: [kernel].repo is required")
     if not k.get("ref"):
         errs.append(f"{dev_id}: [kernel].ref is required")
-    if not merged.get("container", {}).get("build_image"):
+    container = table("[container]", merged.get("container", {}))
+    flash = table("[flash]", merged.get("flash", {}))
+    image = table("[image]", merged.get("image", {}))
+    blobs = table("[blobs]", merged.get("blobs", {}))
+    gpu = table("[gpu]", merged.get("gpu", {}))
+    display = table("[display]", merged.get("display", {}))
+    bc = table("[bootchain]", merged.get("bootchain", {}))
+
+    if not container.get("build_image"):
         errs.append(f"{dev_id}: [container].build_image is required")
-    if not merged.get("flash", {}).get("method"):
+    if not flash.get("method"):
         errs.append(f"{dev_id}: [flash].method is required (profile or family default)")
-    if not merged.get("image", {}).get("image_name"):
+    if not image.get("image_name"):
         errs.append(f"{dev_id}: [image].image_name is required")
 
     # type checks
-    grp = merged.get("blobs", {}).get("groups")
+    grp = blobs.get("groups")
     if grp is not None and not isinstance(grp, list):
         errs.append(f"{dev_id}: [blobs].groups must be a list")
-    mods = merged.get("gpu", {}).get("modules")
+    mods = gpu.get("modules")
     if mods is not None and not isinstance(mods, list):
         errs.append(f"{dev_id}: [gpu].modules must be a list")
 
     # Display availability is independent of GPU acceleration. A framebuffer
     # may be provided by a display controller with no GPU stack at all.
-    display = merged.get("display", {})
     pipeline = display.get("pipeline")
     if pipeline not in ("fbdev", "drm", "none"):
         errs.append(
@@ -174,7 +187,6 @@ def validate(dev_id, lock):
     # model, open profiles must completely describe both halves of the ABI, and
     # "none" profiles deliberately build without a GPU stack.  Never let a
     # GPU-less bring-up profile inherit source/module inputs from its base.
-    gpu = merged.get("gpu", {})
     model = gpu.get("model", "ddk")
     if model not in ("ddk", "open", "none"):
         errs.append(f"{dev_id}: [gpu].model must be 'ddk', 'open', or 'none'")
@@ -196,8 +208,9 @@ def validate(dev_id, lock):
                 f"{dev_id}: none [gpu] must not select repos, refs, KM/UM models, or modules")
 
     # bootchain duality: either a source repo OR a blob group
-    bc = merged.get("bootchain", {})
-    has_src = bool(bc.get("uboot", {}).get("repo"))
+    uboot = table("[bootchain.uboot]", bc.get("uboot", {}))
+    tfa = table("[bootchain.tfa]", bc.get("tfa", {}))
+    has_src = bool(uboot.get("repo"))
     has_blob = bool(bc.get("blob_group"))
     if not (has_src or has_blob):
         errs.append(f"{dev_id}: [bootchain] needs either uboot.repo (source) or blob_group")
@@ -214,8 +227,8 @@ def validate(dev_id, lock):
     check_repo(gpu.get("repo"), "[gpu]")
     check_repo(gpu.get("km_repo"), "[gpu].km")
     check_repo(gpu.get("um_repo"), "[gpu].um")
-    check_repo(bc.get("uboot", {}).get("repo"), "[bootchain].uboot")
-    check_repo(bc.get("tfa", {}).get("repo"), "[bootchain].tfa")
+    check_repo(uboot.get("repo"), "[bootchain].uboot")
+    check_repo(tfa.get("repo"), "[bootchain].tfa")
 
     if not lock["seeded"] and not is_example:
         if lock.get("interim"):
