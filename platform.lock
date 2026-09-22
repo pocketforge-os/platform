@@ -43,7 +43,7 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.926.145.50.6.6.25: image#113 gamepad udev symlink + image#117 launcher guard re-align
+ref  = "main"          # tsp-mc9m.59: image#116 graphics-less build path gated on PF_DISPLAY_PIPELINE
                        # Prior: tsp-mc9m.41.926.145.50.6.6.21: build #13 gate RemainAfterExit + shell ordered after prefsd
                        # Prior: tsp-mc9m.41.926.145.50.6.6.20: image#111 aligns the runtime and launcher drift guards for build #12
                        # Prior: tsp-mc9m.41.926.145.50.6.6.18: image#108 packages the signed wireless-regdb (BT firmware remains under vendor-manifest custody)
@@ -147,7 +147,7 @@ ref  = "main"          # tsp-mc9m.41.926.145.50.6.6.25: image#113 gamepad udev s
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "c6bd695e9842ac568afd7ce0d201ca9c2e948b65"
+sha  = "93eda36382b69ae30bb1c70c2466be6a10978704"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -252,10 +252,10 @@ ref  = "device/a133"           # tsp-mc9m.41.926.145.50.6.6.25: PR #253 gamepad,
 sha  = "94486c644d503747930d77024eedb54ed6af70e8"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # A133 v7.2 replay through board DTS/controls/audio (PR #7); first-boot validation pending
+name = "kernel-sunxi-7.x"    # tsp-mc9m.59: A133 v7.2 display-pipeline replay through PR #9; first-boot validation pending
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "4f080e6e981a1a8a2a36ff6d0943786f4fa068e8"
+sha  = "2c6a39955b20dcc8f5a740126076b8c833a65078"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
