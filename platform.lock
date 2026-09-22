@@ -253,10 +253,10 @@ ref  = "device/a133"           # tsp-mc9m.41.926.145.50.6.6.25: PR #253 gamepad,
 sha  = "94486c644d503747930d77024eedb54ed6af70e8"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.60.11: first boot found the A133 regulator/panel config defect; fixed through PR #10
+name = "kernel-sunxi-7.x"    # tsp-mc9m.60.14: PR #13 adds systemd-required cgroups, vpu-cma with DMA_CMA, and a requirements gate
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "47676f1eda635d3e42434a3e998e95017c5309a8"
+sha  = "1f1a6eefef764fca41a57d4e955150c848430f6d"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
