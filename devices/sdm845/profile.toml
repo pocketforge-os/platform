@@ -29,6 +29,9 @@ repo                 = "none"                # Adreno userspace = Mesa freedreno
 kernel_driver        = "msm"                 # drivers/gpu/drm/msm is IN-TREE -> no separate gpu repo
 microcode_blob_group = "qcom-adreno-a630-fw" # a630_sqe.fw + a630_gmu.bin: irreducibly closed
 
+[display]
+pipeline = "drm"
+
 [bootchain]
 model      = "snapdragon-abl"                # PBL->XBL->ABL(UEFI); we do NOT build boot0/SPL/BL31
 boot_proto = "android-bootimg"               # mkbootimg boot.img -> boot partition

@@ -4,7 +4,10 @@ import hashlib
 import importlib.util
 import json
 import pathlib
+import re
+import tempfile
 import unittest
+from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("pf_profile", ROOT / "core/profile.py")
@@ -27,8 +30,31 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(set(profile.list_devices()) - {"a133-open-7x"}, set(expected))
         for dev_id, digest in expected.items():
             resolved, _ = profile.resolve(dev_id)
-            canonical = json.dumps(resolved, sort_keys=True, separators=(",", ":"))
+            # Removing the one newly-added fact must reproduce the historical
+            # complete-resolution digest exactly.
+            without_display = copy.deepcopy(resolved)
+            del without_display["display"]
+            canonical = json.dumps(without_display, sort_keys=True, separators=(",", ":"))
             self.assertEqual(hashlib.sha256(canonical.encode()).hexdigest(), digest, dev_id)
+
+    def test_display_pipeline_is_pinned_for_every_profile(self):
+        expected = {
+            "a133": "fbdev",
+            "a133-open": "fbdev",
+            "a133-open-7x": "none",
+            "a133-owned": "fbdev",
+            "a523": "fbdev",
+            "sdm845": "drm",
+        }
+        self.assertEqual(set(profile.list_devices()), set(expected))
+        for dev_id, pipeline in expected.items():
+            resolved, _ = profile.resolve(dev_id)
+            self.assertEqual(resolved["display"]["pipeline"], pipeline, dev_id)
+            args, _, _ = profile.build_args(dev_id)
+            self.assertEqual(args["PF_DISPLAY_PIPELINE"], pipeline, dev_id)
+            env = dict(line.removeprefix("export ").split("=", 1)
+                       for line in profile.env_lines(dev_id))
+            self.assertEqual(json.loads(env["PF_DISPLAY_PIPELINE"]), pipeline, dev_id)
 
     def test_a133_7x_complete_resolved_shape(self):
         resolved, _ = profile.resolve("a133-open-7x")
@@ -120,6 +146,62 @@ class ProfileTest(unittest.TestCase):
             "a133-open-7x: none [gpu] must not select repos, refs, KM/UM models, or modules",
             errors,
         )
+
+    def test_missing_or_invalid_display_pipeline_fails_closed(self):
+        original = profile.resolve
+        resolved, family = original("a133")
+        for value in (None, "gpu-implied"):
+            broken = copy.deepcopy(resolved)
+            if value is None:
+                del broken["display"]
+            else:
+                broken["display"]["pipeline"] = value
+            profile.resolve = lambda _dev, candidate=broken: (candidate, family)
+            try:
+                errors, _ = profile.validate("a133", profile.load_lock())
+            finally:
+                profile.resolve = original
+            self.assertIn(
+                "a133: [display].pipeline is required and must be 'fbdev', 'drm', or 'none'",
+                errors,
+            )
+
+    def test_scalar_sections_fail_on_normal_validation_path(self):
+        source = (ROOT / "devices/a133/profile.toml").read_text(encoding="utf-8")
+        sections = profile.PROFILE_TABLE_SECTIONS
+        with tempfile.TemporaryDirectory() as tmp:
+            devices = pathlib.Path(tmp)
+            device_dir = devices / "a133"
+            device_dir.mkdir()
+            with mock.patch.object(profile, "DEVICES", str(devices)):
+                for section in sections:
+                    with self.subTest(section=section):
+                        without_section, count = re.subn(
+                            rf"(?ms)^\[{re.escape(section)}\]\n.*?(?=^\[|\Z)",
+                            "",
+                            source,
+                        )
+                        self.assertEqual(count, 1, section)
+                        # Root keys must precede every table header in TOML; putting
+                        # this at the removed block's old position would attach it
+                        # to the preceding table instead of malformed the section.
+                        broken = f'{section} = "not-a-table"\n' + without_section
+                        (device_dir / "profile.toml").write_text(broken, encoding="utf-8")
+                        errors, _ = profile.validate("a133", profile.load_lock())
+                        self.assertIn(f"a133: [{section}] must be a table", errors)
+                        self.assertFalse(any("cannot load/parse" in error for error in errors))
+
+                for section in ("uboot", "tfa"):
+                    with self.subTest(section=f"bootchain.{section}"):
+                        broken, count = re.subn(
+                            r"(?m)^\[bootchain\]$",
+                            f'[bootchain]\n{section} = "not-a-table"',
+                            source,
+                        )
+                        self.assertEqual(count, 1)
+                        (device_dir / "profile.toml").write_text(broken, encoding="utf-8")
+                        errors, _ = profile.validate("a133", profile.load_lock())
+                        self.assertIn(f"a133: [bootchain.{section}] must be a table", errors)
 
     def test_missing_soc_fails_closed(self):
         # tsp-mc9m.41.924.2 / B1 review fix: PF_SOC is the ONLY is-a133 signal every

@@ -29,6 +29,9 @@ um_repo = ""
 um_ref = ""
 modules = []
 
+[display]
+pipeline = "none"
+
 [toolchain]
 cc = "aarch64-none-linux-gnu-"
 gcc_version = "10.3-2021.07"

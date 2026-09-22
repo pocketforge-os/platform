@@ -31,6 +31,9 @@ repo    = "gpu-km-tsp"                        # GPU stays PER-IP (PowerVR != Mal
 ref     = "main"
 modules = ["pvrsrvkm.ko", "dc_sunxi.ko"]     # PowerVR DDK 1.19; UM .so is a preserved blob group
 
+[display]
+pipeline = "fbdev"
+
 [toolchain]
 # Explicit pin (B2/tsp-1dl.2). Family default (families/sunxi/family.toml) builds the
 # 4.9 line cleanly; restated here so the profile is self-contained for `pf lock`/repro.

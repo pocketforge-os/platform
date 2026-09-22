@@ -43,6 +43,21 @@ DEVICES = os.path.join(ROOT, "devices")
 FAMILIES = os.path.join(ROOT, "families")
 LOCK = os.path.join(ROOT, "platform.lock")
 REQUIRED_HOOKS = ["build-kernel.sh", "build-bootchain.sh", "assemble-image.sh", "flash.sh"]
+PROFILE_TABLE_SECTIONS = (
+    "device", "kernel", "container", "flash", "image", "blobs", "gpu",
+    "display", "bootchain", "toolchain",
+)
+
+
+class ProfileSchemaError(ValueError):
+    """A loaded TOML document has the wrong schema shape."""
+
+
+def _require_tables(data, sections):
+    """Reject scalar/array sections before resolver code can dereference them."""
+    for section in sections:
+        if section in data and not isinstance(data[section], dict):
+            raise ProfileSchemaError(f"[{section}] must be a table")
 
 
 def list_devices():
@@ -78,6 +93,7 @@ def resolve(dev_id):
     if not os.path.isfile(ppath):
         raise FileNotFoundError(f"no profile for device '{dev_id}' at {ppath}")
     profile = _load(ppath)
+    _require_tables(profile, PROFILE_TABLE_SECTIONS)
     # Device-level inheritance (tsp-147u.13): a VARIANT profile may declare
     # [device].base = "<other-device-id>" to inherit that device's ENTIRE profile,
     # restating only the sections it needs to differ (e.g. a133-owned inherits a133
@@ -94,13 +110,16 @@ def resolve(dev_id):
         if not os.path.isfile(base_path):
             raise FileNotFoundError(
                 f"device '{dev_id}' base '{base_id}' has no profile at {base_path}")
-        _deep_fill(profile, _load(base_path))  # variant wins; base fills absent keys
+        base = _load(base_path)
+        _require_tables(base, PROFILE_TABLE_SECTIONS)
+        _deep_fill(profile, base)  # variant wins; base fills absent keys
     family_id = profile.get("device", {}).get("family")
     family = {}
     if family_id:
         fpath = os.path.join(FAMILIES, family_id, "family.toml")
         if os.path.isfile(fpath):
             family = _load(fpath)
+            _require_tables(family, ("defaults", "flash", "toolchain"))
     # Merge family defaults UNDER the profile (profile wins).
     merged = json.loads(json.dumps(profile))  # deep copy
     fam_defaults = family.get("defaults", {})
@@ -119,10 +138,18 @@ def validate(dev_id, lock):
     errs, warns = [], []
     try:
         merged, family = resolve(dev_id)
+    except ProfileSchemaError as e:
+        return ([f"{dev_id}: {e}"], [])
     except Exception as e:
         return ([f"{dev_id}: cannot load/parse: {e}"], [])
 
-    dev = merged.get("device", {})
+    def table(section, value):
+        if isinstance(value, dict):
+            return value
+        errs.append(f"{dev_id}: {section} must be a table")
+        return {}
+
+    dev = table("[device]", merged.get("device", {}))
     is_example = dev.get("status") == "example"
     repo_sev = warns if not is_example else None  # example: repo-absence is INFO (silent)
 
@@ -142,31 +169,45 @@ def validate(dev_id, lock):
                 if not os.path.isfile(os.path.join(fdir, h)):
                     errs.append(f"{dev_id}: family '{fam}' missing hook {h}")
 
-    k = merged.get("kernel", {})
+    k = table("[kernel]", merged.get("kernel", {}))
     if not k.get("repo"):
         errs.append(f"{dev_id}: [kernel].repo is required")
     if not k.get("ref"):
         errs.append(f"{dev_id}: [kernel].ref is required")
-    if not merged.get("container", {}).get("build_image"):
+    container = table("[container]", merged.get("container", {}))
+    flash = table("[flash]", merged.get("flash", {}))
+    image = table("[image]", merged.get("image", {}))
+    blobs = table("[blobs]", merged.get("blobs", {}))
+    gpu = table("[gpu]", merged.get("gpu", {}))
+    display = table("[display]", merged.get("display", {}))
+    bc = table("[bootchain]", merged.get("bootchain", {}))
+
+    if not container.get("build_image"):
         errs.append(f"{dev_id}: [container].build_image is required")
-    if not merged.get("flash", {}).get("method"):
+    if not flash.get("method"):
         errs.append(f"{dev_id}: [flash].method is required (profile or family default)")
-    if not merged.get("image", {}).get("image_name"):
+    if not image.get("image_name"):
         errs.append(f"{dev_id}: [image].image_name is required")
 
     # type checks
-    grp = merged.get("blobs", {}).get("groups")
+    grp = blobs.get("groups")
     if grp is not None and not isinstance(grp, list):
         errs.append(f"{dev_id}: [blobs].groups must be a list")
-    mods = merged.get("gpu", {}).get("modules")
+    mods = gpu.get("modules")
     if mods is not None and not isinstance(mods, list):
         errs.append(f"{dev_id}: [gpu].modules must be a list")
+
+    # Display availability is independent of GPU acceleration. A framebuffer
+    # may be provided by a display controller with no GPU stack at all.
+    pipeline = display.get("pipeline")
+    if pipeline not in ("fbdev", "drm", "none"):
+        errs.append(
+            f"{dev_id}: [display].pipeline is required and must be 'fbdev', 'drm', or 'none'")
 
     # GPU stack selection is explicit.  Legacy profiles remain the closed/DDK
     # model, open profiles must completely describe both halves of the ABI, and
     # "none" profiles deliberately build without a GPU stack.  Never let a
     # GPU-less bring-up profile inherit source/module inputs from its base.
-    gpu = merged.get("gpu", {})
     model = gpu.get("model", "ddk")
     if model not in ("ddk", "open", "none"):
         errs.append(f"{dev_id}: [gpu].model must be 'ddk', 'open', or 'none'")
@@ -188,8 +229,9 @@ def validate(dev_id, lock):
                 f"{dev_id}: none [gpu] must not select repos, refs, KM/UM models, or modules")
 
     # bootchain duality: either a source repo OR a blob group
-    bc = merged.get("bootchain", {})
-    has_src = bool(bc.get("uboot", {}).get("repo"))
+    uboot = table("[bootchain.uboot]", bc.get("uboot", {}))
+    tfa = table("[bootchain.tfa]", bc.get("tfa", {}))
+    has_src = bool(uboot.get("repo"))
     has_blob = bool(bc.get("blob_group"))
     if not (has_src or has_blob):
         errs.append(f"{dev_id}: [bootchain] needs either uboot.repo (source) or blob_group")
@@ -206,8 +248,8 @@ def validate(dev_id, lock):
     check_repo(gpu.get("repo"), "[gpu]")
     check_repo(gpu.get("km_repo"), "[gpu].km")
     check_repo(gpu.get("um_repo"), "[gpu].um")
-    check_repo(bc.get("uboot", {}).get("repo"), "[bootchain].uboot")
-    check_repo(bc.get("tfa", {}).get("repo"), "[bootchain].tfa")
+    check_repo(uboot.get("repo"), "[bootchain].uboot")
+    check_repo(tfa.get("repo"), "[bootchain].tfa")
 
     if not lock["seeded"] and not is_example:
         if lock.get("interim"):
@@ -227,6 +269,7 @@ def env_lines(dev_id):
     dev = merged["device"]
     bc = merged.get("bootchain", {})
     gpu = merged.get("gpu", {})
+    display = merged.get("display", {})
     img = merged.get("image", {})
     flash = merged.get("flash", {})
     tc = merged.get("toolchain", {})
@@ -247,6 +290,7 @@ def env_lines(dev_id):
         "PF_GPU_UM_REF": gpu.get("um_ref", ""),
         "PF_GPU_UM_SHA": sha(gpu.get("um_repo")),
         "PF_GPU_MODULES": " ".join(gpu.get("modules", []) or []),
+        "PF_DISPLAY_PIPELINE": display.get("pipeline", ""),
         "PF_BOOTCHAIN_MODEL": bc.get("model"), "PF_BOOT_PROTO": bc.get("boot_proto"),
         "PF_BOOTCHAIN_BLOB_GROUP": bc.get("blob_group", ""),
         "PF_UBOOT_REPO": bc.get("uboot", {}).get("repo", ""),
@@ -284,6 +328,7 @@ def build_args(dev_id, variant="dev"):
     dev = merged["device"]
     k = merged.get("kernel", {})
     gpu = merged.get("gpu", {})
+    display = merged.get("display", {})
     bc = merged.get("bootchain", {})
     tc = merged.get("toolchain", {})
     img = merged.get("image", {})
@@ -309,6 +354,7 @@ def build_args(dev_id, variant="dev"):
         "PF_GPU_REF": gpu.get("ref", ""),
         "PF_GPU_SHA": sha(gpu.get("repo")),
         "PF_GPU_MODULES": " ".join(gpu.get("modules", []) or []),
+        "PF_DISPLAY_PIPELINE": display.get("pipeline", ""),
         "PF_GPU_KM_MODEL": gpu.get("km_model", "out-of-tree-ddk"),
         "PF_GPU_KM_REPO": gpu.get("km_repo", gpu.get("repo", "")),
         "PF_GPU_KM_REF": gpu.get("km_ref", gpu.get("ref", "")),

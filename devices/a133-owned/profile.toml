@@ -21,6 +21,9 @@ base = "a133"                                # inherit the whole a133 profile (k
                                              # console/blobs/toolchain/flash) — override only below
 id   = "a133-owned"
 
+[display]
+pipeline = "fbdev"
+
 [bootchain]
 model         = "sunxi-spl-uboot"            # source-built owned SPL + BL31 (mirrors a523); the
                                              # Dockerfile bootchain stage gates on this value
