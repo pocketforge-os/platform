@@ -163,12 +163,13 @@ def validate(dev_id, lock):
         errs.append(f"{dev_id}: [gpu].modules must be a list")
 
     # GPU stack selection is explicit.  Legacy profiles remain the closed/DDK
-    # model, while open profiles must completely describe both halves of the
-    # ABI; never inherit/fall back to [gpu].repo for an open stack.
+    # model, open profiles must completely describe both halves of the ABI, and
+    # "none" profiles deliberately build without a GPU stack.  Never let a
+    # GPU-less bring-up profile inherit source/module inputs from its base.
     gpu = merged.get("gpu", {})
     model = gpu.get("model", "ddk")
-    if model not in ("ddk", "open"):
-        errs.append(f"{dev_id}: [gpu].model must be 'ddk' or 'open'")
+    if model not in ("ddk", "open", "none"):
+        errs.append(f"{dev_id}: [gpu].model must be 'ddk', 'open', or 'none'")
     if model == "open":
         required = ("km_model", "km_repo", "km_ref", "um_repo", "um_ref")
         for key in required:
@@ -178,6 +179,13 @@ def validate(dev_id, lock):
             errs.append(f"{dev_id}: open [gpu].km_model must be 'in-tree-6.x'")
         if gpu.get("repo") or gpu.get("ref"):
             errs.append(f"{dev_id}: open [gpu] is ambiguous: legacy repo/ref must be cleared")
+    elif model == "none":
+        forbidden = ("repo", "ref", "km_model", "km_repo", "km_ref",
+                     "um_repo", "um_ref")
+        populated = [key for key in forbidden if gpu.get(key)]
+        if populated or gpu.get("modules"):
+            errs.append(
+                f"{dev_id}: none [gpu] must not select repos, refs, KM/UM models, or modules")
 
     # bootchain duality: either a source repo OR a blob group
     bc = merged.get("bootchain", {})

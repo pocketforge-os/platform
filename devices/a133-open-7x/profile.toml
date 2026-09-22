@@ -1,0 +1,66 @@
+# Opt-in A133 v7.2 bring-up profile. This inherits the product shape directly
+# from a133 and explicitly replaces the open variant's kernel, GPU, and blob
+# selections. The 7.x replay has not reached the PowerVR step, so this profile
+# is GPU-less by design.
+[device]
+base = "a133"
+id = "a133-open-7x"
+name = "TrimUI Smart Pro (v7.2 bring-up)"
+soc = "sun50iw10p1"
+soc_friendly = "Allwinner A133 (TG5040)"
+arch = "aarch64"
+family = "sunxi"
+
+[kernel]
+repo = "kernel-sunxi-7.x"
+ref = "device/a133"
+defconfig = "a133_defconfig"
+dtb = "sun50i-a133-pocketforge-tsp.dtb"
+dts_source = "owned"
+
+[gpu]
+model = "none"
+repo = ""
+ref = ""
+km_model = ""
+km_repo = ""
+km_ref = ""
+um_repo = ""
+um_ref = ""
+modules = []
+
+[toolchain]
+cc = "aarch64-none-linux-gnu-"
+gcc_version = "10.3-2021.07"
+
+[bootchain]
+model = "sunxi-boot0-fex"
+boot_proto = "boot_package_fex"
+blob_group = "sunxi-a133-boot-chain"
+
+[image]
+partition_table = "gpt"
+assembler = "genimage"
+boot_fs = "vfat"
+boot_label = "POCKETFORGE"
+root_fs = "ext4"
+root_label = "POCKETFORGE_DATA"
+image_name = "pocketforge-tsp"
+fs_uuids_file = "boards/tsp/fs-uuids.env"
+
+[console]
+dev = "ttyS0"
+baud = 115200
+earlycon = "uart8250,mmio32,0x05000000"
+cmdline_extra = "loglevel=8 rootwait"
+
+[blobs]
+groups = ["sunxi-a133-boot-chain", "sunxi-a133-wifi-firmware"]
+
+[container]
+build_image = "pocketforge/build:10.3-2021.07-bookworm"
+app_base = "pocketforge/oci-base-aarch64"
+
+[flash]
+method = "dd-sd"
+slot = "base"
