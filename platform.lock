@@ -239,8 +239,9 @@ sha  = "a7cfec247898bb2c22e51bb705a7f18fd5910285"
 [[repos]]
 name = "kernel-sunxi-6.x"    # A133 open-stack kernel with in-tree Imagination DRM PowerVR
 url  = "https://github.com/pocketforge-os/kernel-sunxi-6.x.git"
-ref  = "device/a133"           # includes the Odyssey img,img-rogue DTB and PFDBG-DISP silence fix
-sha  = "903044c3bd268065a51e2debc48bab35bcb5577f"
+ref  = "device/a133"           # PR #250 hall PL9 pinctrl conflict + PR #251 sun6i-rtc osc32k -EEXIST fixes
+                              # Prior (903044c3): Odyssey img,img-rogue DTB and PFDBG-DISP silence fix.
+sha  = "6567b92c3b63f8ea5d9b883ad30b73d5e7133dee"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
