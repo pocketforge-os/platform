@@ -250,6 +250,12 @@ ref  = "device/a133"           # PR #254 AXP717 soft-poweroff; PR #253 gamepad M
 sha  = "535a3ae067431589de326d1d8c8d0dfacd7fc869"
 
 [[repos]]
+name = "kernel-sunxi-7.x"    # A133 v7.2 replay through board DTS/controls/audio (PR #7); first-boot validation pending
+url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
+ref  = "device/a133"
+sha  = "4f080e6e981a1a8a2a36ff6d0943786f4fa068e8"
+
+[[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
 url  = "https://github.com/pocketforge-os/kernel-sunxi-5.15.git"   #  = AvaotaSBC base for fork-tracking.
 ref  = "device/a523"
