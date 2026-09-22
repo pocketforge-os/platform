@@ -253,10 +253,10 @@ ref  = "device/a133"           # tsp-mc9m.41.926.145.50.6.6.25: PR #253 gamepad,
 sha  = "94486c644d503747930d77024eedb54ed6af70e8"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.59: A133 v7.2 display-pipeline replay through PR #9; first-boot validation pending
+name = "kernel-sunxi-7.x"    # tsp-mc9m.60.11: first boot found the A133 regulator/panel config defect; fixed through PR #10
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "2c6a39955b20dcc8f5a740126076b8c833a65078"
+sha  = "47676f1eda635d3e42434a3e998e95017c5309a8"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
