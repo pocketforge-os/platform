@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import copy
+import hashlib
 import importlib.util
+import json
 import pathlib
 import unittest
 
@@ -11,6 +13,29 @@ spec.loader.exec_module(profile)
 
 
 class ProfileTest(unittest.TestCase):
+    def test_existing_profiles_resolve_unchanged(self):
+        # Canonical hashes were generated from origin/main (48d20a4) before this
+        # branch added a133-open-7x. They pin every pre-existing profile's entire
+        # resolved shape, not merely the fields consumed by today's build args.
+        expected = {
+            "a133": "123423ea4a97007817409cda84f6eb65cf717d1c5db1102e84fdf3dcceec595f",
+            "a133-open": "309c3b76951dd73977a759a80372337ecf33308f28f9048a2ba1d0285e1d99ac",
+            "a133-owned": "60d57c2b2f30f17abffcb5a3b6b812f78c7c2e3cb27bb412f916846b5cf273dc",
+            "a523": "f6657f92c62dea6bbf6a8559568480e5ed8460c7084516d2c9e861d489e98eab",
+            "sdm845": "7405a184a60591c3ede8a806046e74537ab9d328f83cf8b7889439427db048ff",
+        }
+        self.assertEqual(set(profile.list_devices()) - {"a133-open-7x"}, set(expected))
+        for dev_id, digest in expected.items():
+            resolved, _ = profile.resolve(dev_id)
+            canonical = json.dumps(resolved, sort_keys=True, separators=(",", ":"))
+            self.assertEqual(hashlib.sha256(canonical.encode()).hexdigest(), digest, dev_id)
+
+    def test_a133_7x_complete_resolved_shape(self):
+        resolved, _ = profile.resolve("a133-open-7x")
+        with open(ROOT / "regression/profile/a133-open-7x-resolved.json", encoding="utf-8") as f:
+            expected = json.load(f)
+        self.assertEqual(resolved, expected)
+
     def test_hwprobe_and_sim_are_empty_only_for_release(self):
         dev, _, dev_missing = profile.build_args("a133", "dev")
         release, _, release_missing = profile.build_args("a133", "release")

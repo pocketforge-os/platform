@@ -1,8 +1,9 @@
 # A133 v7.2 image path
 
 The v7.2 replay is a second kernel line for the existing A133 open product, not
-a product fork. `a133-open-7x` inherits `a133-open` and overrides only the
-device id, kernel selection, GPU selection, and blob inventory. The existing
+a product fork. Because profile resolution intentionally follows one base level,
+`a133-open-7x` inherits directly from `a133` and explicitly declares its complete
+open-variant kernel, GPU, and blob selections. The existing
 `a133-open` profile and every existing lock pin remain unchanged, so 6.x builds
 continue to resolve exactly the same inputs.
 

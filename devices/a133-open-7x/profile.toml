@@ -1,8 +1,9 @@
-# Opt-in A133 v7.2 bring-up profile. This inherits the product shape from
-# a133-open but deliberately replaces its kernel and GPU selections. The 7.x
-# replay has not reached the PowerVR step, so this profile is GPU-less by design.
+# Opt-in A133 v7.2 bring-up profile. This inherits the product shape directly
+# from a133 and explicitly replaces the open variant's kernel, GPU, and blob
+# selections. The 7.x replay has not reached the PowerVR step, so this profile
+# is GPU-less by design.
 [device]
-base = "a133-open"
+base = "a133"
 id = "a133-open-7x"
 name = "TrimUI Smart Pro (v7.2 bring-up)"
 soc = "sun50iw10p1"
@@ -15,6 +16,7 @@ repo = "kernel-sunxi-7.x"
 ref = "device/a133"
 defconfig = "a133_defconfig"
 dtb = "sun50i-a133-pocketforge-tsp.dtb"
+dts_source = "owned"
 
 [gpu]
 model = "none"
