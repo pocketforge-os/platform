@@ -121,7 +121,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "11847b83f8dbc647af742949305193fd8759f0f4")
+        self.assertEqual(args["PF_KERNEL_SHA"], "624b756fec153c62c2696a30238a76c734a70a32")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
