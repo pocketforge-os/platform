@@ -249,12 +249,13 @@ sha  = "a7cfec247898bb2c22e51bb705a7f18fd5910285"
 [[repos]]
 name = "kernel-sunxi-6.x"    # A133 open-stack kernel with in-tree Imagination DRM PowerVR
 url  = "https://github.com/pocketforge-os/kernel-sunxi-6.x.git"
-ref  = "device/a133"           # tsp-mc9m.60.21.2.1: upstream ASoC NULL-name backport stops the sun4i_codec probe-unwind crash.
+ref  = "device/a133"           # tsp-mc9m.60.7.2.1.1: XR829 Bluetooth reset moves from PL11 (the R_CIR consumer-IR input) to PL2, matching the vendor DTS and decompiled stock DTB.
+                              # Prior (8e5131ba8eb80f21b0d463ab8ff66914360234fb): tsp-mc9m.60.21.2.1: upstream ASoC NULL-name backport stops the sun4i_codec probe-unwind crash.
                               # Prior (94486c644d503747930d77024eedb54ed6af70e8): tsp-mc9m.41.926.145.50.6.6.25: PR #253 gamepad, #254 poweroff, #255 panel orientation.
                               # Prior (535a3ae0): PR #254 AXP717 soft-poweroff; PR #253 gamepad MCU UART3/UART4, aliases + uinput; PR #255 panel orientation.
                               # Prior (6567b92c): PR #250 hall PL9 pinctrl conflict + PR #251 sun6i-rtc osc32k -EEXIST fixes.
                               # Prior (903044c3): Odyssey img,img-rogue DTB and PFDBG-DISP silence fix.
-sha  = "8e5131ba8eb80f21b0d463ab8ff66914360234fb"
+sha  = "e5284c032266a754b61cffe412a8ab2d0c0ec658"
 
 [[repos]]
 name = "kernel-sunxi-7.x"    # tsp-mc9m.60.7.4.2.1: carries the clock-settle-delay-ms settle experiment;
