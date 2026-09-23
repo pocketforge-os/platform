@@ -255,12 +255,14 @@ ref  = "device/a133"           # tsp-mc9m.41.926.145.50.6.6.25: PR #253 gamepad,
 sha  = "94486c644d503747930d77024eedb54ed6af70e8"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.60.7.1.1: kernel-sunxi-7.x#15 adds XR829 Bluetooth transport
+name = "kernel-sunxi-7.x"    # tsp-mc9m.60.7.4.1.1: kernel-sunxi-7.x#16 adds RTC 32k fanout
+                               # Prior (11847b83f8dbc647af742949305193fd8759f0f4): tsp-mc9m.60.7.1.1,
+                               # kernel-sunxi-7.x#15 adds XR829 Bluetooth transport
                                # Prior (ba1e6025cf5cc236989d0a57cf777dfbb5e39f08): tsp-mc9m.60.17,
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "11847b83f8dbc647af742949305193fd8759f0f4"
+sha  = "624b756fec153c62c2696a30238a76c734a70a32"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
