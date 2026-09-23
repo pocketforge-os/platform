@@ -256,7 +256,10 @@ ref  = "device/a133"           # tsp-mc9m.41.926.145.50.6.6.25: PR #253 gamepad,
 sha  = "94486c644d503747930d77024eedb54ed6af70e8"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.60.7.4.1.2: contains temporary rfkill debug printk;
+name = "kernel-sunxi-7.x"    # tsp-mc9m.60.7.4.2.1: carries the clock-settle-delay-ms settle experiment;
+                               # still contains temporary rfkill debug printks at core.c:1072,1075,1128;
+                               # diagnostic pin, not a release candidate
+                               # Prior (dcfd93f5d44d61486f95d7e59eb23cf7cf186a7b): tsp-mc9m.60.7.4.1.2: contains temporary rfkill debug printk;
                                # diagnostic pin, not a release candidate
                                # Prior (624b756fec153c62c2696a30238a76c734a70a32): tsp-mc9m.60.7.4.1.1:
                                # kernel-sunxi-7.x#16 adds RTC 32k fanout
@@ -266,7 +269,7 @@ name = "kernel-sunxi-7.x"    # tsp-mc9m.60.7.4.1.2: contains temporary rfkill de
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "dcfd93f5d44d61486f95d7e59eb23cf7cf186a7b"
+sha  = "94b1cafddaf0693d5c9fc837ec90c0a8a8dbabfa"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
