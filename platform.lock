@@ -43,7 +43,8 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.60.4: image#119 embeds XR829 BT firmware; image#120 gates the graphics-client package closure on PF_DISPLAY_PIPELINE
+ref  = "main"          # tsp-mc9m.41.926.145.50.6.5.2.2: image#121 adds fbdev panel orientation discovered from DRM card0
+                       # Prior: tsp-mc9m.60.4: image#119 embeds XR829 BT firmware; image#120 gates the graphics-client package closure on PF_DISPLAY_PIPELINE
                        # Prior: tsp-mc9m.59: image#116 graphics-less build path gated on PF_DISPLAY_PIPELINE
                        # Prior: tsp-mc9m.41.926.145.50.6.6.21: build #13 gate RemainAfterExit + shell ordered after prefsd
                        # Prior: tsp-mc9m.41.926.145.50.6.6.20: image#111 aligns the runtime and launcher drift guards for build #12
@@ -148,7 +149,7 @@ ref  = "main"          # tsp-mc9m.60.4: image#119 embeds XR829 BT firmware; imag
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "94349ec219b1946577462a343379a6acc1a680f0"
+sha  = "fb26d8bfce659ef7fb4489829f6c5dc6cef4159a"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -340,7 +341,8 @@ sha  = "089aab801088a87484565d4b708c5c9df671fd9b"
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
-ref  = "main"                 # tsp-mc9m.41.926.145.50.6.6.25: runtime#94 pf-framehost rotation + RuntimeDirectory fix.
+ref  = "main"                 # tsp-mc9m.41.926.145.50.6.5.2.2: runtime#96 adds fbdev panel orientation discovered from DRM card0.
+                              # Prior: tsp-mc9m.41.926.145.50.6.6.25: runtime#94 pf-framehost rotation + RuntimeDirectory fix.
                               # Prior: tsp-mc9m.41.926.145.50.6.6.18: runtime#93 fixes pf-prefsd first-start PermissionDenied.
                               # Prior: tsp-h5ed.15: +runtime#86 vendor tree for hermetic --offline builds.
                               # Prior: tsp-e1b.11: +runtime#33 (position-key the face buttons — the tsp-ozbp.14
@@ -356,12 +358,13 @@ ref  = "main"                 # tsp-mc9m.41.926.145.50.6.6.25: runtime#94 pf-fra
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "b5b6559b354ed6ddf033141f867c8ff74b650409"
+sha  = "1580da3e29184170e63bd4ceaa8391ddcfd4b7b0"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
 url  = "https://github.com/pocketforge-os/launcher.git"   # top-coord RULING B). The image's `launcher`
-ref  = "main"                 # tsp-mc9m.41.926.145.50.6.6.25: launcher#140 fbdev rotation + runtime-crate contract.
+ref  = "main"                 # tsp-mc9m.41.926.145.50.6.5.2.2: launcher#141 uses fbdev panel orientation discovered from DRM card0.
+                              # Prior: tsp-mc9m.41.926.145.50.6.6.25: launcher#140 fbdev rotation + runtime-crate contract.
                               # Prior: tsp-mc9m.41.926.145.50.6.6.18: launcher#139 adds the event-driven idle shell.
                               # Prior: Dockerfile.pf stage source-builds pf-shell from this SHA, but ONLY for
                               # PF_GPU_MODEL=open (the launcher-open stage) — closed a133 + a523 land on
@@ -369,7 +372,7 @@ ref  = "main"                 # tsp-mc9m.41.926.145.50.6.6.25: launcher#140 fbde
                               # keeping their images byte-identical. Not-per-device (literal-name lookup like
                               # libsdl3/wpa/runtime). SHA = the exact commit the launcher stage drift-checks
                               # (PF_LAUNCHER_SHA); an ancestor of launcher/main @ seed time.
-sha  = "2ebc09145b975f55bc690758a8fee8ee92738969"
+sha  = "468153809fe14fef80563ff63716efc1b12358da"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
