@@ -81,7 +81,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(closed["PF_GPU_MODEL"], "ddk")
         self.assertEqual(closed["PF_GPU_REPO"], "gpu-km-tsp")
         self.assertIn("pvr-ddk-22.102.54.38", closed["PF_BLOB_GROUPS"])
-        self.assertEqual(opened["PF_KERNEL_SHA"], "1cc29436b9a115536a47cabcee29c1e9f231d9e9")
+        self.assertEqual(opened["PF_KERNEL_SHA"], "6c9ffff8197d9c9f864c51a5497591bd42c2a6a3")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
         self.assertEqual(opened["PF_GPU_UM_SHA"], "0dc9d15a65481267b79d9123c7add84e7e03eda2")

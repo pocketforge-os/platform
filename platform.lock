@@ -249,7 +249,8 @@ sha  = "a7cfec247898bb2c22e51bb705a7f18fd5910285"
 [[repos]]
 name = "kernel-sunxi-6.x"    # A133 open-stack kernel with in-tree Imagination DRM PowerVR
 url  = "https://github.com/pocketforge-os/kernel-sunxi-6.x.git"
-ref  = "device/a133"           # tsp-mc9m.60.7.2.3.10.1: kernel-sunxi-6.x#274 adds a post-sync silent listen window.
+ref  = "device/a133"           # tsp-mc9m.60.7.2.3.9.1: kernel-sunxi-6.x#275 adds strict BROM desync detection and bounded reset recovery.
+                              # Prior (1cc29436b9a115536a47cabcee29c1e9f231d9e9): tsp-mc9m.60.7.2.3.10.1: kernel-sunxi-6.x#274 adds a post-sync silent listen window.
                               # Prior (6e713f13868a2da83d4fa54aeed38c9a656b33bf): tsp-mc9m.60.7.2.3.8.1: kernel-sunxi-6.x#268-#271 add BROM receive instrumentation that separates a sync leftover from the reply's own first byte, including accepted-sync first-byte timing and the first slid byte.
                               # Prior (5128b064cb1bf8796b842f31fc28f1b7f4871992): tsp-mc9m.60.7.2.3.5.2: kernel-sunxi-6.x#268-#271 add BROM receive instrumentation that separates a sync leftover from the reply's own first byte.
                               # Prior (92f10f7841978b67715472aa1342873a02ad1c17): tsp-mc9m.60.7.2.3.4.1: kernel-sunxi-6.x#268/#269 add BROM receive instrumentation that separates a sync leftover from the reply's own first byte.
@@ -264,7 +265,7 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.10.1: kernel-sunxi-6.x#274 ad
                               # Prior (535a3ae0): PR #254 AXP717 soft-poweroff; PR #253 gamepad MCU UART3/UART4, aliases + uinput; PR #255 panel orientation.
                               # Prior (6567b92c): PR #250 hall PL9 pinctrl conflict + PR #251 sun6i-rtc osc32k -EEXIST fixes.
                               # Prior (903044c3): Odyssey img,img-rogue DTB and PFDBG-DISP silence fix.
-sha  = "1cc29436b9a115536a47cabcee29c1e9f231d9e9"
+sha  = "6c9ffff8197d9c9f864c51a5497591bd42c2a6a3"
 
 [[repos]]
 name = "kernel-sunxi-7.x"    # tsp-mc9m.60.7.4.2.1: carries the clock-settle-delay-ms settle experiment;
