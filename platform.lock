@@ -249,7 +249,8 @@ sha  = "a7cfec247898bb2c22e51bb705a7f18fd5910285"
 [[repos]]
 name = "kernel-sunxi-6.x"    # A133 open-stack kernel with in-tree Imagination DRM PowerVR
 url  = "https://github.com/pocketforge-os/kernel-sunxi-6.x.git"
-ref  = "device/a133"           # tsp-mc9m.60.7.2.3.4.1: kernel-sunxi-6.x#268/#269 add BROM receive instrumentation that separates a sync leftover from the reply's own first byte.
+ref  = "device/a133"           # tsp-mc9m.60.7.2.3.5.2: kernel-sunxi-6.x#268-#271 add BROM receive instrumentation that separates a sync leftover from the reply's own first byte.
+                              # Prior (92f10f7841978b67715472aa1342873a02ad1c17): tsp-mc9m.60.7.2.3.4.1: kernel-sunxi-6.x#268/#269 add BROM receive instrumentation that separates a sync leftover from the reply's own first byte.
                               # Prior (f2e87d19d3d3acbda9aebc966e91909c6178b2cb): tsp-mc9m.60.7.2.4.1: kernel-sunxi-6.x#267 adds a receive gate so the BROM sync's leftover byte can no longer prefix the following exchange.
                               # Prior (468ceb3e1ea4809c889a3f3eb77f24a3786c29b2): tsp-mc9m.60.7.2.3.1: kernel-sunxi-6.x#265 fixes BROM receive framing so a one-byte phase shift cannot survive sync and trigger -71 on the next exchange.
                               # Prior (8c02ba4e51ad70654662aa1b981570ce64acf174): tsp-mc9m.60.7.2.2.3.1: kernel-sunxi-6.x#264 shrinks the dump's hot-path footprint so the -71 BROM failure can reproduce on a kernel that reports it.
@@ -261,7 +262,7 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.4.1: kernel-sunxi-6.x#268/#26
                               # Prior (535a3ae0): PR #254 AXP717 soft-poweroff; PR #253 gamepad MCU UART3/UART4, aliases + uinput; PR #255 panel orientation.
                               # Prior (6567b92c): PR #250 hall PL9 pinctrl conflict + PR #251 sun6i-rtc osc32k -EEXIST fixes.
                               # Prior (903044c3): Odyssey img,img-rogue DTB and PFDBG-DISP silence fix.
-sha  = "92f10f7841978b67715472aa1342873a02ad1c17"
+sha  = "5128b064cb1bf8796b842f31fc28f1b7f4871992"
 
 [[repos]]
 name = "kernel-sunxi-7.x"    # tsp-mc9m.60.7.4.2.1: carries the clock-settle-delay-ms settle experiment;
