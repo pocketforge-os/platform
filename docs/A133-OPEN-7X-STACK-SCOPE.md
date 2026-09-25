@@ -84,8 +84,8 @@ provenance.  At that time, merged image PR #125 supplied the initial
 profile-driven assembly contract at `d81151a83ac8a260512c2ea66eb878e2136bd3b1`,
 and merged SDL PR #19 supplied the initial audited open-model build path at
 `1e4bdcb77f9c1f466ea7076058a5440faf549cd7`.  The live platform lock now
-publishes merged image PR #126 at
-`00ab25c8d6900d46ba8e04e9dfd795ba8083a224` and merged SDL PR #20 at
+publishes merged image PR #127 at
+`3c990a208fbc5a91649c8c36adc993aa62ebe7af` and merged SDL PR #20 at
 `f5e73b52840129cdaaa288a71463cd548a91e2c5`.  Device acceptance must separately
 prove runtime BVNC admission, firmware/device initialization, Mesa rendering, and
 presented pixels.
@@ -120,7 +120,7 @@ the minimal sibling still provides the cheap boot/storage regression lane.
   rendering evidence exists.  The 7.x driver's `exp_hw_support=1` parameter only
   admits this unmaintained BVNC; it is not compatibility evidence.
 - The profile pins the accepted combined PR #23 merge, and the live platform lock
-  now publishes merged image PR #126 and merged SDL PR #20.  Full-image artifact
+  now publishes merged image PR #127 and merged SDL PR #20.  Full-image artifact
   provenance and device/runtime acceptance remain separate release-owner gates.
 - No current device receipt was found that visually accepts launcher PR #141 on
   the 6.x lane.  If such a receipt exists outside the repositories inspected
