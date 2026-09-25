@@ -36,13 +36,19 @@ The dispatcher (`core/pf-build.sh`) resolves + flattens the profile into `PF_*` 
 
 ```
 PF_DEVICE_ID PF_FAMILY PF_SOC PF_ARCH
-PF_KERNEL_REPO PF_KERNEL_REF PF_KERNEL_DEFCONFIG PF_KERNEL_DTB PF_TOOLCHAIN_CC
+PF_KERNEL_REPO PF_KERNEL_REF PF_KERNEL_DEFCONFIG PF_KERNEL_DTB PF_KERNEL_REQUIRED_MODULES PF_TOOLCHAIN_CC
 PF_GPU_REPO PF_GPU_REF PF_GPU_MODULES
 PF_BOOTCHAIN_MODEL PF_BOOT_PROTO PF_BOOTCHAIN_BLOB_GROUP PF_UBOOT_REPO PF_SPL_OFFSET_KIB
 PF_IMAGE_ASSEMBLER PF_IMAGE_NAME PF_PART_TABLE PF_BOOT_LABEL PF_ROOT_LABEL
 PF_BLOB_GROUPS PF_BUILD_IMAGE PF_FLASH_METHOD PF_FLASH_SLOT
 PF_OUT_DIR PF_BEAD PF_DRY_RUN PF_IMAGE_REPO PF_PLATFORM_DIR
 ```
+
+`PF_KERNEL_REQUIRED_MODULES` is the space-separated join of
+`[kernel].required_modules`: canonical kernel-module names without the `.ko` suffix,
+for family/build consumers to require in the kernel module inventory. It is empty when
+the profile omits the field. `PF_GPU_MODULES` remains the space-separated GPU artifact
+filename list, such as `powervr.ko`.
 
 Anything not flattened is in the resolved JSON (`pf resolve <id>`).
 
