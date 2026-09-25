@@ -39,7 +39,10 @@ device           = "a133"                        # -> devices/a133/profile.toml 
 gpu_ip           = "powervr"                     # PowerVR DDK 1.19 (Rogue)
 sdl_repo         = "libsdl3-sunxifb"             # OWNED SDL3 fbdev backend; links the PowerVR UM (a133-only)
 sdl_backend      = "sunxifb"                     # SDL_VIDEODRIVER (fbdev via the sunxi disp engine)
-platform_version = "19"                          # bump when the resolved kernel/gpu/sdl SHA-set changes
+platform_version = "20"                          # bump when the resolved kernel/gpu/sdl SHA-set changes
+                                                 #   v20 (tsp-mc9m.41.924.16.3): libsdl3-sunxifb
+                                                 #   1e4bdcb7 -> f5e73b52 (SDLf5, KMSDRM-enabled
+                                                 #   artifact paired with imagePR126 00ab25c8)
                                                  #   v19 (tsp-mc9m.60.26): libsdl3-sunxifb bb2c76aa ->
                                                  #   1e4bdcb7 (PR #19 open-model build path required by the
                                                  #   direct A133 Linux 7.x full-open image profile)
