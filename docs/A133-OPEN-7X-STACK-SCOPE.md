@@ -1,9 +1,11 @@
 # A133 open 7.x stack scope
 
 `a133-open-7x` remains the minimal 7.x boot-bring-up profile.  Do not change it
-in place to `gpu.model = "open"`.  Add a second, opt-in 7.x profile for the
-display and launcher first; promote that profile to the full open GPU stack only
-after the GE8300 kernel path has been ported, built, and independently validated.
+in place to `gpu.model = "open"`.  The separate `a133-open-7x-gpu` profile is the
+direct full graphics/image lane: it selects the reviewed 7.x GE8300 kernel path,
+open Mesa, firmware, launcher, and recovery through the existing open-stack
+selector.  It does not insert a temporary display-only profile or change the
+launcher-selection contract.
 
 This note is separate from `A133-7X-IMAGE-PATH.md` because that document records
 the original image-path decision and implementation work.  This note records the
@@ -28,11 +30,10 @@ profile comment, commit history, and `docs/A133-7X-IMAGE-PATH.md` are the
 authoritative statement of its current GPU-less contract.
 
 There is an important consequence a future reader must act on: with
-`model = "none"`, `core/profile.py:380` emits no `PF_LAUNCHER_SHA`, so **pf-shell
-is absent from every 7.x image and launcher rotation work from launcher PR #141
-has no device coverage on this lane at all**.  The runtime SHA is universal and
-therefore its half of the rotation change can still be present; that does not
-exercise pf-shell.
+`model = "none"`, the resolver emits no `PF_LAUNCHER_SHA`, so pf-shell remains
+absent from the minimal `a133-open-7x` lane.  The full `a133-open-7x-gpu` sibling
+uses `model = "open"`, so the existing selector emits non-empty launcher and
+recovery pins without changing the minimal profile.
 
 ## What has changed since profile creation
 
@@ -54,68 +55,46 @@ that display criterion while the profile continues to advertise and package
 
 ### GE8300 open GPU
 
-The 6.x open-stack integration does not transfer merely by selecting `open`.
+The 6.x open-stack integration did not transfer merely by selecting `open`.
 The 6.x `a133-open` profile selects `sun50i-a133-pocketforge-odyssey.dtb`, enables
 `CONFIG_DRM_POWERVR=m`, stages `powervr.ko`, installs the GE8300 firmware, and
 uses the open Mesa userspace.  Its kernel also contains PocketForge GE8300 work
 beyond the upstream driver, including the A133 clock/reset adaptation and the
-SIPF-v1/HWRT changes.  The 7.x tree contains the upstream Imagination driver,
-but its pinned `a133_defconfig` does not enable `CONFIG_DRM_POWERVR`, and its
-`sun50i-a133-pocketforge-tsp.dts` deliberately defers GPU policy and has no
-Odyssey GPU node.
+SIPF-v1/HWRT changes.
+
+Kernel-sunxi-7.x PR #21 supplied the missing source contract and merged as
+`76734183ccfd586924170a57670f79aec476dec3`.  Its exact-head evidence builds the
+kernel Image, modules, TSP and Odyssey DTBs, verifies `powervr.ko` release,
+vermagic, alias and depmod data, and executes the PowerVR KUnit suites under
+ARM64 QEMU.  The Odyssey DTB and `a133_defconfig` therefore provide the source
+inputs required by the new profile.  This is a source/build admission result;
+it is not firmware initialization, Mesa rendering, or device acceptance.
 
 Build #10 on 2026-09-22 proves that the pinned 6.x image integration can assemble
 the open kernel, firmware, Mesa userspace, and launcher inputs.  The reusable
 parts are the image stage structure, open Mesa userspace, firmware inventory,
-launcher/runtime sources, and the already-replayed display pipeline.  It does
-not prove that the GE8300-specific kernel changes apply to 7.x, that a 7.x
-`powervr.ko` builds, or that the 6.x module can be reused; a kernel module must be
-built from and for the selected 7.x kernel.  No such 7.x build evidence was found.
-
-Making a full `open` profile therefore requires, at minimum:
-
-1. porting and auditing the A133/GE8300 kernel delta against the 7.x Imagination
-   driver, including clock/reset, GPU DT/power-domain policy, SIPF-v1, and HWRT
-   changes;
-2. enabling `CONFIG_DRM_POWERVR=m` and adding a 7.x Odyssey-equivalent board DTS;
-3. building the exact pinned 7.x kernel and proving module release/vermagic,
-   firmware, Mesa/ICD, and image provenance gates;
-4. running GPU enumeration/render and KMS-present device acceptance independently
-   from the minimal boot lane.
+launcher/runtime sources, and the already-replayed display pipeline.  PR #21
+now proves the 7.x module source/build half.  Image assembly must still prove the
+profile-declared module inventory, exact firmware/hash/license, and paired source
+provenance.  Device acceptance must separately prove runtime BVNC admission,
+firmware/device initialization, Mesa rendering, and presented pixels.
 
 ## Decision and costs
 
-Add a second profile.  Keep `a133-open-7x` as the minimal boot/storage lane, and
-introduce an explicitly named display/launcher 7.x profile before a full-GPU
-variant.  A suitable shape is `gpu.model = "none"`,
-`display.pipeline = "fbdev"`, plus an explicit launcher-inclusion fact; launcher
-selection must no longer be inferred from `gpu.model`.  This preserves a usable
-boot regression artifact when display or GPU work breaks, while giving display
-and launcher changes an honest provenance identity.
+Add one full-open sibling directly on `base = "a133"`.  Keep `a133-open-7x` as
+the minimal boot/storage lane and use `a133-open-7x-gpu` for the 7.x Odyssey DTB,
+`in-tree-7.x` PowerVR module, open firmware/Mesa, fbdev display, launcher, and
+recovery.  Profile data explicitly declares the kernel modules image assembly
+must prove: the established 6.x profile retains powervr/videobuf2/CSI/xradio,
+while the 7.x GPU milestone declares powervr only.  The existing open selector
+continues to own launcher and recovery selection.
 
-The smallest source change that enables launcher rotation testing on 7.x is this
-display-only profile plus the narrow platform/image wiring that selects pf-shell
-from the launcher fact rather than from `PF_GPU_MODEL=open`.  The image already
-has a GPU-less kernel path, and pf-shell's tested backend is fbdev, so the GPU
-port is not a prerequisite.  The new profile must nevertheless pass a hermetic
-image build and the display criterion from kernel PR #9 before its launcher result
-is meaningful.
-
-The alternatives cost more in risk or provide less evidence:
-
-- Flipping `a133-open-7x` to `open` couples boot regression coverage to an
-  unported GPU path and falsely implies that existing 6.x evidence applies.
-- Leaving only the present profile keeps boot bring-up cheap, but can never test
-  pf-shell.  Until the display-only profile is available, launcher PR #141 must
-  receive compensating device coverage on the 6.x `a133-open` profile: build the
-  coupled launcher/runtime pins, boot that exact image on the A133 bench DUT, and
-  verify the pf-shell scene is presented in the panel's intended orientation via
-  the normal screen-capture review and explicit visual acceptance.  Build #10's
-  image-integration success alone is not that coverage.
-- Adding the second profile costs one profile golden, an explicit launcher
-  inclusion contract in `core/profile.py`, matching launcher selector/staging
-  changes in the image repository, and a separate build/device receipt.  This is
-  smaller than the GE8300 port and keeps failures attributable to one stack.
+A display-only 7.x image remains a valid independent diagnostic/use case: it can
+isolate panel scanout and launcher orientation from GPU initialization.  It is
+not inserted into this publication sequence, and adding it later would require
+its own explicit launcher contract, image proof, and device receipt.  The direct
+full profile is justified now because the reviewed kernel port exists; retaining
+the minimal sibling still provides the cheap boot/storage regression lane.
 
 ## Uncertainties
 
@@ -124,12 +103,14 @@ The alternatives cost more in risk or provide less evidence:
   input, not independently reread here.
 - The current 7.x display source compiles, but no device receipt found in the
   inspected repository/PR evidence satisfies kernel PR #9's scanout criterion.
-- The GE8300-specific 6.x delta has not been forward-ported or compiled against
-  the pinned 7.x kernel.  The exact conflicts and additional adaptations remain
-  unknown until that bounded port is attempted.
 - The reusable 6.x firmware and Mesa userspace are plausible inputs because both
   target the same GE8300/BVNC and DRM userspace ABI, but compatibility with the
-  eventual 7.x kernel delta is unproven.
+  merged 7.x kernel remains unproven until exact-image device initialization and
+  rendering evidence exists.  The 7.x driver's `exp_hw_support=1` parameter only
+  admits this unmaintained BVNC; it is not compatibility evidence.
+- The final release kernel pin must advance from the PR #21 source anchor to the
+  accepted combined commit containing the binding corrections and fail-closed
+  schema hardening, with the required artifacts from that same source identity.
 - No current device receipt was found that visually accepts launcher PR #141 on
   the 6.x lane.  If such a receipt exists outside the repositories inspected
   here, it should be linked from the follow-up that closes this coverage gap.
