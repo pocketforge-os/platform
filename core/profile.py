@@ -21,7 +21,7 @@ Usage:
   profile.py buildargs <id>           # docker `--build-arg` surface (lock-pinned SHAs)
   profile.py repos                    # platform.lock repo names + seeded state
 """
-import sys, os, json
+import sys, os, json, re
 
 try:
     import tomllib  # py3.11+
@@ -196,6 +196,9 @@ def validate(dev_id, lock):
     mods = gpu.get("modules")
     if mods is not None and not isinstance(mods, list):
         errs.append(f"{dev_id}: [gpu].modules must be a list")
+    required_modules = k.get("required_modules")
+    if required_modules is not None and not isinstance(required_modules, list):
+        errs.append(f"{dev_id}: [kernel].required_modules must be a list")
 
     # Display availability is independent of GPU acceleration. A framebuffer
     # may be provided by a display controller with no GPU stack at all.
@@ -216,10 +219,25 @@ def validate(dev_id, lock):
         for key in required:
             if not gpu.get(key):
                 errs.append(f"{dev_id}: open [gpu].{key} is required")
-        if gpu.get("km_model") != "in-tree-6.x":
-            errs.append(f"{dev_id}: open [gpu].km_model must be 'in-tree-6.x'")
+        if gpu.get("km_model") not in ("in-tree-6.x", "in-tree-7.x"):
+            errs.append(
+                f"{dev_id}: open [gpu].km_model must be 'in-tree-6.x' or 'in-tree-7.x'")
         if gpu.get("repo") or gpu.get("ref"):
             errs.append(f"{dev_id}: open [gpu] is ambiguous: legacy repo/ref must be cleared")
+        if not required_modules:
+            errs.append(f"{dev_id}: open [kernel].required_modules must be a non-empty list")
+        elif isinstance(required_modules, list):
+            invalid = [name for name in required_modules
+                       if not isinstance(name, str)
+                       or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", name)]
+            if invalid:
+                errs.append(
+                    f"{dev_id}: [kernel].required_modules entries must be canonical module names")
+            if len(required_modules) != len(set(
+                    name for name in required_modules if isinstance(name, str))):
+                errs.append(f"{dev_id}: [kernel].required_modules must not contain duplicates")
+            if "powervr" not in required_modules:
+                errs.append(f"{dev_id}: open [kernel].required_modules must include 'powervr'")
     elif model == "none":
         forbidden = ("repo", "ref", "km_model", "km_repo", "km_ref",
                      "um_repo", "um_ref")
@@ -280,6 +298,8 @@ def env_lines(dev_id):
         "PF_KERNEL_REF": merged.get("kernel", {}).get("ref"),
         "PF_KERNEL_DEFCONFIG": merged.get("kernel", {}).get("defconfig"),
         "PF_KERNEL_DTB": merged.get("kernel", {}).get("dtb"),
+        "PF_KERNEL_REQUIRED_MODULES": " ".join(
+            merged.get("kernel", {}).get("required_modules", []) or []),
         "PF_GPU_MODEL": gpu.get("model", "ddk"),
         "PF_GPU_REPO": gpu.get("repo"), "PF_GPU_REF": gpu.get("ref"),
         "PF_GPU_KM_MODEL": gpu.get("km_model", "out-of-tree-ddk"),
@@ -349,6 +369,7 @@ def build_args(dev_id, variant="dev"):
         "PF_KERNEL_SHA": sha(k.get("repo")),
         "PF_KERNEL_DEFCONFIG": k.get("defconfig", ""),
         "PF_KERNEL_DTB": k.get("dtb", ""),
+        "PF_KERNEL_REQUIRED_MODULES": " ".join(k.get("required_modules", []) or []),
         "PF_GPU_MODEL": gpu.get("model", "ddk"),
         "PF_GPU_REPO": gpu.get("repo", ""),
         "PF_GPU_REF": gpu.get("ref", ""),

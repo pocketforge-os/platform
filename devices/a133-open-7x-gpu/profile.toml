@@ -1,21 +1,24 @@
-# Opt-in A133 open PowerVR stack.
+# Opt-in A133 full open graphics stack on the Linux 7.x kernel line.
+# The minimal a133-open-7x boot/storage profile remains GPU-less by design.
 [device]
 base = "a133"
-id = "a133-open"
+id = "a133-open-7x-gpu"
+name = "TrimUI Smart Pro (v7.x open GPU)"
 
 [kernel]
-repo = "kernel-sunxi-6.x"
+repo = "kernel-sunxi-7.x"
 ref = "device/a133"
 defconfig = "a133_defconfig"
 dtb = "sun50i-a133-pocketforge-odyssey.dtb"
-required_modules = ["powervr", "videobuf2-dma-contig", "sun6i-csi", "xradio"]
+dts_source = "owned"
+required_modules = ["powervr"]
 
 [gpu]
 model = "open"
 repo = ""
 ref = ""
-km_model = "in-tree-6.x"
-km_repo = "kernel-sunxi-6.x"
+km_model = "in-tree-7.x"
+km_repo = "kernel-sunxi-7.x"
 km_ref = "device/a133"
 um_repo = "gpu-um-tsp"
 um_ref = "main"

@@ -14,7 +14,7 @@ use      = ["input", "vibration", "imu?", "entropy", "egress:scores.example.com"
 [runtime]
 family           = "pocketforge/a133-powervr"
 abi              = "1"
-platform-version = "1"
+platform-version = "19"
 
 [launch]
 exec          = "./launch"

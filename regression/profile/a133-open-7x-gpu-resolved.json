@@ -1,0 +1,13 @@
+{
+  "blobs": {"groups": ["sunxi-a133-boot-chain", "sunxi-a133-wifi-firmware", "pvr-fw-open-22.102.54.38"]},
+  "bootchain": {"blob_group": "sunxi-a133-boot-chain", "boot_proto": "boot_package_fex", "model": "sunxi-boot0-fex"},
+  "console": {"baud": 115200, "cmdline_extra": "loglevel=8 rootwait", "dev": "ttyS0", "earlycon": "uart8250,mmio32,0x05000000"},
+  "container": {"app_base": "pocketforge/oci-base-aarch64", "build_image": "pocketforge/build:10.3-2021.07-bookworm"},
+  "device": {"arch": "aarch64", "base": "a133", "family": "sunxi", "id": "a133-open-7x-gpu", "name": "TrimUI Smart Pro (v7.x open GPU)", "soc": "sun50iw10p1", "soc_friendly": "Allwinner A133 (TG5040)"},
+  "display": {"pipeline": "fbdev"},
+  "flash": {"method": "dd-sd", "slot": "base"},
+  "gpu": {"km_model": "in-tree-7.x", "km_ref": "device/a133", "km_repo": "kernel-sunxi-7.x", "model": "open", "modules": ["powervr.ko"], "ref": "", "repo": "", "um_ref": "main", "um_repo": "gpu-um-tsp"},
+  "image": {"assembler": "genimage", "boot_fs": "vfat", "boot_label": "POCKETFORGE", "fs_uuids_file": "boards/tsp/fs-uuids.env", "image_name": "pocketforge-tsp", "partition_table": "gpt", "root_fs": "ext4", "root_label": "POCKETFORGE_DATA"},
+  "kernel": {"defconfig": "a133_defconfig", "dtb": "sun50i-a133-pocketforge-odyssey.dtb", "dts_source": "owned", "ref": "device/a133", "repo": "kernel-sunxi-7.x", "required_modules": ["powervr"]},
+  "toolchain": {"cc": "aarch64-none-linux-gnu-", "gcc_version": "10.3-2021.07"}
+}

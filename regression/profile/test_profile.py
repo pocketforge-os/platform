@@ -27,13 +27,17 @@ class ProfileTest(unittest.TestCase):
             "a523": "f6657f92c62dea6bbf6a8559568480e5ed8460c7084516d2c9e861d489e98eab",
             "sdm845": "7405a184a60591c3ede8a806046e74537ab9d328f83cf8b7889439427db048ff",
         }
-        self.assertEqual(set(profile.list_devices()) - {"a133-open-7x"}, set(expected))
+        self.assertEqual(
+            set(profile.list_devices()) - {"a133-open-7x", "a133-open-7x-gpu"},
+            set(expected),
+        )
         for dev_id, digest in expected.items():
             resolved, _ = profile.resolve(dev_id)
-            # Removing the one newly-added fact must reproduce the historical
-            # complete-resolution digest exactly.
+            # Removing the narrowly admitted metadata additions must reproduce
+            # every historical profile's complete resolved shape exactly.
             without_display = copy.deepcopy(resolved)
             del without_display["display"]
+            without_display["kernel"].pop("required_modules", None)
             canonical = json.dumps(without_display, sort_keys=True, separators=(",", ":"))
             self.assertEqual(hashlib.sha256(canonical.encode()).hexdigest(), digest, dev_id)
 
@@ -42,6 +46,7 @@ class ProfileTest(unittest.TestCase):
             "a133": "fbdev",
             "a133-open": "fbdev",
             "a133-open-7x": "none",
+            "a133-open-7x-gpu": "fbdev",
             "a133-owned": "fbdev",
             "a523": "fbdev",
             "sdm845": "drm",
@@ -59,6 +64,13 @@ class ProfileTest(unittest.TestCase):
     def test_a133_7x_complete_resolved_shape(self):
         resolved, _ = profile.resolve("a133-open-7x")
         with open(ROOT / "regression/profile/a133-open-7x-resolved.json", encoding="utf-8") as f:
+            expected = json.load(f)
+        self.assertEqual(resolved, expected)
+
+    def test_a133_7x_gpu_complete_resolved_shape(self):
+        resolved, _ = profile.resolve("a133-open-7x-gpu")
+        with open(ROOT / "regression/profile/a133-open-7x-gpu-resolved.json",
+                  encoding="utf-8") as f:
             expected = json.load(f)
         self.assertEqual(resolved, expected)
 
@@ -85,6 +97,10 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
         self.assertEqual(opened["PF_GPU_UM_SHA"], "0dc9d15a65481267b79d9123c7add84e7e03eda2")
+        self.assertEqual(
+            opened["PF_KERNEL_REQUIRED_MODULES"],
+            "powervr videobuf2-dma-contig sun6i-csi xradio",
+        )
         self.assertIn("pvr-fw-open-22.102.54.38", opened["PF_BLOB_GROUPS"])
         self.assertNotIn("pvr-ddk-22.102.54.38", opened["PF_BLOB_GROUPS"])
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
@@ -105,7 +121,8 @@ class ProfileTest(unittest.TestCase):
         # replaces the PF_GPU_REPO proxy in Dockerfile.pf's gates (B2-B4). It must be
         # BASE-inherited so every a133 variant (closed/open/owned) resolves the same
         # value, and must clearly diverge for a523.
-        for dev_id in ("a133", "a133-open", "a133-open-7x", "a133-owned"):
+        for dev_id in ("a133", "a133-open", "a133-open-7x",
+                       "a133-open-7x-gpu", "a133-owned"):
             args, _, missing = profile.build_args(dev_id)
             self.assertEqual(missing, [], dev_id)
             self.assertEqual(args["PF_SOC"], "sun50iw10p1", dev_id)
@@ -121,7 +138,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "94b1cafddaf0693d5c9fc837ec90c0a8a8dbabfa")
+        self.assertEqual(args["PF_KERNEL_SHA"], "3e0a7373bddd5a801f5f07a71d02cf4d6e97e99d")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -131,6 +148,72 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_LAUNCHER_SHA"], "")
         self.assertEqual(args["PF_RECOVERY_SHA"], "")
         self.assertNotIn("pvr-fw-open-22.102.54.38", args["PF_BLOB_GROUPS"])
+
+    def test_a133_7x_gpu_selects_full_open_contract(self):
+        args, _, missing = profile.build_args("a133-open-7x-gpu")
+        self.assertEqual(missing, [])
+        self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
+        self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
+        self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
+        self.assertEqual(args["PF_KERNEL_SHA"], "3e0a7373bddd5a801f5f07a71d02cf4d6e97e99d")
+        self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
+        self.assertEqual(args["PF_GPU_MODEL"], "open")
+        self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
+        self.assertEqual(args["PF_GPU_KM_REPO"], "kernel-sunxi-7.x")
+        self.assertEqual(args["PF_GPU_KM_REF"], "device/a133")
+        self.assertEqual(args["PF_GPU_KM_SHA"], args["PF_KERNEL_SHA"])
+        self.assertEqual(args["PF_GPU_UM_REPO"], "gpu-um-tsp")
+        self.assertEqual(args["PF_GPU_UM_SHA"], "0dc9d15a65481267b79d9123c7add84e7e03eda2")
+        self.assertEqual(args["PF_IMAGE_SHA"], "d81151a83ac8a260512c2ea66eb878e2136bd3b1")
+        self.assertEqual(args["PF_LIBSDL3_SHA"], "1e4bdcb77f9c1f466ea7076058a5440faf549cd7")
+        self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
+        self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
+        self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], "bb8c9bc8c9ea15238d08cfee5376049bf67cf855")
+        self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
+        self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
+        self.assertEqual(
+            args["PF_VENDOR_MANIFEST_SHA"],
+            "3c8c5c537028e6f749f7888b05e85aa95aa88db4",
+        )
+        self.assertIn("pvr-fw-open-22.102.54.38", args["PF_BLOB_GROUPS"])
+
+    def test_open_profile_module_contract_fails_closed(self):
+        original = profile.resolve
+        resolved, family = original("a133-open-7x-gpu")
+        cases = {
+            "missing": None,
+            "empty": [],
+            "missing-powervr": ["sun6i-csi"],
+            "invalid": ["powervr.ko"],
+            "duplicate": ["powervr", "powervr"],
+        }
+        for label, required_modules in cases.items():
+            with self.subTest(label=label):
+                broken = copy.deepcopy(resolved)
+                if required_modules is None:
+                    del broken["kernel"]["required_modules"]
+                else:
+                    broken["kernel"]["required_modules"] = required_modules
+                profile.resolve = lambda _dev, candidate=broken: (candidate, family)
+                try:
+                    errors, _ = profile.validate("a133-open-7x-gpu", profile.load_lock())
+                finally:
+                    profile.resolve = original
+                self.assertTrue(
+                    any("required_modules" in error for error in errors),
+                    (label, errors),
+                )
+
+    def test_open_profile_missing_locked_kernel_sha_is_reported(self):
+        lock = copy.deepcopy(profile.load_lock())
+        lock["repos"]["kernel-sunxi-7.x"]["sha"] = ""
+        with mock.patch.object(profile, "load_lock", return_value=lock):
+            args, _, missing = profile.build_args("a133-open-7x-gpu")
+        self.assertEqual(args["PF_KERNEL_SHA"], "")
+        self.assertEqual(args["PF_GPU_KM_SHA"], "")
+        self.assertIn("PF_KERNEL_SHA", missing)
+        self.assertIn("PF_GPU_KM_SHA", missing)
 
     def test_gpu_less_profile_rejects_inherited_gpu_inputs(self):
         original = profile.resolve

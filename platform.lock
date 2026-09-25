@@ -43,7 +43,9 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.60.21.1.7: image Dockerfile drift guards expect runtime a2f149ca and launcher bb8c9bc8, so all three pins agree
+ref  = "main"          # tsp-mc9m.60.26: image#125 consumes the profile-declared kernel-module
+                       # contract, admits in-tree-7.x PowerVR, and preserves the full-tree SD fallback.
+                       # Prior: tsp-mc9m.60.21.1.7: image Dockerfile drift guards expect runtime a2f149ca and launcher bb8c9bc8, so all three pins agree
                        # Prior: tsp-mc9m.60.7.3.1: image#122 adds the source-built XR829 Bluetooth attach helper and enabled service for a133-open-7x
                        # Prior: tsp-mc9m.41.926.145.50.6.5.2.2: image#121 adds fbdev panel orientation discovered from DRM card0
                        # Prior: tsp-mc9m.60.4: image#119 embeds XR829 BT firmware; image#120 gates the graphics-client package closure on PF_DISPLAY_PIPELINE
@@ -151,7 +153,7 @@ ref  = "main"          # tsp-mc9m.60.21.1.7: image Dockerfile drift guards expec
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "744a334aa977236c598937ef91f5ebc10d1fa27e"
+sha  = "d81151a83ac8a260512c2ea66eb878e2136bd3b1"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -273,9 +275,14 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.60.7.4.2.1: carries the clock-settle-delay-ms settle experiment;
-                               # still contains temporary rfkill debug printks at core.c:1072,1075,1128;
-                               # diagnostic pin, not a release candidate
+name = "kernel-sunxi-7.x"    # tsp-mc9m.60.22/.60.22.1/.60.25 combined source: PR #23 contains
+                               # the merged GE8300 port and binding corrections plus fail-closed
+                               # schema hardening. Accepted post-merge push CI run 36173942752 covers
+                               # Image/modules/4 DTBs, 15 schemas/14 DTEX cases, and 18 ARM64 QEMU
+                               # PowerVR cases from this exact merged source.
+                               # Prior (94b1cafddaf0693d5c9fc837ec90c0a8a8dbabfa): tsp-mc9m.60.7.4.2.1
+                               # carries the clock-settle-delay-ms experiment and temporary rfkill
+                               # debug printks; diagnostic pin, not a release candidate.
                                # Prior (dcfd93f5d44d61486f95d7e59eb23cf7cf186a7b): tsp-mc9m.60.7.4.1.2: contains temporary rfkill debug printk;
                                # diagnostic pin, not a release candidate
                                # Prior (624b756fec153c62c2696a30238a76c734a70a32): tsp-mc9m.60.7.4.1.1:
@@ -286,7 +293,7 @@ name = "kernel-sunxi-7.x"    # tsp-mc9m.60.7.4.2.1: carries the clock-settle-del
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "94b1cafddaf0693d5c9fc837ec90c0a8a8dbabfa"
+sha  = "3e0a7373bddd5a801f5f07a71d02cf4d6e97e99d"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -355,8 +362,9 @@ sha  = "3c8c5c537028e6f749f7888b05e85aa95aa88db4"
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
-ref  = "main"                # tsp-4i6u #14: SDL_Renderer on sunxifb now works — SUNXIFB_CreateWindow loads EGL via the refcounted SDL_GL_LoadLibrary(NULL) wrapper (not the raw hook), fixing the egl_data/driver_loaded desync that made SDL_CreateRenderer fail ("EGL context already created" / "no matching render driver"); preserves Fix A's eager-surface invariant (tsp-osr NULL+0x8 deref stays fixed). Prior: tsp-147u.8.5 #12 (pf-gfxbench stage-schedule CALIBRATION, 60.41->2.00fps on tsp-base); #9 (pf-gfxbench app); tsp-ve5 #5 (eglBindAPI return check); UM blob path reorg tsp/ -> sunxi/a133/ (#2).
-sha  = "bb2c76aa4134e9f8c5f6a505a003157b25cc9323"
+ref  = "main"                # tsp-mc9m.60.26: merged PR #19 supplies the audited open-model build path.
+                              # Prior: tsp-4i6u #14: SDL_Renderer on sunxifb now works — SUNXIFB_CreateWindow loads EGL via the refcounted SDL_GL_LoadLibrary(NULL) wrapper (not the raw hook), fixing the egl_data/driver_loaded desync that made SDL_CreateRenderer fail ("EGL context already created" / "no matching render driver"); preserves Fix A's eager-surface invariant (tsp-osr NULL+0x8 deref stays fixed). Prior: tsp-147u.8.5 #12 (pf-gfxbench stage-schedule CALIBRATION, 60.41->2.00fps on tsp-base); #9 (pf-gfxbench app); tsp-ve5 #5 (eglBindAPI return check); UM blob path reorg tsp/ -> sunxi/a133/ (#2).
+sha  = "1e4bdcb77f9c1f466ea7076058a5440faf549cd7"
 
 [[repos]]
 name = "wpa-supplicant-tsp"   # owned wpa_supplicant 2.10 fork (GREAT_SNR 25->45 roam hysteresis,
