@@ -273,10 +273,11 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.60.25 source-contract anchor: kernel-sunxi-7.x#21 ports
-                               # GE8300 SIPF-v1/HWRT, emits the Odyssey DTB and powervr.ko, and
-                               # passes the exact-head build/module/QEMU-KUnit gates. This is not
-                               # the final accepted combined .60.22/.60.22.1/.60.25 release pin.
+name = "kernel-sunxi-7.x"    # tsp-mc9m.60.22/.60.22.1/.60.25 combined source: PR #23 contains
+                               # the merged GE8300 port and binding corrections plus fail-closed
+                               # schema hardening. Candidate evidence covers Image/modules/4 DTBs,
+                               # 15 schemas/14 DTEX cases and 18 ARM64 QEMU PowerVR cases; exact
+                               # post-merge push CI is still a final acceptance gate.
                                # Prior (94b1cafddaf0693d5c9fc837ec90c0a8a8dbabfa): tsp-mc9m.60.7.4.2.1
                                # carries the clock-settle-delay-ms experiment and temporary rfkill
                                # debug printks; diagnostic pin, not a release candidate.
@@ -290,7 +291,7 @@ name = "kernel-sunxi-7.x"    # tsp-mc9m.60.25 source-contract anchor: kernel-sun
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "76734183ccfd586924170a57670f79aec476dec3"
+sha  = "3e0a7373bddd5a801f5f07a71d02cf4d6e97e99d"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch

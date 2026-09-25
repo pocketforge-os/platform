@@ -62,19 +62,22 @@ uses the open Mesa userspace.  Its kernel also contains PocketForge GE8300 work
 beyond the upstream driver, including the A133 clock/reset adaptation and the
 SIPF-v1/HWRT changes.
 
-Kernel-sunxi-7.x PR #21 supplied the missing source contract and merged as
-`76734183ccfd586924170a57670f79aec476dec3`.  Its exact-head evidence builds the
-kernel Image, modules, TSP and Odyssey DTBs, verifies `powervr.ko` release,
-vermagic, alias and depmod data, and executes the PowerVR KUnit suites under
-ARM64 QEMU.  The Odyssey DTB and `a133_defconfig` therefore provide the source
-inputs required by the new profile.  This is a source/build admission result;
-it is not firmware initialization, Mesa rendering, or device acceptance.
+Kernel-sunxi-7.x PRs #21 and #22 supplied the missing GPU and binding source
+contracts.  PR #23 combined them with fail-closed schema hardening and merged as
+`3e0a7373bddd5a801f5f07a71d02cf4d6e97e99d`.  Its candidate evidence builds the
+kernel Image, modules and four DTBs, verifies 15 schemas and 14 DTEX cases, and
+executes 18 PowerVR cases under ARM64 QEMU.  The Odyssey DTB and `a133_defconfig`
+therefore provide the source inputs required by the new profile.  Exact
+post-merge push CI remains a final acceptance gate.  This is a source/build
+admission result; it is not firmware initialization, Mesa rendering, or device
+acceptance.
 
 Build #10 on 2026-09-22 proves that the pinned 6.x image integration can assemble
 the open kernel, firmware, Mesa userspace, and launcher inputs.  The reusable
 parts are the image stage structure, open Mesa userspace, firmware inventory,
-launcher/runtime sources, and the already-replayed display pipeline.  PR #21
-now proves the 7.x module source/build half.  Image assembly must still prove the
+launcher/runtime sources, and the already-replayed display pipeline.  The
+combined PR #23 source now proves the 7.x module source/build half.  Image
+assembly must still prove the
 profile-declared module inventory, exact firmware/hash/license, and paired source
 provenance.  Device acceptance must separately prove runtime BVNC admission,
 firmware/device initialization, Mesa rendering, and presented pixels.
@@ -108,9 +111,9 @@ the minimal sibling still provides the cheap boot/storage regression lane.
   merged 7.x kernel remains unproven until exact-image device initialization and
   rendering evidence exists.  The 7.x driver's `exp_hw_support=1` parameter only
   admits this unmaintained BVNC; it is not compatibility evidence.
-- The final release kernel pin must advance from the PR #21 source anchor to the
-  accepted combined commit containing the binding corrections and fail-closed
-  schema hardening, with the required artifacts from that same source identity.
+- The profile now pins the combined PR #23 merge.  Release acceptance still
+  requires successful post-merge push CI and the required artifacts from that
+  exact source identity.
 - No current device receipt was found that visually accepts launcher PR #141 on
   the 6.x lane.  If such a receipt exists outside the repositories inspected
   here, it should be linked from the follow-up that closes this coverage gap.
