@@ -68,9 +68,10 @@ contracts.  PR #23 combined them with fail-closed schema hardening and merged as
 kernel Image, modules and four DTBs, verifies 15 schemas and 14 DTEX cases, and
 executes 18 PowerVR cases under ARM64 QEMU.  The Odyssey DTB and `a133_defconfig`
 therefore provide the source inputs required by the new profile.  Exact
-post-merge push CI remains a final acceptance gate.  This is a source/build
-admission result; it is not firmware initialization, Mesa rendering, or device
-acceptance.
+post-merge push CI run `36173942752` succeeded for merged source
+`3e0a7373bddd5a801f5f07a71d02cf4d6e97e99d`, establishing the accepted kernel
+source identity.  This is a source/build admission result; it is not firmware
+initialization, Mesa rendering, or device acceptance.
 
 Build #10 on 2026-09-22 proves that the pinned 6.x image integration can assemble
 the open kernel, firmware, Mesa userspace, and launcher inputs.  The reusable
@@ -79,8 +80,12 @@ launcher/runtime sources, and the already-replayed display pipeline.  The
 combined PR #23 source now proves the 7.x module source/build half.  Image
 assembly must still prove the
 profile-declared module inventory, exact firmware/hash/license, and paired source
-provenance.  Device acceptance must separately prove runtime BVNC admission,
-firmware/device initialization, Mesa rendering, and presented pixels.
+provenance.  Merged image PR #125 provides that profile-driven assembly contract
+at `d81151a83ac8a260512c2ea66eb878e2136bd3b1`, and merged SDL PR #19 provides the
+audited open-model build path at
+`1e4bdcb77f9c1f466ea7076058a5440faf549cd7`.  Device acceptance must separately
+prove runtime BVNC admission, firmware/device initialization, Mesa rendering, and
+presented pixels.
 
 ## Decision and costs
 
@@ -111,9 +116,9 @@ the minimal sibling still provides the cheap boot/storage regression lane.
   merged 7.x kernel remains unproven until exact-image device initialization and
   rendering evidence exists.  The 7.x driver's `exp_hw_support=1` parameter only
   admits this unmaintained BVNC; it is not compatibility evidence.
-- The profile now pins the combined PR #23 merge.  Release acceptance still
-  requires successful post-merge push CI and the required artifacts from that
-  exact source identity.
+- The profile pins the accepted combined PR #23 merge, and the platform lock now
+  pairs it with merged image PR #125 and merged SDL PR #19.  Full-image artifact
+  provenance and device/runtime acceptance remain separate release-owner gates.
 - No current device receipt was found that visually accepts launcher PR #141 on
   the 6.x lane.  If such a receipt exists outside the repositories inspected
   here, it should be linked from the follow-up that closes this coverage gap.

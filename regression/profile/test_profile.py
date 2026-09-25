@@ -164,6 +164,8 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_KM_SHA"], args["PF_KERNEL_SHA"])
         self.assertEqual(args["PF_GPU_UM_REPO"], "gpu-um-tsp")
         self.assertEqual(args["PF_GPU_UM_SHA"], "0dc9d15a65481267b79d9123c7add84e7e03eda2")
+        self.assertEqual(args["PF_IMAGE_SHA"], "d81151a83ac8a260512c2ea66eb878e2136bd3b1")
+        self.assertEqual(args["PF_LIBSDL3_SHA"], "1e4bdcb77f9c1f466ea7076058a5440faf549cd7")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
