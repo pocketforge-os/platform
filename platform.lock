@@ -43,9 +43,11 @@ manifest_signing_active = false
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.924.16.3: imagePR126 merged 00ab25c8 packages the KMS-ready
-                       # GBM/DRM and open+dev libdrm-tests closure for the reviewed SDLf5 artifact.
-                       # contract, admits in-tree-7.x PowerVR, and preserves the full-tree SD fallback.
+ref  = "main"          # tsp-mc9m.41.924.16.5: imagePR127 merged 3c990a2 fixes generated-rootfs
+                       # hook wiring for the open-GPU closure needed by the open6 KMS rebuild.
+                       # Prior: tsp-mc9m.41.924.16.3 imagePR126 merged 00ab25c8 packages the KMS-ready
+                       # GBM/DRM and open+dev libdrm-tests closure for the reviewed SDLf5 artifact,
+                       # admits in-tree-7.x PowerVR, and preserves the full-tree SD fallback.
                        # Prior: tsp-mc9m.60.21.1.7: image Dockerfile drift guards expect runtime a2f149ca and launcher bb8c9bc8, so all three pins agree
                        # Prior: tsp-mc9m.60.7.3.1: image#122 adds the source-built XR829 Bluetooth attach helper and enabled service for a133-open-7x
                        # Prior: tsp-mc9m.41.926.145.50.6.5.2.2: image#121 adds fbdev panel orientation discovered from DRM card0
@@ -154,7 +156,7 @@ ref  = "main"          # tsp-mc9m.41.924.16.3: imagePR126 merged 00ab25c8 packag
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "00ab25c8d6900d46ba8e04e9dfd795ba8083a224"
+sha  = "3c990a208fbc5a91649c8c36adc993aa62ebe7af"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
