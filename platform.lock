@@ -250,6 +250,7 @@ sha  = "a7cfec247898bb2c22e51bb705a7f18fd5910285"
 name = "kernel-sunxi-6.x"    # A133 open-stack kernel with in-tree Imagination DRM PowerVR
 url  = "https://github.com/pocketforge-os/kernel-sunxi-6.x.git"
 ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 rejects a phase-shifted KO sync response. A cold start loses odd-byte phase, so "KO" is the K tail of one OK plus the O head of the next; accepting it left a K to prefix the BROM ACK and SETUART read "KBRO" -> -EILSEQ. KO tolerance is kept until a discard or retained partial proves phase loss, so the warm rebind path is unchanged by construction.
+                              # tsp-mc9m.60.7.2.3.12.1.1: kernel-sunxi-6.x#280 merged as 6ccb87902144babc2838b03840c0413bf0941ab4 after independent review of 2fb210bf7196ed22352a8af51425db9bfd848eb3; publishes bounded receive-callback provenance only.
                               # Prior (8dc9064df7a5d838d1a0c24ffb6a5fbdda00ec50): tsp-mc9m.60.7.2.3.11.1: kernel-sunxi-6.x#278 waits for asserted CTS before the first HCI command. The port is UPSTAT_AUTOCTS (8250_dwlib.c sets UART_CAP_AFE), so queuing HCI_Reset before the firmware asserted CTS left it gated in hardware with icount.tx frozen; AUTOCTS ports get no software TX restart on the later CTS edge. Bounded 200ms, fail-closed.
                               # Prior (9826b9ddfed526acfcafdd326a7ea66676929038): tsp-mc9m.60.7.2.3.11: kernel-sunxi-6.x#277 adds a first-HCI-command discriminator reporting TX progression, CTS, bounded drain, pre-parser raw RX and parser outcome on the success path; physical-tx stays explicitly unproven.
                               # Prior (9cf71ac4b1ea37bc923148eb1ee84a7c37610ce6): tsp-mc9m.60.7.2.3.6.1: kernel-sunxi-6.x#276 restores sync phase by discarding one byte after a detected non-token window.
@@ -269,7 +270,7 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
                               # Prior (535a3ae0): PR #254 AXP717 soft-poweroff; PR #253 gamepad MCU UART3/UART4, aliases + uinput; PR #255 panel orientation.
                               # Prior (6567b92c): PR #250 hall PL9 pinctrl conflict + PR #251 sun6i-rtc osc32k -EEXIST fixes.
                               # Prior (903044c3): Odyssey img,img-rogue DTB and PFDBG-DISP silence fix.
-sha  = "85b88d45b01bed43a9d0a3364e1ce240507a2ff8"
+sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
 name = "kernel-sunxi-7.x"    # tsp-mc9m.60.7.4.2.1: carries the clock-settle-delay-ms settle experiment;
