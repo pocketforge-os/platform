@@ -16,7 +16,7 @@ postmarketOS `flash_method`-scoped-keys discipline applied to the whole profile)
 | | `status` | | `example` ⇒ validator treats absent repos as INFO (paper proof) |
 | `[kernel]` | `repo`, `ref` | ✅ | repo name (in `platform.lock`) + branch/tag (`.lock` → SHA) |
 | | `defconfig`, `dtb`, `dts_source` | | `dts_source` = `owned`\|`vendor-rebuilt` |
-| | `required_modules` | | list of canonical module names (without `.ko`); required for open profiles and must be non-empty, duplicate-free, and include `powervr` |
+| | `required_modules` | | optional list; for open profiles, entries are canonical module names (without `.ko`) and the list must be non-empty, duplicate-free, and include `powervr` |
 | `[gpu]` | `repo` | | repo name, or `"none"` (Adreno = in-tree msm + Mesa) |
 | `[gpu]` | `model` | | `ddk` (default for legacy profiles), `open`, or `none` (intentional GPU-less bring-up) |
 | `[gpu]` | `km_model` | open | `in-tree-6.x` or `in-tree-7.x`, selecting the open PowerVR kernel-module model for that kernel line |
