@@ -16,9 +16,10 @@ postmarketOS `flash_method`-scoped-keys discipline applied to the whole profile)
 | | `status` | | `example` ⇒ validator treats absent repos as INFO (paper proof) |
 | `[kernel]` | `repo`, `ref` | ✅ | repo name (in `platform.lock`) + branch/tag (`.lock` → SHA) |
 | | `defconfig`, `dtb`, `dts_source` | | `dts_source` = `owned`\|`vendor-rebuilt` |
+| | `required_modules` | | list of canonical module names (without `.ko`); required for open profiles and must be non-empty, duplicate-free, and include `powervr` |
 | `[gpu]` | `repo` | | repo name, or `"none"` (Adreno = in-tree msm + Mesa) |
 | `[gpu]` | `model` | | `ddk` (default for legacy profiles), `open`, or `none` (intentional GPU-less bring-up) |
-| `[gpu]` | `km_model` | open | `in-tree-6.x` for the open PowerVR kernel module |
+| `[gpu]` | `km_model` | open | `in-tree-6.x` or `in-tree-7.x`, selecting the open PowerVR kernel-module model for that kernel line |
 | `[gpu]` | `km_repo`, `km_ref` | open | kernel-module source identity (lock pinned) |
 | `[gpu]` | `um_repo`, `um_ref` | open | open userspace source identity (lock pinned) |
 | | `ref`, `modules` | | `modules` is a list (`.ko` names) |
@@ -38,6 +39,12 @@ postmarketOS `flash_method`-scoped-keys discipline applied to the whole profile)
 | `[flash]` | `method` | ✅ (or family default) | `dd-sd`\|`fastboot`\|`edl-firehose`\|... |
 | | `slot` | | sunxi: Dell two-LUN reader (`base`\|`pros`) |
 | | `fastboot.*`, `edl.*` | | snapdragon-scoped (sunxi never reads them) |
+
+For an open profile, `[kernel].required_modules` is a list of canonical names matching
+`[A-Za-z0-9][A-Za-z0-9_-]*`; entries such as `powervr.ko` are invalid. The established
+Linux 6.x `a133-open` profile declares `["powervr", "videobuf2-dma-contig", "sun6i-csi", "xradio"]`,
+while the Linux 7.x `a133-open-7x-gpu` profile declares `["powervr"]` only.
+Both profiles keep `[gpu].modules = ["powervr.ko"]` for the GPU artifact filename.
 
 **Reproducibility rule:** a profile `ref` of a *branch name* must never drive the build
 directly — always resolve through `platform.lock` to a SHA. The `ref` is for humans +
