@@ -80,7 +80,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_GPU_KM_REPO": "kernel-sunxi-7.x",
             "PF_GPU_KM_SHA": "431ceb2113691a921b4e9a22640a138fbfadd070",
             "PF_GPU_UM_REPO": "gpu-um-tsp",
-            "PF_GPU_UM_SHA": "0dc9d15a65481267b79d9123c7add84e7e03eda2",
+            "PF_GPU_UM_SHA": "a669de84e87da608a24f5a7879744bf063a2bf74",
             "PF_LIBSDL3_SHA": "f5e73b52840129cdaaa288a71463cd548a91e2c5",
             "PF_DISPLAY_PIPELINE": "fbdev",
             "PF_LAUNCHER_REPO": "launcher",
