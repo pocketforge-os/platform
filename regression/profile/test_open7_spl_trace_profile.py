@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import copy
 import importlib.util
 import json
 import pathlib
 import tomllib
 import unittest
+from unittest import mock
 from typing import Any
 
 
@@ -14,7 +16,8 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 TRACE_DEVICE = "a133-open-7x-gpu-spl-trace"
-MERGED_UBOOT_SHA = "c7595dcf4edb28abfed2ba9e377a4a350cd0a53b"
+NORMAL_UBOOT_SHA = "c7595dcf4edb28abfed2ba9e377a4a350cd0a53b"
+TRACE_UBOOT_SHA = "1299474a22036b78f4e427e40340b69b73b9ae7a"
 
 
 def flatten(value: Any, prefix: str = "") -> dict[str, Any]:
@@ -95,14 +98,58 @@ class Open7SplTraceProfileTest(unittest.TestCase):
             differences(normal_args, trace_args),
             {
                 "PF_DEVICE_ID": (NORMAL_DEVICE, TRACE_DEVICE),
+                "PF_UBOOT_SHA": (NORMAL_UBOOT_SHA, TRACE_UBOOT_SHA),
                 "PF_UBOOT_DEFCONFIG": (
                     "tg5040_defconfig",
                     "tg5040_mmc_trace_defconfig",
                 ),
             },
         )
-        self.assertEqual(normal_args["PF_UBOOT_SHA"], MERGED_UBOOT_SHA)
-        self.assertEqual(trace_args["PF_UBOOT_SHA"], MERGED_UBOOT_SHA)
+        self.assertEqual(normal_args["PF_UBOOT_REPO"], "u-boot-tsp-a133")
+        self.assertEqual(trace_args["PF_UBOOT_REPO"], "u-boot-tsp-a133")
+        self.assertEqual(normal_args["PF_UBOOT_SHA"], NORMAL_UBOOT_SHA)
+        self.assertEqual(trace_args["PF_UBOOT_SHA"], TRACE_UBOOT_SHA)
+
+    def test_trace_pin_is_lock_owned_without_changing_the_normal_repo_pin(self):
+        lock = profile.load_lock()
+        self.assertEqual(
+            lock["repos"]["u-boot-tsp-a133"]["sha"],
+            NORMAL_UBOOT_SHA,
+        )
+        self.assertEqual(
+            lock["profile_pins"][TRACE_DEVICE],
+            {"uboot": TRACE_UBOOT_SHA},
+        )
+
+    def test_malformed_profile_pin_fails_closed(self):
+        lock_data = profile._load(ROOT / "platform.lock")
+        cases = {
+            "profile-entry-not-table": "not-a-table",
+            "uboot-not-full-sha": {"uboot": "1299474"},
+        }
+        for label, pins in cases.items():
+            with self.subTest(label=label):
+                malformed = copy.deepcopy(lock_data)
+                malformed["profile_pins"] = {TRACE_DEVICE: pins}
+                with mock.patch.object(profile, "_load", return_value=malformed):
+                    with self.assertRaises(profile.ProfileSchemaError):
+                        profile.load_lock()
+
+    def test_trace_override_does_not_hide_a_missing_source_repo_or_pin(self):
+        for missing in ("repo", "sha"):
+            lock = copy.deepcopy(profile.load_lock())
+            if missing == "repo":
+                del lock["repos"]["u-boot-tsp-a133"]
+            else:
+                del lock["repos"]["u-boot-tsp-a133"]["sha"]
+            with self.subTest(missing=missing):
+                with mock.patch.object(profile, "load_lock", return_value=lock):
+                    for device in (NORMAL_DEVICE, TRACE_DEVICE):
+                        with self.subTest(device=device):
+                            args, _, missing_pins = profile.build_args(device)
+                            self.assertEqual(args["PF_UBOOT_REPO"], "u-boot-tsp-a133")
+                            self.assertEqual(args["PF_UBOOT_SHA"], "")
+                            self.assertIn("PF_UBOOT_SHA", missing_pins)
 
 
 if __name__ == "__main__":

@@ -40,6 +40,13 @@ release_pub_key         = "RWQoxeia9PBYyeMA93KCQALv/JTDLQGFVM7VDzjGcdidk5nhUP+3i
 release_pub_source      = "github.com/pocketforge-os/infra/trust/minisign.pub"
 manifest_signing_active = false
 
+# Profile-scoped source exceptions remain lock-owned without changing the canonical
+# repo identity or its normal pin. The diagnostic SPL trace profile alone consumes
+# the merged runtime-header trace; every other u-boot-tsp-a133 consumer stays on the
+# [[repos]] SHA below.
+[profile_pins.a133-open-7x-gpu-spl-trace]
+uboot = "1299474a22036b78f4e427e40340b69b73b9ae7a"
+
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"

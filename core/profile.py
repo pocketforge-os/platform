@@ -47,6 +47,7 @@ PROFILE_TABLE_SECTIONS = (
     "device", "kernel", "container", "flash", "image", "blobs", "gpu",
     "display", "bootchain", "toolchain",
 )
+PROFILE_PIN_KEYS = ("uboot",)
 
 
 class ProfileSchemaError(ValueError):
@@ -69,11 +70,28 @@ def list_devices():
 
 def load_lock():
     if not os.path.isfile(LOCK):
-        return {"seeded": False, "interim": False, "repos": {}}
+        return {"seeded": False, "interim": False, "repos": {}, "profile_pins": {}}
     data = _load(LOCK)
+    profile_pins = data.get("profile_pins", {})
+    if not isinstance(profile_pins, dict):
+        raise ProfileSchemaError("[profile_pins] must be a table")
+    for profile_id, pins in profile_pins.items():
+        if not isinstance(profile_id, str) or not profile_id:
+            raise ProfileSchemaError("[profile_pins] keys must be non-empty profile IDs")
+        if not isinstance(pins, dict):
+            raise ProfileSchemaError(f"[profile_pins.{profile_id}] must be a table")
+        unknown = sorted(set(pins) - set(PROFILE_PIN_KEYS))
+        if unknown:
+            raise ProfileSchemaError(
+                f"[profile_pins.{profile_id}] unknown pin keys: {', '.join(unknown)}")
+        for source, pin in pins.items():
+            if not isinstance(pin, str) or not re.fullmatch(r"[0-9a-f]{40}", pin):
+                raise ProfileSchemaError(
+                    f"[profile_pins.{profile_id}].{source} must be a full 40-hex SHA")
     repos = {r["name"]: r for r in data.get("repos", []) if "name" in r}
     return {"seeded": bool(data.get("seeded", False)),
-            "interim": bool(data.get("interim_seed", False)), "repos": repos}
+            "interim": bool(data.get("interim_seed", False)), "repos": repos,
+            "profile_pins": profile_pins}
 
 
 def _deep_fill(dst, src):
@@ -354,6 +372,14 @@ def build_args(dev_id, variant="dev"):
     img = merged.get("image", {})
     uboot_repo = bc.get("uboot", {}).get("repo", "") or ""
     tfa_repo = bc.get("tfa", {}).get("repo", "") or ""
+    canonical_uboot_sha = sha(uboot_repo)
+    # A profile pin selects a revision of the declared, canonically pinned source;
+    # it must never make a missing repo or missing normal pin look complete to the
+    # existing needed/missing-pin gate.
+    uboot_sha = (
+        lock["profile_pins"].get(dev_id, {}).get("uboot", canonical_uboot_sha)
+        if canonical_uboot_sha else ""
+    )
 
     args = {
         "PF_DEVICE_ID": dev.get("id", ""),
@@ -420,7 +446,7 @@ def build_args(dev_id, variant="dev"):
         "PF_BOOTCHAIN_BLOB_GROUP": bc.get("blob_group", "") or "",
         "PF_TOOLCHAIN_GCC_VERSION": tc.get("gcc_version", ""),
         "PF_UBOOT_REPO": uboot_repo,
-        "PF_UBOOT_SHA": sha(uboot_repo),
+        "PF_UBOOT_SHA": uboot_sha,
         "PF_UBOOT_DEFCONFIG": bc.get("uboot", {}).get("defconfig", "") or "",
         "PF_TFA_REPO": tfa_repo,
         "PF_TFA_SHA": sha(tfa_repo),
