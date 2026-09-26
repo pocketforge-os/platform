@@ -30,7 +30,7 @@ model         = "sunxi-spl-uboot"            # source-built owned SPL + BL31 (mi
 boot_proto    = "sunxi-spl-booti"            # NEW proto: SPL chainloads owned u-boot, u-boot
                                              # booti's Image/dtb.bin/initrd.gz from FAT p4 (mmc 0:4)
 uboot.repo      = "u-boot-tsp-a133"          # owned mainline U-Boot (TG5040 fork); replaces vendor boot0
-uboot.ref       = "main"                     # platform.lock pins the merged mmc0-fix sha (PR#4)
+uboot.ref       = "main"                     # platform.lock selects the shared reviewed U-Boot commit
 uboot.defconfig = "tg5040_defconfig"
 tfa.repo      = "tfa-tsp-a133"               # owned TF-A BL31 (mainline snapshot w/ plat/sun50i_a133)
 tfa.ref       = "main"
