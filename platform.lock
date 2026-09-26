@@ -278,11 +278,18 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.60.22/.60.22.1/.60.25 combined source: PR #23 contains
-                               # the merged GE8300 port and binding corrections plus fail-closed
-                               # schema hardening. Accepted post-merge push CI run 36173942752 covers
-                               # Image/modules/4 DTBs, 15 schemas/14 DTEX cases, and 18 ARM64 QEMU
-                               # PowerVR cases from this exact merged source.
+name = "kernel-sunxi-7.x"    # tsp-mc9m.60.26.7 publication: PR #24 contains the merged
+                               # kernel7 GPU and cooling repair. Accepted merged-push CI run
+                               # 36213648048 (job 108325173529) built Image/modules/powervr.ko
+                               # with vermagic and module-inventory checks, all 4 DTBs including
+                               # Odyssey, 15 selected schemas/14 DTEX cases, and 18/18 ARM64 QEMU
+                               # PowerVR KUnit cases from this exact merged source. The workflow
+                               # uploads no binaries and removes its workspace; artifact hashes
+                               # come from the next hermetic full OS image build.
+                               # Prior (3e0a7373bddd5a801f5f07a71d02cf4d6e97e99d):
+                               # tsp-mc9m.60.22/.60.22.1/.60.25 combined source: PR #23 merged the
+                               # GE8300 port and binding corrections plus fail-closed schema
+                               # hardening; accepted post-merge push CI run 36173942752.
                                # Prior (94b1cafddaf0693d5c9fc837ec90c0a8a8dbabfa): tsp-mc9m.60.7.4.2.1
                                # carries the clock-settle-delay-ms experiment and temporary rfkill
                                # debug printks; diagnostic pin, not a release candidate.
@@ -296,7 +303,7 @@ name = "kernel-sunxi-7.x"    # tsp-mc9m.60.22/.60.22.1/.60.25 combined source: P
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "3e0a7373bddd5a801f5f07a71d02cf4d6e97e99d"
+sha  = "431ceb2113691a921b4e9a22640a138fbfadd070"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch

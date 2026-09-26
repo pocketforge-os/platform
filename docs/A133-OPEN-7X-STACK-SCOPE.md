@@ -119,7 +119,7 @@ the minimal sibling still provides the cheap boot/storage regression lane.
   merged 7.x kernel remains unproven until exact-image device initialization and
   rendering evidence exists.  The 7.x driver's `exp_hw_support=1` parameter only
   admits this unmaintained BVNC; it is not compatibility evidence.
-- The profile pins the accepted combined PR #23 merge, and the live platform lock
+- The profile pins the accepted merged PR #24 GPU and cooling repair source, and the live platform lock
   now publishes merged image PR #127 and merged SDL PR #20.  Full-image artifact
   provenance and device/runtime acceptance remain separate release-owner gates.
 - No current device receipt was found that visually accepts launcher PR #141 on
