@@ -12,7 +12,7 @@ Their shared profile contract is `sunxi-spl-uboot` / `sunxi-spl-booti`, TF-A `PL
 
 - Linux 7: `kernel-sunxi-7.x` at `431ceb2113691a921b4e9a22640a138fbfadd070`.
 - U-Boot for the normal `a133-open-7x-gpu` profile: `u-boot-tsp-a133` at the canonical repository pin `c7595dcf4edb28abfed2ba9e377a4a350cd0a53b`.
-- U-Boot for the diagnostic `a133-open-7x-gpu-spl-trace` profile: the same real `u-boot-tsp-a133` repository, selected by a lock-owned profile pin at merged PIO/header discriminator trace commit `51fe02d0c82e2c36121e69edd9187f147c9984c6`. No repository alias or global pin move is involved.
+- U-Boot for the diagnostic `a133-open-7x-gpu-spl-trace` profile: the same real `u-boot-tsp-a133` repository, selected by a lock-owned profile pin at merged MMC card-negotiation trace commit `3a5a2f2b26ff1d92489cdb9a40ccf5e9b58bb519`. No repository alias or global pin move is involved.
 - TF-A: `tfa-tsp-a133` at `199316464722231e1a818e0d3f927be9c0fc2798`.
 - Image source selected for publication: `3c990a208fbc5a91649c8c36adc993aa62ebe7af`. The start-head image pin `00ab25c8d6900d46ba8e04e9dfd795ba8083a224` contains the same owned-bootchain implementation; `build/Dockerfile.pf` and `scripts/build-sd-image.sh` are byte-identical between those commits.
 
@@ -22,7 +22,7 @@ The historical owned-chain artifact `749fcb2c24b2f55533b45a21350a24bd4db35549184
 
 The Linux 7 Boot 8 artifact `d0af502c48e9607f8d885e8b5f5eebfa6be0951b52f276eca0461cbcc0ea4f59` proves Linux 7 userspace and storage behind U-Boot 2025.10 through FelBoot. It does not prove the exact cold BROM-to-SPL path, the final full-GPU artifact, or the cold-profile command line.
 
-Linux 7 source owns the DE/DSI/panel sequence, and an owned-U-Boot Linux 7 run initialized sun4i DRM and attached the OTM1289A panel. There is not yet a cold-boot visible-frame receipt for the exact full profile. The diagnostic profile's merged PIO/header discriminator trace source and resolver tests are source evidence only; they do not prove a full-image build, cold boot, or hardware acceptance.
+Linux 7 source owns the DE/DSI/panel sequence, and an owned-U-Boot Linux 7 run initialized sun4i DRM and attached the OTM1289A panel. There is not yet a cold-boot visible-frame receipt for the exact full profile. The diagnostic profile's merged MMC card-negotiation trace source and resolver tests are source evidence only; they do not prove a full-image build, cold boot, or hardware acceptance.
 
 The exact first full7 raw artifact `b419e5dc2172a69a06aecc9f0a64ce9af7d090ef59a99ee4cc6c0a5f5a198617` contains an ARM64 Image whose header advertises `image_size=0x00fa0000` (16,384,000 bytes), a 995,180-byte initrd, and a 26,263-byte DTB. U-Boot `ec2adf4c1d139ce2c0906354a26fc541490b67c6` loads them at `0x45000000`, `0x46000000`, and `0x48000000`, respectively. Those exact ranges do not overlap, but only `0x60000` (393,216 bytes) separates the advertised end of the kernel from the initrd load address. This is exact-artifact historical evidence for the prior PR23 kernel pin `3e0a7373bddd5a801f5f07a71d02cf4d6e97e99d` only, not a size guarantee for a later image. Full-image sizes and load ranges for the current kernel pin `431ceb2113691a921b4e9a22640a138fbfadd070` still require verification by a new build.
 
