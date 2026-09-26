@@ -320,8 +320,17 @@ sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 [[repos]]
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
-ref  = "main"
-sha  = "0dc9d15a65481267b79d9123c7add84e7e03eda2"
+ref  = "main"                 # tsp-mc9m.41.924.16.9 publication: gpu-um-tsp PR #155
+                               # merged as a669de84e87da608a24f5a7879744bf063a2bf74 carries
+                               # the SIPFv1 logical ISP tile-count fix. Coordinator-accepted
+                               # merged-source proof: candidate_tree == merged_tree ==
+                               # 283845d3b41252b7449434051e6c76b1ec561d2c; merged checks
+                               # "PVR UAPI parity", execute_smoke, structural-smoke SUCCESS;
+                               # debug/NDEBUG RED-GREEN unit evidence preserved. Source
+                               # publication gate only; full-image and runtime stay root gates.
+                               # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
+                               # gpu-um-tsp full-frame fixes pin (pre-PR #155).
+sha  = "a669de84e87da608a24f5a7879744bf063a2bf74"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
