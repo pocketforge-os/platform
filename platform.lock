@@ -353,10 +353,9 @@ sha  = "deaba081685170ffff0aec9f7a260ad1586840fe"
 [[repos]]
 name = "u-boot-tsp-a133"      # owned A133 mainline U-Boot SPL+proper (TG5040 fork of v2025.10); tsp-147u.13.
 url  = "https://github.com/pocketforge-os/u-boot-tsp-a133.git"   # replaces vendor boot0 @0x20000 for the
-ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). main tip = PR#4 merged (mmc0
-                              # reset-settle d298d82e + CLDO3-in-SPL 421f3237 + deterministic
-                              # booti-from-mmc0:4 bootcmd a0551e28). Validated to userspace on pf-node-01.
-sha  = "ec2adf4c1d139ce2c0906354a26fc541490b67c6"
+ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#42 adds a guarded
+                              # tg5040_mmc_trace_defconfig while preserving normal tg5040_defconfig.
+sha  = "c7595dcf4edb28abfed2ba9e377a4a350cd0a53b"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
