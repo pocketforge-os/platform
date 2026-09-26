@@ -10,7 +10,7 @@ The profile contract is `sunxi-spl-uboot` / `sunxi-spl-booti`, U-Boot `tg5040_de
 
 ## Exact source pins
 
-- Linux 7: `kernel-sunxi-7.x` at `3e0a7373bddd5a801f5f07a71d02cf4d6e97e99d`.
+- Linux 7: `kernel-sunxi-7.x` at `431ceb2113691a921b4e9a22640a138fbfadd070`.
 - U-Boot: `u-boot-tsp-a133` at `ec2adf4c1d139ce2c0906354a26fc541490b67c6`.
 - TF-A: `tfa-tsp-a133` at `199316464722231e1a818e0d3f927be9c0fc2798`.
 - Image source selected for publication: `3c990a208fbc5a91649c8c36adc993aa62ebe7af`. The start-head image pin `00ab25c8d6900d46ba8e04e9dfd795ba8083a224` contains the same owned-bootchain implementation; `build/Dockerfile.pf` and `scripts/build-sd-image.sh` are byte-identical between those commits.
