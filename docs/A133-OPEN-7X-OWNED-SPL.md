@@ -2,16 +2,16 @@
 
 ## Selected boot chain
 
-Only `a133-open-7x-gpu` selects this existing source-owned path:
+Both `a133-open-7x-gpu` and the diagnostic `a133-open-7x-gpu-spl-trace` profile select this existing source-owned path:
 
 `BROM -> owned SPL @ 0x20000 -> owned U-Boot -> source-built TF-A BL31 -> booti Image/dtb.bin/initrd.gz from FAT mmc 0:4 -> Linux`
 
-The profile contract is `sunxi-spl-uboot` / `sunxi-spl-booti`, U-Boot `tg5040_defconfig`, TF-A `PLAT=sun50i_a133`, and `spl_offset_kib=128`. The inherited `sunxi-a133-boot-chain` blob group remains present for the existing inert vendor slots and layout. It is not the selected boot path. The minimal `a133-open-7x` profile and every default profile retain the vendor boot chain.
+Their shared profile contract is `sunxi-spl-uboot` / `sunxi-spl-booti`, TF-A `PLAT=sun50i_a133`, and `spl_offset_kib=128`. The normal `a133-open-7x-gpu` profile uses U-Boot `tg5040_defconfig`; the diagnostic `a133-open-7x-gpu-spl-trace` profile uses `tg5040_mmc_trace_defconfig`. The inherited `sunxi-a133-boot-chain` blob group remains present for the existing inert vendor slots and layout. It is not the selected boot path. The minimal `a133-open-7x` profile and every default profile retain the vendor boot chain.
 
 ## Exact source pins
 
 - Linux 7: `kernel-sunxi-7.x` at `431ceb2113691a921b4e9a22640a138fbfadd070`.
-- U-Boot: `u-boot-tsp-a133` at `ec2adf4c1d139ce2c0906354a26fc541490b67c6`.
+- U-Boot, shared by both owned-SPL profiles: `u-boot-tsp-a133` at `c7595dcf4edb28abfed2ba9e377a4a350cd0a53b`.
 - TF-A: `tfa-tsp-a133` at `199316464722231e1a818e0d3f927be9c0fc2798`.
 - Image source selected for publication: `3c990a208fbc5a91649c8c36adc993aa62ebe7af`. The start-head image pin `00ab25c8d6900d46ba8e04e9dfd795ba8083a224` contains the same owned-bootchain implementation; `build/Dockerfile.pf` and `scripts/build-sd-image.sh` are byte-identical between those commits.
 
@@ -27,13 +27,13 @@ The exact first full7 raw artifact `b419e5dc2172a69a06aecc9f0a64ce9af7d090ef59a9
 
 ## Command line and boot experience
 
-Cold owned U-Boot bakes:
+At the shared current U-Boot source pin, both profiles bake:
 
 ```text
 console=ttyS0,115200 earlyprintk=sunxi-uart,0x05000000 rdinit=/init root=PARTLABEL=userdata rootwait init=/sbin/init loglevel=8 cma=64M gpt=1 androidboot.hardware=sun50iw10p1
 ```
 
-Boot 8 recorded only `console=ttyS0,115200 rdinit=/init`; it does not validate the exact cold command line above. `tg5040_defconfig` has no A133 video/DSI/panel configuration, so owned U-Boot draws neither the vendor splash nor charger UI. This is a parent hardware observation item, not evidence that vendor display state should be restored.
+Boot 8 recorded only `console=ttyS0,115200 rdinit=/init`; it does not validate the exact cold command line above. Neither the normal `tg5040_defconfig` nor the diagnostic `tg5040_mmc_trace_defconfig` has A133 video/DSI/panel configuration, so owned U-Boot draws neither the vendor splash nor charger UI. This is a parent hardware observation item, not evidence that vendor display state should be restored.
 
 ## Parent hardware gates
 
