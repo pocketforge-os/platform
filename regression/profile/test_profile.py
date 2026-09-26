@@ -28,7 +28,11 @@ class ProfileTest(unittest.TestCase):
             "sdm845": "7405a184a60591c3ede8a806046e74537ab9d328f83cf8b7889439427db048ff",
         }
         self.assertEqual(
-            set(profile.list_devices()) - {"a133-open-7x", "a133-open-7x-gpu"},
+            set(profile.list_devices()) - {
+                "a133-open-7x",
+                "a133-open-7x-gpu",
+                "a133-open-7x-gpu-spl-trace",
+            },
             set(expected),
         )
         for dev_id, digest in expected.items():
@@ -47,6 +51,7 @@ class ProfileTest(unittest.TestCase):
             "a133-open": "fbdev",
             "a133-open-7x": "none",
             "a133-open-7x-gpu": "fbdev",
+            "a133-open-7x-gpu-spl-trace": "fbdev",
             "a133-owned": "fbdev",
             "a523": "fbdev",
             "sdm845": "drm",
