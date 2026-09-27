@@ -47,7 +47,7 @@ PROFILE_TABLE_SECTIONS = (
     "device", "kernel", "container", "flash", "image", "blobs", "gpu",
     "display", "bootchain", "toolchain",
 )
-PROFILE_PIN_KEYS = ("uboot",)
+PROFILE_PIN_KEYS = ("kernel", "uboot")
 
 
 class ProfileSchemaError(ValueError):
@@ -372,6 +372,8 @@ def build_args(dev_id, variant="dev"):
     img = merged.get("image", {})
     uboot_repo = bc.get("uboot", {}).get("repo", "") or ""
     tfa_repo = bc.get("tfa", {}).get("repo", "") or ""
+    kernel_repo = k.get("repo", "") or ""
+    canonical_kernel_sha = sha(kernel_repo)
     canonical_uboot_sha = sha(uboot_repo)
     # A profile pin selects a revision of the declared, canonically pinned source;
     # it must never make a missing repo or missing normal pin look complete to the
@@ -380,6 +382,12 @@ def build_args(dev_id, variant="dev"):
         lock["profile_pins"].get(dev_id, {}).get("uboot", canonical_uboot_sha)
         if canonical_uboot_sha else ""
     )
+    kernel_sha = (
+        lock["profile_pins"].get(dev_id, {}).get("kernel", canonical_kernel_sha)
+        if canonical_kernel_sha else ""
+    )
+    gpu_km_repo = gpu.get("km_repo", gpu.get("repo", "")) or ""
+    gpu_km_sha = kernel_sha if gpu_km_repo == kernel_repo else sha(gpu_km_repo)
 
     args = {
         "PF_DEVICE_ID": dev.get("id", ""),
@@ -392,7 +400,7 @@ def build_args(dev_id, variant="dev"):
         "PF_SOC": dev.get("soc", ""),
         "PF_KERNEL_REPO": k.get("repo", ""),
         "PF_KERNEL_REF": k.get("ref", ""),
-        "PF_KERNEL_SHA": sha(k.get("repo")),
+        "PF_KERNEL_SHA": kernel_sha,
         "PF_KERNEL_DEFCONFIG": k.get("defconfig", ""),
         "PF_KERNEL_DTB": k.get("dtb", ""),
         "PF_KERNEL_REQUIRED_MODULES": " ".join(k.get("required_modules", []) or []),
@@ -403,9 +411,9 @@ def build_args(dev_id, variant="dev"):
         "PF_GPU_MODULES": " ".join(gpu.get("modules", []) or []),
         "PF_DISPLAY_PIPELINE": display.get("pipeline", ""),
         "PF_GPU_KM_MODEL": gpu.get("km_model", "out-of-tree-ddk"),
-        "PF_GPU_KM_REPO": gpu.get("km_repo", gpu.get("repo", "")),
+        "PF_GPU_KM_REPO": gpu_km_repo,
         "PF_GPU_KM_REF": gpu.get("km_ref", gpu.get("ref", "")),
-        "PF_GPU_KM_SHA": sha(gpu.get("km_repo", gpu.get("repo"))),
+        "PF_GPU_KM_SHA": gpu_km_sha,
         "PF_GPU_UM_REPO": gpu.get("um_repo", ""),
         "PF_GPU_UM_REF": gpu.get("um_ref", ""),
         "PF_GPU_UM_SHA": sha(gpu.get("um_repo")),

@@ -2,15 +2,17 @@
 
 ## Selected boot chain
 
-Both `a133-open-7x-gpu` and the diagnostic `a133-open-7x-gpu-spl-trace` profile select this existing source-owned path:
+The `a133-open-7x-gpu`, `a133-open-7x-gpu-spl-trace`, and
+`a133-open-7x-gpu-noradio` profiles select this existing source-owned path:
 
 `BROM -> owned SPL @ 0x20000 -> owned U-Boot -> source-built TF-A BL31 -> booti Image/dtb.bin/initrd.gz from FAT mmc 0:4 -> Linux`
 
-Their shared profile contract is `sunxi-spl-uboot` / `sunxi-spl-booti`, TF-A `PLAT=sun50i_a133`, and `spl_offset_kib=128`. The normal `a133-open-7x-gpu` profile uses U-Boot `tg5040_defconfig`; the diagnostic `a133-open-7x-gpu-spl-trace` profile uses `tg5040_mmc_trace_defconfig`. The inherited `sunxi-a133-boot-chain` blob group remains present for the existing inert vendor slots and layout. It is not the selected boot path. The minimal `a133-open-7x` profile and every default profile retain the vendor boot chain.
+Their shared profile contract is `sunxi-spl-uboot` / `sunxi-spl-booti`, TF-A `PLAT=sun50i_a133`, and `spl_offset_kib=128`. The normal and no-radio profiles use U-Boot `tg5040_defconfig`; the SPL-trace profile uses `tg5040_mmc_trace_defconfig`. The no-radio profile changes only the Linux source revision and selected DTB: its DTB disables MMC1, its Wi-Fi power sequence, and the XR829 Bluetooth UART path. The inherited `sunxi-a133-boot-chain` blob group remains present for the existing inert vendor slots and layout. It is not the selected boot path. The minimal `a133-open-7x` profile and every default profile retain the vendor boot chain.
 
 ## Exact source pins
 
 - Linux 7: `kernel-sunxi-7.x` at `bbfce0312a69662afa013a5276afa3bd4b513dba`.
+- Linux 7 for `a133-open-7x-gpu-noradio`: a lock-owned profile pin at `0a475ab54c04101a06d0c48c95a0e3cf5d778c05`, the reviewed child of the normal pin that adds only the diagnostic DTB target and its semantic-diff checker.
 - U-Boot for the normal `a133-open-7x-gpu` profile: `u-boot-tsp-a133` at the canonical repository pin `dfcc77739aa647fa195abd2e01d9fab6b2633474` (u-boot#48: kernel `0x44000000`, FDT `0x49000000`, initrd `0x4b000000`; previously `1bc129ad26229bfe6037cf038c3d087a2450a18c`).
 - U-Boot for the diagnostic `a133-open-7x-gpu-spl-trace` profile: the same real `u-boot-tsp-a133` repository, selected by a lock-owned profile pin equal to the canonical pin `dfcc77739aa647fa195abd2e01d9fab6b2633474`, which contains the merged CLDO3 SD-boot gate and applies the u-boot#48 layout to `tg5040_mmc_trace_defconfig` as well.
 - TF-A: `tfa-tsp-a133` at `199316464722231e1a818e0d3f927be9c0fc2798`.
