@@ -11,7 +11,7 @@ Their shared profile contract is `sunxi-spl-uboot` / `sunxi-spl-booti`, TF-A `PL
 ## Exact source pins
 
 - Linux 7: `kernel-sunxi-7.x` at `431ceb2113691a921b4e9a22640a138fbfadd070`.
-- U-Boot for the normal `a133-open-7x-gpu` profile: `u-boot-tsp-a133` at the canonical repository pin `c7595dcf4edb28abfed2ba9e377a4a350cd0a53b`.
+- U-Boot for the normal `a133-open-7x-gpu` profile: `u-boot-tsp-a133` at the canonical repository pin `1bc129ad26229bfe6037cf038c3d087a2450a18c`.
 - U-Boot for the diagnostic `a133-open-7x-gpu-spl-trace` profile: the same real `u-boot-tsp-a133` repository, selected by a lock-owned profile pin at merged CLDO3 SD-boot gate commit `1bc129ad26229bfe6037cf038c3d087a2450a18c`. No repository alias or global pin move is involved.
 - TF-A: `tfa-tsp-a133` at `199316464722231e1a818e0d3f927be9c0fc2798`.
 - Image source selected for publication: `3c990a208fbc5a91649c8c36adc993aa62ebe7af`. The start-head image pin `00ab25c8d6900d46ba8e04e9dfd795ba8083a224` contains the same owned-bootchain implementation; `build/Dockerfile.pf` and `scripts/build-sd-image.sh` are byte-identical between those commits.

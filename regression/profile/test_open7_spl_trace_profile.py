@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 TRACE_DEVICE = "a133-open-7x-gpu-spl-trace"
-NORMAL_UBOOT_SHA = "c7595dcf4edb28abfed2ba9e377a4a350cd0a53b"
+NORMAL_UBOOT_SHA = "1bc129ad26229bfe6037cf038c3d087a2450a18c"
 TRACE_UBOOT_SHA = "1bc129ad26229bfe6037cf038c3d087a2450a18c"
 
 
@@ -98,7 +98,6 @@ class Open7SplTraceProfileTest(unittest.TestCase):
             differences(normal_args, trace_args),
             {
                 "PF_DEVICE_ID": (NORMAL_DEVICE, TRACE_DEVICE),
-                "PF_UBOOT_SHA": (NORMAL_UBOOT_SHA, TRACE_UBOOT_SHA),
                 "PF_UBOOT_DEFCONFIG": (
                     "tg5040_defconfig",
                     "tg5040_mmc_trace_defconfig",
