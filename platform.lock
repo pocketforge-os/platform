@@ -40,10 +40,9 @@ release_pub_key         = "RWQoxeia9PBYyeMA93KCQALv/JTDLQGFVM7VDzjGcdidk5nhUP+3i
 release_pub_source      = "github.com/pocketforge-os/infra/trust/minisign.pub"
 manifest_signing_active = false
 
-# Profile-scoped source exceptions remain lock-owned without changing the canonical
-# repo identity or its normal pin. The diagnostic SPL trace profile alone consumes
-# the merged CLDO3 SD-boot gate; every other u-boot-tsp-a133 consumer stays on the
-# [[repos]] SHA below.
+# Profile-scoped source exceptions remain lock-owned independently. The diagnostic
+# SPL trace override now equals the canonical [[repos]] pin, and remains explicit
+# so future canonical moves do not silently change the trace profile.
 [profile_pins.a133-open-7x-gpu-spl-trace]
 uboot = "1bc129ad26229bfe6037cf038c3d087a2450a18c"
 
@@ -358,11 +357,11 @@ ref  = "main"
 sha  = "deaba081685170ffff0aec9f7a260ad1586840fe"
 
 [[repos]]
-name = "u-boot-tsp-a133"      # owned A133 mainline U-Boot SPL+proper (TG5040 fork of v2025.10); tsp-147u.13.
+name = "u-boot-tsp-a133"      # owned A133 mainline U-Boot SPL+proper (TG5040 fork of v2025.10); tsp-147u.13. Cold-boot receipt: u-boot#47 / tsp-mc9m.60.26.22 reaches Linux 7.2 login with zero kernel faults.
 url  = "https://github.com/pocketforge-os/u-boot-tsp-a133.git"   # replaces vendor boot0 @0x20000 for the
 ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#42 adds a guarded
                               # tg5040_mmc_trace_defconfig while preserving normal tg5040_defconfig.
-sha  = "c7595dcf4edb28abfed2ba9e377a4a350cd0a53b"
+sha  = "1bc129ad26229bfe6037cf038c3d087a2450a18c"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
