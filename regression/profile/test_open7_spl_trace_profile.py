@@ -17,7 +17,7 @@ spec.loader.exec_module(profile)
 NORMAL_DEVICE = "a133-open-7x-gpu"
 TRACE_DEVICE = "a133-open-7x-gpu-spl-trace"
 NORMAL_UBOOT_SHA = "c7595dcf4edb28abfed2ba9e377a4a350cd0a53b"
-TRACE_UBOOT_SHA = "24dc8bc36df2dec95fa94b5ca2e0ad48881d06c0"
+TRACE_UBOOT_SHA = "1bc129ad26229bfe6037cf038c3d087a2450a18c"
 
 
 def flatten(value: Any, prefix: str = "") -> dict[str, Any]:
