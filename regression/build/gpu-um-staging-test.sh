@@ -38,15 +38,17 @@ sha="$(git -C "$tmp/home/gpu-um-tsp" rev-parse HEAD)"
 for repo in image libsdl3-sunxifb wpa-supplicant-tsp runtime sim pf-hwprobe blobs vendor-manifest launcher recovery; do
     ln -s gpu-um-tsp "$tmp/home/$repo"
 done
-common_args=$'PF_IMAGE_SHA='"$sha"$'\nPF_KERNEL_REPO=none\nPF_KERNEL_SHA=\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_LIBSDL3_SHA='"$sha"$'\nPF_WPA_SHA='"$sha"$'\nPF_RUNTIME_SHA='"$sha"$'\nPF_SIM_SHA='"$sha"$'\nPF_HWPROBE_SHA='"$sha"$'\nPF_BLOBS_SHA='"$sha"$'\nPF_VENDOR_MANIFEST_SHA='"$sha"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
+common_args=$'PF_IMAGE_SHA='"$sha"$'\nPF_KERNEL_REPO=gpu-um-tsp\nPF_KERNEL_SHA='"$sha"$'\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_LIBSDL3_SHA='"$sha"$'\nPF_WPA_SHA='"$sha"$'\nPF_RUNTIME_SHA='"$sha"$'\nPF_SIM_SHA='"$sha"$'\nPF_HWPROBE_SHA='"$sha"$'\nPF_BLOBS_SHA='"$sha"$'\nPF_VENDOR_MANIFEST_SHA='"$sha"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
 
 HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" VARIANT=dev pf_stage_sources "$tmp/open" \
     "$common_args"$'\nPF_GPU_MODEL=open\nPF_GPU_UM_REPO=gpu-um-tsp\nPF_GPU_UM_SHA='"$sha"$'\nPF_LAUNCHER_REPO=launcher\nPF_LAUNCHER_SHA='"$sha"$'\nPF_RECOVERY_REPO=recovery\nPF_RECOVERY_SHA='"$sha"
 test "$(cat "$tmp/open/gpu-um/README")" = 'open mesa'
+test "$(cat "$tmp/open/kernel/.pf-source-revision")" = "$sha"
 
 HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" VARIANT=dev pf_stage_sources "$tmp/closed" \
     "$common_args"$'\nPF_GPU_MODEL=ddk\nPF_GPU_UM_REPO=\nPF_GPU_UM_SHA='
 test ! -e "$tmp/closed/gpu-um"
+test "$(cat "$tmp/closed/kernel/.pf-source-revision")" = "$sha"
 
 # Required open UM must fail even when partial staging is explicitly allowed.
 if ( HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" PF_STAGE_ALLOW_MISSING=1 VARIANT=dev \
@@ -56,4 +58,4 @@ if ( HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" PF_STAGE_ALLOW_MISSING=1 VARI
     exit 1
 fi
 
-echo 'PASS: open GPU UM staging is conditional and fail-closed'
+echo 'PASS: source staging is pinned, kernel receipt is exact, and open GPU UM is fail-closed'
