@@ -12,6 +12,42 @@ trap 'find "$TMP" -depth -delete' EXIT
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 has() { grep -Fq -- "$2" "$1" || { sed -n '1,160p' "$1" >&2; fail "$3"; }; }
 
+write_build_manifest() {
+    local tree="$1" bead="$2" start_delta="$3"
+    mkdir -p "$tree"
+    python3 - "$tree/.pf-build-tree.json" "$bead" "$start_delta" <<'PY'
+import json
+import os
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+bead = sys.argv[2]
+pid = os.getppid()
+boot_id = Path("/proc/sys/kernel/random/boot_id").read_text(encoding="ascii").strip()
+stat_tail = Path(f"/proc/{pid}/stat").read_text(encoding="ascii").rpartition(") ")[2]
+start_ticks = int(stat_tail.split()[19]) + int(sys.argv[3])
+manifest = {
+    "schema": "pocketforge.build-tree/v1",
+    "bead": bead,
+    "device": "a133",
+    "host": "hermetic-test",
+    "created_utc": "2026-09-27T00:00:00Z",
+    "producer": "build-owned-image.sh",
+    "producer_version": 4,
+    "state": "running",
+    "owner": {
+        "pid": pid,
+        "boot_id": boot_id,
+        "start_ticks": start_ticks,
+    },
+    "artifacts": [],
+    "remote_log": "/tmp/hermetic-build.log",
+}
+path.write_text(json.dumps(manifest, sort_keys=True) + "\n", encoding="utf-8")
+PY
+}
+
 # Ordinary build staging is part of the already manifest-owned #1045 tree. Its
 # success reduction and max-failed enforcement therefore own src and cache too;
 # no per-bead sibling namespace may remain.
@@ -24,6 +60,101 @@ fi
 grep -F 'STAGE_TREE_ROOT="${PF_STAGE_TREE_ROOT:-/tmp/pf-stage-only}"' \
     "$BUILD" >/dev/null || fail 'stage-only fixed producer namespace is not explicit'
 grep -F 'pf-stage-tree.py' "$BUILD" >/dev/null || fail 'stage-only does not use its owner helper'
+
+# Ordinary staging is admitted only under an exact, live, manifest-owned #1045
+# namespace. Legacy, malformed, dead-owner, and symlinked candidates are
+# report-only and remain byte-for-byte untouched.
+build_root="$TMP/build-tree"
+mkdir -p "$build_root"
+live_tree="$build_root/live-bead/a133"
+write_build_manifest "$live_tree" live-bead 0
+python3 "$HELPER" require-build-tree --root "$build_root" --tree "$live_tree" \
+    --producer pf-build.sh --bead live-bead --device a133 > "$TMP/live-owner.out"
+has "$TMP/live-owner.out" \
+    "BUILD_TREE_OWNERSHIP producer=build-owned-image.sh device=a133 bead=live-bead state=running path=$live_tree" \
+    'live manifest-owned build tree was not admitted'
+
+legacy_build="$build_root/legacy-bead/a133"
+mkdir -p "$legacy_build"
+printf 'legacy source\n' > "$legacy_build/keep"
+if python3 "$HELPER" require-build-tree --root "$build_root" --tree "$legacy_build" \
+    --producer pf-build.sh --bead legacy-bead --device a133 \
+    > "$TMP/legacy-build.out" 2>&1; then
+    fail 'unmanifested ordinary build tree was adopted'
+fi
+has "$TMP/legacy-build.out" 'keep_reason=legacy_no_manifest' \
+    'ordinary legacy refusal missing'
+[ "$(cat "$legacy_build/keep")" = 'legacy source' ] \
+    || fail 'ordinary legacy bytes changed'
+
+malformed_build="$build_root/malformed-bead/a133"
+mkdir -p "$malformed_build"
+printf '{"schema":"pocketforge.build-tree/v1"}\n' \
+    > "$malformed_build/.pf-build-tree.json"
+malformed_build_before="$(sha256sum "$malformed_build/.pf-build-tree.json")"
+if python3 "$HELPER" require-build-tree --root "$build_root" --tree "$malformed_build" \
+    --producer pf-build.sh --bead malformed-bead --device a133 \
+    > "$TMP/malformed-build.out" 2>&1; then
+    fail 'malformed ordinary build manifest was accepted'
+fi
+has "$TMP/malformed-build.out" 'keep_reason=invalid_manifest' \
+    'ordinary malformed-manifest refusal missing'
+[ "$(sha256sum "$malformed_build/.pf-build-tree.json")" = "$malformed_build_before" ] \
+    || fail 'ordinary malformed manifest changed'
+
+dead_tree="$build_root/dead-bead/a133"
+write_build_manifest "$dead_tree" dead-bead 1
+dead_before="$(sha256sum "$dead_tree/.pf-build-tree.json")"
+if python3 "$HELPER" require-build-tree --root "$build_root" --tree "$dead_tree" \
+    --producer pf-build.sh --bead dead-bead --device a133 \
+    > "$TMP/dead-owner.out" 2>&1; then
+    fail 'dead-owner ordinary build tree was accepted'
+fi
+has "$TMP/dead-owner.out" 'keep_reason=owner_not_live' \
+    'ordinary dead-owner refusal missing'
+[ "$(sha256sum "$dead_tree/.pf-build-tree.json")" = "$dead_before" ] \
+    || fail 'dead-owner manifest changed'
+
+mkdir -p "$TMP/build-external" "$build_root/symlink-bead"
+printf 'external ordinary source\n' > "$TMP/build-external/keep"
+ln -s "$TMP/build-external" "$build_root/symlink-bead/a133"
+if python3 "$HELPER" require-build-tree --root "$build_root" \
+    --tree "$build_root/symlink-bead/a133" --producer pf-build.sh \
+    --bead symlink-bead --device a133 > "$TMP/symlink-build.out" 2>&1; then
+    fail 'symlinked ordinary build tree was accepted'
+fi
+has "$TMP/symlink-build.out" 'keep_reason=symlink_escape' \
+    'ordinary symlink refusal missing'
+[ "$(cat "$TMP/build-external/keep")" = 'external ordinary source' ] \
+    || fail 'ordinary symlink target changed'
+
+# An explicit one-shot caller contract is bounded to one pre-created empty
+# directory and may never claim a managed-tree path or overwrite caller bytes.
+caller_tree="$TMP/caller-temporary"
+mkdir -p "$caller_tree"
+python3 "$HELPER" require-caller-temporary --root "$build_root" --tree "$caller_tree" \
+    --producer pf-build.sh --bead caller-bead --device a133 > "$TMP/caller.out"
+has "$TMP/caller.out" \
+    "CALLER_TEMP_BOUND producer=pf-build.sh device=a133 max_active=1 active=1 bead=caller-bead path=$caller_tree" \
+    'caller-temporary bound is missing'
+printf 'caller-owned\n' > "$caller_tree/keep"
+caller_before="$(sha256sum "$caller_tree/keep")"
+if python3 "$HELPER" require-caller-temporary --root "$build_root" --tree "$caller_tree" \
+    --producer pf-build.sh --bead caller-bead --device a133 \
+    > "$TMP/caller-nonempty.out" 2>&1; then
+    fail 'nonempty caller-temporary directory was accepted'
+fi
+has "$TMP/caller-nonempty.out" 'keep_reason=caller_temporary_not_empty' \
+    'nonempty caller-temporary refusal missing'
+[ "$(sha256sum "$caller_tree/keep")" = "$caller_before" ] \
+    || fail 'caller-owned bytes changed'
+if python3 "$HELPER" require-caller-temporary --root "$build_root" --tree "$live_tree" \
+    --producer pf-build.sh --bead live-bead --device a133 \
+    > "$TMP/caller-managed.out" 2>&1; then
+    fail 'managed build namespace was accepted as caller-temporary'
+fi
+has "$TMP/caller-managed.out" 'keep_reason=managed_namespace_requires_manifest' \
+    'caller contract did not reject a managed namespace'
 
 # One fixed device slot is the printed bound. Completion retains it for its
 # consumer; a later bead is refused without replacing any byte.
