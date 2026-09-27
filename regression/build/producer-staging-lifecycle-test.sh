@@ -130,6 +130,8 @@ has "$TMP/symlink-build.out" 'keep_reason=symlink_escape' \
 
 # An explicit one-shot caller contract is bounded to one pre-created empty
 # directory and may never claim a managed-tree path or overwrite caller bytes.
+# Admission creates an exclusive live-owner reservation, and only that owner can
+# release it after its staging/build lifetime.
 caller_tree="$TMP/caller-temporary"
 mkdir -p "$caller_tree"
 python3 "$HELPER" require-caller-temporary --root "$build_root" --tree "$caller_tree" \
@@ -137,17 +139,53 @@ python3 "$HELPER" require-caller-temporary --root "$build_root" --tree "$caller_
 has "$TMP/caller.out" \
     "CALLER_TEMP_BOUND producer=pf-build.sh device=a133 max_active=1 active=1 bead=caller-bead path=$caller_tree" \
     'caller-temporary bound is missing'
+python3 - "$caller_tree/.pf-caller-temporary.json" "$caller_tree" "$build_root" <<'PY'
+import json
+import os
+from pathlib import Path
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as stream:
+    manifest = json.load(stream)
+assert manifest["schema"] == "pocketforge.caller-temporary/v1"
+assert manifest["producer"] == "pf-build.sh"
+assert manifest["bead"] == "caller-bead"
+assert manifest["device"] == "a133"
+assert manifest["root"] == sys.argv[3]
+assert manifest["tree"] == sys.argv[2]
+assert manifest["state"] == "active"
+assert manifest["owner_pid"] == os.getppid()
+assert manifest["owner_boot_id"] == Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+assert isinstance(manifest["owner_start_ticks"], int)
+assert manifest["owner_start_ticks"] > 0
+PY
 printf 'caller-owned\n' > "$caller_tree/keep"
 caller_before="$(sha256sum "$caller_tree/keep")"
 if python3 "$HELPER" require-caller-temporary --root "$build_root" --tree "$caller_tree" \
     --producer pf-build.sh --bead caller-bead --device a133 \
     > "$TMP/caller-nonempty.out" 2>&1; then
-    fail 'nonempty caller-temporary directory was accepted'
+    fail 'live caller-temporary reservation was accepted twice'
 fi
-has "$TMP/caller-nonempty.out" 'keep_reason=caller_temporary_not_empty' \
-    'nonempty caller-temporary refusal missing'
+has "$TMP/caller-nonempty.out" 'keep_reason=caller_temporary_active' \
+    'live caller-temporary refusal missing'
 [ "$(sha256sum "$caller_tree/keep")" = "$caller_before" ] \
     || fail 'caller-owned bytes changed'
+python3 "$HELPER" release-caller-temporary --root "$build_root" --tree "$caller_tree" \
+    --producer pf-build.sh --bead caller-bead --device a133 > "$TMP/caller-release.out"
+has "$TMP/caller-release.out" \
+    "CALLER_TEMP_RELEASE producer=pf-build.sh device=a133 max_active=1 active=0 bead=caller-bead path=$caller_tree" \
+    'caller-temporary release bound is missing'
+[ ! -e "$caller_tree/.pf-caller-temporary.json" ] \
+    || fail 'caller-temporary reservation survived owner release'
+[ "$(sha256sum "$caller_tree/keep")" = "$caller_before" ] \
+    || fail 'caller-owned bytes changed during release'
+if python3 "$HELPER" require-caller-temporary --root "$build_root" --tree "$caller_tree" \
+    --producer pf-build.sh --bead caller-after-release --device a133 \
+    > "$TMP/caller-nonempty.out" 2>&1; then
+    fail 'nonempty released caller-temporary directory was accepted'
+fi
+has "$TMP/caller-nonempty.out" 'keep_reason=caller_temporary_not_empty' \
+    'nonempty released caller-temporary refusal missing'
 if python3 "$HELPER" require-caller-temporary --root "$build_root" --tree "$live_tree" \
     --producer pf-build.sh --bead live-bead --device a133 \
     > "$TMP/caller-managed.out" 2>&1; then
@@ -155,6 +193,127 @@ if python3 "$HELPER" require-caller-temporary --root "$build_root" --tree "$live
 fi
 has "$TMP/caller-managed.out" 'keep_reason=managed_namespace_requires_manifest' \
     'caller contract did not reject a managed namespace'
+
+# Two callers cross one deterministic barrier and contend for the same empty
+# directory. Exactly one atomic claim wins; the loser cannot add or replace a
+# byte, and the winner's explicit release admits a later caller.
+concurrent_tree="$TMP/caller-concurrent"
+gate_fifo="$TMP/caller-gate.fifo"
+result_fifo="$TMP/caller-result.fifo"
+release_a_fifo="$TMP/caller-release-a.fifo"
+release_b_fifo="$TMP/caller-release-b.fifo"
+mkdir -p "$concurrent_tree"
+mkfifo "$gate_fifo" "$result_fifo" "$release_a_fifo" "$release_b_fifo"
+exec 8<> "$gate_fifo"
+exec 9<> "$result_fifo"
+
+caller_worker() {
+    local bead="$1" output="$2" release_fifo="$3" rc
+    IFS= read -r _ <&8
+    set +e
+    python3 "$HELPER" require-caller-temporary --root "$build_root" \
+        --tree "$concurrent_tree" --producer pf-build.sh --bead "$bead" \
+        --device a133 > "$output" 2>&1
+    rc=$?
+    set -e
+    printf '%s %s\n' "$bead" "$rc" >&9
+    if [ "$rc" -eq 0 ]; then
+        IFS= read -r _ < "$release_fifo"
+        python3 "$HELPER" release-caller-temporary --root "$build_root" \
+            --tree "$concurrent_tree" --producer pf-build.sh --bead "$bead" \
+            --device a133 >> "$output" 2>&1
+    fi
+}
+
+caller_worker caller-a "$TMP/caller-a.out" "$release_a_fifo" &
+caller_a_pid=$!
+caller_worker caller-b "$TMP/caller-b.out" "$release_b_fifo" &
+caller_b_pid=$!
+printf 'go\ngo\n' >&8
+read -r result_one_bead result_one_rc <&9
+read -r result_two_bead result_two_rc <&9
+
+if [ "$result_one_rc" -eq 0 ] && [ "$result_two_rc" -ne 0 ]; then
+    winner="$result_one_bead"
+    loser="$result_two_bead"
+elif [ "$result_two_rc" -eq 0 ] && [ "$result_one_rc" -ne 0 ]; then
+    winner="$result_two_bead"
+    loser="$result_one_bead"
+else
+    fail "concurrent caller admission did not produce exactly one winner ($result_one_bead=$result_one_rc $result_two_bead=$result_two_rc)"
+fi
+has "$TMP/$loser.out" 'keep_reason=caller_temporary_active' \
+    'concurrent caller loser did not refuse the live owner'
+[ "$(find "$concurrent_tree" -mindepth 1 -maxdepth 1 | wc -l)" -eq 1 ] \
+    || fail 'concurrent caller loser mutated the claimed tree'
+python3 - "$concurrent_tree/.pf-caller-temporary.json" "$winner" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as stream:
+    manifest = json.load(stream)
+assert manifest["bead"] == sys.argv[2]
+assert manifest["state"] == "active"
+PY
+if [ "$winner" = caller-a ]; then
+    printf 'release\n' > "$release_a_fifo"
+else
+    printf 'release\n' > "$release_b_fifo"
+fi
+wait "$caller_a_pid"
+wait "$caller_b_pid"
+[ -z "$(find "$concurrent_tree" -mindepth 1 -maxdepth 1 -print -quit)" ] \
+    || fail 'winner release left caller-temporary reservation bytes'
+python3 "$HELPER" require-caller-temporary --root "$build_root" \
+    --tree "$concurrent_tree" --producer pf-build.sh --bead caller-later \
+    --device a133 > "$TMP/caller-later.out"
+python3 "$HELPER" release-caller-temporary --root "$build_root" \
+    --tree "$concurrent_tree" --producer pf-build.sh --bead caller-later \
+    --device a133 > "$TMP/caller-later-release.out"
+has "$TMP/caller-later.out" 'max_active=1 active=1 bead=caller-later' \
+    'later caller was not admitted after winner release'
+exec 8>&-
+exec 9>&-
+
+# Malformed and dead-owner reservations are proof failures, never cleanup
+# invitations. Both stay byte-for-byte unchanged and block admission.
+malformed_caller="$TMP/caller-malformed"
+mkdir -p "$malformed_caller"
+printf '{"schema":"pocketforge.caller-temporary/v1"}\n' \
+    > "$malformed_caller/.pf-caller-temporary.json"
+malformed_caller_before="$(sha256sum "$malformed_caller/.pf-caller-temporary.json")"
+if python3 "$HELPER" require-caller-temporary --root "$build_root" \
+    --tree "$malformed_caller" --producer pf-build.sh --bead malformed-caller \
+    --device a133 > "$TMP/malformed-caller.out" 2>&1; then
+    fail 'malformed caller-temporary reservation was accepted'
+fi
+has "$TMP/malformed-caller.out" 'keep_reason=invalid_manifest' \
+    'malformed caller-temporary refusal missing'
+[ "$(sha256sum "$malformed_caller/.pf-caller-temporary.json")" = "$malformed_caller_before" ] \
+    || fail 'malformed caller-temporary reservation changed'
+
+dead_caller="$TMP/caller-dead"
+mkdir -p "$dead_caller"
+python3 "$HELPER" require-caller-temporary --root "$build_root" --tree "$dead_caller" \
+    --producer pf-build.sh --bead dead-caller --device a133 > "$TMP/dead-caller-start.out"
+python3 - "$dead_caller/.pf-caller-temporary.json" <<'PY'
+import json
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+manifest = json.loads(path.read_text(encoding="utf-8"))
+manifest["owner_start_ticks"] += 1
+path.write_text(json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8")
+PY
+dead_caller_before="$(sha256sum "$dead_caller/.pf-caller-temporary.json")"
+if python3 "$HELPER" require-caller-temporary --root "$build_root" \
+    --tree "$dead_caller" --producer pf-build.sh --bead another-caller \
+    --device a133 > "$TMP/dead-caller.out" 2>&1; then
+    fail 'dead-owner caller-temporary reservation was accepted'
+fi
+has "$TMP/dead-caller.out" 'keep_reason=owner_not_live' \
+    'dead-owner caller-temporary refusal missing'
+[ "$(sha256sum "$dead_caller/.pf-caller-temporary.json")" = "$dead_caller_before" ] \
+    || fail 'dead-owner caller-temporary reservation changed'
 
 # One fixed device slot is the printed bound. Completion retains it for its
 # consumer; a later bead is refused without replacing any byte.

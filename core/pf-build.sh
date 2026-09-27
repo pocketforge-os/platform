@@ -62,6 +62,7 @@ pf_load_env "$DEVICE"
 PF_BUILD_TREE_ROOT="${PF_BUILD_TREE_ROOT:-/tmp/pf-build}"
 PF_OUT_DIR="${PF_OUT_DIR:-$PF_BUILD_TREE_ROOT/$BEAD/$DEVICE}"
 PF_OUT_LIFECYCLE="${PF_OUT_LIFECYCLE:-managed}"
+PF_CALLER_TEMP_CLAIMED=0
 STAGE_TREE_ROOT="${PF_STAGE_TREE_ROOT:-/tmp/pf-stage-only}"
 export PF_OUT_DIR PF_OUT_LIFECYCLE PF_BUILD_TREE_ROOT PF_DRY_RUN PF_IMAGE_REPO PF_PLATFORM_DIR PF_BEAD="$BEAD"
 
@@ -218,6 +219,21 @@ pf_stage_sources() {
     done
 }
 
+pf_release_caller_temporary() {
+    local status="$1"
+    trap - EXIT
+    if [ "$PF_CALLER_TEMP_CLAIMED" = 1 ]; then
+        if ! "$PF_PY" "$SCRIPT_DIR/pf-stage-tree.py" release-caller-temporary \
+                --root "$PF_BUILD_TREE_ROOT" --tree "$PF_OUT_DIR" \
+                --producer pf-build.sh --bead "$BEAD" --device "$DEVICE"; then
+            pf_log "ERROR: caller-temporary reservation release failed for $PF_OUT_DIR"
+            [ "$status" -ne 0 ] || status=1
+        fi
+        PF_CALLER_TEMP_CLAIMED=0
+    fi
+    exit "$status"
+}
+
 pf_require_ordinary_tree() {
     local helper="$SCRIPT_DIR/pf-stage-tree.py"
     case "$PF_OUT_LIFECYCLE" in
@@ -230,6 +246,8 @@ pf_require_ordinary_tree() {
             "$PF_PY" "$helper" require-caller-temporary \
                 --root "$PF_BUILD_TREE_ROOT" --tree "$PF_OUT_DIR" \
                 --producer pf-build.sh --bead "$BEAD" --device "$DEVICE"
+            PF_CALLER_TEMP_CLAIMED=1
+            trap 'pf_release_caller_temporary "$?"' EXIT
             ;;
         *)
             pf_die "unknown PF_OUT_LIFECYCLE=$PF_OUT_LIFECYCLE (expected managed|caller-temporary)"

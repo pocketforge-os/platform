@@ -19,6 +19,8 @@ SCHEMA = "pocketforge.stage-tree/v1"
 MANIFEST = ".pf-stage-tree.json"
 BUILD_SCHEMA = "pocketforge.build-tree/v1"
 BUILD_MANIFEST = ".pf-build-tree.json"
+CALLER_SCHEMA = "pocketforge.caller-temporary/v1"
+CALLER_MANIFEST = ".pf-caller-temporary.json"
 TOKEN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 BOOT_ID = re.compile(
@@ -189,6 +191,24 @@ def lock_existing_root(root: Path) -> int:
     return descriptor
 
 
+def lock_existing_tree(tree: Path) -> int:
+    try:
+        mode = os.lstat(tree).st_mode
+    except FileNotFoundError as error:
+        raise Refusal("tree_missing") from error
+    if stat.S_ISLNK(mode):
+        raise Refusal("symlink_escape")
+    if not stat.S_ISDIR(mode):
+        raise Refusal("invalid_tree")
+    flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(tree, flags)
+    except OSError as error:
+        raise Refusal("invalid_tree") from error
+    fcntl.flock(descriptor, fcntl.LOCK_EX)
+    return descriptor
+
+
 def print_bound(args: argparse.Namespace, retained: int) -> None:
     print(
         f"STAGE_TREE_BOUND producer={args.producer} device={args.device} "
@@ -240,6 +260,26 @@ def load_build_manifest(tree: Path) -> dict[str, Any]:
         mode = os.lstat(path).st_mode
     except FileNotFoundError as error:
         raise Refusal("legacy_no_manifest") from error
+    if stat.S_ISLNK(mode):
+        raise Refusal("symlink_escape")
+    if not stat.S_ISREG(mode):
+        raise Refusal("invalid_manifest")
+    try:
+        with path.open(encoding="utf-8") as stream:
+            manifest = json.load(stream)
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise Refusal("invalid_manifest") from error
+    if not isinstance(manifest, dict):
+        raise Refusal("invalid_manifest")
+    return manifest
+
+
+def load_caller_manifest(tree: Path) -> dict[str, Any]:
+    path = tree / CALLER_MANIFEST
+    try:
+        mode = os.lstat(path).st_mode
+    except FileNotFoundError as error:
+        raise Refusal("caller_temporary_not_empty") from error
     if stat.S_ISLNK(mode):
         raise Refusal("symlink_escape")
     if not stat.S_ISREG(mode):
@@ -391,30 +431,134 @@ def command_require_build_tree(
         os.close(descriptor)
 
 
+def validate_caller_manifest(
+    manifest: dict[str, Any], args: argparse.Namespace, root: Path, tree: Path
+) -> None:
+    if (
+        set(manifest)
+        != {
+            "schema",
+            "producer",
+            "bead",
+            "device",
+            "root",
+            "tree",
+            "state",
+            "owner_pid",
+            "owner_boot_id",
+            "owner_start_ticks",
+            "created_utc",
+        }
+        or manifest.get("schema") != CALLER_SCHEMA
+        or manifest.get("producer") != args.producer
+        or manifest.get("device") != args.device
+        or manifest.get("root") != str(root)
+        or manifest.get("tree") != str(tree)
+        or manifest.get("state") != "active"
+        or not isinstance(manifest.get("bead"), str)
+        or not TOKEN.fullmatch(manifest["bead"])
+        or not isinstance(manifest.get("owner_pid"), int)
+        or manifest["owner_pid"] <= 1
+        or not isinstance(manifest.get("owner_boot_id"), str)
+        or not BOOT_ID.fullmatch(manifest["owner_boot_id"])
+        or not isinstance(manifest.get("owner_start_ticks"), int)
+        or manifest["owner_start_ticks"] <= 0
+        or not isinstance(manifest.get("created_utc"), str)
+        or not manifest["created_utc"]
+    ):
+        raise Refusal("invalid_manifest")
+
+    try:
+        current_boot_id = Path("/proc/sys/kernel/random/boot_id").read_text(
+            encoding="ascii"
+        ).strip()
+    except (OSError, UnicodeError) as error:
+        raise Refusal("owner_identity_unavailable") from error
+    if manifest["owner_boot_id"] != current_boot_id:
+        raise Refusal("owner_not_live")
+    if process_start_ticks(manifest["owner_pid"]) != manifest["owner_start_ticks"]:
+        raise Refusal("owner_not_live")
+
+
+def store_caller_manifest(tree: Path, manifest: dict[str, Any]) -> None:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(tree / CALLER_MANIFEST, flags, 0o600)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+        json.dump(manifest, stream, sort_keys=True, separators=(",", ":"))
+        stream.write("\n")
+        stream.flush()
+        os.fsync(stream.fileno())
+
+
 def command_require_caller_temporary(
     args: argparse.Namespace, root: Path, tree: Path
 ) -> int:
-    del root
     reject_symlink_components(tree)
+    owner_pid, owner_boot_id, owner_start_ticks = parent_identity()
+    descriptor = lock_existing_tree(tree)
     try:
-        mode = os.lstat(tree).st_mode
-    except FileNotFoundError as error:
-        raise Refusal("tree_missing") from error
-    if stat.S_ISLNK(mode):
-        raise Refusal("symlink_escape")
-    if not stat.S_ISDIR(mode) or tree.resolve(strict=True) != tree:
-        raise Refusal("invalid_tree")
+        if tree.resolve(strict=True) != tree:
+            raise Refusal("symlink_escape")
+        entries = list(tree.iterdir())
+        if entries:
+            if tree / CALLER_MANIFEST not in entries:
+                raise Refusal("caller_temporary_not_empty")
+            manifest = load_caller_manifest(tree)
+            validate_caller_manifest(manifest, args, root, tree)
+            raise Refusal("caller_temporary_active")
+        store_caller_manifest(
+            tree,
+            {
+                "schema": CALLER_SCHEMA,
+                "producer": args.producer,
+                "bead": args.bead,
+                "device": args.device,
+                "root": str(root),
+                "tree": str(tree),
+                "state": "active",
+                "owner_pid": owner_pid,
+                "owner_boot_id": owner_boot_id,
+                "owner_start_ticks": owner_start_ticks,
+                "created_utc": now(),
+            },
+        )
+        os.fsync(descriptor)
+        print(
+            f"CALLER_TEMP_BOUND producer={args.producer} device={args.device} "
+            f"max_active=1 active=1 bead={args.bead} path={tree}"
+        )
+        return 0
+    finally:
+        os.close(descriptor)
+
+
+def command_release_caller_temporary(
+    args: argparse.Namespace, root: Path, tree: Path
+) -> int:
+    reject_symlink_components(tree)
+    descriptor = lock_existing_tree(tree)
     try:
-        next(tree.iterdir())
-    except StopIteration:
-        pass
-    else:
-        raise Refusal("caller_temporary_not_empty")
-    print(
-        f"CALLER_TEMP_BOUND producer={args.producer} device={args.device} "
-        f"max_active=1 active=1 bead={args.bead} path={tree}"
-    )
-    return 0
+        if tree.resolve(strict=True) != tree:
+            raise Refusal("symlink_escape")
+        manifest = load_caller_manifest(tree)
+        validate_caller_manifest(manifest, args, root, tree)
+        owner_pid, owner_boot_id, owner_start_ticks = parent_identity()
+        if (
+            manifest["bead"] != args.bead
+            or manifest["owner_pid"] != owner_pid
+            or manifest["owner_boot_id"] != owner_boot_id
+            or manifest["owner_start_ticks"] != owner_start_ticks
+        ):
+            raise Refusal("owner_identity_mismatch")
+        os.unlink(tree / CALLER_MANIFEST)
+        os.fsync(descriptor)
+        print(
+            f"CALLER_TEMP_RELEASE producer={args.producer} device={args.device} "
+            f"max_active=1 active=0 bead={args.bead} path={tree}"
+        )
+        return 0
+    finally:
+        os.close(descriptor)
 
 
 def validate_retained_manifest(
@@ -592,7 +736,11 @@ def parse_args() -> argparse.Namespace:
         command.add_argument("--input-sha", required=True)
         if name == "finish":
             command.add_argument("--state", required=True, choices=("success", "failed"))
-    for name in ("require-build-tree", "require-caller-temporary"):
+    for name in (
+        "require-build-tree",
+        "require-caller-temporary",
+        "release-caller-temporary",
+    ):
         command = commands.add_parser(name)
         command.add_argument("--root", required=True)
         command.add_argument("--tree", required=True)
@@ -611,17 +759,28 @@ def main() -> int:
         if args.command == "require-caller-temporary":
             root, tree = validate_caller_temporary_args(args)
             return command_require_caller_temporary(args, root, tree)
+        if args.command == "release-caller-temporary":
+            root, tree = validate_caller_temporary_args(args)
+            return command_release_caller_temporary(args, root, tree)
         root, tree = validate_args(args)
         if args.command == "start":
             return command_start(args, root, tree)
         return command_finish(args, root, tree)
     except Refusal as error:
-        if args.command in {"require-build-tree", "require-caller-temporary"}:
+        if args.command in {
+            "require-build-tree",
+            "require-caller-temporary",
+            "release-caller-temporary",
+        }:
             return refuse_build(args, Path(args.tree), error.reason)
         return refuse(args, Path(args.tree), error.reason)
     except (OSError, ValueError) as error:
         reason = f"io_error_{error.__class__.__name__}"
-        if args.command in {"require-build-tree", "require-caller-temporary"}:
+        if args.command in {
+            "require-build-tree",
+            "require-caller-temporary",
+            "release-caller-temporary",
+        }:
             return refuse_build(args, Path(args.tree), reason)
         return refuse(args, Path(args.tree), reason)
 
