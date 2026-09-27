@@ -190,6 +190,13 @@ pf_stage_sources() {
             || pf_die "stage: SHA $sha absent from $repo after fetch — is platform.lock stale for this repo?"
         dest="$src_dir/$logical"; rm -rf "$dest"; mkdir -p "$dest"
         git --git-dir="$gitdir" archive --format=tar "$sha" | tar -x -C "$dest"
+        # The kernel build consumes PF_KERNEL_SHA as live UTS identity. Carry a
+        # staging receipt from this exact archive operation so the image build
+        # can reject a valid-looking build arg paired with a different tree.
+        # The Dockerfile verifies and removes it before invoking Kbuild.
+        if [ "$logical" = kernel ]; then
+            printf '%s\n' "$sha" > "$dest/.pf-source-revision"
+        fi
         n="$(find "$dest" -type f | wc -l)"
         pf_log "stage: $logical <- $repo@${sha:0:12}  ($n files, src=$gitdir)"
     done
