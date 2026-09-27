@@ -14,7 +14,7 @@ Their shared profile contract is `sunxi-spl-uboot` / `sunxi-spl-booti`, TF-A `PL
 - U-Boot for the normal `a133-open-7x-gpu` profile: `u-boot-tsp-a133` at the canonical repository pin `1bc129ad26229bfe6037cf038c3d087a2450a18c`.
 - U-Boot for the diagnostic `a133-open-7x-gpu-spl-trace` profile: the same real `u-boot-tsp-a133` repository, selected by a lock-owned profile pin equal to the canonical merged CLDO3 SD-boot gate commit `1bc129ad26229bfe6037cf038c3d087a2450a18c`.
 - TF-A: `tfa-tsp-a133` at `199316464722231e1a818e0d3f927be9c0fc2798`.
-- Image source selected for publication: `3c990a208fbc5a91649c8c36adc993aa62ebe7af`. The start-head image pin `00ab25c8d6900d46ba8e04e9dfd795ba8083a224` contains the same owned-bootchain implementation; `build/Dockerfile.pf` and `scripts/build-sd-image.sh` are byte-identical between those commits.
+- Image source pin: `78fc4873def3d114ea9478827c440940548fd684` (image#129: i2c-tools + usbutils in the mainline rootfs package list; `build/Dockerfile.pf` and `scripts/build-sd-image.sh` are byte-identical to `3c990a208fbc5a91649c8c36adc993aa62ebe7af`, the image source of the 2026-09-27 cold-boot acceptance build). Earlier: image source selected for publication `3c990a208fbc5a91649c8c36adc993aa62ebe7af`. The start-head image pin `00ab25c8d6900d46ba8e04e9dfd795ba8083a224` contains the same owned-bootchain implementation; `build/Dockerfile.pf` and `scripts/build-sd-image.sh` are byte-identical between those commits.
 
 ## Evidence limits
 
