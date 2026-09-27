@@ -287,7 +287,14 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.60.26.7 publication: PR #24 contains the merged
+name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.33: device/a133 4ad0fd0a = #24 plus thermal
+                               # critical trips #27 (0ef9a38b), XR829 Bluetooth serdev #26
+                               # (9e22964d), xradio WiFi driver #25 (d3cdcb2b; its DTS/defconfig
+                               # enablement is a later pin), USB host roles #28 (e1c8e85f) and
+                               # A100 LRADC #30 (4ad0fd0a). Merged-push CI: run 36319778142
+                               # (job 108621252260), `build` check on this exact sha.
+                               # Prior (431ceb2113691a921b4e9a22640a138fbfadd070):
+                               # tsp-mc9m.60.26.7 publication: PR #24 contains the merged
                                # kernel7 GPU and cooling repair. Accepted merged-push CI run
                                # 36213648048 (job 108325173529) built Image/modules/powervr.ko
                                # with vermagic and module-inventory checks, all 4 DTBs including
@@ -312,7 +319,7 @@ name = "kernel-sunxi-7.x"    # tsp-mc9m.60.26.7 publication: PR #24 contains the
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "431ceb2113691a921b4e9a22640a138fbfadd070"
+sha  = "4ad0fd0a22b95b4f64398faec7203eccd0abdd8c"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
