@@ -121,7 +121,7 @@ the minimal sibling still provides the cheap boot/storage regression lane.
   rendering evidence exists.  The 7.x driver's `exp_hw_support=1` parameter only
   admits this unmaintained BVNC; it is not compatibility evidence.
 - The profile pins the accepted merged PR #24 GPU and cooling repair source, and the live platform lock
-  now publishes merged image PR #127 and merged SDL PR #20.  Full-image artifact
+  now publishes merged image PR #129 and merged SDL PR #20.  Full-image artifact
   provenance and device/runtime acceptance remain separate release-owner gates.
 - No current device receipt was found that visually accepts launcher PR #141 on
   the 6.x lane.  If such a receipt exists outside the repositories inspected
