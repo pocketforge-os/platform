@@ -287,7 +287,14 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.33: device/a133 4ad0fd0a = #24 plus thermal
+name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.37: device/a133 6d86d65e = 4ad0fd0a plus A133
+                               # Cedrus video engine #32 (309dd379) and the USB VBUS back-drive
+                               # guard #34 (6d86d65e: usb_power label, phy usb0_vbus_power-supply,
+                               # USB_MUSB_SUNXI + NOP_USB_XCEIV; P1 tsp-mc9m.41.923.35).
+                               # Merged-push CI: run 36327978946 (job 108644322255), `build`
+                               # check on this exact sha.
+                               # Prior (4ad0fd0a22b95b4f64398faec7203eccd0abdd8c):
+                               # tsp-mc9m.41.923.33: device/a133 4ad0fd0a = #24 plus thermal
                                # critical trips #27 (0ef9a38b), XR829 Bluetooth serdev #26
                                # (9e22964d), xradio WiFi driver #25 (d3cdcb2b; its DTS/defconfig
                                # enablement is a later pin), USB host roles #28 (e1c8e85f) and
@@ -319,7 +326,7 @@ name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.33: device/a133 4ad0fd0a = #24 pl
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "4ad0fd0a22b95b4f64398faec7203eccd0abdd8c"
+sha  = "6d86d65efaa275eb18c810c531c19ec6249d85b5"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
