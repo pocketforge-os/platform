@@ -42,10 +42,10 @@ manifest_signing_active = false
 
 # Profile-scoped source exceptions remain lock-owned without changing the canonical
 # repo identity or its normal pin. The diagnostic SPL trace profile alone consumes
-# the merged immediate R2/cached SCR trace; every other u-boot-tsp-a133 consumer stays on the
+# the merged CLDO3 SD-boot gate; every other u-boot-tsp-a133 consumer stays on the
 # [[repos]] SHA below.
 [profile_pins.a133-open-7x-gpu-spl-trace]
-uboot = "24dc8bc36df2dec95fa94b5ca2e0ad48881d06c0"
+uboot = "1bc129ad26229bfe6037cf038c3d087a2450a18c"
 
 [[repos]]
 name = "image"
