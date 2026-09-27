@@ -64,12 +64,18 @@ python3 "$HELPER" finish --root "$TMP/stage-only-failed" --tree "$failed" \
     --state failed > "$TMP/failed-finish.out"
 python3 - "$failed/.pf-stage-tree.json" "$input_a" <<'PY'
 import json
+import os
+from pathlib import Path
 import sys
 with open(sys.argv[1], encoding="utf-8") as stream:
     manifest = json.load(stream)
 assert manifest["schema"] == "pocketforge.stage-tree/v1"
 assert manifest["state"] == "failed"
 assert manifest["input_sha256"] == sys.argv[2]
+assert manifest["owner_pid"] == os.getppid()
+assert manifest["owner_boot_id"] == Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+assert isinstance(manifest["owner_start_ticks"], int)
+assert manifest["owner_start_ticks"] > 0
 PY
 if python3 "$HELPER" start --root "$TMP/stage-only-failed" --tree "$failed" \
     --producer pf-build.sh --bead failed-b --device a133 --input-sha "$input_b" \
@@ -103,5 +109,21 @@ if python3 "$HELPER" start --root "$TMP/symlink" --tree "$TMP/symlink/a133" \
 fi
 has "$TMP/symlink.out" 'keep_reason=symlink_escape' 'symlink refusal missing'
 [ "$(cat "$TMP/external/keep")" = external ] || fail 'external symlink target changed'
+
+# A manifest-shaped but incomplete legacy directory is not enough ownership
+# proof. It remains byte-for-byte untouched and is reported as malformed.
+malformed="$TMP/malformed/a133"
+mkdir -p "$malformed"
+printf '{"schema":"pocketforge.stage-tree/v1"}\n' > "$malformed/.pf-stage-tree.json"
+malformed_before="$(sha256sum "$malformed/.pf-stage-tree.json")"
+if python3 "$HELPER" start --root "$TMP/malformed" --tree "$malformed" \
+    --producer pf-build.sh --bead malformed --device a133 --input-sha "$input_a" \
+    > "$TMP/malformed.out" 2>&1; then
+    fail 'malformed stage manifest was accepted'
+fi
+has "$TMP/malformed.out" 'keep_reason=manifest_identity_mismatch' \
+    'malformed manifest refusal missing'
+[ "$(sha256sum "$malformed/.pf-stage-tree.json")" = "$malformed_before" ] \
+    || fail 'malformed manifest bytes changed'
 
 printf 'PASS: producer-owned ordinary and stage-only staging bounds\n'
