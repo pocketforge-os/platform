@@ -88,7 +88,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(release_missing, [])
         self.assertRegex(dev["PF_HWPROBE_SHA"], r"^[0-9a-f]{40}$")
         self.assertRegex(dev["PF_SIM_SHA"], r"^[0-9a-f]{40}$")
-        self.assertEqual(dev["PF_POOLSUITE_SHA"], "5b33e32dfaf564693914a03b845a10dbc04f9062")
+        self.assertEqual(dev["PF_POOLSUITE_SHA"], "3e1077679ed78a0fe9726cf894e807ef52b110cd")
         self.assertEqual(release["PF_HWPROBE_SHA"], "")
         self.assertEqual(release["PF_SIM_SHA"], "")
         self.assertEqual(release["PF_POOLSUITE_SHA"], "")
