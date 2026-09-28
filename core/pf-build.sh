@@ -176,7 +176,8 @@ pf_stage_sources() {
         "tfa|$(v PF_TFA_REPO)|$(v PF_TFA_SHA)"
     )
     if [ "$VARIANT" = dev ]; then
-        specs+=( "sim|sim|$(v PF_SIM_SHA)" "pf-hwprobe|pf-hwprobe|$(v PF_HWPROBE_SHA)" )
+        specs+=( "sim|sim|$(v PF_SIM_SHA)" "pf-hwprobe|pf-hwprobe|$(v PF_HWPROBE_SHA)"
+                 "poolsuite|poolsuite|$(v PF_POOLSUITE_SHA)" )
     fi
     # The open stack's Mesa source is a real build input. Keep it entirely out of
     # closed profiles, but never allow partial/dev staging to hide a missing open UM.
@@ -202,10 +203,22 @@ pf_stage_sources() {
             create_context_dir "$src_dir/$logical"
             continue
         fi
-        [ -n "$sha" ] || pf_die "stage: no platform.lock SHA for $repo ($logical) — run \`pf lock\`"
+        if [ -z "$sha" ]; then
+            if [ "$logical" = poolsuite ] && [ "${PF_STAGE_ALLOW_MISSING:-0}" = 1 ] \
+                    && [ "$required" != 1 ]; then
+                pf_log "stage: WARN no platform.lock SHA for $repo — skipping ($logical) [PF_STAGE_ALLOW_MISSING=1]"
+                create_context_dir "$src_dir/$logical"
+                continue
+            fi
+            pf_die "stage: no platform.lock SHA for $repo ($logical) — run \`pf lock\`"
+        fi
         if ! gitdir="$(pf_find_git_source "$repo" "$mirror_dir")"; then
             if [ "${PF_STAGE_ALLOW_MISSING:-0}" = 1 ] && [ "$required" != 1 ]; then
-                pf_log "stage: WARN no local git source for $repo — skipping ($logical) [PF_STAGE_ALLOW_MISSING=1]"; continue
+                pf_log "stage: WARN no local git source for $repo — skipping ($logical) [PF_STAGE_ALLOW_MISSING=1]"
+                # poolsuite-src is always passed to BuildKit. Preserve that interface when
+                # explicitly doing a partial/dev staging run by supplying an empty context.
+                [ "$logical" != poolsuite ] || create_context_dir "$src_dir/$logical"
+                continue
             fi
             pf_die "stage: no local git source for $repo — provision a bare mirror at $mirror_dir/$repo.git (\`git clone --bare <url>\`) or a checkout at \$HOME/$repo"
         fi
@@ -224,6 +237,9 @@ pf_stage_sources() {
         n="$(find "$dest" -type f | wc -l)"
         pf_log "stage: $logical <- $repo@${sha:0:12}  ($n files, src=$gitdir)"
     done
+    # The image interface is unconditional even though Poolsuite source is dev-only.
+    # Release builds therefore receive a real, empty named context.
+    [ -e "$src_dir/poolsuite" ] || create_context_dir "$src_dir/poolsuite"
 }
 
 pf_release_caller_temporary() {
@@ -517,6 +533,7 @@ pf_os_image_dockerbuild() {
            --build-context "vendor-manifest-src=$src_dir/vendor-manifest"
            --build-context "uboot-src=$src_dir/uboot"
            --build-context "tfa-src=$src_dir/tfa"
+           --build-context "poolsuite-src=$src_dir/poolsuite"
            --build-context "blobs-car=${PF_CAR_DIR:-$HOME/.pf-car}" )
     if [ "$VARIANT" = dev ]; then
         cmd+=( --build-context "sim-src=$src_dir/sim"

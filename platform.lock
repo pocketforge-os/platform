@@ -508,6 +508,12 @@ url  = "https://github.com/pocketforge-os/pf-hwprobe.git"
 ref  = "main"                 # tsp-h5ed.15: current main at rollout pin time.
 sha  = "9fc7c74ac83b476ee6c0772c915d590bbd3d3e03"
 
+[[repos]]
+name = "poolsuite"            # Dev-image-only staged app source; release receives an empty context.
+url  = "https://github.com/pocketforge-os/poolsuite.git"
+ref  = "main"                 # tsp-f3fm.199 A1: poolsuite#101 merge; activation waits for A3.
+sha  = "5b33e32dfaf564693914a03b845a10dbc04f9062"
+
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy
 # the build consumes — NOT a reproducibility gate (kubo emits CARv1; the .car is not byte-reproducible).
