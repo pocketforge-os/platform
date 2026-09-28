@@ -128,21 +128,22 @@ class ProfileTest(unittest.TestCase):
 
     def test_non_open_build_arg_goldens_are_byte_unchanged(self):
         # Generated from platform main c75b3304 before app-runtime support was added, then
-        # regenerated for the default-apps step-6 lock move (tsp-mc9m.41.985). Against the
+        # regenerated for the default-apps step-6 lock move (tsp-mc9m.41.985; image re-pinned to
+        # bba63941 for the image#140 harness disable). Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
         # which are not in this table): no key added or removed, state and missing unchanged.
         expected = {
-            ("a133", "dev"): "3fc3efb205b711b88aa3166b3ac37dce103aee635882ea6e98e0fa14de19cad7",
-            ("a133", "release"): "189f8d10f2d5a9efc5b3bca7f177266af299e3cf8654464e9a9edeca082552ee",
-            ("a133-open-7x", "dev"): "7652296402cc49990b077cdf32ca8dcda4cdc8212200e219e8dd43626473c0fc",
-            ("a133-open-7x", "release"): "ad2d34562a90e56da129424bdb7ab1f469e43ab79564176907fd69db9baa0b4c",
-            ("a133-owned", "dev"): "0603ffaf77ea16d41253515bd7f2c24552eb95876151adc4af32b80cff08f0c6",
-            ("a133-owned", "release"): "374d9eff2298fcfb63b31954e5d3261be308f4d2e6945d47765df565e03e393a",
-            ("a523", "dev"): "e5e991e7434a2aa9b65b22366e1cb753de501cdbcf49180f479a1a4ecf18f10e",
-            ("a523", "release"): "cf9577ec6ba07ea433a72aa7dbc0f461da92d1da10baecc1bd17fa66ec049f9f",
-            ("sdm845", "dev"): "d4a0cac84e65919e70b62168d9e60800a2e0d4437badb1586fdc9b054958b479",
-            ("sdm845", "release"): "779238c4707432b43a4bb74fcbebe734e917c005dc53556b2f4e6c869c360d9a",
+            ("a133", "dev"): "312df39631f0b59d96e58ab255f3a7cf73c914095b30b0f00180769f78ed316c",
+            ("a133", "release"): "3de21671b3dc28bc11afe7e31b5f7f34db59694669a15aad52bef6274f2d81a0",
+            ("a133-open-7x", "dev"): "3ad5290e58aa99a9d2fb451aea58f62992a643a4b281a9850b34874d699b451e",
+            ("a133-open-7x", "release"): "4970fd4f08bbff4a308006741ed48c44599f8022189e00a826a35c1150ea7367",
+            ("a133-owned", "dev"): "8027a0ab954813cf11f55e9de4667ed2ec45192b619f77d34ff1cf13c39b402d",
+            ("a133-owned", "release"): "8537b4f46ae31cc2c56518220b94cadfaee8f112411f0037fdceaf6f505933a7",
+            ("a523", "dev"): "bdc24a6ed3d4bce175e3b78b34594cec7963f7bec20187483546ab6e86ffc1bd",
+            ("a523", "release"): "951cc9abf5247d8663219d9a13352af708262089db68b49f7c74d2e152153418",
+            ("sdm845", "dev"): "4240ed4265a566d4c414150610451f7e76d1499b0c56b4abc544bab4ccfb9ecc",
+            ("sdm845", "release"): "1816ae6dd85cdc88b1b7c6af7f0f49e24a8c2802ec07d2b02449808dc375ae7b",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -298,7 +299,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_KM_SHA"], args["PF_KERNEL_SHA"])
         self.assertEqual(args["PF_GPU_UM_REPO"], "gpu-um-tsp")
         self.assertEqual(args["PF_GPU_UM_SHA"], "a669de84e87da608a24f5a7879744bf063a2bf74")
-        self.assertEqual(args["PF_IMAGE_SHA"], "0b113bab1fd6f0f0b46b39b8644e5f4388c0923c")
+        self.assertEqual(args["PF_IMAGE_SHA"], "bba639414adaeac3eb14d70d74c783e8d517f65d")
         self.assertEqual(args["PF_LIBSDL3_SHA"], "f5e73b52840129cdaaa288a71463cd548a91e2c5")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
