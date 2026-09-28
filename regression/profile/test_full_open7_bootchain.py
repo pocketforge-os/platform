@@ -62,6 +62,8 @@ class FullOpen7BootchainTest(unittest.TestCase):
         resolved, _ = profile.resolve("a133-open-7x-gpu")
         non_boot = copy.deepcopy(resolved)
         del non_boot["bootchain"]
+        # The app-runtime platform contract is the only admitted non-boot addition.
+        non_boot.pop("app_runtime", None)
         canonical = json.dumps(non_boot, sort_keys=True, separators=(",", ":"))
         self.assertEqual(
             hashlib.sha256(canonical.encode()).hexdigest(),

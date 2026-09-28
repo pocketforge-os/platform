@@ -42,6 +42,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEVICES = os.path.join(ROOT, "devices")
 FAMILIES = os.path.join(ROOT, "families")
 LOCK = os.path.join(ROOT, "platform.lock")
+ABI_FAMILIES = os.path.join(ROOT, "abi", "families.toml")
+PLATFORM_SUPPORT_SCHEMA = os.path.join(ROOT, "abi", "platform-capabilities.schema.json")
 REQUIRED_HOOKS = ["build-kernel.sh", "build-bootchain.sh", "assemble-image.sh", "flash.sh"]
 PROFILE_TABLE_SECTIONS = (
     "device", "kernel", "container", "flash", "image", "blobs", "gpu",
@@ -59,6 +61,122 @@ def _require_tables(data, sections):
     for section in sections:
         if section in data and not isinstance(data[section], dict):
             raise ProfileSchemaError(f"[{section}] must be a table")
+
+
+def _reject_derived_sections(data):
+    """Keep ABI-registry-derived data out of device profiles."""
+    if "app_runtime" in data:
+        raise ProfileSchemaError(
+            "[app_runtime] is derived from abi/families.toml and must not be declared in a profile")
+
+
+def _platform_capability_names():
+    """Return the runtime-known capability names admitted by the support-file schema."""
+    try:
+        with open(PLATFORM_SUPPORT_SCHEMA, encoding="utf-8") as schema_file:
+            schema = json.load(schema_file)
+        names = schema["properties"]["supported_capabilities"]["items"]["enum"]
+    except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
+        raise ProfileSchemaError(
+            f"cannot load platform support schema {PLATFORM_SUPPORT_SCHEMA}: {exc}") from exc
+    if (not isinstance(names, list) or not names
+            or any(not isinstance(name, str) or not name for name in names)
+            or names != sorted(names) or len(names) != len(set(names))):
+        raise ProfileSchemaError(
+            "platform support schema capability enum must be a non-empty sorted unique string list")
+    return set(names)
+
+
+def _resolve_app_runtime_support(merged):
+    """Resolve the optional launcher-facing support contract from the ABI registry.
+
+    The registry family id and platform version remain the single source for those
+    values. A family-local declaration selects the GPU models that receive the
+    contract and supplies only the schema version, runtime ABI, and capability set.
+    """
+    try:
+        registry = _load(ABI_FAMILIES)
+    except (OSError, ValueError) as exc:
+        raise ProfileSchemaError(
+            f"cannot load ABI family registry {ABI_FAMILIES}: {exc}") from exc
+    families = registry.get("family")
+    if not isinstance(families, list) or not families:
+        raise ProfileSchemaError("ABI family registry must contain [[family]] entries")
+
+    device = merged.get("device", {})
+    device_ids = {device.get("id"), device.get("base")}
+    matches = [family for family in families
+               if isinstance(family, dict) and family.get("device") in device_ids]
+    if len(matches) > 1:
+        raise ProfileSchemaError(
+            f"device '{device.get('id', '')}' matches multiple ABI family declarations")
+    if not matches:
+        return None
+
+    family = matches[0]
+    declaration = family.get("app_runtime")
+    if declaration is None:
+        return None
+    if not isinstance(declaration, dict):
+        raise ProfileSchemaError(
+            f"ABI family '{family.get('id', '')}' app_runtime must be a table")
+    allowed = {"schema_version", "gpu_models", "runtime_abi", "supported_capabilities"}
+    unknown = sorted(set(declaration) - allowed)
+    if unknown:
+        raise ProfileSchemaError(
+            f"ABI family '{family.get('id', '')}' app_runtime has unknown keys: "
+            f"{', '.join(unknown)}")
+
+    gpu_models = declaration.get("gpu_models")
+    if (not isinstance(gpu_models, list) or not gpu_models
+            or any(not isinstance(model, str) or not model for model in gpu_models)
+            or gpu_models != sorted(gpu_models) or len(gpu_models) != len(set(gpu_models))):
+        raise ProfileSchemaError(
+            f"ABI family '{family.get('id', '')}' app_runtime.gpu_models must be "
+            "a non-empty sorted unique string list")
+    if merged.get("gpu", {}).get("model", "ddk") not in gpu_models:
+        return None
+
+    schema_version = declaration.get("schema_version")
+    runtime_abi = declaration.get("runtime_abi")
+    runtime_family = family.get("id")
+    platform_version = family.get("platform_version")
+    capabilities = declaration.get("supported_capabilities")
+    if schema_version != 1:
+        raise ProfileSchemaError(
+            f"ABI family '{runtime_family}' app_runtime.schema_version must be 1")
+    if not isinstance(runtime_family, str) or not re.fullmatch(r"pocketforge/[a-z0-9-]+", runtime_family):
+        raise ProfileSchemaError("app runtime family must be a canonical pocketforge family id")
+    if not isinstance(runtime_abi, str) or not re.fullmatch(r"[1-9][0-9]*", runtime_abi):
+        raise ProfileSchemaError(
+            f"ABI family '{runtime_family}' app_runtime.runtime_abi must be a positive integer string")
+    if (not isinstance(platform_version, str)
+            or not re.fullmatch(r"[1-9][0-9]*", platform_version)):
+        raise ProfileSchemaError(
+            f"ABI family '{runtime_family}' platform_version must be a positive integer string")
+    if (not isinstance(capabilities, list)
+            or any(not isinstance(capability, str) or not capability for capability in capabilities)):
+        raise ProfileSchemaError(
+            f"ABI family '{runtime_family}' app_runtime.supported_capabilities must be a string list")
+    if capabilities != sorted(capabilities):
+        raise ProfileSchemaError(
+            f"ABI family '{runtime_family}' app_runtime.supported_capabilities must be sorted")
+    if len(capabilities) != len(set(capabilities)):
+        raise ProfileSchemaError(
+            f"ABI family '{runtime_family}' app_runtime.supported_capabilities must be unique")
+    unknown_capabilities = sorted(set(capabilities) - _platform_capability_names())
+    if unknown_capabilities:
+        raise ProfileSchemaError(
+            f"ABI family '{runtime_family}' app_runtime.supported_capabilities contains "
+            f"runtime-unknown values: {', '.join(unknown_capabilities)}")
+
+    return {
+        "schema_version": schema_version,
+        "runtime_family": runtime_family,
+        "runtime_abi": runtime_abi,
+        "platform_version": platform_version,
+        "supported_capabilities": capabilities,
+    }
 
 
 def list_devices():
@@ -112,6 +230,7 @@ def resolve(dev_id):
         raise FileNotFoundError(f"no profile for device '{dev_id}' at {ppath}")
     profile = _load(ppath)
     _require_tables(profile, PROFILE_TABLE_SECTIONS)
+    _reject_derived_sections(profile)
     # Device-level inheritance (tsp-147u.13): a VARIANT profile may declare
     # [device].base = "<other-device-id>" to inherit that device's ENTIRE profile,
     # restating only the sections it needs to differ (e.g. a133-owned inherits a133
@@ -130,6 +249,7 @@ def resolve(dev_id):
                 f"device '{dev_id}' base '{base_id}' has no profile at {base_path}")
         base = _load(base_path)
         _require_tables(base, PROFILE_TABLE_SECTIONS)
+        _reject_derived_sections(base)
         _deep_fill(profile, base)  # variant wins; base fills absent keys
     family_id = profile.get("device", {}).get("family")
     family = {}
@@ -148,6 +268,9 @@ def resolve(dev_id):
     # prune Nones introduced by setdefault
     for sect in ("bootchain", "image", "flash"):
         merged[sect] = {k: v for k, v in merged.get(sect, {}).items() if v is not None}
+    app_runtime = _resolve_app_runtime_support(merged)
+    if app_runtime is not None:
+        merged["app_runtime"] = app_runtime
     return merged, family
 
 
@@ -468,6 +591,14 @@ def build_args(dev_id, variant="dev"):
         # owned-SPL branch consumes it to place u-boot-sunxi-with-spl.bin. tsp-147u.13).
         "PF_SPL_OFFSET_KIB": str(bc.get("spl_offset_kib", "") or ""),
     }
+    app_runtime = merged.get("app_runtime")
+    if app_runtime is not None:
+        args.update({
+            "PF_APP_RUNTIME_FAMILY": app_runtime["runtime_family"],
+            "PF_APP_RUNTIME_ABI": app_runtime["runtime_abi"],
+            "PF_APP_PLATFORM_VERSION": app_runtime["platform_version"],
+            "PF_APP_CAPABILITIES": " ".join(app_runtime["supported_capabilities"]),
+        })
     # Repos this device genuinely needs a SHA for (repo named, not the "none" sentinel).
     needed = [("PF_KERNEL_SHA", k.get("repo")), ("PF_IMAGE_SHA", "image"),
               ("PF_BLOBS_SHA", "blobs"), ("PF_VENDOR_MANIFEST_SHA", "vendor-manifest")]

@@ -14,6 +14,26 @@ spec = importlib.util.spec_from_file_location("pf_profile", ROOT / "core/profile
 profile = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(profile)
 
+APP_RUNTIME = {
+    "schema_version": 1,
+    "runtime_family": "pocketforge/a133-powervr",
+    "runtime_abi": "1",
+    "platform_version": "20",
+    "supported_capabilities": ["audio", "entropy", "input", "settings"],
+}
+APP_BUILD_ARGS = {
+    "PF_APP_RUNTIME_FAMILY": "pocketforge/a133-powervr",
+    "PF_APP_RUNTIME_ABI": "1",
+    "PF_APP_PLATFORM_VERSION": "20",
+    "PF_APP_CAPABILITIES": "audio entropy input settings",
+}
+A133_OPEN_PROFILES = {
+    "a133-open",
+    "a133-open-7x-gpu",
+    "a133-open-7x-gpu-noradio",
+    "a133-open-7x-gpu-spl-trace",
+}
+
 
 class ProfileTest(unittest.TestCase):
     def test_existing_profiles_resolve_unchanged(self):
@@ -43,6 +63,7 @@ class ProfileTest(unittest.TestCase):
             without_display = copy.deepcopy(resolved)
             del without_display["display"]
             without_display["kernel"].pop("required_modules", None)
+            without_display.pop("app_runtime", None)
             canonical = json.dumps(without_display, sort_keys=True, separators=(",", ":"))
             self.assertEqual(hashlib.sha256(canonical.encode()).hexdigest(), digest, dev_id)
 
@@ -74,12 +95,111 @@ class ProfileTest(unittest.TestCase):
             expected = json.load(f)
         self.assertEqual(resolved, expected)
 
+    def test_a133_open_complete_resolved_shape(self):
+        resolved, _ = profile.resolve("a133-open")
+        with open(ROOT / "regression/profile/a133-open-resolved.json", encoding="utf-8") as f:
+            expected = json.load(f)
+        self.assertEqual(resolved, expected)
+
     def test_a133_7x_gpu_complete_resolved_shape(self):
         resolved, _ = profile.resolve("a133-open-7x-gpu")
         with open(ROOT / "regression/profile/a133-open-7x-gpu-resolved.json",
                   encoding="utf-8") as f:
             expected = json.load(f)
         self.assertEqual(resolved, expected)
+
+    def test_app_runtime_support_is_exactly_a133_open_for_both_variants(self):
+        app_keys = set(APP_BUILD_ARGS)
+        observed_open = set()
+        for dev_id in profile.list_devices():
+            resolved, _ = profile.resolve(dev_id)
+            if "app_runtime" in resolved:
+                observed_open.add(dev_id)
+                self.assertEqual(resolved["app_runtime"], APP_RUNTIME, dev_id)
+            for variant in ("dev", "release"):
+                args, _, missing = profile.build_args(dev_id, variant)
+                emitted = {key: args[key] for key in app_keys if key in args}
+                if dev_id in A133_OPEN_PROFILES:
+                    self.assertEqual(missing, [], (dev_id, variant))
+                    self.assertEqual(emitted, APP_BUILD_ARGS, (dev_id, variant))
+                else:
+                    self.assertEqual(emitted, {}, (dev_id, variant))
+        self.assertEqual(observed_open, A133_OPEN_PROFILES)
+
+    def test_non_open_build_arg_goldens_are_byte_unchanged(self):
+        # Generated from platform main c75b3304 before app-runtime support was added.
+        expected = {
+            ("a133", "dev"): "dd36d0683ce52a791cdc9e3fc69c89f0536f5659e318e1f2d3d3835a32344ebc",
+            ("a133", "release"): "0fed79579704cd59f5cde59d0ae6e86e19e8cc191490f8e32fb45351facb5b8e",
+            ("a133-open-7x", "dev"): "4958f3fc2f266779005fb987dcde6fa0e97bbe8f077a421cb4d1a2892366fb64",
+            ("a133-open-7x", "release"): "067719aa33c7b0e5abc9fc31cc7bbc9e84e4b19e0d7eb8e68c4c5664c5dd2a18",
+            ("a133-owned", "dev"): "4c6c03beb9e2411611e7502629ad80c2125d3ef0b0c74b3b05c4cc12a37ef922",
+            ("a133-owned", "release"): "a4f5b87cfb37dc88740097173ccaba2cb9ee390919dda63e61dcafbe6a8b86aa",
+            ("a523", "dev"): "6a9073534bb9f44b6951501708f2a851a50baf7f7e6b5a23f270cf8e8eb10fb4",
+            ("a523", "release"): "b17684cedb04d1676a76bf5ed69626923eaece18e2d6acbe1c40e308af1a079d",
+            ("sdm845", "dev"): "e52f399b086109d28ff30654b2f5533e3f45cd4b76e8dc6986cc0fd184d47755",
+            ("sdm845", "release"): "9350c969ed7465cfee9b1d2169d59aa620a77e2b4377eaad79a2a12243e7cec2",
+        }
+        for key, digest in expected.items():
+            dev_id, variant = key
+            args, state, missing = profile.build_args(dev_id, variant)
+            payload = {"args": args, "state": state, "missing": missing}
+            canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+            self.assertEqual(hashlib.sha256(canonical.encode()).hexdigest(), digest, key)
+
+    def test_app_runtime_declaration_is_validated_and_registry_derived(self):
+        merged, _ = profile.resolve("a133")
+        merged = copy.deepcopy(merged)
+        merged["gpu"]["model"] = "open"
+        source = pathlib.Path(profile.ABI_FAMILIES).read_text(encoding="utf-8")
+
+        derived = source.replace(
+            'id               = "pocketforge/a133-powervr"',
+            'id               = "pocketforge/test-powervr"',
+            1,
+        ).replace('platform_version = "20"', 'platform_version = "21"', 1)
+        with tempfile.TemporaryDirectory() as tmp:
+            registry = pathlib.Path(tmp) / "families.toml"
+            registry.write_text(derived, encoding="utf-8")
+            with mock.patch.object(profile, "ABI_FAMILIES", str(registry)):
+                support = profile._resolve_app_runtime_support(merged)
+        self.assertEqual(support["runtime_family"], "pocketforge/test-powervr")
+        self.assertEqual(support["platform_version"], "21")
+
+        cases = {
+            "unsorted": (
+                '["audio", "entropy", "input", "settings"]',
+                '["settings", "audio"]',
+                "must be sorted",
+            ),
+            "duplicate": (
+                '["audio", "entropy", "input", "settings"]',
+                '["audio", "audio", "entropy"]',
+                "must be unique",
+            ),
+            "runtime-unknown": (
+                '["audio", "entropy", "input", "settings"]',
+                '["audio", "entropy", "input", "telepathy"]',
+                "runtime-unknown values: telepathy",
+            ),
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            registry = pathlib.Path(tmp) / "families.toml"
+            for label, (old, new, message) in cases.items():
+                with self.subTest(label=label):
+                    registry.write_text(source.replace(old, new, 1), encoding="utf-8")
+                    with mock.patch.object(profile, "ABI_FAMILIES", str(registry)):
+                        with self.assertRaisesRegex(profile.ProfileSchemaError, message):
+                            profile._resolve_app_runtime_support(merged)
+
+    def test_platform_support_schema_is_exact_and_runtime_known(self):
+        schema = json.loads(pathlib.Path(profile.PLATFORM_SUPPORT_SCHEMA).read_text())
+        self.assertFalse(schema["additionalProperties"])
+        self.assertEqual(schema["properties"]["schema_version"]["const"], 1)
+        self.assertEqual(set(schema["required"]), set(APP_RUNTIME))
+        known = schema["properties"]["supported_capabilities"]["items"]["enum"]
+        self.assertEqual(known, sorted(set(known)))
+        self.assertTrue(set(APP_RUNTIME["supported_capabilities"]).issubset(known))
 
     def test_dev_only_source_shas_are_empty_only_for_release(self):
         dev, _, dev_missing = profile.build_args("a133", "dev")

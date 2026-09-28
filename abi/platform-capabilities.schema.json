@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pocketforge.dev/schemas/platform-capabilities.schema.json",
+  "title": "PocketForge platform capability contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "runtime_family",
+    "runtime_abi",
+    "platform_version",
+    "supported_capabilities"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "runtime_family": {
+      "type": "string",
+      "pattern": "^pocketforge/[a-z0-9-]+$"
+    },
+    "runtime_abi": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$"
+    },
+    "platform_version": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$"
+    },
+    "supported_capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "accelerometer",
+          "audio",
+          "entropy",
+          "gnss",
+          "gyroscope",
+          "imu",
+          "input",
+          "leds",
+          "location",
+          "magnetometer",
+          "rumble",
+          "settings",
+          "vibration"
+        ]
+      }
+    }
+  }
+}

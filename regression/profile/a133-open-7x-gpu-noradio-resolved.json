@@ -1,4 +1,5 @@
 {
+  "app_runtime": {"platform_version": "20", "runtime_abi": "1", "runtime_family": "pocketforge/a133-powervr", "schema_version": 1, "supported_capabilities": ["audio", "entropy", "input", "settings"]},
   "blobs": {"groups": ["sunxi-a133-boot-chain", "sunxi-a133-wifi-firmware", "pvr-fw-open-22.102.54.38"]},
   "bootchain": {"blob_group": "sunxi-a133-boot-chain", "boot_proto": "sunxi-spl-booti", "model": "sunxi-spl-uboot", "spl_offset_kib": 128, "tfa": {"plat": "sun50i_a133", "ref": "main", "repo": "tfa-tsp-a133"}, "uboot": {"defconfig": "tg5040_defconfig", "ref": "main", "repo": "u-boot-tsp-a133"}},
   "console": {"baud": 115200, "cmdline_extra": "loglevel=8 rootwait", "dev": "ttyS0", "earlycon": "uart8250,mmio32,0x05000000"},

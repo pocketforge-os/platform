@@ -98,6 +98,15 @@ platform_version = "20"                          # bump when the resolved kernel
 reproducible     = true                          # hermetic pf build from committed refs (tsp-1dl.4.5, tsp-cv7.6.1)
 provenance_ref   = "tsp-1dl.4.5, tsp-cv7.6.1"
 
+# Launcher-facing app platform support. This family-local declaration is resolved only for
+# profiles whose [gpu].model is selected below; the family id and platform version remain the
+# canonical values above. Capability names are sorted, unique runtime-known base names.
+[family.app_runtime]
+schema_version         = 1
+gpu_models             = ["open"]
+runtime_abi            = "1"
+supported_capabilities = ["audio", "entropy", "input", "settings"]
+
 # ── pocketforge/a523-mali — TrimUI Smart Pro S (Allwinner A523 / sun55iw3) ──────────────────
 [[family]]
 id               = "pocketforge/a523-mali"
