@@ -1,4 +1,5 @@
 {
+  "app_runtime": {"platform_version": "20", "runtime_abi": "1", "runtime_family": "pocketforge/a133-powervr", "schema_version": 1, "supported_capabilities": ["audio", "entropy", "input", "settings"]},
   "blobs": {
     "groups": [
       "sunxi-a133-boot-chain",
