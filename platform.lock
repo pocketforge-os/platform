@@ -49,6 +49,13 @@ manifest_signing_active = false
 [profile_pins.a133-open-7x-gpu-spl-trace]
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
+# tsp-mc9m.41.923.42: Linux-only ARM B1 diagnostic. The normal repository pin
+# remains bbfce031; only this named profile selects the reviewed child commit
+# containing the no-radio DTB. U-Boot is explicitly held equal to the normal pin.
+[profile_pins.a133-open-7x-gpu-noradio]
+kernel = "0a475ab54c04101a06d0c48c95a0e3cf5d778c05"
+uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
+
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"

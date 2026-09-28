@@ -31,6 +31,7 @@ class ProfileTest(unittest.TestCase):
             set(profile.list_devices()) - {
                 "a133-open-7x",
                 "a133-open-7x-gpu",
+                "a133-open-7x-gpu-noradio",
                 "a133-open-7x-gpu-spl-trace",
             },
             set(expected),
@@ -51,6 +52,7 @@ class ProfileTest(unittest.TestCase):
             "a133-open": "fbdev",
             "a133-open-7x": "none",
             "a133-open-7x-gpu": "fbdev",
+            "a133-open-7x-gpu-noradio": "fbdev",
             "a133-open-7x-gpu-spl-trace": "fbdev",
             "a133-owned": "fbdev",
             "a523": "fbdev",
@@ -129,7 +131,8 @@ class ProfileTest(unittest.TestCase):
         # BASE-inherited so every a133 variant (closed/open/owned) resolves the same
         # value, and must clearly diverge for a523.
         for dev_id in ("a133", "a133-open", "a133-open-7x",
-                       "a133-open-7x-gpu", "a133-owned"):
+                       "a133-open-7x-gpu", "a133-open-7x-gpu-noradio",
+                       "a133-owned"):
             args, _, missing = profile.build_args(dev_id)
             self.assertEqual(missing, [], dev_id)
             self.assertEqual(args["PF_SOC"], "sun50iw10p1", dev_id)
