@@ -9,8 +9,14 @@ bash "$HERE/epoch-test.sh"
 echo "### open GPU userspace source staging ###"
 bash "$HERE/gpu-um-staging-test.sh"
 
+echo "### dev-only Poolsuite source staging ###"
+bash "$HERE/poolsuite-staging-test.sh"
+
 echo "### release lock-state gate ###"
 bash "$HERE/release-lock-state-test.sh"
 
 echo "### image candidate override (tsp-hqm1p.17.13) ###"
 bash "$HERE/image-candidate-override-test.sh"
+
+echo "### bounded producer-owned staging lifecycle (tsp-mc9m.41.984.5) ###"
+bash "$HERE/producer-staging-lifecycle-test.sh"

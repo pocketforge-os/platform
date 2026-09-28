@@ -56,10 +56,15 @@ pf_log "build device=$DEVICE artifact=$ARTIFACT target=$TARGET variant=$VARIANT 
 pf_validate "$DEVICE"
 pf_load_env "$DEVICE"
 
-# Bead-id-keyed dirs (infra-013 concurrency: two builds never collide).
-PF_OUT_DIR="${PF_OUT_DIR:-/tmp/pf-build/$BEAD/$DEVICE}"
-mkdir -p "$PF_OUT_DIR"
-export PF_OUT_DIR PF_DRY_RUN PF_IMAGE_REPO PF_PLATFORM_DIR PF_BEAD="$BEAD"
+# Ordinary source/cache/output bytes live inside a live #1045 manifest tree.
+# The sole exception is an explicit caller-owned temporary tree, whose caller
+# must provide one empty, canonical directory and own its exact cleanup.
+PF_BUILD_TREE_ROOT="${PF_BUILD_TREE_ROOT:-/tmp/pf-build}"
+PF_OUT_DIR="${PF_OUT_DIR:-$PF_BUILD_TREE_ROOT/$BEAD/$DEVICE}"
+PF_OUT_LIFECYCLE="${PF_OUT_LIFECYCLE:-managed}"
+PF_CALLER_TEMP_CLAIMED=0
+STAGE_TREE_ROOT="${PF_STAGE_TREE_ROOT:-/tmp/pf-stage-only}"
+export PF_OUT_DIR PF_OUT_LIFECYCLE PF_BUILD_TREE_ROOT PF_DRY_RUN PF_IMAGE_REPO PF_PLATFORM_DIR PF_BEAD="$BEAD"
 
 FAM_DIR="$(pf_family_dir "$PF_FAMILY")"
 [ -d "$FAM_DIR" ] || pf_die "family plugin missing: $FAM_DIR"
@@ -137,9 +142,25 @@ pf_require_epoch() {
 # by platform.lock; if it is missing from the local source we do a targeted fetch. Set
 # PF_STAGE_ALLOW_MISSING=1 to warn+skip a repo with no local source (partial/dev staging)
 # instead of failing.
+pf_create_staging_dir() {
+    local path="$1"
+    if [ -e "$path" ] || [ -L "$path" ]; then
+        pf_die "stage: refusing pre-existing destination $path (producer staging is create-once)"
+    fi
+    mkdir -- "$path"
+}
+
 pf_stage_sources() {
     local src_dir="$1" ba="$2"
     local mirror_dir="${PF_MIRROR_DIR:-$HOME/wt/.mirrors}"
+    create_context_dir() {
+        local path="$1"
+        if [ -e "$path" ] || [ -L "$path" ]; then
+            pf_die "stage: refusing pre-existing destination $path (producer staging is create-once)"
+        fi
+        mkdir -- "$path"
+    }
+    create_context_dir "$src_dir"
     v() { sed -n "s/^$1=//p" <<< "$ba"; }
     # logical-context-dir | repo | sha | required (order matches the --build-context args below)
     local -a specs=(
@@ -155,7 +176,8 @@ pf_stage_sources() {
         "tfa|$(v PF_TFA_REPO)|$(v PF_TFA_SHA)"
     )
     if [ "$VARIANT" = dev ]; then
-        specs+=( "sim|sim|$(v PF_SIM_SHA)" "pf-hwprobe|pf-hwprobe|$(v PF_HWPROBE_SHA)" )
+        specs+=( "sim|sim|$(v PF_SIM_SHA)" "pf-hwprobe|pf-hwprobe|$(v PF_HWPROBE_SHA)"
+                 "poolsuite|poolsuite|$(v PF_POOLSUITE_SHA)" )
     fi
     # The open stack's Mesa source is a real build input. Keep it entirely out of
     # closed profiles, but never allow partial/dev staging to hide a missing open UM.
@@ -177,18 +199,33 @@ pf_stage_sources() {
         # device-gated Dockerfile stages COPY from the empty context harmlessly.
         if [ -z "$repo" ] || [ "$repo" = "none" ]; then
             [ "$required" != 1 ] || pf_die "stage: required source repo missing for $logical"
-            pf_log "stage: skip $logical (no repo — empty context)"; rm -rf "${src_dir:?}/$logical"; mkdir -p "$src_dir/$logical"; continue
+            pf_log "stage: skip $logical (no repo — empty context)"
+            create_context_dir "$src_dir/$logical"
+            continue
         fi
-        [ -n "$sha" ] || pf_die "stage: no platform.lock SHA for $repo ($logical) — run \`pf lock\`"
+        if [ -z "$sha" ]; then
+            if [ "$logical" = poolsuite ] && [ "${PF_STAGE_ALLOW_MISSING:-0}" = 1 ] \
+                    && [ "$required" != 1 ]; then
+                pf_log "stage: WARN no platform.lock SHA for $repo — skipping ($logical) [PF_STAGE_ALLOW_MISSING=1]"
+                create_context_dir "$src_dir/$logical"
+                continue
+            fi
+            pf_die "stage: no platform.lock SHA for $repo ($logical) — run \`pf lock\`"
+        fi
         if ! gitdir="$(pf_find_git_source "$repo" "$mirror_dir")"; then
             if [ "${PF_STAGE_ALLOW_MISSING:-0}" = 1 ] && [ "$required" != 1 ]; then
-                pf_log "stage: WARN no local git source for $repo — skipping ($logical) [PF_STAGE_ALLOW_MISSING=1]"; continue
+                pf_log "stage: WARN no local git source for $repo — skipping ($logical) [PF_STAGE_ALLOW_MISSING=1]"
+                # poolsuite-src is always passed to BuildKit. Preserve that interface when
+                # explicitly doing a partial/dev staging run by supplying an empty context.
+                [ "$logical" != poolsuite ] || create_context_dir "$src_dir/$logical"
+                continue
             fi
             pf_die "stage: no local git source for $repo — provision a bare mirror at $mirror_dir/$repo.git (\`git clone --bare <url>\`) or a checkout at \$HOME/$repo"
         fi
         pf_ensure_commit "$gitdir" "$repo" "$sha" \
             || pf_die "stage: SHA $sha absent from $repo after fetch — is platform.lock stale for this repo?"
-        dest="$src_dir/$logical"; rm -rf "$dest"; mkdir -p "$dest"
+        dest="$src_dir/$logical"
+        create_context_dir "$dest"
         git --git-dir="$gitdir" archive --format=tar "$sha" | tar -x -C "$dest"
         # The kernel build consumes PF_KERNEL_SHA as live UTS identity. Carry a
         # staging receipt from this exact archive operation so the image build
@@ -200,6 +237,45 @@ pf_stage_sources() {
         n="$(find "$dest" -type f | wc -l)"
         pf_log "stage: $logical <- $repo@${sha:0:12}  ($n files, src=$gitdir)"
     done
+    # The image interface is unconditional even though Poolsuite source is dev-only.
+    # Release builds therefore receive a real, empty named context.
+    [ -e "$src_dir/poolsuite" ] || create_context_dir "$src_dir/poolsuite"
+}
+
+pf_release_caller_temporary() {
+    local status="$1"
+    trap - EXIT
+    if [ "$PF_CALLER_TEMP_CLAIMED" = 1 ]; then
+        if ! "$PF_PY" "$SCRIPT_DIR/pf-stage-tree.py" release-caller-temporary \
+                --root "$PF_BUILD_TREE_ROOT" --tree "$PF_OUT_DIR" \
+                --producer pf-build.sh --bead "$BEAD" --device "$DEVICE"; then
+            pf_log "ERROR: caller-temporary reservation release failed for $PF_OUT_DIR"
+            [ "$status" -ne 0 ] || status=1
+        fi
+        PF_CALLER_TEMP_CLAIMED=0
+    fi
+    exit "$status"
+}
+
+pf_require_ordinary_tree() {
+    local helper="$SCRIPT_DIR/pf-stage-tree.py"
+    case "$PF_OUT_LIFECYCLE" in
+        managed)
+            "$PF_PY" "$helper" require-build-tree \
+                --root "$PF_BUILD_TREE_ROOT" --tree "$PF_OUT_DIR" \
+                --producer pf-build.sh --bead "$BEAD" --device "$DEVICE"
+            ;;
+        caller-temporary)
+            "$PF_PY" "$helper" require-caller-temporary \
+                --root "$PF_BUILD_TREE_ROOT" --tree "$PF_OUT_DIR" \
+                --producer pf-build.sh --bead "$BEAD" --device "$DEVICE"
+            PF_CALLER_TEMP_CLAIMED=1
+            trap 'pf_release_caller_temporary "$?"' EXIT
+            ;;
+        *)
+            pf_die "unknown PF_OUT_LIFECYCLE=$PF_OUT_LIFECYCLE (expected managed|caller-temporary)"
+            ;;
+    esac
 }
 
 # pf_image_candidate_override — dev-only, non-hermetic image-repo candidate override.
@@ -278,6 +354,41 @@ pf_ensure_insecure_builder() {
     "${create[@]}" >/dev/null || pf_die "failed to create buildx builder '$builder'"
 }
 
+pf_stage_only_sources() {
+    local ba="$1"
+    local tree="$STAGE_TREE_ROOT/$DEVICE" src_dir="$STAGE_TREE_ROOT/$DEVICE/src"
+    local helper="$SCRIPT_DIR/pf-stage-tree.py" input_sha rc
+    input_sha="$({
+        printf 'device=%s\nvariant=%s\n' "$DEVICE" "$VARIANT"
+        printf '%s\n' "$ba"
+    } | sha256sum | cut -d' ' -f1)"
+
+    "$PF_PY" "$helper" start \
+        --root "$STAGE_TREE_ROOT" --tree "$tree" --producer pf-build.sh \
+        --bead "$BEAD" --device "$DEVICE" --input-sha "$input_sha"
+
+    if (
+        pf_stage_sources "$src_dir" "$ba"
+    ); then
+        if ! "$PF_PY" "$helper" finish \
+                --root "$STAGE_TREE_ROOT" --tree "$tree" --producer pf-build.sh \
+                --bead "$BEAD" --device "$DEVICE" --input-sha "$input_sha" \
+                --state success; then
+            pf_die "stage-only: source staging completed but retained status could not be recorded for $tree"
+        fi
+        pf_log "stage-only: done ($src_dir/)"
+        return 0
+    else
+        rc=$?
+        "$PF_PY" "$helper" finish \
+            --root "$STAGE_TREE_ROOT" --tree "$tree" --producer pf-build.sh \
+            --bead "$BEAD" --device "$DEVICE" --input-sha "$input_sha" \
+            --state failed \
+            || pf_log "stage-only: failed to record retained failure for $tree"
+        return "$rc"
+    fi
+}
+
 pf_os_image_dockerbuild() {
     # Lock-pinned build-arg surface (the ONE place that reads profile+lock).
     local ba; ba="$("$PF_PY" "$PF_PLATFORM_DIR/core/profile.py" buildargs "$DEVICE" "$VARIANT")" \
@@ -301,15 +412,21 @@ pf_os_image_dockerbuild() {
     # lock pin (tsp-hqm1p.17.13). Runs in the current shell so its pf_die is fatal.
     pf_image_candidate_override
 
-    local cache_dir="/tmp/pf-build/$BEAD/cache" src_dir="/tmp/pf-build/$BEAD/src"
+    local cache_dir="$PF_OUT_DIR/cache" src_dir="$PF_OUT_DIR/src"
 
     # --stage-only: materialize the pinned source contexts and stop (CI/debug; also the
     # first half of a real build). Needs neither the Dockerfile nor the container digest.
     if [ "${PF_STAGE_ONLY:-0}" = 1 ]; then
-        pf_log "stage-only: materializing source contexts for $DEVICE under $src_dir/"
-        pf_stage_sources "$src_dir" "$ba"
-        pf_log "stage-only: done ($src_dir/)"
-        return 0
+        pf_log "stage-only: materializing source contexts for $DEVICE under $STAGE_TREE_ROOT/$DEVICE/src/"
+        pf_stage_only_sources "$ba"
+        return
+    fi
+
+    # Before any ordinary source/cache mutation (or a mirror fetch needed to
+    # derive build epochs), prove that the output is either the exact live
+    # #1045 namespace or an explicitly caller-owned empty temporary tree.
+    if [ "${PF_DRY_RUN:-1}" != 1 ]; then
+        pf_require_ordinary_tree
     fi
 
     local dockerfile="$PF_IMAGE_REPO/build/Dockerfile.pf"
@@ -416,6 +533,7 @@ pf_os_image_dockerbuild() {
            --build-context "vendor-manifest-src=$src_dir/vendor-manifest"
            --build-context "uboot-src=$src_dir/uboot"
            --build-context "tfa-src=$src_dir/tfa"
+           --build-context "poolsuite-src=$src_dir/poolsuite"
            --build-context "blobs-car=${PF_CAR_DIR:-$HOME/.pf-car}" )
     if [ "$VARIANT" = dev ]; then
         cmd+=( --build-context "sim-src=$src_dir/sim"
@@ -452,7 +570,7 @@ pf_os_image_dockerbuild() {
         return 0
     fi
     pf_stage_sources "$src_dir" "$ba"
-    [ "$TARGET" = ci-dell ] && mkdir -p "$cache_dir"
+    [ "$TARGET" = ci-dell ] && pf_create_staging_dir "$cache_dir"
     pf_ensure_insecure_builder "$builder"
     pf_log "EXEC os-image multistage build"
     "${cmd[@]}"

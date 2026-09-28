@@ -443,6 +443,10 @@ def build_args(dev_id, variant="dev"):
         "PF_RECOVERY_SHA": sha("recovery") if gpu.get("model") == "open" else "",
         "PF_SIM_SHA": sha("sim") if variant == "dev" else "",
         "PF_HWPROBE_SHA": sha("pf-hwprobe") if variant == "dev" else "",
+        # Poolsuite is a dev-image-only source context. Release still emits the build arg,
+        # deliberately empty, so the image Dockerfile can select a NOT-SHIPPED stage without
+        # making the build-argument surface variant-dependent.
+        "PF_POOLSUITE_SHA": sha("poolsuite") if variant == "dev" else "",
         "PF_IMAGE_SHA": sha("image"),
         "PF_IMAGE_NAME": img.get("image_name", ""),
         "PF_IMAGE_ASSEMBLER": img.get("assembler", ""),
