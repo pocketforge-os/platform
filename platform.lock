@@ -61,11 +61,13 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
 ref  = "main"          # tsp-mc9m.41.985 (default-apps step 6, one atomic PR with runtime/launcher/poolsuite):
-                       # image 15a1a2b2 = e765ba2c plus #136 b10fd19 (default-app design docs), #137 c2cdda7c
+                       # image 0b113bab = 15a1a2b2 plus #139 (tsp-f3fm.209: real-systemd session-authority
+                       # test; changes tests/ only - Dockerfile.pf copies the whole tree at :1547/:1714 but
+                       # no stage references tests/). 15a1a2b2 = e765ba2c plus #136 b10fd19 (default-app design docs), #137 c2cdda7c
                        # (bounded self-flash SD discovery, tsp-mc9m.41.923.44) and #138 15a1a2b2 (A133-open
                        # default-app integration: pf-app-launch, platform-capabilities.toml, pf-app@.service,
                        # Poolsuite pf-app-validate; FATAL unless runtime 0589fcfa and launcher 1e5a3d97).
-                       # Fast-forward, 9 commits.
+                       # Fast-forward, 12 commits in all.
                        # Prior (e765ba2cd5d278b977cde1d7c3de4bec83de368e): tsp-mc9m.41.923.46: image e765ba2c = 48872abd plus #132 fe7718ba (kernel UTS
                        # identity: KBUILD_BUILD_VERSION = first 12 hex of the authenticated PF_KERNEL_SHA,
                        # tsp-mc9m.41.923.39; needs platform c41393be .pf-source-revision), #133 41494edd
@@ -193,7 +195,7 @@ ref  = "main"          # tsp-mc9m.41.985 (default-apps step 6, one atomic PR wit
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "15a1a2b2477b7a76500f0e7f89d40ca37c4ff80d"
+sha  = "0b113bab1fd6f0f0b46b39b8644e5f4388c0923c"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
