@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "bbfce0312a69662afa013a5276afa3bd4b513dba"
+NORMAL_KERNEL_SHA = "03822b3fceb6ec000b4a0de58e5486c32a33ff9c"
 NORADIO_KERNEL_SHA = "0a475ab54c04101a06d0c48c95a0e3cf5d778c05"
 UBOOT_SHA = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 

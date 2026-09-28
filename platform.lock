@@ -50,7 +50,8 @@ manifest_signing_active = false
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
 # tsp-mc9m.41.923.42: Linux-only ARM B1 diagnostic. The normal repository pin
-# remains bbfce031; only this named profile selects the reviewed child commit
+# was bbfce031 when this was pinned (now the kernel-sunxi-7.x sha below); only
+# this named profile selects the reviewed child commit
 # containing the no-radio DTB. U-Boot is explicitly held equal to the normal pin.
 [profile_pins.a133-open-7x-gpu-noradio]
 kernel = "0a475ab54c04101a06d0c48c95a0e3cf5d778c05"
@@ -59,7 +60,14 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.923.41: image 48872abd = image#130 (0410658f: BlueZ CLIs + XR829
+ref  = "main"          # tsp-mc9m.41.923.46: image e765ba2c = 48872abd plus #132 fe7718ba (kernel UTS
+                       # identity: KBUILD_BUILD_VERSION = first 12 hex of the authenticated PF_KERNEL_SHA,
+                       # tsp-mc9m.41.923.39; needs platform c41393be .pf-source-revision), #133 41494edd
+                       # (admit the a133-open-7x-gpu-noradio profile), #134 4929295f (Poolsuite staged in
+                       # the A133 dev rootfs; dev-only, release gets an empty context) and #135 e765ba2c
+                       # (Poolsuite cargo cache bind-mount). Fast-forward, 11 commits.
+                       # Prior (48872abd88d4757871bd3359060ed009f192c58d):
+                       # tsp-mc9m.41.923.41: image 48872abd = image#130 (0410658f: BlueZ CLIs + XR829
                        # payload assertions, tsp-53156b0e) + image#131 (48872abd: owned-SPL payload
                        # layout build gate for the u-boot#48 layout, tsp-mc9m.41.923.40).
                        # Prior (78fc4873def3d114ea9478827c440940548fd684):
@@ -179,7 +187,7 @@ ref  = "main"          # tsp-mc9m.41.923.41: image 48872abd = image#130 (0410658
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "48872abd88d4757871bd3359060ed009f192c58d"
+sha  = "e765ba2cd5d278b977cde1d7c3de4bec83de368e"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -301,7 +309,14 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.41: device/a133 bbfce031 = 6d86d65e plus display
+name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.46: device/a133 03822b3f = bbfce031 plus #37
+                               # (0a475ab5: Odyssey no-radio diagnostic DTS, a SEPARATE DTB used only
+                               # by the a133-open-7x-gpu-noradio profile pin) and #38 (52250287: A133
+                               # xradio chip-ID wiring, tsp-78a2b2d08f4feb76cbfc). Fast-forward, 4 commits.
+                               # Merged-push CI: run 36358690426 (job 108731405987), `build` check
+                               # on this exact sha.
+                               # Prior (bbfce0312a69662afa013a5276afa3bd4b513dba):
+                               # tsp-mc9m.41.923.41: device/a133 bbfce031 = 6d86d65e plus display
                                # #29 (db5bfd13: fbcon rotation), xradio WiFi DTS/defconfig #33
                                # (95a1f6fb) and radio firmware timing #35 (bbfce031: both radios
                                # boot-safe, BT_HCIUART=m, cross-radio installed-artifact gate).
@@ -348,7 +363,7 @@ name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.41: device/a133 bbfce031 = 6d86d6
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "bbfce0312a69662afa013a5276afa3bd4b513dba"
+sha  = "03822b3fceb6ec000b4a0de58e5486c32a33ff9c"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
