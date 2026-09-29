@@ -60,7 +60,15 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.986: image 3aff434f = bba63941 plus #141 (tsp-f3fm.211: isolated real-systemd
+ref  = "main"          # tsp-f3fm.202.1.5 (default-apps input delivery, tsp-f3fm.202.1 B5): image f6e0ee14 = 3aff434f
+                       # plus #143 (tsp-f3fm.202.1.4, exact head b429d5b8): the app-session pf-input-broker (static
+                       # aarch64 musl, e_machine and static-link gated) with its pf-app@/pf-shell-selected drop-ins
+                       # and protected SafeReturn intake; a platform-inputs stage that consumes the staged
+                       # devices/a133/capabilities.toml (platform#217) behind check-device-descriptor and
+                       # pf-descriptor-validate; and libpocketforge.so.1 behind the check-libpocketforge ABI gate.
+                       # FATAL unless runtime d75beedf and launcher 1e5a3d97. Fast-forward, 3 commits.
+                       # Previous pin (3aff434f94807a0239a7553b08e129ffff0232b7), tsp-mc9m.41.986: image 3aff434f =
+                       # bba63941 plus #141 (tsp-f3fm.211: isolated real-systemd
                        # lifecycle harness; tests/, .github and one Makefile line) and #142 (the build-rootfs.sh
                        # customize hook now carries is_a133_open_7x_gpu_device into the mmdebstrap process and
                        # fails closed on command-not-found, so a133-open-7x-gpu images again ship
@@ -203,7 +211,7 @@ ref  = "main"          # tsp-mc9m.41.986: image 3aff434f = bba63941 plus #141 (t
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "3aff434f94807a0239a7553b08e129ffff0232b7"
+sha  = "f6e0ee149468a4068ddb5230a51ac2b237331dee"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -477,7 +485,14 @@ sha  = "089aab801088a87484565d4b708c5c9df671fd9b"
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
-ref  = "main"                 # tsp-mc9m.41.985 (default-apps step 6): runtime#99 0589fcfa (tsp-f3fm.205) adds
+ref  = "main"                 # tsp-f3fm.202.1.5 (default-apps input delivery, tsp-f3fm.202.1 B5): runtime#100 d75beedf
+                              # (tsp-f3fm.202.1.1, exact head 720b8179) = 0589fcfa plus the pf-input-broker persistent
+                              # PFW1 session loop, protected SafeReturn intake and its aarch64-unknown-linux-musl build.
+                              # Only crates/pf-input-broker, Cargo.lock and one vendor file change. Image f6e0ee14
+                              # FATALs on any other runtime SHA; launcher_contract=PASS against the unchanged launcher
+                              # 1e5a3d97 (gpu-14, 2026-09-29). Fast-forward, 3.
+                              # Prior (0589fcfa959dca9150563ef0ed18d7d44b420dc5): tsp-mc9m.41.985 (default-apps step 6):
+                              # runtime#99 0589fcfa (tsp-f3fm.205) adds
                               # pf-app-manifest, the strict default-app resolver and pf-app-launch, with capability
                               # compatibility checks. Image 15a1a2b2 FATALs on any other runtime SHA. Fast-forward, 7.
                               # Prior (a2f149caef326215ce0bff7d0d076bac292595d4): tsp-mc9m.60.21.1.6: runtime#97/#98 move pf-render and pf-input-map test
@@ -499,7 +514,7 @@ ref  = "main"                 # tsp-mc9m.41.985 (default-apps step 6): runtime#9
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "0589fcfa959dca9150563ef0ed18d7d44b420dc5"
+sha  = "d75beedfb1203b329801a777803dff1ae8d5da1c"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
