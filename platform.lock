@@ -65,7 +65,8 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # and so of the fixed TSP DTS). The kernel override therefore equals the canonical
 # kernel-sunxi-7.x pin, and moves with it (tsp-mc9m.41.923.53: ee23555d -> 1b1da76f; tsp-3rd3.10
 # lock2: 1b1da76f -> 2bfee8b5, rotation 90; lock3: 2bfee8b5 -> 44debb5a, 8250_dw DLAB fix;
-# tsp-3rd3.14: 44debb5a -> bea8779b, otm1289a first-paint backlight hold; the
+# tsp-3rd3.14: 44debb5a -> bea8779b, otm1289a first-paint backlight hold; tsp-3rd3.16:
+# bea8779b -> 94ee6079, hci_xradio starts the XR829 off the probe path; the
 # no-radio DTS is still blob 7b73d02f there). It stays explicit, not removed, because pocketforge-automation
 # scripts/owned-image-ci/run-build.sh fails a noradio build (noradio_kernel_not_profile_pin)
 # unless the resolved kernel equals [profile_pins.a133-open-7x-gpu-noradio].kernel.
@@ -79,7 +80,7 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # (u-boot#50); only the kernel override is gated by automation. dfcc7773 also lacks the
 # #50 FEL guard (a FEL-loaded U-Boot autoboots the SD kernel).
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "bea8779b08a8679000cd9036ba9c86ae4b057cc8"
+kernel = "94ee6079afbc25eb71e716936210c776d11ffa79"
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
 [[repos]]
@@ -426,7 +427,18 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-3rd3.14): device/a133 bea8779b = 44debb5a plus #49 (bea8779b,
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-3rd3.16): device/a133 94ee6079 = bea8779b plus #50 (3560ccac,
+                               # 74a1b0a9, 370eefb4; exact-head Codex approve at 370eefb4): hci_xradio probe only
+                               # claims resources and queues the XR829 firmware upload and HCI registration on a
+                               # workqueue (remove cancels/waits it), so the ~6.6 s upload no longer runs inside
+                               # hci_uart module init, where it held udevadm settle -> sysinit -> pf-shell-selected ->
+                               # MainUI (+5 s since #48 made the upload succeed; B6 was fast because it failed).
+                               # Not an async-probe entry (every module load waits for those, module/main.c:3138).
+                               # 8250_dw untouched (ttyS3/4 gamepad recovery from #48 unchanged). CI gains the
+                               # hci_xradio KUnit suite on ARM64 QEMU (37 cases). No DTS change (tsp 6ae288b0,
+                               # odyssey dcdecef9, noradio 7b73d02f). Fast-forward, 4. The noradio override follows.
+                               # Previous pin (bea8779b08a8679000cd9036ba9c86ae4b057cc8):
+                               # KERNEL PIN (tsp-3rd3.14): device/a133 bea8779b = 44debb5a plus #49 (bea8779b,
                                # exact-head Codex approve at 49fa6dea): the owned otm1289a panel driver holds the
                                # backlight dark at the first panel enable until userspace writes 0 to bl_power after
                                # painting (image#153), with a kernel-owned one-shot fallback that lights it anyway.
@@ -531,7 +543,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-3rd3.14): device/a133 bea8779b = 
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "bea8779b08a8679000cd9036ba9c86ae4b057cc8"
+sha  = "94ee6079afbc25eb71e716936210c776d11ffa79"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
