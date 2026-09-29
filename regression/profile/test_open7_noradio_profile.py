@@ -21,7 +21,10 @@ NORMAL_KERNEL_SHA = "1b1da76f0adfa0f72379449f36746ed2104a9223"
 # pin (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). It stays a
 # separate lock-owned entry: automation run-build.sh requires it for noradio builds.
 NORADIO_KERNEL_SHA = "1b1da76f0adfa0f72379449f36746ed2104a9223"
-UBOOT_SHA = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
+NORMAL_UBOOT_SHA = "d34088ebaa98a6711b29ed1b46600c9990f0375c"
+# tsp-3rd3.10: the no-radio U-Boot override stays at dfcc7773 (coordinator ruling), so
+# it no longer equals the normal pin.
+NORADIO_UBOOT_SHA = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
 
 def flatten(value: Any, prefix: str = "") -> dict[str, Any]:
@@ -87,21 +90,23 @@ class Open7NoradioProfileTest(unittest.TestCase):
         self.assertEqual(
             differences(normal_args, noradio_args),
             # The kernel pin is shared with the normal profile (NORADIO_KERNEL_SHA ==
-            # NORMAL_KERNEL_SHA), so only the identity and the selected DTB differ.
+            # NORMAL_KERNEL_SHA); the identity, the selected DTB and (since tsp-3rd3.10) the
+            # held U-Boot override differ.
             {
                 "PF_DEVICE_ID": (NORMAL_DEVICE, NORADIO_DEVICE),
                 "PF_KERNEL_DTB": (
                     "sun50i-a133-pocketforge-odyssey.dtb",
                     "sun50i-a133-pocketforge-odyssey-a133-open-7x-gpu-noradio.dtb",
                 ),
+                "PF_UBOOT_SHA": (NORMAL_UBOOT_SHA, NORADIO_UBOOT_SHA),
             },
         )
         self.assertEqual(normal_args["PF_KERNEL_SHA"], NORMAL_KERNEL_SHA)
         self.assertEqual(normal_args["PF_GPU_KM_SHA"], NORMAL_KERNEL_SHA)
         self.assertEqual(noradio_args["PF_KERNEL_SHA"], NORADIO_KERNEL_SHA)
         self.assertEqual(noradio_args["PF_GPU_KM_SHA"], NORADIO_KERNEL_SHA)
-        self.assertEqual(normal_args["PF_UBOOT_SHA"], UBOOT_SHA)
-        self.assertEqual(noradio_args["PF_UBOOT_SHA"], UBOOT_SHA)
+        self.assertEqual(normal_args["PF_UBOOT_SHA"], NORMAL_UBOOT_SHA)
+        self.assertEqual(noradio_args["PF_UBOOT_SHA"], NORADIO_UBOOT_SHA)
 
     def test_noradio_pins_are_lock_owned_without_repinning_normal(self):
         lock = profile.load_lock()
@@ -112,7 +117,7 @@ class Open7NoradioProfileTest(unittest.TestCase):
         self.assertNotIn(NORMAL_DEVICE, lock["profile_pins"])
         self.assertEqual(
             lock["profile_pins"][NORADIO_DEVICE],
-            {"kernel": NORADIO_KERNEL_SHA, "uboot": UBOOT_SHA},
+            {"kernel": NORADIO_KERNEL_SHA, "uboot": NORADIO_UBOOT_SHA},
         )
 
     def test_malformed_profile_pin_fails_closed(self):

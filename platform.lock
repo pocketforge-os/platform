@@ -46,6 +46,9 @@ manifest_signing_active = false
 # tsp-mc9m.41.923.41: moved deliberately with the canonical pin. u-boot#48 fixes the
 # kernel/initrd collision in BOTH tg5040_defconfig and tg5040_mmc_trace_defconfig; the
 # old layout overlaps any kernel whose image_size exceeds 16 MiB. Prior: 1bc129ad.
+# tsp-3rd3.10: NOT moved when the canonical pin went dfcc7773 -> d34088eb (u-boot#49:
+# BOOTDELAY=0, vt.global_cursor_default=0). The trace profile keeps dfcc7773, so its
+# SPL banner stays 2025.10-gdfcc77739aa6. No automation gate requires equality.
 [profile_pins.a133-open-7x-gpu-spl-trace]
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
@@ -60,8 +63,11 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # scripts/owned-image-ci/run-build.sh fails a noradio build (noradio_kernel_not_profile_pin)
 # unless the resolved kernel equals [profile_pins.a133-open-7x-gpu-noradio].kernel.
 # Prior kernels: ee23555d9ba5362548c56573e558139541d3e702 (tsp-mc9m.41.923.42), before that
-# 0a475ab54c04101a06d0c48c95a0e3cf5d778c05. U-Boot is explicitly held
-# equal to the normal pin.
+# 0a475ab54c04101a06d0c48c95a0e3cf5d778c05. U-Boot was held equal to the normal pin
+# (dfcc7773). tsp-3rd3.10 keeps it at dfcc7773 when the canonical U-Boot pin moves to
+# d34088eb (coordinator ruling: diagnostic overrides stay unless automation requires
+# equality, and no automation gate reads a U-Boot profile pin). So this profile now also
+# differs from the normal one in U-Boot: no BOOTDELAY=0, cursor shown, banner -gdfcc77739aa6.
 [profile_pins.a133-open-7x-gpu-noradio]
 kernel = "1b1da76f0adfa0f72379449f36746ed2104a9223"
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
@@ -69,7 +75,14 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.923.53: image 27727a8f = f6e0ee14 plus #144 (c75721cd, tsp-3rd3.6: the boot
+ref  = "main"          # tsp-3rd3.10 (B6 boot experience): image eeae9b40 = 27727a8f plus #146 (476c1e15,
+                       # tsp-3rd3.12: panel owners stop the boot animator at start time instead of Conflicts=, so
+                       # the animator runs on shell images) and #148 (eeae9b40, tsp-mc9m.60.21.3: the animator
+                       # tests/docs transcribe pf-framehost's corrected orientation table). No Dockerfile.pf
+                       # change: still FATAL unless runtime d75beedf, launcher 1e5a3d97 and recovery
+                       # 443a84e4. Fast-forward, 4 commits.
+                       # Previous pin (27727a8f7d7c499e490c56de65f7875b930625ba), tsp-mc9m.41.923.53: image
+                       # 27727a8f = f6e0ee14 plus #144 (c75721cd, tsp-3rd3.6: the boot
                        # animator ported to 7.x DRM fbdev - connector orientation, region blit, hold last
                        # frame) and #145 (27727a8f, tsp-3rd3.7: the initrd paints boot frame 000 at 7.x first
                        # light, fail-open and reaped before switch_root; assemble now passes the kernel
@@ -228,7 +241,7 @@ ref  = "main"          # tsp-mc9m.41.923.53: image 27727a8f = f6e0ee14 plus #144
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "27727a8f7d7c499e490c56de65f7875b930625ba"
+sha  = "eeae9b407d68a439defa1d64769e4e2ab3067681"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -494,7 +507,14 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # layout to kernel 0x44000000 / FDT 0x49000000 / initrd 0x4b000000
                               # (80 MiB kernel window; was 16 MiB) and adds tools/check_tg5040_boot_layout.py
                               # (tsp-mc9m.41.923.40). Prior: 1bc129ad26229bfe6037cf038c3d087a2450a18c.
-sha  = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
+                              # tsp-3rd3.10 (B6 boot experience): u-boot#49 d34088eb (tsp-3rd3.8, exact-head Codex
+                              # approve at 9ed370c4) sets CONFIG_BOOTDELAY=0 and appends vt.global_cursor_default=0
+                              # to CONFIG_BOOTARGS in both tg5040_defconfig and tg5040_mmc_trace_defconfig.
+                              # Fast-forward, 2. BANNER CHANGE: image Dockerfile.pf stamps .scmversion
+                              # "-g<first 12 hex of PF_UBOOT_SHA>", so the owned SPL banner becomes
+                              # "U-Boot SPL 2025.10-gd34088ebaa98" (was 2025.10-gdfcc77739aa6).
+                              # Prior (dfcc77739aa647fa195abd2e01d9fab6b2633474).
+sha  = "d34088ebaa98a6711b29ed1b46600c9990f0375c"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
