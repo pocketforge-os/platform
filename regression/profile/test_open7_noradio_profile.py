@@ -16,11 +16,11 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "2bfee8b57a665c512429f1f3f01a127e8edd5aa1"
+NORMAL_KERNEL_SHA = "44debb5a793e8e06da5ab941fffdec5badd4bf79"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin now equals the canonical
 # pin (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). It stays a
 # separate lock-owned entry: automation run-build.sh requires it for noradio builds.
-NORADIO_KERNEL_SHA = "2bfee8b57a665c512429f1f3f01a127e8edd5aa1"
+NORADIO_KERNEL_SHA = "44debb5a793e8e06da5ab941fffdec5badd4bf79"
 NORMAL_UBOOT_SHA = "c21fbfb88293b9427b471a0725d1851484a8adba"
 # tsp-3rd3.10: the no-radio U-Boot override stays at dfcc7773 (coordinator ruling), so
 # it no longer equals the normal pin.

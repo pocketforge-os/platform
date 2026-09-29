@@ -148,15 +148,16 @@ class ProfileTest(unittest.TestCase):
         # tsp-3rd3.10 lock2 (image 2a3d2114, runtime 0955d8a8, u-boot c21fbfb8: PF_IMAGE_SHA and
         # PF_RUNTIME_SHA on every row, PF_UBOOT_SHA on the a133-owned rows, verified the same way),
         # and its kernel commit (2bfee8b5, rotation 90: only PF_KERNEL_SHA on the a133-open-7x rows);
-        # and tsp-3rd3.10 lock3 (image ea5ed12e: only PF_IMAGE_SHA, every row). Against the
+        # and tsp-3rd3.10 lock3 (image ea5ed12e: only PF_IMAGE_SHA, every row; then kernel 44debb5a:
+        # only PF_KERNEL_SHA on the a133-open-7x rows). Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
         # which are not in this table): no key added or removed, state and missing unchanged.
         expected = {
             ("a133", "dev"): "779b9b12daf2d037cd39ac81fefa9e8961c84c6b776a37119c2e7925d66940e0",
             ("a133", "release"): "aadab3b7e8885665ec1438847d4467f00c4f22b47950de11a2b43c47ec1fe592",
-            ("a133-open-7x", "dev"): "ba3aca4600650153438cdce6952256f1818e0d0fb623f94deeeee4ac184e68dd",
-            ("a133-open-7x", "release"): "27477208d75263f9a3d8fc63391a8ffd97923bda02423db9c0620f60481c07c8",
+            ("a133-open-7x", "dev"): "6f4ea308a33eea9c4b95e7d3ff1ca7755abf5f0172aa8cdb0d5616a57124bb92",
+            ("a133-open-7x", "release"): "7a0fd402b4dcb5d036f095735c84222852f1e0c38196f882c9605cffa7839801",
             ("a133-owned", "dev"): "664a69c4521580e36343b33b91ae582f2e73828e11d4973ce11001a591f93230",
             ("a133-owned", "release"): "013ddb6a058dd42a56ba09fa321ebea0b6bcb5567fd7ef5a888ce3451772e7da",
             ("a523", "dev"): "86a9a6778b3e70b3f220f5535349dfaec3e95cd18473bfb70ed3d5525b4a774a",
@@ -292,7 +293,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "2bfee8b57a665c512429f1f3f01a127e8edd5aa1")
+        self.assertEqual(args["PF_KERNEL_SHA"], "44debb5a793e8e06da5ab941fffdec5badd4bf79")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -309,7 +310,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "2bfee8b57a665c512429f1f3f01a127e8edd5aa1")
+        self.assertEqual(args["PF_KERNEL_SHA"], "44debb5a793e8e06da5ab941fffdec5badd4bf79")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")

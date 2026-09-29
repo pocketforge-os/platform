@@ -64,7 +64,7 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # now builds the same no-radio DTS (blob 7b73d02f, a strict child of the Odyssey DTS
 # and so of the fixed TSP DTS). The kernel override therefore equals the canonical
 # kernel-sunxi-7.x pin, and moves with it (tsp-mc9m.41.923.53: ee23555d -> 1b1da76f; tsp-3rd3.10
-# lock2: 1b1da76f -> 2bfee8b5, rotation 90; the
+# lock2: 1b1da76f -> 2bfee8b5, rotation 90; lock3: 2bfee8b5 -> 44debb5a, 8250_dw DLAB fix; the
 # no-radio DTS is still blob 7b73d02f there). It stays explicit, not removed, because pocketforge-automation
 # scripts/owned-image-ci/run-build.sh fails a noradio build (noradio_kernel_not_profile_pin)
 # unless the resolved kernel equals [profile_pins.a133-open-7x-gpu-noradio].kernel.
@@ -78,7 +78,7 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # (u-boot#50); only the kernel override is gated by automation. dfcc7773 also lacks the
 # #50 FEL guard (a FEL-loaded U-Boot autoboots the SD kernel).
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "2bfee8b57a665c512429f1f3f01a127e8edd5aa1"
+kernel = "44debb5a793e8e06da5ab941fffdec5badd4bf79"
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
 [[repos]]
@@ -390,7 +390,13 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-3rd3.10 lock2, tsp-c2b70): device/a133 2bfee8b5 = 1b1da76f plus #47
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-3rd3.10 lock3, tsp-mc9m.41.923.53): device/a133 44debb5a = 2bfee8b5 plus
+                               # #48 (44debb5a, exact-head Codex approve at 52c2edfe): 8250_dw recovers when a refused
+                               # LCR write leaves DLAB set (the BUSY/DLAB fault on the gamepad MCU UARTs), with 8250_dw
+                               # KUnit tests and scripts/test-8250-dw-kunit.sh in the a133 build workflow. No DTS change.
+                               # Fast-forward, 2. The noradio kernel override follows.
+                               # Prior (2bfee8b57a665c512429f1f3f01a127e8edd5aa1): tsp-3rd3.10 lock2, tsp-c2b70:
+                               # device/a133 2bfee8b5 = 1b1da76f plus #47
                                # (2bfee8b5, exact-head Codex approve at bb5a5c6e): TSP DTS panel rotation 270 -> 90,
                                # plus scripts/check-a133-panel-rotation-dtb.sh. Fast-forward, 2. The noradio kernel
                                # override follows (its DTS, blob 7b73d02f, inherits rotation 90 via Odyssey -> TSP).
@@ -476,7 +482,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-3rd3.10 lock2, tsp-c2b70): device
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "2bfee8b57a665c512429f1f3f01a127e8edd5aa1"
+sha  = "44debb5a793e8e06da5ab941fffdec5badd4bf79"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
