@@ -85,7 +85,20 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-3rd3.14: image 40db72ec = ea5ed12e plus #154 (f04f5ab9, tsp-mc9m.41.923.53, exact-head
+ref  = "main"          # tsp-f3fm.219: image 3c2ac542 = 40db72ec plus #155 (8ef105d9, tsp-f3fm.218, exact-head
+                       # Codex approve at 5c98371d: profile-correct SDL_VIDEODRIVER recipes, sunxifb on the
+                       # closed DDK and kmsdrm on the open GPU, in comments and docs only), #156 (8d80dff3,
+                       # tsp-mc9m.41.984.30, exact-head Codex approve at 88f512ca: the fallback-profile fixture
+                       # stages every build-sd-image.sh helper, plus a hermetic-tests workflow) and #157
+                       # (3c2ac542, tsp-f3fm.219, exact-head Codex approve at 158e283a): Dockerfile.pf:1156
+                       # requires runtime 7536aa1f and :1703 launcher 7a2b792d, which move together because the
+                       # launcher vendors runtime#103's pf-session-authority; the real-systemd harness gains a
+                       # crash that self-drives to RecoveryRequired{presentation_not_acknowledged} and a late ack
+                       # to Idle. Recovery 443a84e4 stays at :1623 (+ scripts/build-rootfs.sh:1881); :330
+                       # KM==kernel. launcher_contract=PASS for launcher 7a2b792d / runtime 7536aa1f / image
+                       # 3c2ac542. Fast-forward, 10.
+                       # Previous pin (40db72ece3b047212da4d21ef7ed56bead7a20ee):
+                       # tsp-3rd3.14: image 40db72ec = ea5ed12e plus #154 (f04f5ab9, tsp-mc9m.41.923.53, exact-head
                        # Codex approve at 97112491: evtest in the A133 dev-only rootfs package list) and #153
                        # (40db72ec, tsp-3rd3.14, exact-head Codex approve at 4ca4197c): the initrd first-frame
                        # helper writes 0 to every /sys/class/backlight/*/bl_power after the first successful pan
@@ -280,7 +293,7 @@ ref  = "main"          # tsp-3rd3.14: image 40db72ec = ea5ed12e plus #154 (f04f5
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "40db72ece3b047212da4d21ef7ed56bead7a20ee"
+sha  = "3c2ac542464055cef5dcbfab238eab25bc8d17e8"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
