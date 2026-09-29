@@ -152,22 +152,23 @@ class ProfileTest(unittest.TestCase):
         # only PF_KERNEL_SHA on the a133-open-7x rows); and tsp-mc9m.41.924.16.12 (libsdl3-sunxifb
         # 576ae890: only PF_LIBSDL3_SHA, every row, verified the same way); and tsp-3rd3.14 (image
         # 40db72ec: only PF_IMAGE_SHA, every row; then libsdl3-sunxifb b91e26b3, tsp-f3fm.218: only
-        # PF_LIBSDL3_SHA, every row; then kernel bea8779b: only PF_KERNEL_SHA on the a133-open-7x rows).
+        # PF_LIBSDL3_SHA, every row; then kernel bea8779b: only PF_KERNEL_SHA on the a133-open-7x rows);
+        # and tsp-f3fm.219 (runtime 7536aa1f: only PF_RUNTIME_SHA, every row, verified the same way).
         # Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
         # which are not in this table): no key added or removed, state and missing unchanged.
         expected = {
-            ("a133", "dev"): "0051e62afe61089720f34d195dfdfa7564e24195855562535e187c490358ff4a",
-            ("a133", "release"): "c7722ac11e8635fe8be9034ffb0fe6c0b4825c1356db5bb473a87b0f87c8e548",
-            ("a133-open-7x", "dev"): "5534991185e8eacb0bd6598594c5d99cb6e3d0ad4f35af5c6579ad4f42e150f4",
-            ("a133-open-7x", "release"): "ae9dd4eb720e4943d1375c8da02008587f5672c0eee220b3230454978e6fe37d",
-            ("a133-owned", "dev"): "76a141845ae7079126373e582de42d81d996bd17eadb8ed3a39a668a3a4afb88",
-            ("a133-owned", "release"): "f5c1b227a5c49adca5a81d286faebc01d4b8d63b4e9a6f7cefd61c8a58104f5f",
-            ("a523", "dev"): "d14e75de6f82baba4f70e40746cd62fa210b92e08ad0a1b2c921adf7c228f3e3",
-            ("a523", "release"): "1f109ac65dbc3c7bb3ac8d213df8b17242ac603f78d3569785d605b44a5e1638",
-            ("sdm845", "dev"): "adb3f9a94f88d94d402d15f3f44e1d47d9a8476826bfbd423f5b24ed52dc0510",
-            ("sdm845", "release"): "369b18aff937a2707c66e7bfa7f927590857e4b198afd68794cba7141dc2f574",
+            ("a133", "dev"): "13dd2324e4fd7d8ffff53d13e78893c5acd51bd2f517ffc4b98855ff37e13adf",
+            ("a133", "release"): "4f4258dce9e422d08ded1118547b4b0c6ee095f498ac65f1143bd24d436b55a6",
+            ("a133-open-7x", "dev"): "17b7ae9a4fe5f86b95cfad38c296983029616473e15e6fc706b80065678980e3",
+            ("a133-open-7x", "release"): "74f535faea893231cceb0668fa8e8d5d1db39896761110fee0eb608d3e02fc44",
+            ("a133-owned", "dev"): "e2d53bd76e469c174baeb34ed50bae1a96c4c9fe40bd66808ec71fffcc8d79f3",
+            ("a133-owned", "release"): "6c8a83ce6b77875509091ebe7413894b88137a83a32eeaef0b901c8c1aaee849",
+            ("a523", "dev"): "df5db1325c0fe6829c27d9c8633cc701624a2512c2ea7a21799fc28863b40ba5",
+            ("a523", "release"): "4c2734c74573aa725350583a2fcdafb2ac553a1075a29e2994496a474c38b48b",
+            ("sdm845", "dev"): "84ed1ee12ffae6720fe996186f0970d89026ce3a64ef40a2c05e0153666136a2",
+            ("sdm845", "release"): "308650395325345c760672013688bbdcac138b70aa4edafda4b1bb3ab2e1e730",
         }
         for key, digest in expected.items():
             dev_id, variant = key
