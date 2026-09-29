@@ -593,7 +593,18 @@ sha  = "3c8c5c537028e6f749f7888b05e85aa95aa88db4"
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
-ref  = "main"                # tsp-mc9m.41.924.16.12: libsdl3-sunxifb#21 576ae890 (exact-head Codex approve at
+ref  = "main"                # tsp-f3fm.218: libsdl3-sunxifb#22 b91e26b3 (exact-head Codex approve at 008d6982;
+                              # gpu-model-backends CI passed at 008d6982): -DSDL_SUNXIFB now follows PF_GPU_MODEL like
+                              # -DSDL_KMSDRM. open: sunxifb OFF, KMSDRM on, runtime driver list kmsdrm,dummy,evdev, so
+                              # KMSDRM (with #21's rotated present) is the default. ddk: sunxifb ON, KMSDRM off, as before.
+                              # verify-libsdl3-artifact.sh asserts both directions on the built library. Fast-forward, 3.
+                              # Image 40db72ec builds SDL from PF_LIBSDL3_SHA with no equality gate. Its on-device
+                              # SDL_VIDEODRIVER=sunxifb recipes (pf-take-panel, odyssey-capture.sh, FB0-CONTRACT.md)
+                              # are made profile-correct by image#155, not in this lock. abi/families.toml
+                              # platform_version stays "20" (lock_state=interim: the ABI gate needs no bump; runtime
+                              # pf-app-manifest requires an exact match, and poolsuite app.toml pins "20").
+                              # Prior (576ae89098fe7bb4656a214d5560ec1d3958f209):
+                              # tsp-mc9m.41.924.16.12: libsdl3-sunxifb#21 576ae890 (exact-head Codex approve at
                               # 1bb41a33): KMSDRM rotated present for panels whose connector "panel orientation" is
                               # not Normal (all-or-nothing rotate GL table, safe teardown, per-window orientation
                               # contract; fake-KMS rotation tests in CI). Fast-forward, 4. Image ea5ed12e builds
@@ -603,7 +614,7 @@ ref  = "main"                # tsp-mc9m.41.924.16.12: libsdl3-sunxifb#21 576ae89
                               # f5e73b52 supplies the reviewed
                               # KMSDRM-enabled open-model artifact for imagePR126.
                               # Prior: tsp-4i6u #14: SDL_Renderer on sunxifb now works — SUNXIFB_CreateWindow loads EGL via the refcounted SDL_GL_LoadLibrary(NULL) wrapper (not the raw hook), fixing the egl_data/driver_loaded desync that made SDL_CreateRenderer fail ("EGL context already created" / "no matching render driver"); preserves Fix A's eager-surface invariant (tsp-osr NULL+0x8 deref stays fixed). Prior: tsp-147u.8.5 #12 (pf-gfxbench stage-schedule CALIBRATION, 60.41->2.00fps on tsp-base); #9 (pf-gfxbench app); tsp-ve5 #5 (eglBindAPI return check); UM blob path reorg tsp/ -> sunxi/a133/ (#2).
-sha  = "576ae89098fe7bb4656a214d5560ec1d3958f209"
+sha  = "b91e26b34a6958ec6fcc63e1b4ccc603e0dadeb0"
 
 [[repos]]
 name = "wpa-supplicant-tsp"   # owned wpa_supplicant 2.10 fork (GREAT_SNR 25->45 roam hysteresis,
