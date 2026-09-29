@@ -1,0 +1,72 @@
+# device-descriptor-staging - the A133-open device descriptor platform input (tsp-f3fm.202.1 R1).
+#
+# core/profile.py emits PF_DEVICE_DESCRIPTOR_ID/_SHA256 ONLY for the app-runtime (A133-open)
+# profiles and core/pf-build.sh stages devices/<id>/capabilities.toml verbatim into the
+# `platform-inputs-src` named context. This gate proves the selection, determinism, the
+# runtime Descriptor shape, fail-closed staging, and that every other profile's
+# buildargs/env/resolve output is byte-identical to the pre-descriptor platform main.
+#
+# Same shape as abi-drift: no marketplace actions (org sha_pinning_required), plain git +
+# the ephemeral token, the pf-pr-review lane, stdlib-only Python 3.11+ (tomllib). Not a
+# required check, so a `paths:` filter is safe here.
+
+name: device descriptor staging
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'core/profile.py'
+      - 'core/pf-build.sh'
+      - 'devices/**'
+      - 'abi/**'
+      - 'families/**'
+      - 'platform.lock'
+      - 'regression/profile/test_device_descriptor.py'
+      - 'regression/build/device-descriptor-staging-test.sh'
+      - '.github/workflows/device-descriptor-staging.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'core/profile.py'
+      - 'core/pf-build.sh'
+      - 'devices/**'
+      - 'abi/**'
+      - 'families/**'
+      - 'platform.lock'
+      - 'regression/profile/test_device_descriptor.py'
+      - 'regression/build/device-descriptor-staging-test.sh'
+      - '.github/workflows/device-descriptor-staging.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: device-descriptor-staging
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, pf-pr-review]
+    steps:
+      - name: checkout the tested ref + run the descriptor staging tests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          wd="${RUNNER_TEMP:?}/platform-descriptor-staging-$GITHUB_RUN_ID"
+          rm -rf "$wd"
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
+          cd "$wd"
+          sha="${HEAD_SHA:-$GITHUB_SHA}"
+          git fetch --quiet origin "$sha"
+          git checkout --quiet --detach "$sha"
+          PY=""
+          for c in python3.12 python3.11 python3; do
+            if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys;raise SystemExit(0 if sys.version_info>=(3,11) else 1)'; then
+              PY="$c"; break
+            fi
+          done
+          [ -n "$PY" ] || { echo "FATAL: no Python 3.11+ (tomllib) on this runner: $(python3 -V 2>&1 || echo none)" >&2; exit 3; }
+          echo "using $PY ($("$PY" -V 2>&1)) on runner $RUNNER_NAME @ $sha"
+          "$PY" -B regression/profile/test_device_descriptor.py -v
+          PF_PY="$PY" bash regression/build/device-descriptor-staging-test.sh

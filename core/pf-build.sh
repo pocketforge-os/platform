@@ -150,6 +150,33 @@ pf_create_staging_dir() {
     mkdir -- "$path"
 }
 
+# pf_stage_device_descriptor <src_dir> <descriptor-id> <sha256>
+# Platform-owned device descriptor (tsp-f3fm.202.1 R1). profile.py emits
+# PF_DEVICE_DESCRIPTOR_ID/_SHA256 ONLY with the app-runtime contract; this stages the
+# verbatim bytes of devices/<id>/capabilities.toml from this platform checkout (the same
+# tree profile.py resolved them from) into the `platform-inputs-src` named context at
+# devices/<id>/capabilities.toml, mode 0644, and refuses unless the staged bytes hash to the
+# build-arg SHA-256. Every other profile gets no platform-inputs directory at all.
+pf_stage_device_descriptor() {
+    local src_dir="$1" id="$2" want="$3" source dest got
+    [[ "$id" =~ ^[a-z0-9][a-z0-9-]*$ ]] \
+        || pf_die "stage: invalid PF_DEVICE_DESCRIPTOR_ID '$id'"
+    [[ "$want" =~ ^[0-9a-f]{64}$ ]] \
+        || pf_die "stage: PF_DEVICE_DESCRIPTOR_SHA256 missing or malformed for descriptor $id"
+    source="$PF_PLATFORM_DIR/devices/$id/capabilities.toml"
+    { [ -f "$source" ] && [ ! -L "$source" ]; } \
+        || pf_die "stage: device descriptor $source is not a regular file"
+    create_context_dir "$src_dir/platform-inputs"
+    create_context_dir "$src_dir/platform-inputs/devices"
+    create_context_dir "$src_dir/platform-inputs/devices/$id"
+    dest="$src_dir/platform-inputs/devices/$id/capabilities.toml"
+    install -m 0644 -- "$source" "$dest"
+    got="$(sha256sum -- "$dest" | cut -d' ' -f1)"
+    [ "$got" = "$want" ] \
+        || pf_die "stage: device descriptor $id sha256 $got != PF_DEVICE_DESCRIPTOR_SHA256 $want"
+    pf_log "stage: platform-inputs <- devices/$id/capabilities.toml (sha256=${got:0:12})"
+}
+
 pf_stage_sources() {
     local src_dir="$1" ba="$2"
     local mirror_dir="${PF_MIRROR_DIR:-$HOME/wt/.mirrors}"
@@ -240,6 +267,10 @@ pf_stage_sources() {
     # The image interface is unconditional even though Poolsuite source is dev-only.
     # Release builds therefore receive a real, empty named context.
     [ -e "$src_dir/poolsuite" ] || create_context_dir "$src_dir/poolsuite"
+    if [ -n "$(v PF_DEVICE_DESCRIPTOR_ID)" ]; then
+        pf_stage_device_descriptor "$src_dir" "$(v PF_DEVICE_DESCRIPTOR_ID)" \
+            "$(v PF_DEVICE_DESCRIPTOR_SHA256)"
+    fi
 }
 
 pf_release_caller_temporary() {
@@ -554,6 +585,12 @@ pf_os_image_dockerbuild() {
         # recovery-src — OPEN-ONLY, same rationale: only the recovery-open stage COPYs it, reached
         # ONLY via the `FROM recovery-${PF_GPU_MODEL}` selector; pruned for ddk.
         cmd+=( --build-context "recovery-src=$src_dir/recovery" )
+    fi
+    # platform-inputs-src — ONLY with PF_DEVICE_DESCRIPTOR_ID (the app-runtime profiles;
+    # tsp-f3fm.202.1 R1). It holds devices/<id>/capabilities.toml staged verbatim by
+    # pf_stage_device_descriptor; every other profile's command is unchanged.
+    if [ -n "$(printf '%s\n' "$ba" | sed -n 's/^PF_DEVICE_DESCRIPTOR_ID=//p')" ]; then
+        cmd+=( --build-context "platform-inputs-src=$src_dir/platform-inputs" )
     fi
     # Local BuildKit cache export (tsp-1dl.4.7): emit ONLY for ci-dell. On a persistent dev host
     # docker's own layer cache already persists between builds for free, so an explicit
