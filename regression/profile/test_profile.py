@@ -144,21 +144,24 @@ class ProfileTest(unittest.TestCase):
         # tsp-3rd3.10 (image eeae9b40, then d53b4cab, + u-boot d34088eb: every row moves; the only payload changes are
         # PF_IMAGE_SHA on all rows and PF_UBOOT_SHA on the a133-owned rows, verified the same way),
         # and for its runtime 2ad0ca76 + launcher 96feb08c commit (only PF_RUNTIME_SHA, on every row;
-        # PF_LAUNCHER_SHA moves only on open profiles, not in this table). Against the
+        # PF_LAUNCHER_SHA moves only on open profiles, not in this table), and again for
+        # tsp-3rd3.10 lock2 (image 2a3d2114, runtime 0955d8a8, u-boot c21fbfb8: PF_IMAGE_SHA and
+        # PF_RUNTIME_SHA on every row, PF_UBOOT_SHA on the a133-owned rows, verified the same way).
+        # Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
         # which are not in this table): no key added or removed, state and missing unchanged.
         expected = {
-            ("a133", "dev"): "8916d3679e058a0e3530034561c1fdefe1b020fc57fe219644a657ce55641eb8",
-            ("a133", "release"): "81d9410a2b912a1e1a6b7e897038ebf3809ead3319ed384cdb01ed3cf61e161e",
-            ("a133-open-7x", "dev"): "c880a8620bfa695ab491f49e8ba975f12bbd850a056b23937c8f6419765e0397",
-            ("a133-open-7x", "release"): "5ee185ef27c198587f904d43b7207344821e55444074572df8a955dff7c7c913",
-            ("a133-owned", "dev"): "33cc0bda55193802c21d74d5520637eaf37a8083b4c8492a541d04d4c250b76a",
-            ("a133-owned", "release"): "898e57a1ec16ab064906339722f71670137fb53d33ca07ab089f1de6604e8d1a",
-            ("a523", "dev"): "c5695cd92ac88c33504fb752164739eb7c97ec51d689f464184348c74ec7b2b3",
-            ("a523", "release"): "fc59c29509f102c7e19c68ad1db14136959cd8c84429565910d7b0829cfcf0d5",
-            ("sdm845", "dev"): "514bc6b809d6dfe51b500746895c01bbfd54a852de1482e119ca9c8c8747a26e",
-            ("sdm845", "release"): "b32101588f5ed3365ae083ef0ddaae01d4f046f5942fb19d30036ec2a2099655",
+            ("a133", "dev"): "d22862b06e1617d4b2837f735114422c96009fa7b58661f0522a41a670fc6512",
+            ("a133", "release"): "6d916621b392a71287135011895088467fafcfeee6004e30f46c9029e4179f2d",
+            ("a133-open-7x", "dev"): "2b1b449bed1a2b5a0884d3fe51d9dbdac9021dac38ddb604a6ea55c33fb08105",
+            ("a133-open-7x", "release"): "53ed5db4a83e314692919e9e04a3083647c9ea0c4d60206a9cb40c641c1d6c89",
+            ("a133-owned", "dev"): "37bbadf6557c2871574ac5c96335b2b13cc515e3e5cd12492287e5294ef636fc",
+            ("a133-owned", "release"): "523e3249db52ab58e28f215e8ad4b93c5c897c8f426576cb561c76d0356206f2",
+            ("a523", "dev"): "30ed7c384c934a0c5ddd7a917bf55fb186aa50d79cb3830f75f86e11a15ae935",
+            ("a523", "release"): "a1ea41f9882b379f578054494215c4067d851c89be57066280a868bd061355af",
+            ("sdm845", "dev"): "80d114bfccdd78664d90f717bc8dad12d7fd841e1fbe0a0854252fd7980693c8",
+            ("sdm845", "release"): "4844668c03c6cbfc78bd19055cf084b0ef452247aff2ae291e6cf9b6cb08bfb6",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -314,7 +317,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_KM_SHA"], args["PF_KERNEL_SHA"])
         self.assertEqual(args["PF_GPU_UM_REPO"], "gpu-um-tsp")
         self.assertEqual(args["PF_GPU_UM_SHA"], "7b01cc2a7d07f0dc71e33b6eca81fb733a706ac8")
-        self.assertEqual(args["PF_IMAGE_SHA"], "d53b4cab14866babd0d1f0f6f18362a2644d8ba6")
+        self.assertEqual(args["PF_IMAGE_SHA"], "2a3d2114d6f33144792bab0746fd587c423ccdfd")
         self.assertEqual(args["PF_LIBSDL3_SHA"], "f5e73b52840129cdaaa288a71463cd548a91e2c5")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
