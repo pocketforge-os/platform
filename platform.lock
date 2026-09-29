@@ -75,12 +75,15 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-3rd3.10 (B6 boot experience): image eeae9b40 = 27727a8f plus #146 (476c1e15,
+ref  = "main"          # tsp-3rd3.10 (B6 boot experience): image d53b4cab = 27727a8f plus #146 (476c1e15,
                        # tsp-3rd3.12: panel owners stop the boot animator at start time instead of Conflicts=, so
-                       # the animator runs on shell images) and #148 (eeae9b40, tsp-mc9m.60.21.3: the animator
-                       # tests/docs transcribe pf-framehost's corrected orientation table). No Dockerfile.pf
-                       # change: still FATAL unless runtime d75beedf, launcher 1e5a3d97 and recovery
-                       # 443a84e4. Fast-forward, 4 commits.
+                       # the animator runs on shell images), #148 (eeae9b40, tsp-mc9m.60.21.3: the animator
+                       # tests/docs transcribe pf-framehost's corrected orientation table), #147 (66098896,
+                       # tsp-f3fm.202.1.6: the app-session input broker fails once (Restart=no), Wants= the
+                       # foreground target, and pf-app@ BindsTo= it) and #149 (d53b4cab, tsp-mc9m.60.21.3:
+                       # Dockerfile.pf:1155 now requires runtime 2ad0ca76 and :1699 launcher 96feb08c; recovery
+                       # stays 443a84e4 at :1619 and scripts/build-rootfs.sh:1880). launcher_contract=PASS for
+                       # launcher 96feb08c / runtime 2ad0ca76 / image d53b4cab. Fast-forward, 11 commits.
                        # Previous pin (27727a8f7d7c499e490c56de65f7875b930625ba), tsp-mc9m.41.923.53: image
                        # 27727a8f = f6e0ee14 plus #144 (c75721cd, tsp-3rd3.6: the boot
                        # animator ported to 7.x DRM fbdev - connector orientation, region blit, hold last
@@ -241,7 +244,7 @@ ref  = "main"          # tsp-3rd3.10 (B6 boot experience): image eeae9b40 = 2772
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "eeae9b407d68a439defa1d64769e4e2ab3067681"
+sha  = "d53b4cab14866babd0d1f0f6f18362a2644d8ba6"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -560,9 +563,8 @@ ref  = "main"                 # tsp-3rd3.10 (B6, tsp-mc9m.60.21.3): runtime#101 
                               # aeca97fb): pf-framehost reads panel orientation with the kernel's meaning (orientation
                               # table aligned, DRM property-read EFAULT fix, fbcon-bound handling) plus
                               # scripts/check-framehost-animator-orientation.py. Fast-forward, 2.
-                              # BLOCKED FOR IMAGE BUILDS: image eeae9b40 Dockerfile.pf:1155 still FATALs unless
-                              # PF_RUNTIME_SHA=d75beedf; an image PR must move that guard before this pin builds.
-                              # launcher_contract=PASS for launcher 96feb08c / runtime 2ad0ca76 / image eeae9b40 (gpu-14).
+                              # Image d53b4cab (image#149) Dockerfile.pf:1155 requires exactly this SHA.
+                              # launcher_contract=PASS for launcher 96feb08c / runtime 2ad0ca76 / image d53b4cab.
                               # Prior (d75beedfb1203b329801a777803dff1ae8d5da1c): tsp-f3fm.202.1.5 (default-apps input
                               # delivery, tsp-f3fm.202.1 B5): runtime#100 d75beedf
                               # (tsp-f3fm.202.1.1, exact head 720b8179) = 0589fcfa plus the pf-input-broker persistent
@@ -601,8 +603,7 @@ url  = "https://github.com/pocketforge-os/launcher.git"   # top-coord RULING B).
 ref  = "main"                 # tsp-3rd3.10 (B6, tsp-mc9m.60.21.3): launcher#145 96feb08c (exact-head Codex approve at
                               # 0819f040) repins every runtime crate 0589fcfa -> 2ad0ca76 (Cargo.toml, .cargo/config.toml,
                               # Cargo.lock) and re-vendors pf-framehost with runtime#101's orientation fix. Fast-forward, 3.
-                              # BLOCKED FOR IMAGE BUILDS: image eeae9b40 Dockerfile.pf:1699 still FATALs unless
-                              # PF_LAUNCHER_SHA=1e5a3d97; an image PR must move that guard before this pin builds.
+                              # Image d53b4cab (image#149) Dockerfile.pf:1699 requires exactly this SHA.
                               # Prior (1e5a3d971ec7e8d425deea4bf0d8cbed39ba0c77): tsp-mc9m.41.985 (default-apps step 6):
                               # launcher#143 2c8f8191 (tsp-f3fm.206, default-app
                               # launcher contract) + #144 1e5a3d97 (tsp-f3fm.208: vendor/pf-app-launch closes the vendored
