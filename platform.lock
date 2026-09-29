@@ -582,10 +582,17 @@ sha  = "3c8c5c537028e6f749f7888b05e85aa95aa88db4"
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
-ref  = "main"                # tsp-mc9m.41.924.16.3: SDLf5 merged f5e73b52 supplies the reviewed
+ref  = "main"                # tsp-mc9m.41.924.16.12: libsdl3-sunxifb#21 576ae890 (exact-head Codex approve at
+                              # 1bb41a33): KMSDRM rotated present for panels whose connector "panel orientation" is
+                              # not Normal (all-or-nothing rotate GL table, safe teardown, per-window orientation
+                              # contract; fake-KMS rotation tests in CI). Fast-forward, 4. Image ea5ed12e builds
+                              # SDL from PF_LIBSDL3_SHA with no equality gate. abi/families.toml platform_version
+                              # stays "20" (lock_state=interim: the ABI gate needs no bump, and apps pin "20" exactly).
+                              # Prior (f5e73b52840129cdaaa288a71463cd548a91e2c5): tsp-mc9m.41.924.16.3: SDLf5 merged
+                              # f5e73b52 supplies the reviewed
                               # KMSDRM-enabled open-model artifact for imagePR126.
                               # Prior: tsp-4i6u #14: SDL_Renderer on sunxifb now works — SUNXIFB_CreateWindow loads EGL via the refcounted SDL_GL_LoadLibrary(NULL) wrapper (not the raw hook), fixing the egl_data/driver_loaded desync that made SDL_CreateRenderer fail ("EGL context already created" / "no matching render driver"); preserves Fix A's eager-surface invariant (tsp-osr NULL+0x8 deref stays fixed). Prior: tsp-147u.8.5 #12 (pf-gfxbench stage-schedule CALIBRATION, 60.41->2.00fps on tsp-base); #9 (pf-gfxbench app); tsp-ve5 #5 (eglBindAPI return check); UM blob path reorg tsp/ -> sunxi/a133/ (#2).
-sha  = "f5e73b52840129cdaaa288a71463cd548a91e2c5"
+sha  = "576ae89098fe7bb4656a214d5560ec1d3958f209"
 
 [[repos]]
 name = "wpa-supplicant-tsp"   # owned wpa_supplicant 2.10 fork (GREAT_SNR 25->45 roam hysteresis,
