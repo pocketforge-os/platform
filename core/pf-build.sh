@@ -338,8 +338,14 @@ pf_ensure_insecure_builder() {
             local node="buildx_buildkit_${builder}0" running h stale=0
             running="$(docker exec "$node" cat /etc/buildkit/buildkitd.toml 2>/dev/null || true)"
             if [ -n "$running" ]; then
+                # buildx re-encodes the config it copies into the builder. buildx >= the
+                # go-toml/v2 migration (v0.37.1 uses go-toml v2.4.3) writes a key that needs
+                # quoting as a LITERAL string, [registry.'10.0.32.86:5555'], where older buildx
+                # wrote "10.0.32.86:5555". Accept either quoting; matching only "..." judged
+                # every fresh builder stale and its `buildx rm` discarded the build cache on
+                # every run (tsp-mc9m.41.984.20).
                 for h in $(grep -oE '\[registry\."[^"]+"\]' "$cfg" | sed -E 's/.*"([^"]+)".*/\1/'); do
-                    printf '%s\n' "$running" | grep -qF "\"$h\"" || stale=1
+                    printf '%s\n' "$running" | grep -qF -e "\"$h\"" -e "'$h'" || stale=1
                 done
                 if [ "$stale" = 1 ]; then
                     pf_log "buildx builder '$builder' buildkitd config is stale (missing an insecure registry) — recreating"

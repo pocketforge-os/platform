@@ -20,3 +20,6 @@ bash "$HERE/image-candidate-override-test.sh"
 
 echo "### bounded producer-owned staging lifecycle (tsp-mc9m.41.984.5) ###"
 bash "$HERE/producer-staging-lifecycle-test.sh"
+
+echo "### insecure builder config self-heal (tsp-mc9m.41.984.20) ###"
+bash "$HERE/insecure-builder-config-test.sh"
