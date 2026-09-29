@@ -16,8 +16,11 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "85fddb4b06e8526e0ac6f30276b8bc4290af4e51"
-NORADIO_KERNEL_SHA = "0a475ab54c04101a06d0c48c95a0e3cf5d778c05"
+NORMAL_KERNEL_SHA = "ee23555d9ba5362548c56573e558139541d3e702"
+# tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin now equals the canonical
+# pin (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). It stays a
+# separate lock-owned entry: automation run-build.sh requires it for noradio builds.
+NORADIO_KERNEL_SHA = "ee23555d9ba5362548c56573e558139541d3e702"
 UBOOT_SHA = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
 
@@ -83,14 +86,14 @@ class Open7NoradioProfileTest(unittest.TestCase):
         self.assertEqual(noradio_missing, [])
         self.assertEqual(
             differences(normal_args, noradio_args),
+            # The kernel pin is shared with the normal profile (NORADIO_KERNEL_SHA ==
+            # NORMAL_KERNEL_SHA), so only the identity and the selected DTB differ.
             {
                 "PF_DEVICE_ID": (NORMAL_DEVICE, NORADIO_DEVICE),
-                "PF_GPU_KM_SHA": (NORMAL_KERNEL_SHA, NORADIO_KERNEL_SHA),
                 "PF_KERNEL_DTB": (
                     "sun50i-a133-pocketforge-odyssey.dtb",
                     "sun50i-a133-pocketforge-odyssey-a133-open-7x-gpu-noradio.dtb",
                 ),
-                "PF_KERNEL_SHA": (NORMAL_KERNEL_SHA, NORADIO_KERNEL_SHA),
             },
         )
         self.assertEqual(normal_args["PF_KERNEL_SHA"], NORMAL_KERNEL_SHA)

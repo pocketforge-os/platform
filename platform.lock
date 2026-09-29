@@ -50,11 +50,18 @@ manifest_signing_active = false
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
 # tsp-mc9m.41.923.42: Linux-only ARM B1 diagnostic. The normal repository pin
-# was bbfce031 when this was pinned (now the kernel-sunxi-7.x sha below); only
-# this named profile selects the reviewed child commit
-# containing the no-radio DTB. U-Boot is explicitly held equal to the normal pin.
+# was bbfce031 when this was pinned; this named profile then selected the reviewed
+# child commit 0a475ab5 containing the no-radio DTB. That bisect-era kernel predates
+# CONFIG_FB_DEVICE (#41) and the PL8 usb1-vbus SD fix (#44), and the canonical pin
+# now builds the same no-radio DTS (blob 7b73d02f, a strict child of the Odyssey DTS
+# and so of the fixed TSP DTS). The kernel override therefore equals the canonical
+# kernel-sunxi-7.x pin. It stays explicit, not removed, because pocketforge-automation
+# scripts/owned-image-ci/run-build.sh fails a noradio build (noradio_kernel_not_profile_pin)
+# unless the resolved kernel equals [profile_pins.a133-open-7x-gpu-noradio].kernel.
+# Prior kernel: 0a475ab54c04101a06d0c48c95a0e3cf5d778c05. U-Boot is explicitly held
+# equal to the normal pin.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "0a475ab54c04101a06d0c48c95a0e3cf5d778c05"
+kernel = "ee23555d9ba5362548c56573e558139541d3e702"
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
 [[repos]]
@@ -333,7 +340,16 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.48: device/a133 85fddb4b = 03822b3f plus #36 (640bcbe7:
+name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.42: device/a133 ee23555d = 85fddb4b plus #42 (dc5f227f:
+                               # A133 headphone-jack detection only: sun4i-codec jack reporting, the A133
+                               # codec reg window 0x31c -> 0x330, the TSP DTS jack enable, binding, jack
+                               # requirements and a jack DTB check, tsp-5e525b52a18055a2eeca)
+                               # and #44 (ee23555d, merged after an exact-head Codex approve at 738692a1:
+                               # removes #28's PL8 usb1-vbus regulator and phy usb1_vbus-supply from the TSP
+                               # DTS, fixing the SD mmc0 regression - arms R0 FAULTY 2/2, A28+34 CLEAN 2/2,
+                               # A28v CLEAN 2/2 - with a usb1-vbus DTB check). Fast-forward, 7 commits.
+                               # Prior (85fddb4b06e8526e0ac6f30276b8bc4290af4e51):
+                               # tsp-mc9m.41.923.48: device/a133 85fddb4b = 03822b3f plus #36 (640bcbe7:
                                # A133 I2C userspace access, CONFIG_I2C_CHARDEV=y, tsp-cfe66b99c10cfb33b816),
                                # #39 (50187db3: sun4i-usb validates VBUS before enabling the regulator,
                                # tsp-mc9m.41.923.43), #40 (6cd4f4eb: A133 RTC topology locked into CI,
@@ -397,7 +413,7 @@ name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.48: device/a133 85fddb4b = 03822b
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "85fddb4b06e8526e0ac6f30276b8bc4290af4e51"
+sha  = "ee23555d9ba5362548c56573e558139541d3e702"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
