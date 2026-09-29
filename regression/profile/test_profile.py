@@ -129,21 +129,23 @@ class ProfileTest(unittest.TestCase):
     def test_non_open_build_arg_goldens_are_byte_unchanged(self):
         # Generated from platform main c75b3304 before app-runtime support was added, then
         # regenerated for the default-apps step-6 lock move (tsp-mc9m.41.985; image re-pinned to
-        # bba63941 for the image#140 harness disable). Against the
+        # bba63941 for the image#140 harness disable), and again for tsp-mc9m.41.986 (image
+        # 3aff434f: the PowerVR exp_hw_support customize-hook fix; the only payload change is
+        # PF_IMAGE_SHA, verified by diffing the old and new payloads). Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
         # which are not in this table): no key added or removed, state and missing unchanged.
         expected = {
-            ("a133", "dev"): "312df39631f0b59d96e58ab255f3a7cf73c914095b30b0f00180769f78ed316c",
-            ("a133", "release"): "3de21671b3dc28bc11afe7e31b5f7f34db59694669a15aad52bef6274f2d81a0",
-            ("a133-open-7x", "dev"): "3ad5290e58aa99a9d2fb451aea58f62992a643a4b281a9850b34874d699b451e",
-            ("a133-open-7x", "release"): "4970fd4f08bbff4a308006741ed48c44599f8022189e00a826a35c1150ea7367",
-            ("a133-owned", "dev"): "8027a0ab954813cf11f55e9de4667ed2ec45192b619f77d34ff1cf13c39b402d",
-            ("a133-owned", "release"): "8537b4f46ae31cc2c56518220b94cadfaee8f112411f0037fdceaf6f505933a7",
-            ("a523", "dev"): "bdc24a6ed3d4bce175e3b78b34594cec7963f7bec20187483546ab6e86ffc1bd",
-            ("a523", "release"): "951cc9abf5247d8663219d9a13352af708262089db68b49f7c74d2e152153418",
-            ("sdm845", "dev"): "4240ed4265a566d4c414150610451f7e76d1499b0c56b4abc544bab4ccfb9ecc",
-            ("sdm845", "release"): "1816ae6dd85cdc88b1b7c6af7f0f49e24a8c2802ec07d2b02449808dc375ae7b",
+            ("a133", "dev"): "f22aaa445383386315253a6d83593e169ac1208b8e64d083060b97fb92c99d60",
+            ("a133", "release"): "da526e59fb27f35927f2bac799bfd521dac6f5509ae5076cfa3c6b7e17716275",
+            ("a133-open-7x", "dev"): "47e283c30cb27a2c6fe64aa91e3639a5ebeb56383f329601ba6e068fd909c2fa",
+            ("a133-open-7x", "release"): "0b3a7c6d0f18820ccced2ecb6648889295dd9841a8bf608deaf76c308a5b5403",
+            ("a133-owned", "dev"): "45be41980831ed7ef3f352862046b5bc5d0d8d8dc8eb8b080970e2026de38614",
+            ("a133-owned", "release"): "1d8446977c3df3a2e661d2a3776dccf1382ad90239b79a7978d3deb3f6020229",
+            ("a523", "dev"): "3e96325574df9cafe133452db3b420715684bb94337aacddbeddb95a9f1c3b37",
+            ("a523", "release"): "19b67cfb0e8aab8e31f079c3eceb9f2e42db90dc19ebe4ad8ef699a51be928f2",
+            ("sdm845", "dev"): "1c2554cba810974b7082ad8df5332a1f7a70fc84776f97923fdff6876710eaf0",
+            ("sdm845", "release"): "ef86b4f603ea4e18becce863049a81df0bcf004183fca7f62a97f14e784368cc",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -299,7 +301,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_KM_SHA"], args["PF_KERNEL_SHA"])
         self.assertEqual(args["PF_GPU_UM_REPO"], "gpu-um-tsp")
         self.assertEqual(args["PF_GPU_UM_SHA"], "a669de84e87da608a24f5a7879744bf063a2bf74")
-        self.assertEqual(args["PF_IMAGE_SHA"], "bba639414adaeac3eb14d70d74c783e8d517f65d")
+        self.assertEqual(args["PF_IMAGE_SHA"], "3aff434f94807a0239a7553b08e129ffff0232b7")
         self.assertEqual(args["PF_LIBSDL3_SHA"], "f5e73b52840129cdaaa288a71463cd548a91e2c5")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
