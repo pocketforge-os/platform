@@ -21,7 +21,7 @@ Usage:
   profile.py buildargs <id>           # docker `--build-arg` surface (lock-pinned SHAs)
   profile.py repos                    # platform.lock repo names + seeded state
 """
-import sys, os, json, re
+import sys, os, json, re, hashlib
 
 try:
     import tomllib  # py3.11+
@@ -50,6 +50,8 @@ PROFILE_TABLE_SECTIONS = (
     "display", "bootchain", "toolchain",
 )
 PROFILE_PIN_KEYS = ("kernel", "uboot")
+DEVICE_DESCRIPTOR_FILE = "capabilities.toml"
+DEVICE_DESCRIPTOR_ID = re.compile(r"[a-z0-9][a-z0-9-]*")
 
 
 class ProfileSchemaError(ValueError):
@@ -179,6 +181,50 @@ def _resolve_app_runtime_support(merged):
     }
 
 
+def _resolve_device_descriptor(merged):
+    """Resolve the device capability descriptor staged alongside the app-runtime contract.
+
+    Only a profile that receives the launcher-facing app-runtime contract stages a
+    descriptor: the app facade reads it at runtime (PF_DESCRIPTOR). Every other profile
+    returns None, so its build-arg surface stays byte-identical. The descriptor is joined
+    by device id, a variant without its own file inherits its base device's file, and its
+    [identity].id must equal the directory it came from (that id is also the install
+    directory). Returns {"id", "path", "sha256"}; the bytes are staged verbatim, never
+    re-rendered, so the SHA-256 pins exactly what the image installs.
+    """
+    if merged.get("app_runtime") is None:
+        return None
+    device = merged.get("device", {})
+    candidates = [device.get("id"), device.get("base")]
+    for descriptor_id in candidates:
+        if not isinstance(descriptor_id, str) or not descriptor_id:
+            continue
+        rel = f"devices/{descriptor_id}/{DEVICE_DESCRIPTOR_FILE}"
+        path = os.path.join(ROOT, rel)
+        if os.path.lexists(path):
+            break
+    else:
+        raise ProfileSchemaError(
+            f"device '{device.get('id', '')}' receives the app runtime contract but has no "
+            f"devices/<id|base>/{DEVICE_DESCRIPTOR_FILE} device descriptor")
+    if not DEVICE_DESCRIPTOR_ID.fullmatch(descriptor_id):
+        raise ProfileSchemaError(
+            f"device descriptor id '{descriptor_id}' is not a lowercase path-safe token")
+    if os.path.islink(path) or not os.path.isfile(path):
+        raise ProfileSchemaError(f"device descriptor {rel} must be a regular file")
+    with open(path, "rb") as descriptor_file:
+        data = descriptor_file.read()
+    try:
+        document = tomllib.loads(data.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise ProfileSchemaError(f"device descriptor {rel} does not parse: {exc}") from exc
+    identity = document.get("identity")
+    if not isinstance(identity, dict) or identity.get("id") != descriptor_id:
+        raise ProfileSchemaError(
+            f"device descriptor {rel} [identity].id must be '{descriptor_id}'")
+    return {"id": descriptor_id, "path": rel, "sha256": hashlib.sha256(data).hexdigest()}
+
+
 def list_devices():
     if not os.path.isdir(DEVICES):
         return []
@@ -283,6 +329,10 @@ def validate(dev_id, lock):
         return ([f"{dev_id}: {e}"], [])
     except Exception as e:
         return ([f"{dev_id}: cannot load/parse: {e}"], [])
+    try:
+        _resolve_device_descriptor(merged)
+    except ProfileSchemaError as e:
+        return ([f"{dev_id}: {e}"], [])
 
     def table(section, value):
         if isinstance(value, dict):
@@ -598,6 +648,17 @@ def build_args(dev_id, variant="dev"):
             "PF_APP_RUNTIME_ABI": app_runtime["runtime_abi"],
             "PF_APP_PLATFORM_VERSION": app_runtime["platform_version"],
             "PF_APP_CAPABILITIES": " ".join(app_runtime["supported_capabilities"]),
+        })
+    # Platform-owned device descriptor (tsp-f3fm.202.1 R1): emitted ONLY with the app-runtime
+    # contract, so every other profile's build-arg surface is byte-identical (no empty keys).
+    # core/pf-build.sh stages the verbatim bytes as the `platform-inputs-src` named context at
+    # devices/<PF_DEVICE_DESCRIPTOR_ID>/capabilities.toml; the image verifies the SHA-256 and
+    # installs it at /usr/share/pocketforge/devices/<PF_DEVICE_DESCRIPTOR_ID>/capabilities.toml.
+    descriptor = _resolve_device_descriptor(merged)
+    if descriptor is not None:
+        args.update({
+            "PF_DEVICE_DESCRIPTOR_ID": descriptor["id"],
+            "PF_DEVICE_DESCRIPTOR_SHA256": descriptor["sha256"],
         })
     # Repos this device genuinely needs a SHA for (repo named, not the "none" sentinel).
     needed = [("PF_KERNEL_SHA", k.get("repo")), ("PF_IMAGE_SHA", "image"),
