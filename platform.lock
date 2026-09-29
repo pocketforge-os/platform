@@ -537,7 +537,18 @@ sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 [[repos]]
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
-ref  = "main"                 # tsp-mc9m.41.924.16.11.3 (folded into tsp-f3fm.202.1.5): gpu-um-tsp PR #156
+ref  = "main"                 # tsp-mc9m.41.924.16.13: gpu-um-tsp#157 035e397d (exact-head Codex approve at 3bb1f7c6;
+                               # execute_smoke, structural-smoke and PVR UAPI parity passed at 3bb1f7c6). The
+                               # PF-RGNDUMP region-header probe (CPU-mapped region headers, uncached byte walks and a
+                               # synchronous vk_sync_wait on the geometry job after every render submit) and the
+                               # PF-ZLS log line are opt-in via PVR_DEBUG=pf_rgndump / pf_zls and off by default, so
+                               # the default submit path is upstream Mesa's. The GE8300 functional quirks are
+                               # untouched. MUST ship with libsdl3-sunxifb#23 (same lock commit): the probe's CPU
+                               # wait was what made SDL's next nonblocking commit wait for the previous flip, so
+                               # removing it without #23 exposes the SDL flip race (-EBUSY commits). Fast-forward, 2.
+                               # Image 3c2ac542 has no PF_GPU_UM_SHA equality gate.
+                               # Prior (7b01cc2a7d07f0dc71e33b6eca81fb733a706ac8):
+                               # tsp-mc9m.41.924.16.11.3 (folded into tsp-f3fm.202.1.5): gpu-um-tsp PR #156
                                # merged as 7b01cc2a7d07f0dc71e33b6eca81fb733a706ac8 after an exact-head
                                # Codex approve at c6ebb0c6: GE8300 22.102.54.38 programs ISP_BGOBJDEPTH
                                # as F32 (the BGOBJDEPTH f32 quirk, H6a depth fix) and adds PF-ZLS logging
@@ -554,7 +565,7 @@ ref  = "main"                 # tsp-mc9m.41.924.16.11.3 (folded into tsp-f3fm.20
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "7b01cc2a7d07f0dc71e33b6eca81fb733a706ac8"
+sha  = "035e397d6b90018432cf514982acd2971a3c2cee"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
@@ -620,7 +631,21 @@ sha  = "3c8c5c537028e6f749f7888b05e85aa95aa88db4"
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
-ref  = "main"                # tsp-f3fm.218: libsdl3-sunxifb#22 b91e26b3 (exact-head Codex approve at 008d6982;
+ref  = "main"                # tsp-mc9m.41.924.16.13: libsdl3-sunxifb#23 0141e53a (exact-head Codex approve at
+                              # b8f91c99; kmsdrm-rotation and gpu-model-backends CI passed at b8f91c99). The KMSDRM
+                              # fenced present keeps a dup of the previous commit's OUT_FENCE sync_file and polls it
+                              # (bounded at 1 s) before the next atomic commit. Zink's eglClientWaitSyncKHR on an
+                              # imported sync_file returns at once, so a nonblocking commit could reach the kernel
+                              # while the previous flip was pending and fail with -EBUSY (dropped frames, leaked GBM
+                              # buffers). Adds opt-in SDL_KMSDRM_PRESENT_TIMING=1|2 per-stage timing (unset: nothing
+                              # allocated or logged). The rotate pass is unchanged. MUST ship with gpu-um-tsp#157
+                              # (same lock commit). Fast-forward, 3. Image 3c2ac542 builds SDL from PF_LIBSDL3_SHA
+                              # with no equality gate. abi/platform-abi.json sdl.sha is regenerated;
+                              # abi/families.toml platform_version stays "20" (lock_state=interim: the ABI gate
+                              # needs no bump; runtime pf-app-manifest requires an exact match, and poolsuite
+                              # app.toml pins "20").
+                              # Prior (b91e26b34a6958ec6fcc63e1b4ccc603e0dadeb0):
+                              # tsp-f3fm.218: libsdl3-sunxifb#22 b91e26b3 (exact-head Codex approve at 008d6982;
                               # gpu-model-backends CI passed at 008d6982): -DSDL_SUNXIFB now follows PF_GPU_MODEL like
                               # -DSDL_KMSDRM. open: sunxifb OFF, KMSDRM on, runtime driver list kmsdrm,dummy,evdev, so
                               # KMSDRM (with #21's rotated present) is the default. ddk: sunxifb ON, KMSDRM off, as before.
@@ -641,7 +666,7 @@ ref  = "main"                # tsp-f3fm.218: libsdl3-sunxifb#22 b91e26b3 (exact-
                               # f5e73b52 supplies the reviewed
                               # KMSDRM-enabled open-model artifact for imagePR126.
                               # Prior: tsp-4i6u #14: SDL_Renderer on sunxifb now works — SUNXIFB_CreateWindow loads EGL via the refcounted SDL_GL_LoadLibrary(NULL) wrapper (not the raw hook), fixing the egl_data/driver_loaded desync that made SDL_CreateRenderer fail ("EGL context already created" / "no matching render driver"); preserves Fix A's eager-surface invariant (tsp-osr NULL+0x8 deref stays fixed). Prior: tsp-147u.8.5 #12 (pf-gfxbench stage-schedule CALIBRATION, 60.41->2.00fps on tsp-base); #9 (pf-gfxbench app); tsp-ve5 #5 (eglBindAPI return check); UM blob path reorg tsp/ -> sunxi/a133/ (#2).
-sha  = "b91e26b34a6958ec6fcc63e1b4ccc603e0dadeb0"
+sha  = "0141e53aa3f0a67027b3b09c727cb112e9670eb2"
 
 [[repos]]
 name = "wpa-supplicant-tsp"   # owned wpa_supplicant 2.10 fork (GREAT_SNR 25->45 roam hysteresis,
