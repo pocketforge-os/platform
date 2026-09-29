@@ -55,19 +55,29 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # CONFIG_FB_DEVICE (#41) and the PL8 usb1-vbus SD fix (#44), and the canonical pin
 # now builds the same no-radio DTS (blob 7b73d02f, a strict child of the Odyssey DTS
 # and so of the fixed TSP DTS). The kernel override therefore equals the canonical
-# kernel-sunxi-7.x pin. It stays explicit, not removed, because pocketforge-automation
+# kernel-sunxi-7.x pin, and moves with it (tsp-mc9m.41.923.53: ee23555d -> 1b1da76f; the
+# no-radio DTS is still blob 7b73d02f there). It stays explicit, not removed, because pocketforge-automation
 # scripts/owned-image-ci/run-build.sh fails a noradio build (noradio_kernel_not_profile_pin)
 # unless the resolved kernel equals [profile_pins.a133-open-7x-gpu-noradio].kernel.
-# Prior kernel: 0a475ab54c04101a06d0c48c95a0e3cf5d778c05. U-Boot is explicitly held
+# Prior kernels: ee23555d9ba5362548c56573e558139541d3e702 (tsp-mc9m.41.923.42), before that
+# 0a475ab54c04101a06d0c48c95a0e3cf5d778c05. U-Boot is explicitly held
 # equal to the normal pin.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "ee23555d9ba5362548c56573e558139541d3e702"
+kernel = "1b1da76f0adfa0f72379449f36746ed2104a9223"
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-f3fm.202.1.5 (default-apps input delivery, tsp-f3fm.202.1 B5): image f6e0ee14 = 3aff434f
+ref  = "main"          # tsp-mc9m.41.923.53: image 27727a8f = f6e0ee14 plus #144 (c75721cd, tsp-3rd3.6: the boot
+                       # animator ported to 7.x DRM fbdev - connector orientation, region blit, hold last
+                       # frame) and #145 (27727a8f, tsp-3rd3.7: the initrd paints boot frame 000 at 7.x first
+                       # light, fail-open and reaped before switch_root; assemble now passes the kernel
+                       # .config and PF_DISPLAY_PIPELINE to build-sd-image.sh). Still FATAL unless runtime
+                       # d75beedf, launcher 1e5a3d97 and recovery 443a84e4; launcher_contract=PASS for launcher
+                       # 1e5a3d97 / runtime d75beedf / image 27727a8f (gpu-14). Fast-forward, 5 commits.
+                       # Previous pin (f6e0ee149468a4068ddb5230a51ac2b237331dee), tsp-f3fm.202.1.5 (default-apps
+                       # input delivery, tsp-f3fm.202.1 B5): image f6e0ee14 = 3aff434f
                        # plus #143 (tsp-f3fm.202.1.4, exact head b429d5b8): the app-session pf-input-broker (static
                        # aarch64 musl, e_machine and static-link gated) with its pf-app@/pf-shell-selected drop-ins
                        # and protected SafeReturn intake; a platform-inputs stage that consumes the staged
@@ -218,7 +228,7 @@ ref  = "main"          # tsp-f3fm.202.1.5 (default-apps input delivery, tsp-f3fm
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "f6e0ee149468a4068ddb5230a51ac2b237331dee"
+sha  = "27727a8f7d7c499e490c56de65f7875b930625ba"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -340,7 +350,15 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.42: device/a133 ee23555d = 85fddb4b plus #42 (dc5f227f:
+name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.53: device/a133 1b1da76f = ee23555d plus #45 (f1e9a682:
+                               # CONFIG_INPUT_UINPUT=y for the gamepad decoder, tsp-f3fm.216; exact-head
+                               # Codex approve at 59ab1efb) and #46 (1b1da76f: TSP DTS gamepad MCU uart3/uart4
+                               # on PD15/PD19 with serial3/serial4 aliases and the PD11 gamepad-mcu-5v rail;
+                               # SERIAL_8250_NR_UARTS/RUNTIME_UARTS=8, EXT4_FS_POSIX_ACL, NET_SCHED +
+                               # NET_SCH_FQ_CODEL; a gamepad DTB check and requirements; exact-head Codex
+                               # approve at 9c0a3a80). Fast-forward, 5 commits. The noradio override follows.
+                               # Prior (ee23555d9ba5362548c56573e558139541d3e702):
+                               # tsp-mc9m.41.923.42: device/a133 ee23555d = 85fddb4b plus #42 (dc5f227f:
                                # A133 headphone-jack detection only: sun4i-codec jack reporting, the A133
                                # codec reg window 0x31c -> 0x330, the TSP DTS jack enable, binding, jack
                                # requirements and a jack DTB check, tsp-5e525b52a18055a2eeca)
@@ -413,7 +431,7 @@ name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.42: device/a133 ee23555d = 85fddb
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "ee23555d9ba5362548c56573e558139541d3e702"
+sha  = "1b1da76f0adfa0f72379449f36746ed2104a9223"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -604,7 +622,13 @@ sha  = "9fc7c74ac83b476ee6c0772c915d590bbd3d3e03"
 [[repos]]
 name = "poolsuite"            # Dev-image-only staged app source; release receives an empty context.
 url  = "https://github.com/pocketforge-os/poolsuite.git"
-ref  = "main"                 # tsp-mc9m.41.985 (default-apps step 6): poolsuite#103 5658c674 (tsp-f3fm.203) makes
+ref  = "main"                 # tsp-mc9m.41.923.53: poolsuite a89c2512 = 5658c674 plus #104 (87d3889e, tsp-f3fm.6.1:
+                              # radio capped jittered reconnect ladder, honest Offline state with retry) and #105
+                              # (a89c2512, tsp-f3fm.202.1.2: bounded SIGTERM shutdown, broker-restart input
+                              # reconnect, facade appearance/theme pin). app.toml and ci/device-{fetch,build}.sh
+                              # are unchanged. Fast-forward, 8 commits.
+                              # Prior (5658c6741503d657eeca66633426e22e4f4932cd): tsp-mc9m.41.985 (default-apps
+                              # step 6): poolsuite#103 5658c674 (tsp-f3fm.203) makes
                               # app.toml catalog-valid (platform-version 20, no [app].theme), which image 15a1a2b2's
                               # dev-stage pf-app-validate requires. Fast-forward, 2.
                               # Prior (3e1077679ed78a0fe9726cf894e807ef52b110cd): tsp-mc9m.41.923.46: poolsuite 3e107767 = #102 (tsp-f3fm.199: staged
@@ -612,7 +636,7 @@ ref  = "main"                 # tsp-mc9m.41.985 (default-apps step 6): poolsuite
                               # e765ba2c Dockerfile.pf dev stage requires, FATAL if absent). Fast-forward, 2.
                               # Prior (5b33e32dfaf564693914a03b845a10dbc04f9062): tsp-f3fm.199 A1:
                               # poolsuite#101 merge; activation waits for A3.
-sha  = "5658c6741503d657eeca66633426e22e4f4932cd"
+sha  = "a89c251226d36f9633b56387baafc11d01a84d93"
 
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy
