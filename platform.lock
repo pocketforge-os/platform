@@ -333,7 +333,17 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.46: device/a133 03822b3f = bbfce031 plus #37
+name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.48: device/a133 85fddb4b = 03822b3f plus #36 (640bcbe7:
+                               # A133 I2C userspace access, CONFIG_I2C_CHARDEV=y, tsp-cfe66b99c10cfb33b816),
+                               # #39 (50187db3: sun4i-usb validates VBUS before enabling the regulator,
+                               # tsp-mc9m.41.923.43), #40 (6cd4f4eb: A133 RTC topology locked into CI,
+                               # RTC_CLASS + RTC_DRV_SUN6I required, tsp-b4446e3ceb419c3f0d15) and #41
+                               # (85fddb4b: CONFIG_FB_DEVICE=y restores /dev/fb0, which pf-shell-selected
+                               # Requires; a133_requirements.config now fails a resolved config without it;
+                               # merged after an exact-head Codex approve). Fast-forward, 8 commits.
+                               # The a133-open-7x-gpu-noradio kernel pin (bisect) is deliberately unchanged.
+                               # Prior (03822b3fceb6ec000b4a0de58e5486c32a33ff9c):
+                               # tsp-mc9m.41.923.46: device/a133 03822b3f = bbfce031 plus #37
                                # (0a475ab5: Odyssey no-radio diagnostic DTS, a SEPARATE DTB used only
                                # by the a133-open-7x-gpu-noradio profile pin) and #38 (52250287: A133
                                # xradio chip-ID wiring, tsp-78a2b2d08f4feb76cbfc). Fast-forward, 4 commits.
@@ -387,7 +397,7 @@ name = "kernel-sunxi-7.x"    # tsp-mc9m.41.923.46: device/a133 03822b3f = bbfce0
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "03822b3fceb6ec000b4a0de58e5486c32a33ff9c"
+sha  = "85fddb4b06e8526e0ac6f30276b8bc4290af4e51"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
