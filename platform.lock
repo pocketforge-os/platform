@@ -56,7 +56,8 @@ manifest_signing_active = false
 [profile_pins.a133-open-7x-gpu-spl-trace]
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
-# tsp-mc9m.41.923.42: Linux-only ARM B1 diagnostic. The normal repository pin
+# tsp-mc9m.41.923.42: ARM B1 diagnostic, Linux-only when pinned; since tsp-3rd3.10 its U-Boot
+# also differs from the normal profile (see the U-Boot notes below). The normal repository pin
 # was bbfce031 when this was pinned; this named profile then selected the reviewed
 # child commit 0a475ab5 containing the no-radio DTB. That bisect-era kernel predates
 # CONFIG_FB_DEVICE (#41) and the PL8 usb1-vbus SD fix (#44), and the canonical pin
