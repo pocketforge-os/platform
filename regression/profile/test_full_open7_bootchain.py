@@ -74,13 +74,13 @@ class FullOpen7BootchainTest(unittest.TestCase):
         self.assertEqual(missing, [])
         expected = {
             "PF_KERNEL_REPO": "kernel-sunxi-7.x",
-            "PF_KERNEL_SHA": "1b1da76f0adfa0f72379449f36746ed2104a9223",
+            "PF_KERNEL_SHA": "2bfee8b57a665c512429f1f3f01a127e8edd5aa1",
             "PF_KERNEL_DTB": "sun50i-a133-pocketforge-odyssey.dtb",
             "PF_KERNEL_REQUIRED_MODULES": "powervr",
             "PF_GPU_MODEL": "open",
             "PF_GPU_KM_MODEL": "in-tree-7.x",
             "PF_GPU_KM_REPO": "kernel-sunxi-7.x",
-            "PF_GPU_KM_SHA": "1b1da76f0adfa0f72379449f36746ed2104a9223",
+            "PF_GPU_KM_SHA": "2bfee8b57a665c512429f1f3f01a127e8edd5aa1",
             "PF_GPU_UM_REPO": "gpu-um-tsp",
             "PF_GPU_UM_SHA": "7b01cc2a7d07f0dc71e33b6eca81fb733a706ac8",
             "PF_LIBSDL3_SHA": "f5e73b52840129cdaaa288a71463cd548a91e2c5",
