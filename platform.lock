@@ -730,7 +730,18 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # The logo returns with a fixed U-Boot after a device bench.
                               # BANNER: "U-Boot SPL 2025.10-gc21fbfb88293" again (was -g24284b73b6dd).
                               # Reverted pin (24284b73b6ddb64d41f2a449eb6100e7105db88c).
-sha  = "c21fbfb88293b9427b471a0725d1851484a8adba"
+                              # PROBE (tsp-147u.14 fix-forward, pending device proof): u-boot#52 2a5610ed = 24284b73
+                              # plus ca648656 (exact-head Codex approve at ca648656; the repo runs no PR checks).
+                              # The TG5040 display is bound before relocation (bootph-all in the tg5040 DTS) so
+                              # video_reserve() reserves its framebuffer; a video device with no reserved memory
+                              # now fails closed without aborting initr_dm() (the B16c abort under 24284b73): it
+                              # prints "Disabling video so boot can continue" and its probe returns -ENOSPC.
+                              # Fast-forward from c21fbfb8, 6 (the #51 logo path plus #52). Image 96e1eb13 already
+                              # stages FAT p4 boot/pocketforge-logo.bmp. Bench this lock ALONE before any other lock;
+                              # if it does not reach Linux, revert to c21fbfb8 (device-proven) as platform#241 did.
+                              # BANNER CHANGE: "U-Boot SPL 2025.10-g2a5610ed44bd" (was -gc21fbfb88293).
+                              # Prior (c21fbfb88293b9427b471a0725d1851484a8adba).
+sha  = "2a5610ed44bd4b536614b2bf15f77695bff33e3a"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
