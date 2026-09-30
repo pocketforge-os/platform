@@ -171,7 +171,9 @@ class ProfileTest(unittest.TestCase):
         # PF_UBOOT_SHA on the a133-owned rows; old-vs-new payload diff shows no other field, key, state or
         # missing change, and each new payload equals the old one with exactly those substitutions);
         # and tsp-f3fm.227 (image 96e1eb13 + launcher ab9fb7fd: only PF_IMAGE_SHA, every row; PF_LAUNCHER_SHA
-        # moves only on the open profiles, not in this table; verified the same way, open profiles included).
+        # moves only on the open profiles, not in this table; verified the same way, open profiles included);
+        # and the tsp-147u.14 U-Boot revert (24284b73 -> c21fbfb8, device abort in initr_dm): only
+        # PF_UBOOT_SHA on the a133-owned rows, verified the same way.
         # Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
@@ -181,8 +183,8 @@ class ProfileTest(unittest.TestCase):
             ("a133", "release"): "2563dba89d243c2946b76e27d97b42076138fa836b84c856f1e49b094675e6d2",
             ("a133-open-7x", "dev"): "8b6d9052c93887db1dab5ab4307dab625109a827c5ffc8a3a91bb7eef5ac76b8",
             ("a133-open-7x", "release"): "f92054d18d0f1e3a96df9e5c7b077b393f9db13eb56e706aa6cdbacec9002a06",
-            ("a133-owned", "dev"): "8973ff72499fb7d955a1fae8a045a1caa864823d9ce8ebbcfbd8f5e567909a4a",
-            ("a133-owned", "release"): "6c764f8bd02e9b0033658d65f2527f59681b5febec9b0e6e3581669dfe09865d",
+            ("a133-owned", "dev"): "9b06eee9762d0ac9860bd76da6fd226dabda4009b5c1c8300af77da0b2381741",
+            ("a133-owned", "release"): "74c8e9870964d25b1e6899d01cc9d9e453dbc07df920d3cdee0647a5b4dbe8bc",
             ("a523", "dev"): "9f0f4e0623db7e2c40ec646584083614a0042e18f7dcbe7c2cb66f56e12970b2",
             ("a523", "release"): "4ce21c10455b8471a7016fe54553d946e6999d532ed6fde20485a11cf8c6cc16",
             ("sdm845", "dev"): "73be03b545da0da6ea944e84d26b0fd86e45e72fe0910d64ad2ad4bcbf225cc9",
