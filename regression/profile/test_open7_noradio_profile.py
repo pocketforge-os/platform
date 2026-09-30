@@ -21,7 +21,7 @@ NORMAL_KERNEL_SHA = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 # pin (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). It stays a
 # separate lock-owned entry: automation run-build.sh requires it for noradio builds.
 NORADIO_KERNEL_SHA = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
-NORMAL_UBOOT_SHA = "2a5610ed44bd4b536614b2bf15f77695bff33e3a"
+NORMAL_UBOOT_SHA = "c21fbfb88293b9427b471a0725d1851484a8adba"
 # tsp-3rd3.10: the no-radio U-Boot override stays at dfcc7773 (coordinator ruling), so
 # it no longer equals the normal pin.
 NORADIO_UBOOT_SHA = "dfcc77739aa647fa195abd2e01d9fab6b2633474"

@@ -741,7 +741,22 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # if it does not reach Linux, revert to c21fbfb8 (device-proven) as platform#241 did.
                               # BANNER CHANGE: "U-Boot SPL 2025.10-g2a5610ed44bd" (was -gc21fbfb88293).
                               # Prior (c21fbfb88293b9427b471a0725d1851484a8adba).
-sha  = "2a5610ed44bd4b536614b2bf15f77695bff33e3a"
+                              # REVERT the probe (tsp-147u.14, platform#242): back to c21fbfb8 to keep main
+                              # bootable. Bench B19 P1 FelBoot of probe b847756f (U-Boot 2a5610ed) HARD-FAILED:
+                              #   14:48:48.182Z U-Boot SPL 2025.10-g2a5610ed44bd
+                              #   +1.607 U-Boot 2025.10-g2a5610ed44bd ... Allwinner Technology, DRAM 1 GiB
+                              #   +1.629 Insufficient RAM for page table: 0x5000 > 0x4000. Please increase the
+                              #          size in get_page_table_size() / resetting ...
+                              #   +1.731 System reset not supported on this platform / ### ERROR ### Please
+                              #          RESET the board ###
+                              # 0 Linux runs (receipts /home/matt/recovery/tsp-147u.14-b19/, P1-uboot-lines.txt).
+                              # Neither B16c line (Video device ... / initr_dm() failed) appears; U-Boot proper
+                              # stops at the page-table size check instead. Image 96e1eb13 keeps staging FAT p4
+                              # boot/pocketforge-logo.bmp, which c21fbfb8 never reads (see the platform#241 note
+                              # above). The logo returns with a fixed U-Boot after a device bench.
+                              # BANNER: "U-Boot SPL 2025.10-gc21fbfb88293" again (was -g2a5610ed44bd).
+                              # Reverted probe pin (2a5610ed44bd4b536614b2bf15f77695bff33e3a).
+sha  = "c21fbfb88293b9427b471a0725d1851484a8adba"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
