@@ -795,7 +795,30 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # above). The logo returns with a fixed U-Boot after a device bench.
                               # BANNER: "U-Boot SPL 2025.10-gc21fbfb88293" again (was -g2a5610ed44bd).
                               # Reverted probe pin (2a5610ed44bd4b536614b2bf15f77695bff33e3a).
-sha  = "c21fbfb88293b9427b471a0725d1851484a8adba"
+                              # Probe #3 (platform#245, u-boot#53 1c898433, five-page page tables) was reverted to
+                              # c21fbfb8 by platform#246: bench B21 reached "Starting kernel" with no logo on the
+                              # camera, then the kernel panel init failed (otm1289a DCS -110, DSI enable -5,
+                              # [CONNECTOR:60:DSI-1] commit wait timed out; receipt /home/matt/recovery/
+                              # tsp-147u.14-b21/decide-b21.txt).
+                              # PROBE (tsp-147u.14 fix-forward #4, pending device proof): u-boot#54 6ec1b73f =
+                              # 1c898433 plus 04df39ca, 5f79a6af (exact-head Codex verdict=approve at 5f79a6af;
+                              # the repo runs no PR checks). "video: fix TG5040 logo GPIO and cold handoff":
+                              # PH18 (backlight enable), PD23 (PWM) and PD22 (panel reset) are claimed with
+                              # gpio_request() before any direction or value call (B21 printed "gpio PH18/PD22/
+                              # PD23 not reserved"); the backlight turns on only after `bmp pf_prepare` and a
+                              # validated, committed logo frame, not on generic video sync; and board_quiesce_
+                              # devices() runs a cold panel/DSI shutdown before "Starting kernel" (backlight off,
+                              # DCS display-off and sleep, stop TCON/DSI/D-PHY/DE, assert panel reset, gate
+                              # clocks). U-Boot no longer writes the /chosen pocketforge,display-live marker or a
+                              # simple-framebuffer node, so kernel a5418af4 (k#64) takes its cold DSI init.
+                              # Fast-forward from c21fbfb8, 13 (#51 + #52 + #53 + #54); from 1c898433, 3. The
+                              # image-invoked tools/check_tg5040_boot_layout.py is unchanged. Image 96e1eb13
+                              # stages FAT p4 boot/pocketforge-logo.bmp and has no U-Boot SHA guard.
+                              # Bench this lock ALONE (PF_BOOTCHAIN_PROBE=1) before any other lock; if it does
+                              # not reach Linux, revert to c21fbfb8 (device-proven) as platform#241/#243/#246 did.
+                              # BANNER CHANGE: "U-Boot SPL 2025.10-g6ec1b73ffe1c" (was -gc21fbfb88293).
+                              # Prior (c21fbfb88293b9427b471a0725d1851484a8adba).
+sha  = "6ec1b73ffe1c4f65d08f361292b61aa518a978f6"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
