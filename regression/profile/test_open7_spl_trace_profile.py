@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 TRACE_DEVICE = "a133-open-7x-gpu-spl-trace"
-NORMAL_UBOOT_SHA = "c21fbfb88293b9427b471a0725d1851484a8adba"
+NORMAL_UBOOT_SHA = "1c898433c224d9fb94d553102eb6b9e8cfe37d67"
 # tsp-3rd3.10: the trace override is deliberately NOT moved with the canonical pin
 # (u-boot#49 BOOTDELAY=0 / cursor), so the trace profile now differs in U-Boot SHA too.
 TRACE_UBOOT_SHA = "dfcc77739aa647fa195abd2e01d9fab6b2633474"

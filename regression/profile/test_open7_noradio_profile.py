@@ -23,7 +23,7 @@ NORMAL_KERNEL_SHA = "6955e721b75d02b16888cab6884eb5eef1cf8599"
 # (no automation gate requires equality; run-build.sh only checks the resolved noradio
 # kernel against this pin). It stays a separate lock-owned entry.
 NORADIO_KERNEL_SHA = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
-NORMAL_UBOOT_SHA = "c21fbfb88293b9427b471a0725d1851484a8adba"
+NORMAL_UBOOT_SHA = "1c898433c224d9fb94d553102eb6b9e8cfe37d67"
 # tsp-3rd3.10: the no-radio U-Boot override stays at dfcc7773 (coordinator ruling), so
 # it no longer equals the normal pin.
 NORADIO_UBOOT_SHA = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
