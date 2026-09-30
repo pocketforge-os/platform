@@ -278,7 +278,7 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "d26dfa1162e601100c3a18956b5ce4a2ddc7427f")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "ca22de0ed3cec46c73f2de44aa6e570e109695d8")
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
@@ -342,7 +342,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
-        self.assertEqual(args["PF_LAUNCHER_SHA"], "d26dfa1162e601100c3a18956b5ce4a2ddc7427f")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], "ca22de0ed3cec46c73f2de44aa6e570e109695d8")
         self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
         self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
         self.assertEqual(
