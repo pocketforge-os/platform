@@ -88,7 +88,15 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.924.23 G11: image 495e9c49 = fbd1bf6c plus #162 (8bcee9d8, exact-head Codex
+ref  = "main"          # gpu-14 lock (tsp-mc9m.41.984.34.2 + tsp-f3fm.223): image 87c94194 = 495e9c49 plus #163
+                       # (d682bb4e, tsp-mc9m.41.984.34.2: dev-only USB0 CDC-NCM bench network gated on external
+                       # VBUS), #164 (cc35e30a, tsp-mc9m.41.984.43: accept the Linux 4.9 UTS header layout) and #165
+                       # (53e5bd9e, tsp-f3fm.223: launcher guard requires ca22de0e = launcher#148, pf-shell maps
+                       # ABS_HAT0X/Y d-pad hat events to KEY_* press/release; owner first-run d-pad report).
+                       # Each exact-head Codex approved; hermetic-tests green. launcher_contract=PASS for launcher
+                       # ca22de0e / runtime 7536aa1f (guard_from=image@87c9419, gpu-14 re-run). Fast-forward, 6.
+                       # Previous pin (495e9c49a91a7322ce5c074171b3548649bf9a64):
+                       # tsp-mc9m.41.924.23 G11: image 495e9c49 = fbd1bf6c plus #162 (8bcee9d8, exact-head Codex
                        # approve; hermetic-tests green): Mesa on-disk shader cache for a133-open
                        # (-Dshader-cache=enabled -Dzstd=enabled -Dshader-cache-max-size=64M; libzstd-dev:arm64
                        # in the cross sysroot). Guards unchanged. Fast-forward, 2.
@@ -328,7 +336,7 @@ ref  = "main"          # tsp-mc9m.41.924.23 G11: image 495e9c49 = fbd1bf6c plus 
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "495e9c49a91a7322ce5c074171b3548649bf9a64"
+sha  = "87c941948e7cf8662274f6299a94eff068d00ff6"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
