@@ -166,22 +166,25 @@ class ProfileTest(unittest.TestCase):
         # row, PF_KERNEL_SHA on the a133-open-7x rows; old-vs-new payload diff shows no other field,
         # key, state or missing change); and gpu-14 lock tsp-mc9m.41.984.34.2 + tsp-f3fm.223 (image 87c94194:
         # only PF_IMAGE_SHA, every row; old-vs-new payload diff shows no other field, key, state or
-        # missing change); and tsp-f3fm.224 (poolsuite aeb68670: PF_POOLSUITE_SHA only, verified the same way).
+        # missing change); and tsp-f3fm.224 (poolsuite aeb68670: PF_POOLSUITE_SHA only, verified the same way);
+        # and tsp-147u.14 logo lock (image f7714c02 + u-boot 24284b73: PF_IMAGE_SHA on every row and
+        # PF_UBOOT_SHA on the a133-owned rows; old-vs-new payload diff shows no other field, key, state or
+        # missing change, and each new payload equals the old one with exactly those substitutions).
         # Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
         # which are not in this table): no key added or removed, state and missing unchanged.
         expected = {
-            ("a133", "dev"): "e0f0d1597aa345284c80fd86c534ba49f516aa99ca65fc7163b1365d90bc365d",
-            ("a133", "release"): "06cb2b0a7e20b28b86be9b37f232f3cab3233d9d49063aaa7e963e0bd9875775",
-            ("a133-open-7x", "dev"): "9eb2c047944e2347bcb0bd5279e98558bb957a42fb46bd695250768236a52482",
-            ("a133-open-7x", "release"): "1327714ee137cf0293a4216b86ed1465a0d46823663496d1ca6793ab335e404a",
-            ("a133-owned", "dev"): "b63c3f7584cc511ac17d8f722ad959b2f6fd77333a1d0ce56ad3d864c795dc12",
-            ("a133-owned", "release"): "a702a13ff3d5794567042e15aa991e8d1dbc12b24493e7e486cf0b5d4dc45037",
-            ("a523", "dev"): "c50d846e640ae1f64f08a01f013e1ee264022a3e0d1c901de0e8f5021522d8a5",
-            ("a523", "release"): "d32750a4553122fbeec38c05b3c12b819da2e129894ef3143fb76a12158516b0",
-            ("sdm845", "dev"): "30199b028867bc9927ab874fe5d67a5460b36c795585bf2e51f4583a6e457226",
-            ("sdm845", "release"): "5c4950f0a49918c53c7b1a684e36fb915b72df130a4a75ea169b88af1f1caaca",
+            ("a133", "dev"): "c379264c5344ae3e00aea0e520ccbe06fdb7e7a48d296ce343aecebac30e7fde",
+            ("a133", "release"): "a618664eda59a28aad7bdf17303fdbe6c6ab5a4671daceb63ddf1924b34ba899",
+            ("a133-open-7x", "dev"): "e5075daf5b6582d8b8f8c18d2b22b92d85a10a2f2b4da2df787218a79d0c3a45",
+            ("a133-open-7x", "release"): "a9cbc2ed5c79ec81d57c33b494962355684c8d7cce303531fe50d6af5287000d",
+            ("a133-owned", "dev"): "cd33b9d00ff35da8592b189a1a85525c45e251038291e2b1a79505bbf8778d2d",
+            ("a133-owned", "release"): "c4d887fa4014dd2f4b10b4e7ad820fb88fd70c3537d67f3775aef590bc5cc8c6",
+            ("a523", "dev"): "8d13436ebdd1b965a3bf1a680fdbac763235ae909963d388433ba554f41f49cd",
+            ("a523", "release"): "150af501db6788cce926374965caefad48d0c7b41b86b3caeb870502c0d6e7b9",
+            ("sdm845", "dev"): "eab0d83534d40152094c8386c68b3679ce0ac80aac140cc860e4112fa760bacb",
+            ("sdm845", "release"): "770cbd7425bec17e25289282ff6ef698d63250cc8ac97bd770e689431ab7b43a",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -337,7 +340,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_KM_SHA"], args["PF_KERNEL_SHA"])
         self.assertEqual(args["PF_GPU_UM_REPO"], "gpu-um-tsp")
         self.assertEqual(args["PF_GPU_UM_SHA"], "a423c16ecb5d6677dfb125486dba97ebc7adf12b")
-        self.assertEqual(args["PF_IMAGE_SHA"], "87c941948e7cf8662274f6299a94eff068d00ff6")
+        self.assertEqual(args["PF_IMAGE_SHA"], "f7714c02b7a2027f3f350407eed5a9c6a73b41b2")
         self.assertEqual(args["PF_LIBSDL3_SHA"], "cc71c00c0671c953d6ade863798e8e1470585326")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
