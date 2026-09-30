@@ -53,6 +53,9 @@ manifest_signing_active = false
 # (u-boot#50 FEL guard). Nothing forces it: automation reads only the noradio KERNEL
 # profile pin, and core/profile.py treats this as an independent override. Note that
 # dfcc7773 lacks the #50 guard, so a FEL-loaded trace U-Boot still autoboots the SD kernel.
+# tsp-147u.14 logo lock: again NOT moved when the canonical pin went c21fbfb8 -> 24284b73
+# (u-boot#51 pre-Linux logo; same standing ruling). dfcc7773 has no logo path, so a trace
+# image carries the staged FAT p4 boot/pocketforge-logo.bmp but its U-Boot never draws it.
 [profile_pins.a133-open-7x-gpu-spl-trace]
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
@@ -81,6 +84,9 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # tsp-3rd3.10 lock2: U-Boot again kept at dfcc7773 when the canonical pin moves to c21fbfb8
 # (u-boot#50); only the kernel override is gated by automation. dfcc7773 also lacks the
 # #50 FEL guard (a FEL-loaded U-Boot autoboots the SD kernel).
+# tsp-147u.14 logo lock: U-Boot again kept at dfcc7773 when the canonical pin moves to
+# 24284b73 (u-boot#51 pre-Linux logo). dfcc7773 has no logo path, so the staged FAT p4
+# boot/pocketforge-logo.bmp is present in a no-radio image but its U-Boot never draws it.
 [profile_pins.a133-open-7x-gpu-noradio]
 kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
@@ -88,7 +94,14 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # gpu-14 lock (tsp-mc9m.41.984.34.2 + tsp-f3fm.223): image 87c94194 = 495e9c49 plus #163
+ref  = "main"          # tsp-147u.14 logo lock: image f7714c02 = 87c94194 plus #166 (bdb80a19, tsp-147u.14.1,
+                       # exact-head Codex approve at bdb80a19; hermetic-tests green): owned-SPL builds convert the
+                       # pinned boot-animator frame-000.png to a deterministic 24-bpp BMP, stage it on FAT p4 as
+                       # boot/pocketforge-logo.bmp (the path u-boot#51 pf_logo loads from mmc 0:4), read the FAT
+                       # copy back and verify it. build/Dockerfile.pf unchanged, so every pin guard is unchanged.
+                       # Moves with u-boot 24284b73 (u-boot#51). Fast-forward, 2.
+                       # Previous pin (87c941948e7cf8662274f6299a94eff068d00ff6):
+                       # gpu-14 lock (tsp-mc9m.41.984.34.2 + tsp-f3fm.223): image 87c94194 = 495e9c49 plus #163
                        # (d682bb4e, tsp-mc9m.41.984.34.2: dev-only USB0 CDC-NCM bench network gated on external
                        # VBUS), #164 (cc35e30a, tsp-mc9m.41.984.43: accept the Linux 4.9 UTS header layout) and #165
                        # (53e5bd9e, tsp-f3fm.223: launcher guard requires ca22de0e = launcher#148, pf-shell maps
@@ -336,7 +349,7 @@ ref  = "main"          # gpu-14 lock (tsp-mc9m.41.984.34.2 + tsp-f3fm.223): imag
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "87c941948e7cf8662274f6299a94eff068d00ff6"
+sha  = "f7714c02b7a2027f3f350407eed5a9c6a73b41b2"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -684,7 +697,16 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # (fel_booted set) never autoboots the SD kernel and only sources fel_scriptaddr.
                               # Fast-forward, 2. BANNER CHANGE: "U-Boot SPL 2025.10-gc21fbfb88293" (was -gd34088ebaa98).
                               # Prior (d34088ebaa98a6711b29ed1b46600c9990f0375c).
-sha  = "c21fbfb88293b9427b471a0725d1851484a8adba"
+                              # tsp-147u.14 logo lock: u-boot#51 24284b73 (exact-head Codex approve at 50f275ad after
+                              # two finding rounds) draws the TG5040 logo before Linux in both tg5040 defconfigs:
+                              # CONFIG_VIDEO_TG5040 display path, pf_logo loads /boot/pocketforge-logo.bmp from
+                              # mmc 0:4 and strictly validates it; a missing or invalid logo keeps the backlight off
+                              # and boot continues. simple-framebuffer handoff; Linux re-inits the display as today
+                              # (kernel-sunxi-7.x#64 seamless adoption is NOT in this lock). Moves with image
+                              # f7714c02 (image#166 stages the BMP). Fast-forward, 4.
+                              # BANNER CHANGE: "U-Boot SPL 2025.10-g24284b73b6dd" (was -gc21fbfb88293).
+                              # Prior (c21fbfb88293b9427b471a0725d1851484a8adba).
+sha  = "24284b73b6ddb64d41f2a449eb6100e7105db88c"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
