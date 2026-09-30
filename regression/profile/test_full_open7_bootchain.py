@@ -86,7 +86,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_LIBSDL3_SHA": "561946857e5a5d42a450acd90c4519bec95707d7",
             "PF_DISPLAY_PIPELINE": "fbdev",
             "PF_LAUNCHER_REPO": "launcher",
-            "PF_LAUNCHER_SHA": "7a2b792d0813fc8fb5c2915bdc00ef976b0cc986",
+            "PF_LAUNCHER_SHA": "d26dfa1162e601100c3a18956b5ce4a2ddc7427f",
             "PF_RECOVERY_REPO": "recovery",
             "PF_RECOVERY_SHA": "443a84e47c96d83de967948844d8e5eaa41d7413",
             "PF_BLOBS_SHA": "02ad8b7158ae39797f2693607ea9f2e6975f9ffd",
