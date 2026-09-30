@@ -86,7 +86,13 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-3rd3.18 + tsp-f3fm.222: image ed6b87dc = 57e06ce8 plus #159 (5c5ef568, tsp-3rd3.18,
+ref  = "main"          # tsp-f3fm.221: image fbd1bf6c = ed6b87dc plus #161 (52e54c18, tsp-f3fm.221, exact-head
+                       # Codex approve at 52e54c18; hermetic-tests + package green): the launcher guard now
+                       # requires launcher d26dfa11 (launcher#147). No other image change. launcher_contract=PASS
+                       # for launcher d26dfa11 / runtime 7536aa1f / image fbd1bf6c (guard_from=image@fbd1bf6).
+                       # Fast-forward, 2.
+                       # Previous pin (ed6b87dc8195f45331e2c2753c229e74d0b101fd):
+                       # tsp-3rd3.18 + tsp-f3fm.222: image ed6b87dc = 57e06ce8 plus #159 (5c5ef568, tsp-3rd3.18,
                        # exact-head Codex approve at 5c5ef568; hermetic-tests green): pf-open-gpu-gate waits only
                        # on dev-dri-renderD128.device (JobRunningTimeoutSec=30s drop-in) and no longer pulls in
                        # the deprecated systemd-udev-settle, so a slow udev probe cannot gate MainUI; and #160
@@ -315,7 +321,7 @@ ref  = "main"          # tsp-3rd3.18 + tsp-f3fm.222: image ed6b87dc = 57e06ce8 p
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "ed6b87dc8195f45331e2c2753c229e74d0b101fd"
+sha  = "fbd1bf6cba7183d685eada6448da7aa2007c184e"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -783,7 +789,13 @@ sha  = "7536aa1f5af76f0220b582ee68e29e254251fd76"
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
 url  = "https://github.com/pocketforge-os/launcher.git"   # top-coord RULING B). The image's `launcher`
-ref  = "main"                 # tsp-f3fm.219: launcher#146 7a2b792d (exact-head Codex approve at 7f085263) repins
+ref  = "main"                 # tsp-f3fm.221: launcher#147 d26dfa11 (exact-head Codex approve at db5ea74b; rust CI
+                              # green): pf-shell presents after ack-driven state changes, so the first A after a
+                              # Menu return launches and the Crash modal is visible; a Returned receipt on idle Home
+                              # opens no modal. No vendored crate changed; runtime stays 7536aa1f.
+                              # launcher_contract=PASS (d26dfa11 / 7536aa1f / image fbd1bf6c).
+                              # Previous pin (7a2b792d0813fc8fb5c2915bdc00ef976b0cc986):
+                              # tsp-f3fm.219: launcher#146 7a2b792d (exact-head Codex approve at 7f085263) repins
                               # every runtime crate 2ad0ca76 -> 7536aa1f (runtime#103 merge) and re-vendors it; only
                               # vendor/pf-session-authority changes. pf-shell: a restored shell discards replayed
                               # Running for a session that ended with its receipt owed and presents Home, re-polls
@@ -814,7 +826,7 @@ ref  = "main"                 # tsp-f3fm.219: launcher#146 7a2b792d (exact-head 
                               # keeping their images byte-identical. Not-per-device (literal-name lookup like
                               # libsdl3/wpa/runtime). SHA = the exact commit the launcher stage drift-checks
                               # (PF_LAUNCHER_SHA); an ancestor of launcher/main @ seed time.
-sha  = "7a2b792d0813fc8fb5c2915bdc00ef976b0cc986"
+sha  = "d26dfa1162e601100c3a18956b5ce4a2ddc7427f"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
