@@ -87,6 +87,12 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # tsp-147u.14 logo lock: U-Boot again kept at dfcc7773 when the canonical pin moves to
 # 24284b73 (u-boot#51 pre-Linux logo). dfcc7773 has no logo path, so the staged FAT p4
 # boot/pocketforge-logo.bmp is present in a no-radio image but its U-Boot never draws it.
+# gpu-14 kernel batch lock: the kernel override is NOT moved when the canonical pin goes
+# 23cdf7bf -> 6955e721, so from here it differs from the normal profile in kernel too. Nothing
+# requires the move: run-build.sh noradio_kernel_not_profile_pin compares the RESOLVED noradio
+# kernel with this pin (equal by construction), and core/profile.py treats it as an
+# independent override. A noradio image keeps the 23cdf7bf kernel (no #56-#63: no gamma LUT,
+# SMBL, CSC map fix, blend modes, 702 MHz GPU or TSP CMA authority).
 [profile_pins.a133-open-7x-gpu-noradio]
 kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
@@ -480,7 +486,21 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14, tsp-3rd3.17 lock): device/a133 23cdf7bf = e0acc3d4 plus #54
+name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14 kernel batch lock): device/a133 6955e721 = 23cdf7bf plus eight
+                               # merged PRs, each with an exact-head Codex approve and green `build` + `kunit` checks:
+                               # #56 (8260cc2f, tsp-mc9m.41.923.55: A133 TCON gamma LUT), #57 (6955e721,
+                               # tsp-mc9m.41.923.64: content-adaptive smart backlight SMBL with pwm_bl), #58 (04ac7551,
+                               # tsp-mc9m.41.923.69: A133 VI1 CSC register map), #59 (8e48e054, tsp-mc9m.41.923.57
+                               # G8: VI alpha and pixel blend modes), #60 (4bfdabc1, tsp-mc9m.41.923.54: Odyssey GPU at
+                               # 702 MHz), #61 (c6869cc5, tsp-mc9m.41.984.48: merged A133 KUnit CI builds), #62
+                               # (2f259280, tsp-mc9m.41.924.19: default-off pf_scanout_trace debugfs counters) and #63
+                               # (46db3097, tsp-mc9m.41.923.71: TSP DT is the CMA authority). Fast-forward, 42.
+                               # No-radio DTS blob still 7b73d02f, but the Odyssey and TSP DTS it includes changed
+                               # (#57/#58/#60/#63); the no-radio profile pin stays at 23cdf7bf (see its note).
+                               # PF_GPU_KM_SHA is derived (in-tree KM = kernel repo) and the image's only kernel
+                               # checks are receipt equality and KM == kernel, so nothing else co-moves.
+                               # Previous pin (23cdf7bf4642c234901caf0bcd4f70dd89c73276):
+                               # KERNEL PIN (gpu-14, tsp-3rd3.17 lock): device/a133 23cdf7bf = e0acc3d4 plus #54
                                # (648f0c56, tsp-3rd3.17: hci_xradio paces XR829 boot ROM writes by ACK, no tcdrain,
                                # retry-once on any upload/transport failure; KUnit red at 912e5972, green at 648f0c56;
                                # exact-head Codex approve). Fast-forward, 3 commits. Previous pin (e0acc3d4):
@@ -607,7 +627,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14, tsp-3rd3.17 lock): device/a13
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
+sha  = "6955e721b75d02b16888cab6884eb5eef1cf8599"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch

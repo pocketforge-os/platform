@@ -16,10 +16,12 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
-# tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin now equals the canonical
-# pin (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). It stays a
-# separate lock-owned entry: automation run-build.sh requires it for noradio builds.
+NORMAL_KERNEL_SHA = "6955e721b75d02b16888cab6884eb5eef1cf8599"
+# tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
+# (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
+# lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
+# (no automation gate requires equality; run-build.sh only checks the resolved noradio
+# kernel against this pin). It stays a separate lock-owned entry.
 NORADIO_KERNEL_SHA = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 NORMAL_UBOOT_SHA = "c21fbfb88293b9427b471a0725d1851484a8adba"
 # tsp-3rd3.10: the no-radio U-Boot override stays at dfcc7773 (coordinator ruling), so
@@ -82,22 +84,24 @@ class Open7NoradioProfileTest(unittest.TestCase):
         golden_path = ROOT / "regression/profile" / f"{NORADIO_DEVICE}-resolved.json"
         self.assertEqual(noradio_resolved, json.loads(golden_path.read_text()))
 
-    def test_build_args_change_only_identity_dtb_and_shared_kernel_pin(self):
+    def test_build_args_change_only_identity_dtb_and_held_pins(self):
         normal_args, _, normal_missing = profile.build_args(NORMAL_DEVICE)
         noradio_args, _, noradio_missing = profile.build_args(NORADIO_DEVICE)
         self.assertEqual(normal_missing, [])
         self.assertEqual(noradio_missing, [])
         self.assertEqual(
             differences(normal_args, noradio_args),
-            # The kernel pin is shared with the normal profile (NORADIO_KERNEL_SHA ==
-            # NORMAL_KERNEL_SHA); the identity, the selected DTB and (since tsp-3rd3.10) the
-            # held U-Boot override differ.
+            # The identity, the selected DTB, the held U-Boot override (since tsp-3rd3.10)
+            # and the held kernel override (since the gpu-14 kernel batch lock; the in-tree
+            # GPU KM SHA follows the kernel) differ.
             {
                 "PF_DEVICE_ID": (NORMAL_DEVICE, NORADIO_DEVICE),
                 "PF_KERNEL_DTB": (
                     "sun50i-a133-pocketforge-odyssey.dtb",
                     "sun50i-a133-pocketforge-odyssey-a133-open-7x-gpu-noradio.dtb",
                 ),
+                "PF_KERNEL_SHA": (NORMAL_KERNEL_SHA, NORADIO_KERNEL_SHA),
+                "PF_GPU_KM_SHA": (NORMAL_KERNEL_SHA, NORADIO_KERNEL_SHA),
                 "PF_UBOOT_SHA": (NORMAL_UBOOT_SHA, NORADIO_UBOOT_SHA),
             },
         )
