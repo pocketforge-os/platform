@@ -907,7 +907,12 @@ sha  = "9fc7c74ac83b476ee6c0772c915d590bbd3d3e03"
 [[repos]]
 name = "poolsuite"            # Dev-image-only staged app source; release receives an empty context.
 url  = "https://github.com/pocketforge-os/poolsuite.git"
-ref  = "main"                 # tsp-mc9m.41.923.53: poolsuite a89c2512 = 5658c674 plus #104 (87d3889e, tsp-f3fm.6.1:
+ref  = "main"                 # tsp-f3fm.224: poolsuite aeb68670 = a89c2512 plus #106 (1f8cff84, exact-head Codex
+                              # approve; fidelity + host green): the desktop draws the repo-authored prototype
+                              # desktop icon art on the software canvas (owner: missing Poolsuite icons). app.toml and
+                              # ci/device-{fetch,build}.sh unchanged, so image dev-stage pf-app-validate is unaffected.
+                              # Fast-forward, 2. Previous pin (a89c251226d36f9633b56387baafc11d01a84d93):
+                              # tsp-mc9m.41.923.53: poolsuite a89c2512 = 5658c674 plus #104 (87d3889e, tsp-f3fm.6.1:
                               # radio capped jittered reconnect ladder, honest Offline state with retry) and #105
                               # (a89c2512, tsp-f3fm.202.1.2: bounded SIGTERM shutdown, broker-restart input
                               # reconnect, facade appearance/theme pin). app.toml and ci/device-{fetch,build}.sh
@@ -921,7 +926,7 @@ ref  = "main"                 # tsp-mc9m.41.923.53: poolsuite a89c2512 = 5658c67
                               # e765ba2c Dockerfile.pf dev stage requires, FATAL if absent). Fast-forward, 2.
                               # Prior (5b33e32dfaf564693914a03b845a10dbc04f9062): tsp-f3fm.199 A1:
                               # poolsuite#101 merge; activation waits for A3.
-sha  = "a89c251226d36f9633b56387baafc11d01a84d93"
+sha  = "aeb686704a2fac87af734aed1f9d539941ac2a49"
 
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy

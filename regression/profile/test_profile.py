@@ -166,21 +166,21 @@ class ProfileTest(unittest.TestCase):
         # row, PF_KERNEL_SHA on the a133-open-7x rows; old-vs-new payload diff shows no other field,
         # key, state or missing change); and gpu-14 lock tsp-mc9m.41.984.34.2 + tsp-f3fm.223 (image 87c94194:
         # only PF_IMAGE_SHA, every row; old-vs-new payload diff shows no other field, key, state or
-        # missing change).
+        # missing change); and tsp-f3fm.224 (poolsuite aeb68670: PF_POOLSUITE_SHA only, verified the same way).
         # Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
         # which are not in this table): no key added or removed, state and missing unchanged.
         expected = {
-            ("a133", "dev"): "b42e22621feb274c44420ebfd2b25f175fa701ff1a4b26967b7b9e686f4c046f",
+            ("a133", "dev"): "e0f0d1597aa345284c80fd86c534ba49f516aa99ca65fc7163b1365d90bc365d",
             ("a133", "release"): "06cb2b0a7e20b28b86be9b37f232f3cab3233d9d49063aaa7e963e0bd9875775",
-            ("a133-open-7x", "dev"): "ed8d87484991ef3f0bffee2d0697278c3e71996c011dc2db6cc4f3da6701601f",
+            ("a133-open-7x", "dev"): "9eb2c047944e2347bcb0bd5279e98558bb957a42fb46bd695250768236a52482",
             ("a133-open-7x", "release"): "1327714ee137cf0293a4216b86ed1465a0d46823663496d1ca6793ab335e404a",
-            ("a133-owned", "dev"): "571075179599339151752b02f1d94be6c5ac946546fe0ca6644c9cb6813d924c",
+            ("a133-owned", "dev"): "b63c3f7584cc511ac17d8f722ad959b2f6fd77333a1d0ce56ad3d864c795dc12",
             ("a133-owned", "release"): "a702a13ff3d5794567042e15aa991e8d1dbc12b24493e7e486cf0b5d4dc45037",
-            ("a523", "dev"): "f0897481d9541c29d2102c8f6ae5bb3e411ca82ed4eeb4600289822e9d4f8504",
+            ("a523", "dev"): "c50d846e640ae1f64f08a01f013e1ee264022a3e0d1c901de0e8f5021522d8a5",
             ("a523", "release"): "d32750a4553122fbeec38c05b3c12b819da2e129894ef3143fb76a12158516b0",
-            ("sdm845", "dev"): "1677b202bc47f06a201807a31b812d764e54da58b76c8e3c40134de060450428",
+            ("sdm845", "dev"): "30199b028867bc9927ab874fe5d67a5460b36c795585bf2e51f4583a6e457226",
             ("sdm845", "release"): "5c4950f0a49918c53c7b1a684e36fb915b72df130a4a75ea169b88af1f1caaca",
         }
         for key, digest in expected.items():
@@ -251,7 +251,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(release_missing, [])
         self.assertRegex(dev["PF_HWPROBE_SHA"], r"^[0-9a-f]{40}$")
         self.assertRegex(dev["PF_SIM_SHA"], r"^[0-9a-f]{40}$")
-        self.assertEqual(dev["PF_POOLSUITE_SHA"], "a89c251226d36f9633b56387baafc11d01a84d93")
+        self.assertEqual(dev["PF_POOLSUITE_SHA"], "aeb686704a2fac87af734aed1f9d539941ac2a49")
         self.assertEqual(release["PF_HWPROBE_SHA"], "")
         self.assertEqual(release["PF_SIM_SHA"], "")
         self.assertEqual(release["PF_POOLSUITE_SHA"], "")
