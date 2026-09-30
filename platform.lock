@@ -594,7 +594,14 @@ sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 [[repos]]
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
-ref  = "main"                 # tsp-mc9m.41.924.16.13.3: gpu-um-tsp#158 159df17d (exact-head Codex approve at
+ref  = "main"                 # tsp-mc9m.41.924.16.13.3.2: gpu-um-tsp#159 a423c16e (exact-head Codex approve at
+                               # f35c44da; execute_smoke, structural-smoke and PVR UAPI parity green; head->merge tree diff
+                               # empty): reuse dynamic render state and RT datasets across identical frames with explicit
+                               # invalidation on resize/format change (R2 H2 CPU cost: 21 ms, 3 submits, 2 RT datasets per
+                               # rotated frame), rstate_create PF-CPUTIME accounting, inlined disabled pf_cputime path.
+                               # Fast-forward, 3 commits. Bench: PF-CPUTIME L/FPS request sha 7e8e93e5.
+                               # Previous pin (159df17d75c090cffc429a63582b42de8be0bb3d):
+                               # tsp-mc9m.41.924.16.13.3: gpu-um-tsp#158 159df17d (exact-head Codex approve at
                                # 7761c5d9; execute_smoke, structural-smoke and PVR UAPI parity green): opt-in
                                # PVR_DEBUG=pf_cputime per-path CPU-time counters (submit, render state, RT dataset,
                                # BO) for the rotated-present attribution bench. Default OFF (one flag test plus an
@@ -628,7 +635,7 @@ ref  = "main"                 # tsp-mc9m.41.924.16.13.3: gpu-um-tsp#158 159df17d
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "159df17d75c090cffc429a63582b42de8be0bb3d"
+sha  = "a423c16ecb5d6677dfb125486dba97ebc7adf12b"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
