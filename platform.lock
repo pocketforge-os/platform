@@ -66,7 +66,8 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # kernel-sunxi-7.x pin, and moves with it (tsp-mc9m.41.923.53: ee23555d -> 1b1da76f; tsp-3rd3.10
 # lock2: 1b1da76f -> 2bfee8b5, rotation 90; lock3: 2bfee8b5 -> 44debb5a, 8250_dw DLAB fix;
 # tsp-3rd3.14: 44debb5a -> bea8779b, otm1289a first-paint backlight hold; tsp-3rd3.16:
-# bea8779b -> 94ee6079, hci_xradio starts the XR829 off the probe path; the
+# bea8779b -> 94ee6079, hci_xradio starts the XR829 off the probe path; gpu-14 gap lock:
+# 94ee6079 -> e0acc3d4, NCM gadget + 101-level backlight + DMA-BUF heaps; the
 # no-radio DTS is still blob 7b73d02f there). It stays explicit, not removed, because pocketforge-automation
 # scripts/owned-image-ci/run-build.sh fails a noradio build (noradio_kernel_not_profile_pin)
 # unless the resolved kernel equals [profile_pins.a133-open-7x-gpu-noradio].kernel.
@@ -80,13 +81,18 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # (u-boot#50); only the kernel override is gated by automation. dfcc7773 also lacks the
 # #50 FEL guard (a FEL-loaded U-Boot autoboots the SD kernel).
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "94ee6079afbc25eb71e716936210c776d11ffa79"
+kernel = "e0acc3d49ac80169b30b2f7b065b0cf1773a98fe"
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-f3fm.221: image fbd1bf6c = ed6b87dc plus #161 (52e54c18, tsp-f3fm.221, exact-head
+ref  = "main"          # tsp-mc9m.41.924.23 G11: image 495e9c49 = fbd1bf6c plus #162 (8bcee9d8, exact-head Codex
+                       # approve; hermetic-tests green): Mesa on-disk shader cache for a133-open
+                       # (-Dshader-cache=enabled -Dzstd=enabled -Dshader-cache-max-size=64M; libzstd-dev:arm64
+                       # in the cross sysroot). Guards unchanged. Fast-forward, 2.
+                       # Previous pin (fbd1bf6cba7183d685eada6448da7aa2007c184e):
+                       # tsp-f3fm.221: image fbd1bf6c = ed6b87dc plus #161 (52e54c18, tsp-f3fm.221, exact-head
                        # Codex approve at 52e54c18; hermetic-tests + package green): the launcher guard now
                        # requires launcher d26dfa11 (launcher#147). No other image change. launcher_contract=PASS
                        # for launcher d26dfa11 / runtime 7536aa1f / image fbd1bf6c (guard_from=image@fbd1bf6).
@@ -321,7 +327,7 @@ ref  = "main"          # tsp-f3fm.221: image fbd1bf6c = ed6b87dc plus #161 (52e5
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "fbd1bf6cba7183d685eada6448da7aa2007c184e"
+sha  = "495e9c49a91a7322ce5c074171b3548649bf9a64"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -443,7 +449,14 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-3rd3.16): device/a133 94ee6079 = bea8779b plus #50 (3560ccac,
+name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14 gap lock): device/a133 e0acc3d4 = 94ee6079 plus #51 (e7fb0f13,
+                               # tsp-mc9m.41.984.34.1: CONFIG_USB_CONFIGFS_NCM for the bench USB network), #52
+                               # (f3e829cf, tsp-mc9m.41.923.59 G12: num-interpolated-steps 20 -> 101 backlight levels
+                               # within the 200/255 cap, default-brightness-level 100) and #53 (2e2c9493,
+                               # tsp-mc9m.41.923.58 G9: DMA-BUF heaps system + CMA built in). Each got an exact-head
+                               # Codex approve and a green `build` check. Fast-forward, 6. No-radio DTS blob unchanged.
+                               # Previous pin (94ee6079afbc25eb71e716936210c776d11ffa79):
+                               # KERNEL PIN (tsp-3rd3.16): device/a133 94ee6079 = bea8779b plus #50 (3560ccac,
                                # 74a1b0a9, 370eefb4; exact-head Codex approve at 370eefb4): hci_xradio probe only
                                # claims resources and queues the XR829 firmware upload and HCI registration on a
                                # workqueue (remove cancels/waits it), so the ~6.6 s upload no longer runs inside
@@ -559,7 +572,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-3rd3.16): device/a133 94ee6079 = 
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "94ee6079afbc25eb71e716936210c776d11ffa79"
+sha  = "e0acc3d49ac80169b30b2f7b065b0cf1773a98fe"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
