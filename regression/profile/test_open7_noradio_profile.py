@@ -24,7 +24,7 @@ NORMAL_KERNEL_SHA = "a5418af4e58f27a58a8823e7ccd72c34cac43d39"
 # kernel against this pin). It stays a separate lock-owned entry. gpu-14 lock k#67: again
 # NOT moved with the canonical 6955e721 -> a5418af4.
 NORADIO_KERNEL_SHA = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
-NORMAL_UBOOT_SHA = "6ec1b73ffe1c4f65d08f361292b61aa518a978f6"
+NORMAL_UBOOT_SHA = "c21fbfb88293b9427b471a0725d1851484a8adba"
 # tsp-3rd3.10: the no-radio U-Boot override stays at dfcc7773 (coordinator ruling), so
 # it no longer equals the normal pin.
 NORADIO_UBOOT_SHA = "dfcc77739aa647fa195abd2e01d9fab6b2633474"

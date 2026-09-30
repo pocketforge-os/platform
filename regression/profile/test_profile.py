@@ -184,9 +184,7 @@ class ProfileTest(unittest.TestCase):
         # a423c16e -> e5a0e008, libsdl3-sunxifb cc71c00c -> a2865266): PF_LIBSDL3_SHA on every row and
         # PF_KERNEL_SHA on the a133-open-7x rows (PF_GPU_KM_SHA and PF_GPU_UM_SHA move only on open
         # profiles, not in this table); on all 18 rows the new payload equals the old one with exactly
-        # those substitutions, and no key, state or missing entry changes;
-        # and the tsp-147u.14 U-Boot probe #4 (c21fbfb8 -> 6ec1b73f, u-boot#54 GPIO claims and cold
-        # panel handoff, pending device proof): only PF_UBOOT_SHA on the a133-owned rows, verified the same way.
+        # those substitutions, and no key, state or missing entry changes.
         # Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
@@ -196,8 +194,8 @@ class ProfileTest(unittest.TestCase):
             ("a133", "release"): "6c7ff84ac7a90c7be3ffcf4a408693d3d7ad70781427fbaa685aebb978ff5295",
             ("a133-open-7x", "dev"): "544ce5f0b35f210048fa7629d730d99c2cb794df84c17a71f1b9ba52edb053d1",
             ("a133-open-7x", "release"): "d94a035cce8cc7ea1fd49d0b8bba20fc33c148c9e434d842b89e909b6e0bcfb8",
-            ("a133-owned", "dev"): "7e9c287273cd57855db7e491780197704d50de5afd0c8d6cb28455896e33321b",
-            ("a133-owned", "release"): "84a4651a6a596aa8f545fad6b63e1e253cae9e5bd23a76832f0fba1feede2160",
+            ("a133-owned", "dev"): "90847705a23048655a671c3938118b2003fb1842bd86333c5deb69f86f0369c6",
+            ("a133-owned", "release"): "9be025f0dd723d3e2693f098751806d189a3908ea65125197ae42e547b6eb3d3",
             ("a523", "dev"): "7043066e6c042fe41aa10cb4cbc34aefb0e775c634ed7b4261f2b274b4eb2f53",
             ("a523", "release"): "976a24023fe156a8c8b400efde98cba2e2ae015312b9d557a2b5677fb8326bf6",
             ("sdm845", "dev"): "fde17e3063a91a120f7d9ab44af8edf8522e82223001c665f22ca35768987334",
