@@ -179,9 +179,7 @@ class ProfileTest(unittest.TestCase):
         # page-table abort on device): only PF_UBOOT_SHA on the a133-owned rows, verified the same way;
         # and the gpu-14 kernel batch lock (kernel 23cdf7bf -> 6955e721): only PF_KERNEL_SHA on the
         # a133-open-7x rows (PF_GPU_KM_SHA also moves on the open 7x-gpu profiles, not in this table;
-        # the held no-radio kernel pin keeps those rows byte-identical), verified the same way;
-        # and the tsp-147u.14 U-Boot probe #3 (c21fbfb8 -> 1c898433, u-boot#53 five-page page tables,
-        # pending device proof, bench B21): only PF_UBOOT_SHA on the a133-owned rows, verified the same way.
+        # the held no-radio kernel pin keeps those rows byte-identical), verified the same way.
         # Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
@@ -191,8 +189,8 @@ class ProfileTest(unittest.TestCase):
             ("a133", "release"): "2563dba89d243c2946b76e27d97b42076138fa836b84c856f1e49b094675e6d2",
             ("a133-open-7x", "dev"): "c30fed7a5888deae060265dcfcf569139da8d2d712e226f0721f78e0f3386c1c",
             ("a133-open-7x", "release"): "418c30deb10be0cb27ac2e5714c0a6102e53c1a75f33f7a7c33f00ed4fe2e165",
-            ("a133-owned", "dev"): "92c4f1955d18215a2f2a3cb4eb065d068b1ce359d32986d1de0dfd74a94c33d7",
-            ("a133-owned", "release"): "27d05c7b57445efc92ed1c315c5c2c514938d26f606e4aa0e216410ca0ee70e1",
+            ("a133-owned", "dev"): "9b06eee9762d0ac9860bd76da6fd226dabda4009b5c1c8300af77da0b2381741",
+            ("a133-owned", "release"): "74c8e9870964d25b1e6899d01cc9d9e453dbc07df920d3cdee0647a5b4dbe8bc",
             ("a523", "dev"): "9f0f4e0623db7e2c40ec646584083614a0042e18f7dcbe7c2cb66f56e12970b2",
             ("a523", "release"): "4ce21c10455b8471a7016fe54553d946e6999d532ed6fde20485a11cf8c6cc16",
             ("sdm845", "dev"): "73be03b545da0da6ea944e84d26b0fd86e45e72fe0910d64ad2ad4bcbf225cc9",
