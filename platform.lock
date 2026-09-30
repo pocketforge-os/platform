@@ -93,6 +93,8 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # kernel with this pin (equal by construction), and core/profile.py treats it as an
 # independent override. A noradio image keeps the 23cdf7bf kernel (no #56-#63: no gamma LUT,
 # SMBL, CSC map fix, blend modes, 702 MHz GPU or TSP CMA authority).
+# gpu-14 lock k#67: again NOT moved when the canonical pin goes 6955e721 -> a5418af4 (#64 logo
+# adoption, #55 CTM, #67 A133 mixer SMBL); same standing ruling, so it stays at 23cdf7bf.
 [profile_pins.a133-open-7x-gpu-noradio]
 kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
@@ -486,7 +488,17 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14 kernel batch lock): device/a133 6955e721 = 23cdf7bf plus eight
+name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14 lock k#67): device/a133 a5418af4 = 6955e721 plus three merged PRs:
+                               # #64 (37b12dc3, tsp-147u.14.2: sun4i adopts a live U-Boot logo display only when its
+                               # exact marker/mode/panel contract validates, else the existing cold DSI init; U-Boot
+                               # c21fbfb8 draws no logo, so the cold path applies), #55 (5b7ffa0f, tsp-mc9m.41.923.63:
+                               # A133 output CSC exposed as the CRTC CTM property) and #67 (a5418af4,
+                               # tsp-mc9m.41.923.64.1: SMBL enabled on sun50i_a133_mixer0_cfg, so TG5040 SMBL
+                               # initializes). Fast-forward, 15. No DTS file changes (no-radio blob still 7b73d02f);
+                               # the no-radio profile pin stays at 23cdf7bf (see its note). PF_GPU_KM_SHA is derived
+                               # and the image's only kernel checks are receipt equality and KM == kernel.
+                               # Previous pin (6955e721b75d02b16888cab6884eb5eef1cf8599):
+                               # KERNEL PIN (gpu-14 kernel batch lock): device/a133 6955e721 = 23cdf7bf plus eight
                                # merged PRs, each with an exact-head Codex approve and green `build` + `kunit` checks:
                                # #56 (8260cc2f, tsp-mc9m.41.923.55: A133 TCON gamma LUT), #57 (6955e721,
                                # tsp-mc9m.41.923.64: content-adaptive smart backlight SMBL with pwm_bl), #58 (04ac7551,
@@ -627,7 +639,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14 kernel batch lock): device/a13
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "6955e721b75d02b16888cab6884eb5eef1cf8599"
+sha  = "a5418af4e58f27a58a8823e7ccd72c34cac43d39"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -644,7 +656,14 @@ sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 [[repos]]
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
-ref  = "main"                 # tsp-mc9m.41.924.16.13.3.2: gpu-um-tsp#159 a423c16e (exact-head Codex approve at
+ref  = "main"                 # tsp-mc9m.41.924.16.13.3.3: gpu-um-tsp e5a0e008 = a423c16e plus #160 (bb1262bf,
+                               # tsp-mc9m.41.924.22: GE8300 ASTC/BC1 compressed-texture experiment, invisible unless
+                               # PVR_DEBUG=pf_texcomp) and #161 (e5a0e008: default-off PVR_DEBUG=pf_texpath counters
+                               # tracing the rotated-present source texture through image creation, memory bind and
+                               # sampled descriptors; default rendering path unchanged). Fast-forward, 10. Image
+                               # 96e1eb13 has no PF_GPU_UM_SHA equality guard.
+                               # Previous pin (a423c16ecb5d6677dfb125486dba97ebc7adf12b):
+                               # tsp-mc9m.41.924.16.13.3.2: gpu-um-tsp#159 a423c16e (exact-head Codex approve at
                                # f35c44da; execute_smoke, structural-smoke and PVR UAPI parity green; head->merge tree diff
                                # empty): reuse dynamic render state and RT datasets across identical frames with explicit
                                # invalidation on resize/format change (R2 H2 CPU cost: 21 ms, 3 submits, 2 RT datasets per
@@ -685,7 +704,7 @@ ref  = "main"                 # tsp-mc9m.41.924.16.13.3.2: gpu-um-tsp#159 a423c1
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "a423c16ecb5d6677dfb125486dba97ebc7adf12b"
+sha  = "e5a0e00851b70b7bd0ccd14f8838bdd006e027f8"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
@@ -801,7 +820,15 @@ sha  = "3c8c5c537028e6f749f7888b05e85aa95aa88db4"
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
-ref  = "main"                # tsp-mc9m.41.924.16.13.3.1: libsdl3-sunxifb#26 cc71c00c (exact-head Codex approve at
+ref  = "main"                # tsp-mc9m.41.924.16.13.3.3: libsdl3-sunxifb#27 a2865266: default-off
+                              # SDL_KMSDRM_RENDERER_PREROTATION draws the GLES2 SDL_Renderer default framebuffer
+                              # straight into the physical scanout (no imported-linear rotate pass), maps input and
+                              # pre-rotates hardware-cursor pixels/hotspot; raw GL and unsupported renderers fall back
+                              # to the existing rotate pass. Default path unchanged. Fast-forward, 7. Image 96e1eb13
+                              # builds SDL from PF_LIBSDL3_SHA with no equality guard. abi/platform-abi.json sdl.sha
+                              # is regenerated; abi/families.toml platform_version stays "20" (lock_state=interim).
+                              # Previous pin (cc71c00c0671c953d6ade863798e8e1470585326):
+                              # tsp-mc9m.41.924.16.13.3.1: libsdl3-sunxifb#26 cc71c00c (exact-head Codex approve at
                               # 6e04f747; kmsdrm-rotation and gpu-model-backends green): opt-in RGB565 rotate source
                               # for the rotated present (scanout stays ARGB8888; fails closed without an RGB565
                               # EGLConfig). Default path unchanged. Also carries #25 (fork-root AGENTS.md, docs only).
@@ -847,7 +874,7 @@ ref  = "main"                # tsp-mc9m.41.924.16.13.3.1: libsdl3-sunxifb#26 cc7
                               # f5e73b52 supplies the reviewed
                               # KMSDRM-enabled open-model artifact for imagePR126.
                               # Prior: tsp-4i6u #14: SDL_Renderer on sunxifb now works — SUNXIFB_CreateWindow loads EGL via the refcounted SDL_GL_LoadLibrary(NULL) wrapper (not the raw hook), fixing the egl_data/driver_loaded desync that made SDL_CreateRenderer fail ("EGL context already created" / "no matching render driver"); preserves Fix A's eager-surface invariant (tsp-osr NULL+0x8 deref stays fixed). Prior: tsp-147u.8.5 #12 (pf-gfxbench stage-schedule CALIBRATION, 60.41->2.00fps on tsp-base); #9 (pf-gfxbench app); tsp-ve5 #5 (eglBindAPI return check); UM blob path reorg tsp/ -> sunxi/a133/ (#2).
-sha  = "cc71c00c0671c953d6ade863798e8e1470585326"
+sha  = "a286526622fe5cb52271e325180e77609adeaad5"
 
 [[repos]]
 name = "wpa-supplicant-tsp"   # owned wpa_supplicant 2.10 fork (GREAT_SNR 25->45 roam hysteresis,
