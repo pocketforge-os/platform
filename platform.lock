@@ -776,7 +776,24 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # above). The logo returns with a fixed U-Boot after a device bench.
                               # BANNER: "U-Boot SPL 2025.10-gc21fbfb88293" again (was -g2a5610ed44bd).
                               # Reverted probe pin (2a5610ed44bd4b536614b2bf15f77695bff33e3a).
-sha  = "c21fbfb88293b9427b471a0725d1851484a8adba"
+                              # PROBE (tsp-147u.14 fix-forward #3, pending device proof, bench B21): u-boot#53
+                              # 1c898433 = 2a5610ed plus 97e2d181, 73fcb0b9, 737bdadf (exact-head Codex
+                              # verdict=approve at 737bdadf; the repo runs no PR checks). "arm: size TG5040 page
+                              # tables after video reservation": with CONFIG_VIDEO_TG5040, arch/arm/mach-sunxi/
+                              # board.c overrides get_page_table_size() to five 4 KiB pages (0x5000: primary L1,
+                              # emergency L1, one L2, two L3), because the pre-relocation framebuffer reservation
+                              # puts relocated U-Boot across two 2 MiB blocks (the B19 abort: 0x5000 > 0x4000).
+                              # Adds tools/check_tg5040_page_tables.py, a linked-layout checker that reproduces
+                              # the B19 failure on 2a5610ed and reports required=allocated=0x5000 on this head.
+                              # Keeps the #52 non-fatal video fallback and the #51 logo path. Fast-forward from
+                              # c21fbfb8, 10 (#51 + #52 + #53); from 2a5610ed, 4. The image-invoked
+                              # tools/check_tg5040_boot_layout.py is unchanged from 2a5610ed. Image 96e1eb13
+                              # already stages FAT p4 boot/pocketforge-logo.bmp and has no U-Boot SHA guard.
+                              # Bench this lock ALONE (PF_BOOTCHAIN_PROBE=1) before any other lock; if it does
+                              # not reach Linux, revert to c21fbfb8 (device-proven) as platform#241/#243 did.
+                              # BANNER CHANGE: "U-Boot SPL 2025.10-g1c898433c224" (was -gc21fbfb88293).
+                              # Prior (c21fbfb88293b9427b471a0725d1851484a8adba).
+sha  = "1c898433c224d9fb94d553102eb6b9e8cfe37d67"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
