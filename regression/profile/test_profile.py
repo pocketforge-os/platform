@@ -187,7 +187,8 @@ class ProfileTest(unittest.TestCase):
         # those substitutions, and no key, state or missing entry changes.
         # The Stage A defaults + readback-fix lock (libsdl3-sunxifb a2865266 -> 7411a948,
         # gpu-um-tsp e5a0e008 -> e3569452) again changes PF_LIBSDL3_SHA on every row;
-        # PF_GPU_UM_SHA changes only on open profiles, not in this table.
+        # PF_GPU_UM_SHA changes only on open profiles, not in this table. The #163 readback
+        # repair (gpu-um-tsp e3569452 -> 32a3fa91) likewise changes only open profiles.
         # Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
@@ -289,7 +290,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "6ccb87902144babc2838b03840c0413bf0941ab4")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "e35694528586a9deea99348a585020494fcc131f")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "32a3fa91d5c820c3a1babe1c30f8e25ff3088f34")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -357,7 +358,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_KM_REF"], "device/a133")
         self.assertEqual(args["PF_GPU_KM_SHA"], args["PF_KERNEL_SHA"])
         self.assertEqual(args["PF_GPU_UM_REPO"], "gpu-um-tsp")
-        self.assertEqual(args["PF_GPU_UM_SHA"], "e35694528586a9deea99348a585020494fcc131f")
+        self.assertEqual(args["PF_GPU_UM_SHA"], "32a3fa91d5c820c3a1babe1c30f8e25ff3088f34")
         self.assertEqual(args["PF_IMAGE_SHA"], "96e1eb13cb41b0edfcc85647a13733970b8e0434")
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
