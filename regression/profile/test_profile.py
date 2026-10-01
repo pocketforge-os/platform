@@ -185,21 +185,24 @@ class ProfileTest(unittest.TestCase):
         # PF_KERNEL_SHA on the a133-open-7x rows (PF_GPU_KM_SHA and PF_GPU_UM_SHA move only on open
         # profiles, not in this table); on all 18 rows the new payload equals the old one with exactly
         # those substitutions, and no key, state or missing entry changes.
+        # The Stage A defaults + readback-fix lock (libsdl3-sunxifb a2865266 -> 7411a948,
+        # gpu-um-tsp e5a0e008 -> e3569452) again changes PF_LIBSDL3_SHA on every row;
+        # PF_GPU_UM_SHA changes only on open profiles, not in this table.
         # Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
         # which are not in this table): no key added or removed, state and missing unchanged.
         expected = {
-            ("a133", "dev"): "8f1848a197f7c8dbfe1469636138cab7cf1c975fd118dcb5452ff7281a7b343c",
-            ("a133", "release"): "6c7ff84ac7a90c7be3ffcf4a408693d3d7ad70781427fbaa685aebb978ff5295",
-            ("a133-open-7x", "dev"): "544ce5f0b35f210048fa7629d730d99c2cb794df84c17a71f1b9ba52edb053d1",
-            ("a133-open-7x", "release"): "d94a035cce8cc7ea1fd49d0b8bba20fc33c148c9e434d842b89e909b6e0bcfb8",
-            ("a133-owned", "dev"): "90847705a23048655a671c3938118b2003fb1842bd86333c5deb69f86f0369c6",
-            ("a133-owned", "release"): "9be025f0dd723d3e2693f098751806d189a3908ea65125197ae42e547b6eb3d3",
-            ("a523", "dev"): "7043066e6c042fe41aa10cb4cbc34aefb0e775c634ed7b4261f2b274b4eb2f53",
-            ("a523", "release"): "976a24023fe156a8c8b400efde98cba2e2ae015312b9d557a2b5677fb8326bf6",
-            ("sdm845", "dev"): "fde17e3063a91a120f7d9ab44af8edf8522e82223001c665f22ca35768987334",
-            ("sdm845", "release"): "89aaf62bba07844a421ed4801c4654aa84bbad8d60f56482c15592c5c0561e38",
+            ("a133", "dev"): "0be60c835e3239e9ec6f78b4bf697b572415600aacf6d87454145d4f10516b3c",
+            ("a133", "release"): "d493a0bea93794d58fda7703d6c581be741690e1296ea0b71e24ee6c807d8557",
+            ("a133-open-7x", "dev"): "478b9ede6da6c38894aebe09e7f7ff7fd29608a28f01245d60dc1d79878f4d6d",
+            ("a133-open-7x", "release"): "808d2986dd201f97f985ecc36c548eab64fdac379305a928769aa91808c701ee",
+            ("a133-owned", "dev"): "a8f8facd23c1382c13956b22a28bfd03e6b95ba17dcb6759a2da3908d7ffb5fd",
+            ("a133-owned", "release"): "f630b4d13b69549d062a8f795bb8b6202c6c2b28d6b1f657deb47a3fb99457d5",
+            ("a523", "dev"): "feb24d0bc445af82452e59bbfeb51f67aa813f63f1a3beaa44cc41e676a734a4",
+            ("a523", "release"): "9b7de9755848ca254670978d0661291f226d401cf70140b60a503a0c7b82a5f1",
+            ("sdm845", "dev"): "9eabfdd3092afb16c901affc1ee3278021aeecf81776643212c86322d62a0a6b",
+            ("sdm845", "release"): "433fe076f7ae77f3c129a9cbfa172d0298c4640c0037419d1c822c56465ff730",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -286,7 +289,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "6ccb87902144babc2838b03840c0413bf0941ab4")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "e5a0e00851b70b7bd0ccd14f8838bdd006e027f8")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "e35694528586a9deea99348a585020494fcc131f")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -354,9 +357,9 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_KM_REF"], "device/a133")
         self.assertEqual(args["PF_GPU_KM_SHA"], args["PF_KERNEL_SHA"])
         self.assertEqual(args["PF_GPU_UM_REPO"], "gpu-um-tsp")
-        self.assertEqual(args["PF_GPU_UM_SHA"], "e5a0e00851b70b7bd0ccd14f8838bdd006e027f8")
+        self.assertEqual(args["PF_GPU_UM_SHA"], "e35694528586a9deea99348a585020494fcc131f")
         self.assertEqual(args["PF_IMAGE_SHA"], "96e1eb13cb41b0edfcc85647a13733970b8e0434")
-        self.assertEqual(args["PF_LIBSDL3_SHA"], "a286526622fe5cb52271e325180e77609adeaad5")
+        self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
