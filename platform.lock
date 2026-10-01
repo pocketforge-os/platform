@@ -1061,7 +1061,13 @@ sha  = "9fc7c74ac83b476ee6c0772c915d590bbd3d3e03"
 [[repos]]
 name = "poolsuite"            # Dev-image-only staged app source; release receives an empty context.
 url  = "https://github.com/pocketforge-os/poolsuite.git"
-ref  = "main"                 # tsp-f3fm.224: poolsuite aeb68670 = a89c2512 plus #106 (1f8cff84, exact-head Codex
+ref  = "main"                 # tsp-f3fm.232 + tsp-f3fm.233.2: poolsuite fe3c9abe = aeb68670 plus #108
+                              # (0ebc8a88, exact-head Codex approve): `ps-app --frame-bench` supplies the .233
+                              # fidelity bench, with Blitz fonts/resources embedded in ps-app (+3.45 MB); and #107
+                              # (fe3c9abe, exact-head Codex approve): fixes the owner's never-finishing splash —
+                              # the bar fills over 1.5 s, auto-finishes into the player at 1.9 s, and A/START skips.
+                              # Fast-forward, 5. Previous pin (aeb686704a2fac87af734aed1f9d539941ac2a49):
+                              # tsp-f3fm.224: poolsuite aeb68670 = a89c2512 plus #106 (1f8cff84, exact-head Codex
                               # approve; fidelity + host green): the desktop draws the repo-authored prototype
                               # desktop icon art on the software canvas (owner: missing Poolsuite icons). app.toml and
                               # ci/device-{fetch,build}.sh unchanged, so image dev-stage pf-app-validate is unaffected.
@@ -1080,7 +1086,7 @@ ref  = "main"                 # tsp-f3fm.224: poolsuite aeb68670 = a89c2512 plus
                               # e765ba2c Dockerfile.pf dev stage requires, FATAL if absent). Fast-forward, 2.
                               # Prior (5b33e32dfaf564693914a03b845a10dbc04f9062): tsp-f3fm.199 A1:
                               # poolsuite#101 merge; activation waits for A3.
-sha  = "aeb686704a2fac87af734aed1f9d539941ac2a49"
+sha  = "fe3c9abeaac9588db0698fa44bcf8a20624e6240"
 
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy
