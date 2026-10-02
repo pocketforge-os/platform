@@ -191,6 +191,12 @@ class ProfileTest(unittest.TestCase):
         # PF_KERNEL_SHA on the a133-open-7x rows (PF_GPU_KM_SHA and PF_GPU_UM_SHA move only on open
         # profiles, not in this table); on all 18 rows the new payload equals the old one with exactly
         # those substitutions, and no key, state or missing entry changes.
+        # And the gpu-14 lock k#68 (kernel a5418af4 -> 3434d3fd: kernel-sunxi-7.x#68 tracefs+syscall
+        # tracing, #43 sun4i-codec A133 analog output, #69 TSP USB1 disabled): only PF_KERNEL_SHA on
+        # the a133-open-7x dev/release rows; the other 8 rows are byte-identical (diffed old vs new
+        # payload: no other field, key, state or missing change). #69's TSP DTS edit does not touch
+        # this table: the a133-open-7x-gpu/-noradio DTB rows are not members of this golden set, and
+        # the no-radio kernel pin is NOT moved (see platform.lock), so it builds a frozen checkout.
         # The Stage A defaults + readback-fix lock (libsdl3-sunxifb a2865266 -> 7411a948,
         # gpu-um-tsp e5a0e008 -> e3569452) again changes PF_LIBSDL3_SHA on every row;
         # PF_GPU_UM_SHA changes only on open profiles, not in this table. The #163 readback
@@ -204,8 +210,8 @@ class ProfileTest(unittest.TestCase):
         expected = {
             ("a133", "dev"): "bc7bf6d5ddbc08e92aadcb90f565b780ca4d449e4ff10ef73788e9eab3efb561",
             ("a133", "release"): "14bedc1ab0f85edd9ec8662ad7b2684ee0e946d7e09e49b2b30277f825862124",
-            ("a133-open-7x", "dev"): "daf94a4e7da25bd8e4a3889f7ba8dc0bd50b6cd61fed216a509e0ecfb7f7f658",
-            ("a133-open-7x", "release"): "e19f2e3bafd349832361c803aed1ecf8f96fcdb89b919ce4910aeae248eb79b6",
+            ("a133-open-7x", "dev"): "c14d9054f4b5b74237d32bbe96415cc747ab06ab443be99c7db029cc66b19ed0",
+            ("a133-open-7x", "release"): "a477a790cfd823d3863ca1b240e5a2736e7056402983e0ad336ab654e1e1a006",
             ("a133-owned", "dev"): "f70c2fbeb68075349d5c221a4a0fed701ae7797758d4cbe5ec76cdb859579e84",
             ("a133-owned", "release"): "9778d03f698f18172b0e8dbcf0907f4a176f1d26a60f4ead05300272340cbb05",
             ("a523", "dev"): "820956f5bfe3b9e6d32a286fab6856fc27810e6a3cbb6d27eceb1bc80fc588d7",
@@ -341,7 +347,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "a5418af4e58f27a58a8823e7ccd72c34cac43d39")
+        self.assertEqual(args["PF_KERNEL_SHA"], "3434d3fdf4cc2d899d5aab41e61e73adefa64dd4")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -358,7 +364,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "a5418af4e58f27a58a8823e7ccd72c34cac43d39")
+        self.assertEqual(args["PF_KERNEL_SHA"], "3434d3fdf4cc2d899d5aab41e61e73adefa64dd4")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
