@@ -1,0 +1,60 @@
+# regression-suites - run the offline regression/ suites on EVERY platform PR (tsp-mc9m.41.984.63).
+#
+# WHY THIS EXISTS. platform#261 (head 3311f52b) pinned Cedrus image#169 and shipped STALE
+# profile goldens: `python3 -m unittest regression.profile.test_profile` failed 2 tests
+# (test_a133_7x_gpu_selects_full_open_contract, test_non_open_build_arg_goldens_are_byte_unchanged),
+# yet all 3 PR checks (validate, ABI drift, descriptor staging) were GREEN because no required
+# check ran regression/. Only the Codex review caught it. This gate closes that hole: every PR
+# runs regression/abi, regression/build, regression/profile and regression/caps through
+# regression/run-offline.sh, so a pin change without refreshed goldens goes RED in CI.
+#
+# NO `paths:` FILTER - DELIBERATE (same reasoning as abi-drift.yml). A required status check
+# gated by `paths:` stays permanently "expected"/pending on PRs that do not touch the filtered
+# paths, which blocks merge indefinitely. The whole run is ~10 s and side-effect-free, so
+# running it on every PR is strictly safer than path-gating.
+#
+# NO MARKETPLACE ACTIONS - DELIBERATE (org Actions policy `sha_pinning_required=true`). Exactly
+# like abi-drift.yml / device-descriptor-staging.yml, this job uses ZERO `uses:` actions: plain
+# `git` + the ephemeral `github.token` checkout of the tested ref, then the repo's own runner
+# script with the first Python 3.11+ interpreter available (the suites are stdlib-only; the
+# docker-touching build gates grep shipped sources or fake docker, so no docker is needed -
+# which keeps this green on pf-review-vm-1).
+#
+# RUNNER ROUTING - the pf-pr-review lane by its specific `pf-pr-review` label, matching the
+# other read-only PR gates: the review VMs are the org's designed lane for running untrusted
+# PR code read-only.
+#
+# NO timeout-minutes - the suites take seconds; the owner's 60-minute design guard is untouched.
+
+name: regression suites
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: pf-regression-suites
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, pf-pr-review]
+    steps:
+      - name: checkout the tested ref + run the offline regression suites
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          wd="$(mktemp -d "${RUNNER_TEMP:?}/platform-regression.XXXXXX")"
+          trap 'find "$wd" -mindepth 1 -delete; rmdir "$wd"' EXIT
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
+          cd "$wd"
+          sha="${HEAD_SHA:-$GITHUB_SHA}"
+          git fetch --quiet origin "$sha"
+          git checkout --quiet --detach "$sha"
+          echo "regression suites @ $sha on runner $RUNNER_NAME"
+          bash regression/run-offline.sh
