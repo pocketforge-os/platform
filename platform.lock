@@ -95,6 +95,12 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 # SMBL, CSC map fix, blend modes, 702 MHz GPU or TSP CMA authority).
 # gpu-14 lock k#67: again NOT moved when the canonical pin goes 6955e721 -> a5418af4 (#64 logo
 # adoption, #55 CTM, #67 A133 mixer SMBL); same standing ruling, so it stays at 23cdf7bf.
+# gpu-14 lock k#68: again NOT moved when the canonical pin goes a5418af4 -> 3434d3fd (#68 input/
+# event tracefs+syscall tracing, #43 A133 analog output HPOUT + jack route, #69 keeps TSP USB1
+# disabled, a DTS change); same standing ruling (no automation gate requires equality), so it
+# stays at 23cdf7bf. #69's TSP DTS edit does not reach the no-radio DTB: the no-radio override
+# builds a frozen kernel-sunxi-7.x checkout at 23cdf7bf, not the moving device/a133 branch, so
+# its own TSP/Odyssey/no-radio DTS chain (and compiled DTB) is unaffected and unchanged.
 [profile_pins.a133-open-7x-gpu-noradio]
 kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
@@ -495,7 +501,29 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14 lock k#67): device/a133 a5418af4 = 6955e721 plus three merged PRs:
+name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14 lock k#68): device/a133 3434d3fd = a5418af4 plus three merged PRs:
+                               # #68 (4382a0b0, tsp-op5a.438.2: a133_defconfig gains CONFIG_FTRACE=y and
+                               # CONFIG_FTRACE_SYSCALLS=y so tracefs exists and the reviewed
+                               # mainui-input-latency probe's syscall tracepoints resolve, without the
+                               # function tracer: FTRACE_SYSCALLS selects GENERIC_TRACER, not
+                               # FUNCTION_TRACER, and a133_defconfig sets no CONFIG_DEBUG_KERNEL), #43
+                               # (e4b269d6, tsp-mc9m.41.923.49: sun4i-codec gains an A133-specific analog
+                               # output component with the vendor-evidenced HPOUT path (HPINPUTEN ->
+                               # HPOUTPUTEN -> HPPA_EN power-up, reverse power-down) and jack route policy
+                               # (Headphone/Speaker DAPM exclusivity on insert/remove), replacing the H616
+                               # component the A133 never matched; allwinner,speaker-amp-feed stays
+                               # deliberately unset pending tsp-mc9m.41.923.51) and #69 (3434d3fd,
+                               # tsp-224c29ec751088057368: keeps the TSP USB0 dual-role path but stops
+                               # overriding the source-disabled USB1 EHCI/OHCI controllers, with a
+                               # fail-closed DT checker; a TSP DTS change). Fast-forward, 12. The no-radio
+                               # profile pin stays at 23cdf7bf (see its note): it builds a frozen
+                               # kernel-sunxi-7.x checkout, not this moving branch, so #69's TSP DTS edit
+                               # does not reach its DTB. PF_GPU_KM_SHA is derived and the image's only
+                               # kernel checks are receipt equality and KM == kernel.
+                               # Merged-push CI: run 36962124536 (job 110697868722 `build`, job
+                               # 110697868524 `kunit`), both green on this exact sha.
+                               # Previous pin (a5418af4e58f27a58a8823e7ccd72c34cac43d39):
+                               # KERNEL PIN (gpu-14 lock k#67): device/a133 a5418af4 = 6955e721 plus three merged PRs:
                                # #64 (37b12dc3, tsp-147u.14.2: sun4i adopts a live U-Boot logo display only when its
                                # exact marker/mode/panel contract validates, else the existing cold DSI init; U-Boot
                                # c21fbfb8 draws no logo, so the cold path applies), #55 (5b7ffa0f, tsp-mc9m.41.923.63:
@@ -646,7 +674,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14 lock k#67): device/a133 a5418a
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "a5418af4e58f27a58a8823e7ccd72c34cac43d39"
+sha  = "3434d3fdf4cc2d899d5aab41e61e73adefa64dd4"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
