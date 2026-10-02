@@ -195,8 +195,8 @@ class ProfileTest(unittest.TestCase):
         # gpu-um-tsp e5a0e008 -> e3569452) again changes PF_LIBSDL3_SHA on every row;
         # PF_GPU_UM_SHA changes only on open profiles, not in this table. The #163 readback
         # repair (gpu-um-tsp e3569452 -> 32a3fa91), #164 inverted-blit repair
-        # (32a3fa91 -> ad28586e), and #165 bounded CS dump (ad28586e -> 77f23ed2)
-        # likewise change only open profiles.
+        # (32a3fa91 -> ad28586e), #165 bounded CS dump (ad28586e -> 77f23ed2), and #167
+        # odd-pitch staging readbacks (77f23ed2 -> eac0a8f4) likewise change only open profiles.
         # Against the
         # c75b3304-era digests the ONLY payload changes are the values of already-emitted
         # PF_IMAGE_SHA / PF_RUNTIME_SHA / PF_POOLSUITE_SHA (and PF_LAUNCHER_SHA on open profiles,
@@ -298,7 +298,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "6ccb87902144babc2838b03840c0413bf0941ab4")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "77f23ed270eca16b6ef42b322cc159585817ca8f")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "eac0a8f445924f0db592352412eb48c9ad39040e")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -366,7 +366,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_KM_REF"], "device/a133")
         self.assertEqual(args["PF_GPU_KM_SHA"], args["PF_KERNEL_SHA"])
         self.assertEqual(args["PF_GPU_UM_REPO"], "gpu-um-tsp")
-        self.assertEqual(args["PF_GPU_UM_SHA"], "77f23ed270eca16b6ef42b322cc159585817ca8f")
+        self.assertEqual(args["PF_GPU_UM_SHA"], "eac0a8f445924f0db592352412eb48c9ad39040e")
         self.assertEqual(args["PF_IMAGE_SHA"], "fed7823ab6dfc603c9c07bd20c840a8e5cf11c3e")
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
