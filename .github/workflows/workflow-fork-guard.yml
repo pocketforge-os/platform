@@ -6,6 +6,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
@@ -25,5 +29,13 @@ jobs:
           cd "$wd"
           git fetch --quiet origin "$GITHUB_SHA"
           git checkout --quiet --detach "$GITHUB_SHA"
+          echo "PF_POLICY_ROOT=$wd" >> "$GITHUB_ENV"
           scripts/tests/workflow-fork-guard-test.sh --self-test
           scripts/tests/workflow-fork-guard-test.sh
+
+      - name: Enforce CI producer policy
+        run: |
+          python3 "$PF_POLICY_ROOT/scripts/tests/ci-producer-policy-test.py"
+          python3 "$PF_POLICY_ROOT/scripts/ci-producer-policy.py" \
+            --root "$PF_POLICY_ROOT" \
+            --default-branch main
