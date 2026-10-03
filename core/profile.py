@@ -40,6 +40,10 @@ except ModuleNotFoundError:  # pragma: no cover
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEVICES = os.path.join(ROOT, "devices")
+# Lock selectors are repository-wide declarations. Keep their membership source
+# canonical even when a caller temporarily redirects DEVICES to validate one
+# synthetic profile tree.
+LOCK_PROFILE_DEVICES = DEVICES
 FAMILIES = os.path.join(ROOT, "families")
 LOCK = os.path.join(ROOT, "platform.lock")
 ABI_FAMILIES = os.path.join(ROOT, "abi", "families.toml")
@@ -225,11 +229,15 @@ def _resolve_device_descriptor(merged):
     return {"id": descriptor_id, "path": rel, "sha256": hashlib.sha256(data).hexdigest()}
 
 
-def list_devices():
-    if not os.path.isdir(DEVICES):
+def _list_devices_at(devices):
+    if not os.path.isdir(devices):
         return []
-    return sorted(d for d in os.listdir(DEVICES)
-                  if os.path.isfile(os.path.join(DEVICES, d, "profile.toml")))
+    return sorted(d for d in os.listdir(devices)
+                  if os.path.isfile(os.path.join(devices, d, "profile.toml")))
+
+
+def list_devices():
+    return _list_devices_at(DEVICES)
 
 
 def load_lock():
@@ -257,6 +265,7 @@ def load_lock():
     platform_runtime = data.get("platform_runtime", {})
     if not isinstance(platform_runtime, dict):
         raise ProfileSchemaError("[platform_runtime] must be a table")
+    profile_ids = set(_list_devices_at(LOCK_PROFILE_DEVICES))
     runtime_keys = {
         "schema_version", "profile", "mode_arg", "mode_value", "source_repo",
         "source_sha", "runtime_path", "build_args",
@@ -276,6 +285,9 @@ def load_lock():
         for key in ("profile", "mode_value", "source_repo"):
             if not isinstance(runtime.get(key), str) or not runtime[key]:
                 raise ProfileSchemaError(f"{where}.{key} must be a non-empty string")
+        if runtime["profile"] not in profile_ids:
+            raise ProfileSchemaError(
+                f"{where}.profile '{runtime['profile']}' is not a device profile")
         mode_arg = runtime.get("mode_arg")
         if not isinstance(mode_arg, str) or not re.fullmatch(r"PF_[A-Z0-9_]+", mode_arg):
             raise ProfileSchemaError(f"{where}.mode_arg must be a PF_* build-arg name")

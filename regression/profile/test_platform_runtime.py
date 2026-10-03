@@ -58,6 +58,14 @@ class PlatformRuntimeTest(unittest.TestCase):
             with self.assertRaisesRegex(profile.ProfileSchemaError, "does not match"):
                 profile.build_args(SELECTED)
 
+    def test_runtime_selector_must_name_an_existing_profile(self):
+        lock_document = copy.deepcopy(profile._load(ROOT / "platform.lock"))
+        lock_document["platform_runtime"]["steamlink_ffmpeg59_v1"]["profile"] = \
+            "a133-open-7x-gp"
+        with mock.patch.object(profile, "_load", return_value=lock_document):
+            with self.assertRaisesRegex(profile.ProfileSchemaError, "is not a device profile"):
+                profile.load_lock()
+
     def test_lock_schema_fails_closed(self):
         good = profile._load(ROOT / "platform.lock")
         cases = {}
