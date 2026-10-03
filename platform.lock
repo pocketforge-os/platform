@@ -501,7 +501,15 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14 lock k#68): device/a133 3434d3fd = a5418af4 plus three merged PRs:
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-b4446e3ceb419c3f0d15.4): device/a133
+                               # 40ea8fd9dcaeb9526b8032038f1dc820216d7959 = prior pin
+                               # 3434d3fdf4cc2d899d5aab41e61e73adefa64dd4 plus kernel-sunxi-7.x#72
+                               # (review head d6bf9c6ab2d8d13b6ccefac7eb597a0413f040c1): keep the TSP
+                               # CLDO3 / vcc-io-3v3 boot-media rail always on so normal MMC shutdown
+                               # cannot drop the shared rail before warm reset; full poweroff remains
+                               # on the PMIC system-off path.
+                               # Previous pin (3434d3fdf4cc2d899d5aab41e61e73adefa64dd4):
+                               # KERNEL PIN (gpu-14 lock k#68): device/a133 3434d3fd = a5418af4 plus three merged PRs:
                                # #68 (4382a0b0, tsp-op5a.438.2: a133_defconfig gains CONFIG_FTRACE=y and
                                # CONFIG_FTRACE_SYSCALLS=y so tracefs exists and the reviewed
                                # mainui-input-latency probe's syscall tracepoints resolve, without the
@@ -674,7 +682,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (gpu-14 lock k#68): device/a133 3434d3
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "3434d3fdf4cc2d899d5aab41e61e73adefa64dd4"
+sha  = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
