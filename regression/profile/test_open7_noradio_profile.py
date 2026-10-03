@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
+NORMAL_KERNEL_SHA = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -25,7 +25,8 @@ NORMAL_KERNEL_SHA = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
 # NOT moved with the canonical 6955e721 -> a5418af4. gpu-14 lock k#68: again NOT moved
 # with the canonical a5418af4 -> 3434d3fd (#69's TSP USB1-disabled DTS change does not
 # reach this frozen checkout; see platform.lock's note). The reboot-rail pin likewise leaves
-# the override held while the canonical pin moves 3434d3fd -> 40ea8fd9.
+# the override held while the canonical pin moves 3434d3fd -> 40ea8fd9. The PowerVR recovery
+# batch again leaves it held while the canonical pin moves 40ea8fd9 -> a75bf257.
 NORADIO_KERNEL_SHA = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 NORMAL_UBOOT_SHA = "c21fbfb88293b9427b471a0725d1851484a8adba"
 # tsp-3rd3.10: the no-radio U-Boot override stays at dfcc7773 (coordinator ruling), so

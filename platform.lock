@@ -52,7 +52,7 @@ profile         = "a133-open-7x-gpu"
 mode_arg        = "PF_STEAMLINK_FFMPEG59_MODE"
 mode_value      = "v1"
 source_repo     = "kernel-sunxi-7.x"
-source_sha      = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
+source_sha      = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 runtime_path    = "/usr/lib/pocketforge/platform-runtimes/steamlink-ffmpeg59/v1"
 
 [platform_runtime.steamlink_ffmpeg59_v1.build_args]
@@ -62,7 +62,7 @@ PF_FFMPEG_ORIG_SHA256        = "56d4daf10c17330a45c8fe11bc260997677ca2432d3d5951
 PF_FFMPEG_ORIG_ASC_SHA256    = "ee93598ac566d1be4a80801e0a58f91ede2e6a5e9e670f681723b447f23c59d0"
 PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a39512921680090952e1"
 PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
-PF_FFMPEG_UAPI_SHA           = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
+PF_FFMPEG_UAPI_SHA           = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 
 # Profile-scoped source exceptions remain lock-owned independently. The diagnostic
 # SPL trace override now equals the canonical [[repos]] pin, and remains explicit
@@ -528,7 +528,16 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-b4446e3ceb419c3f0d15.4): device/a133
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-60df20c562d859df6fc1): device/a133
+                               # a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7 = prior pin
+                               # 40ea8fd9dcaeb9526b8032038f1dc820216d7959 plus kernel-sunxi-7.x#73
+                               # (reviewed restacked head 64752b1b749d49ae4e547b15458ef847c5fe42bb;
+                               # merge tree 84df899c5f0f588996843eae15313f447111737a equals the head tree):
+                               # replace the PowerVR timeout stub with serialized GPU-wide hard-reset
+                               # recovery, deterministic unfinished-fence retirement, and queue-state
+                               # realignment before restart. Fast-forward, 4.
+                               # Previous pin (40ea8fd9dcaeb9526b8032038f1dc820216d7959):
+                               # KERNEL PIN (tsp-b4446e3ceb419c3f0d15.4): device/a133
                                # 40ea8fd9dcaeb9526b8032038f1dc820216d7959 = prior pin
                                # 3434d3fdf4cc2d899d5aab41e61e73adefa64dd4 plus kernel-sunxi-7.x#72
                                # (review head d6bf9c6ab2d8d13b6ccefac7eb597a0413f040c1): keep the TSP
@@ -709,7 +718,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-b4446e3ceb419c3f0d15.4): device/a
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
+sha  = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -726,7 +735,13 @@ sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 [[repos]]
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
-ref  = "main"                 # tsp-mc9m.41.924.28.2: gpu-um-tsp#167 merge eac0a8f4 (exact-head Codex approve at
+ref  = "main"                 # tsp-60df20c562d859df6fc1: gpu-um-tsp#168/#169/#171 merged as c7d55c1a.
+                               # Reviewed heads dc9e27d6, 053221ff, and 0db9b815 each have the same tree as
+                               # their merge commit. The batch enables proven linear storage images, opaque
+                               # timeline semaphore FDs, and truthful shared-memory budgets consumed by Zink.
+                               # Fast-forward, 12.
+                               # Previous pin (eac0a8f445924f0db592352412eb48c9ad39040e):
+                               # tsp-mc9m.41.924.28.2: gpu-um-tsp#167 merge eac0a8f4 (exact-head Codex approve at
                                # 3be105ec; merge tree 4fa71096 equals the PR head tree) stages odd-pitch linear image-to-buffer
                                # copies through an even-LINESTRIDE staging surface (PBE LINESTRIDE is in two-pixel units) plus
                                # an exact repack. It replaces #166 a03289da's one-row split, which B40c refuted (323 guilty
@@ -806,7 +821,7 @@ ref  = "main"                 # tsp-mc9m.41.924.28.2: gpu-um-tsp#167 merge eac0a
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "eac0a8f445924f0db592352412eb48c9ad39040e"
+sha  = "c7d55c1a6abffabb8f2b5b81dacfda1ebb5720d6"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
