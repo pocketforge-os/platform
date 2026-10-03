@@ -197,6 +197,9 @@ class ProfileTest(unittest.TestCase):
         # payload: no other field, key, state or missing change). #69's TSP DTS edit does not touch
         # this table: the a133-open-7x-gpu/-noradio DTB rows are not members of this golden set, and
         # the no-radio kernel pin is NOT moved (see platform.lock), so it builds a frozen checkout.
+        # The tsp-b4446e3ceb419c3f0d15.4 reboot-rail lock (kernel 3434d3fd -> 40ea8fd9) again
+        # changes only PF_KERNEL_SHA on the a133-open-7x dev/release rows; the no-radio override
+        # remains frozen and outside this table.
         # The Stage A defaults + readback-fix lock (libsdl3-sunxifb a2865266 -> 7411a948,
         # gpu-um-tsp e5a0e008 -> e3569452) again changes PF_LIBSDL3_SHA on every row;
         # PF_GPU_UM_SHA changes only on open profiles, not in this table. The #163 readback
@@ -210,8 +213,8 @@ class ProfileTest(unittest.TestCase):
         expected = {
             ("a133", "dev"): "c19422e9c5fbcb3e79fb6f0eb1db16aa2190f1c106346611eb2f8116dbfb2447",
             ("a133", "release"): "827902208f71eefb770bb8a593bef2b01b270bee484a9da4a296d1ab64740946",
-            ("a133-open-7x", "dev"): "2e7b57902c9f83634fb40e1f984bb5e6ce2ae726f5f6a72487f6a19eea782eb9",
-            ("a133-open-7x", "release"): "46c6aeb62717f301c8a91c7f84d03cb5164da7c6aa94e13de4be6312ffd1b0f1",
+            ("a133-open-7x", "dev"): "14ccb3eee1487fd5da309e4e5f4434ed9ace528beb87982e7490fcffc47568b9",
+            ("a133-open-7x", "release"): "6cab010f05a9ce60b90682bc4b68bb1572c06b119304b2bee26ef6d97c002ac1",
             ("a133-owned", "dev"): "014255000bed6f18f0cee464fef60fca72e677a6ea508e824658f5a2ab8cc320",
             ("a133-owned", "release"): "d820a6b4838fdfe178b937d7cba7737eb5a68e0b59de8ffebe3a46fa105e229d",
             ("a523", "dev"): "7027fa3fc6cf3a6da525aed044292eaa1ef2feef75ee5ac6026f189d24f45bdb",
@@ -347,7 +350,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "3434d3fdf4cc2d899d5aab41e61e73adefa64dd4")
+        self.assertEqual(args["PF_KERNEL_SHA"], "40ea8fd9dcaeb9526b8032038f1dc820216d7959")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -364,7 +367,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "3434d3fdf4cc2d899d5aab41e61e73adefa64dd4")
+        self.assertEqual(args["PF_KERNEL_SHA"], "40ea8fd9dcaeb9526b8032038f1dc820216d7959")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
