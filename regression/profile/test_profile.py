@@ -217,17 +217,19 @@ class ProfileTest(unittest.TestCase):
         # The tsp-mc9m.41.996.2 linked image pin (652b0b3a -> 4b92b6d6) again changes only the
         # already-emitted PF_IMAGE_SHA on these profiles; the new producer remains NOT-SHIPPED
         # because its mode argument is emitted only for the exact a133-open-7x-gpu profile.
+        # The tsp-mc9m.41.924.29.1 source-lock refresh (4b92b6d6 -> 803f1f38) likewise changes
+        # only the already-emitted PF_IMAGE_SHA; no profile or runtime selector changes.
         expected = {
-            ("a133", "dev"): "37d8728d2bd8c9481fa92d130ae303a1ccd8c0006d6cd3987614c960592bfb35",
-            ("a133", "release"): "2e889611b8aa6d668862569b4bebae1a178233ab81f5d5cca28a9164e2cbf0fb",
-            ("a133-open-7x", "dev"): "07b23fabaa2a2669f93fdd73001e0e81d1a3bf602f8920b6386a7847105c5365",
-            ("a133-open-7x", "release"): "69f847e5dadf3bc02f7a80797e1a3bdc238c65685e98998bbce3098c538d14b0",
-            ("a133-owned", "dev"): "a4334f32b06bf295ddb43289631f0ca926930809a59dc0c05d6241f69166db7e",
-            ("a133-owned", "release"): "7f131b3b010698fffca4fc95fb24f08830c12ce00a23c0fad7533f6687506f5c",
-            ("a523", "dev"): "593108f3ff51637f87f05ebe5e3a608b4b4b79e4322330abc49c4064228a4ad3",
-            ("a523", "release"): "2f7887b1badf54ff9c543e9b0ef610c6366dc72c8fb5dfbf3c51290ce02c1719",
-            ("sdm845", "dev"): "aeeb5eafe40d7497680cb5dc32f989a31381e48c327df499875f9977ea4029d7",
-            ("sdm845", "release"): "d0ba027d8a9d40d93d57ed81127045a842680e1d077f3d28a6ad13573785cbaa",
+            ("a133", "dev"): "31141b4e8de5fa345b054649c01170be2a3aa1fe68f47aee9722f2c47c82a6c6",
+            ("a133", "release"): "df34aec628355efd1359b909337ec7b19dddcb3b2a9f14c970f369f3241e20e3",
+            ("a133-open-7x", "dev"): "9f8172692e32a89330077ad5d4c03057c976017af8f79a6435d7fdd0d01c83ea",
+            ("a133-open-7x", "release"): "ce68a163678c515408ab6b7ebe440a41aea85c231fdf768ffc5a42d1bfe813a7",
+            ("a133-owned", "dev"): "99c738f5e640c9bc328d35897fa961f39fc4980171890708b7c0643f497630d1",
+            ("a133-owned", "release"): "f4b1358c0dd08b47dc8b7c8f3911f874a172387af1b463afe3af8f15d5195ba1",
+            ("a523", "dev"): "c640eb979a07634f4bcc7d973b722511a3d9be70e536694a835e158d4a0683f4",
+            ("a523", "release"): "fc81d2a9a235b296bead94323f5da41dc28406fed48798edba0d20fd673f1784",
+            ("sdm845", "dev"): "db17bde72106a94c5d924aa1486a72d380c66da473f6ad41601a1dc894ff68ba",
+            ("sdm845", "release"): "07927e6c31f7a8247000f96b8fc942d1a8657e251450742615058f9bf302137b",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -383,7 +385,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_KM_SHA"], args["PF_KERNEL_SHA"])
         self.assertEqual(args["PF_GPU_UM_REPO"], "gpu-um-tsp")
         self.assertEqual(args["PF_GPU_UM_SHA"], "c7d55c1a6abffabb8f2b5b81dacfda1ebb5720d6")
-        self.assertEqual(args["PF_IMAGE_SHA"], "4b92b6d625c38ffd4dce36e63cf847645b18da18")
+        self.assertEqual(args["PF_IMAGE_SHA"], "803f1f3848b33f9363d0054e1bb1d43957828fbc")
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
