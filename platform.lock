@@ -132,7 +132,7 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.996.2 linked stack: image#172 exact head 8a0aa9cff0fef5db38aa233861d401ee3c01fd3b
+ref  = "main"          # tsp-mc9m.41.996.2 linked stack: image#172 exact head 20946666b0a72ca458fbe3e9915bfa38153e069e
                        # adds the selected-profile-only, versioned Steam Link FFmpeg 59 platform-runtime producer;
                        # based on image#170 merge 61b34e53ca44ba91a81d500df26c7eb20f121a43 and does not fork its app launch schema.
                        # Prior tsp-35b9d6d1816b25822ebb.1 lock: image#169 merge 652b0b3a (platform#261; review head 44e4071adc1be8c92895dee8f1f80840369f1a25);
@@ -406,7 +406,7 @@ ref  = "main"          # tsp-mc9m.41.996.2 linked stack: image#172 exact head 8a
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "8a0aa9cff0fef5db38aa233861d401ee3c01fd3b"
+sha  = "20946666b0a72ca458fbe3e9915bfa38153e069e"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
