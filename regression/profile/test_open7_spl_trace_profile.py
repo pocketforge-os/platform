@@ -42,6 +42,14 @@ def differences(left: dict[str, Any], right: dict[str, Any]) -> dict[str, tuple[
     }
 
 
+def without_platform_runtime(args: dict[str, Any]) -> dict[str, Any]:
+    """Keep this sibling-profile assertion independent of selected payload args."""
+    return {
+        key: value for key, value in args.items()
+        if not (key == "PF_STEAMLINK_FFMPEG59_MODE" or key.startswith("PF_FFMPEG_"))
+    }
+
+
 class Open7SplTraceProfileTest(unittest.TestCase):
     def test_profile_is_a_sibling_with_only_the_guarded_trace_defconfig(self):
         normal_path = ROOT / "devices" / NORMAL_DEVICE / "profile.toml"
@@ -97,7 +105,7 @@ class Open7SplTraceProfileTest(unittest.TestCase):
         self.assertEqual(normal_missing, [])
         self.assertEqual(trace_missing, [])
         self.assertEqual(
-            differences(normal_args, trace_args),
+            differences(without_platform_runtime(normal_args), trace_args),
             {
                 "PF_DEVICE_ID": (NORMAL_DEVICE, TRACE_DEVICE),
                 "PF_UBOOT_DEFCONFIG": (
