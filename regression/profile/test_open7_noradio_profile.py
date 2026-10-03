@@ -53,6 +53,14 @@ def differences(left: dict[str, Any], right: dict[str, Any]) -> dict[str, tuple[
     }
 
 
+def without_platform_runtime(args: dict[str, Any]) -> dict[str, Any]:
+    """Keep this sibling-profile assertion independent of selected payload args."""
+    return {
+        key: value for key, value in args.items()
+        if not (key == "PF_STEAMLINK_FFMPEG59_MODE" or key.startswith("PF_FFMPEG_"))
+    }
+
+
 class Open7NoradioProfileTest(unittest.TestCase):
     def test_profile_is_a_sibling_with_only_diagnostic_identity_and_dtb(self):
         normal_path = ROOT / "devices" / NORMAL_DEVICE / "profile.toml"
@@ -94,7 +102,7 @@ class Open7NoradioProfileTest(unittest.TestCase):
         self.assertEqual(normal_missing, [])
         self.assertEqual(noradio_missing, [])
         self.assertEqual(
-            differences(normal_args, noradio_args),
+            differences(without_platform_runtime(normal_args), noradio_args),
             # The identity, the selected DTB, the held U-Boot override (since tsp-3rd3.10)
             # and the held kernel override (since the gpu-14 kernel batch lock; the in-tree
             # GPU KM SHA follows the kernel) differ.

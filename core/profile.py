@@ -234,7 +234,8 @@ def list_devices():
 
 def load_lock():
     if not os.path.isfile(LOCK):
-        return {"seeded": False, "interim": False, "repos": {}, "profile_pins": {}}
+        return {"seeded": False, "interim": False, "repos": {}, "profile_pins": {},
+                "platform_runtime": {}}
     data = _load(LOCK)
     profile_pins = data.get("profile_pins", {})
     if not isinstance(profile_pins, dict):
@@ -253,9 +254,58 @@ def load_lock():
                 raise ProfileSchemaError(
                     f"[profile_pins.{profile_id}].{source} must be a full 40-hex SHA")
     repos = {r["name"]: r for r in data.get("repos", []) if "name" in r}
+    platform_runtime = data.get("platform_runtime", {})
+    if not isinstance(platform_runtime, dict):
+        raise ProfileSchemaError("[platform_runtime] must be a table")
+    runtime_keys = {
+        "schema_version", "profile", "mode_arg", "mode_value", "source_repo",
+        "source_sha", "runtime_path", "build_args",
+    }
+    for runtime_id, runtime in platform_runtime.items():
+        where = f"[platform_runtime.{runtime_id}]"
+        if (not isinstance(runtime_id, str)
+                or not re.fullmatch(r"[a-z0-9][a-z0-9_]*", runtime_id)):
+            raise ProfileSchemaError("[platform_runtime] keys must be lowercase path-safe IDs")
+        if not isinstance(runtime, dict):
+            raise ProfileSchemaError(f"{where} must be a table")
+        unknown = sorted(set(runtime) - runtime_keys)
+        if unknown:
+            raise ProfileSchemaError(f"{where} unknown keys: {', '.join(unknown)}")
+        if runtime.get("schema_version") != 1:
+            raise ProfileSchemaError(f"{where}.schema_version must be 1")
+        for key in ("profile", "mode_value", "source_repo"):
+            if not isinstance(runtime.get(key), str) or not runtime[key]:
+                raise ProfileSchemaError(f"{where}.{key} must be a non-empty string")
+        mode_arg = runtime.get("mode_arg")
+        if not isinstance(mode_arg, str) or not re.fullmatch(r"PF_[A-Z0-9_]+", mode_arg):
+            raise ProfileSchemaError(f"{where}.mode_arg must be a PF_* build-arg name")
+        source_sha = runtime.get("source_sha")
+        if not isinstance(source_sha, str) or not re.fullmatch(r"[0-9a-f]{40}", source_sha):
+            raise ProfileSchemaError(f"{where}.source_sha must be a full 40-hex SHA")
+        runtime_path = runtime.get("runtime_path")
+        if (not isinstance(runtime_path, str) or not runtime_path.startswith("/usr/lib/")
+                or "/../" in runtime_path or not runtime_path.endswith("/v1")):
+            raise ProfileSchemaError(f"{where}.runtime_path must be an absolute /usr/lib/.../v1 path")
+        runtime_args = runtime.get("build_args")
+        if not isinstance(runtime_args, dict) or not runtime_args:
+            raise ProfileSchemaError(f"{where}.build_args must be a non-empty table")
+        if mode_arg in runtime_args:
+            raise ProfileSchemaError(f"{where}.build_args must not repeat mode_arg")
+        for arg, value in runtime_args.items():
+            if not isinstance(arg, str) or not re.fullmatch(r"PF_[A-Z0-9_]+", arg):
+                raise ProfileSchemaError(f"{where}.build_args keys must be PF_* names")
+            if not isinstance(value, str) or not value:
+                raise ProfileSchemaError(f"{where}.build_args.{arg} must be a non-empty string")
+        source = repos.get(runtime["source_repo"])
+        if source is None:
+            raise ProfileSchemaError(
+                f"{where}.source_repo '{runtime['source_repo']}' is not in platform.lock")
+        if source.get("sha") != source_sha:
+            raise ProfileSchemaError(
+                f"{where}.source_sha must equal the canonical {runtime['source_repo']} pin")
     return {"seeded": bool(data.get("seeded", False)),
             "interim": bool(data.get("interim_seed", False)), "repos": repos,
-            "profile_pins": profile_pins}
+            "profile_pins": profile_pins, "platform_runtime": platform_runtime}
 
 
 def _deep_fill(dst, src):
@@ -660,6 +710,27 @@ def build_args(dev_id, variant="dev"):
             "PF_DEVICE_DESCRIPTOR_ID": descriptor["id"],
             "PF_DEVICE_DESCRIPTOR_SHA256": descriptor["sha256"],
         })
+    # Optional platform-owned compatibility payloads are selected by exact profile
+    # id. The lock describes their build-arg surface generically so core does not
+    # learn a consumer, codec, or hardware implementation. Diagnostic siblings do
+    # not inherit a payload accidentally. A payload that consumes kernel source
+    # must match both the selected repo and the profile-resolved revision.
+    for runtime_id, runtime in lock["platform_runtime"].items():
+        if runtime["profile"] != dev_id:
+            continue
+        if not kernel_sha:
+            # Preserve the existing missing-pin diagnostic surface. The payload
+            # cannot be selected until the normal source gate has a revision.
+            continue
+        if runtime["source_repo"] != kernel_repo or runtime["source_sha"] != kernel_sha:
+            raise ProfileSchemaError(
+                f"platform runtime '{runtime_id}' source does not match profile '{dev_id}' kernel")
+        selected_args = {runtime["mode_arg"]: runtime["mode_value"], **runtime["build_args"]}
+        collisions = sorted(set(args) & set(selected_args))
+        if collisions:
+            raise ProfileSchemaError(
+                f"platform runtime '{runtime_id}' build-arg collisions: {', '.join(collisions)}")
+        args.update(selected_args)
     # Repos this device genuinely needs a SHA for (repo named, not the "none" sentinel).
     needed = [("PF_KERNEL_SHA", k.get("repo")), ("PF_IMAGE_SHA", "image"),
               ("PF_BLOBS_SHA", "blobs"), ("PF_VENDOR_MANIFEST_SHA", "vendor-manifest")]
