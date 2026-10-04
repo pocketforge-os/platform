@@ -42,6 +42,8 @@ PLATFORM_RUNTIME_LINE = re.compile(
 # table; the descriptor lines are removed before hashing (and counted separately below), so a
 # match proves the ONLY change to any output is the two added descriptor build args on the
 # A133-open profiles. A deliberate profile change regenerates this with a stated reason.
+# tsp-op5a.440.1.1 deliberately changes only a133-open-7x-gpu buildargs/resolve to add its
+# branch-only exact Gamescope package selector; every unrelated profile digest stays fixed.
 PRE_DESCRIPTOR_DIGESTS = {
     ("a133", "buildargs dev"): "303b91d08e13a5c705ef62df98f40435fd0a647858047bd30674dbd3cd24e169",
     ("a133", "buildargs release"): "de407dfc1948e12c1cd54f71a49c9ca4a34fb419dd7312ca5467a3eb44be7a26",
@@ -55,10 +57,10 @@ PRE_DESCRIPTOR_DIGESTS = {
     ("a133-open-7x", "buildargs release"): "508d6b9703a852606a4c380a6194c303a3b3a03d2dbeb481ad060468dc7b95a5",
     ("a133-open-7x", "env"): "b377507c70e95156b3956597d6f66e582549419cbca9455aeaa512851e4cc018",
     ("a133-open-7x", "resolve"): "e4e792f18991106e2d69f29b3000e0915ff84f44e568ece91859d7bd00128222",
-    ("a133-open-7x-gpu", "buildargs dev"): "f111af1f0877dc300da688e2ca856b0dbb38f1345cd28f5541d75c95d3457129",
-    ("a133-open-7x-gpu", "buildargs release"): "b11ec1c2cc2baf8385ee353581a1f9d2fa6707187c34293c16b4ba09f4372a6c",
+    ("a133-open-7x-gpu", "buildargs dev"): "acfc668ba8b949d1253e5563c6eac86e6bac5dba92573b7c15b4ba3dc8b133d6",
+    ("a133-open-7x-gpu", "buildargs release"): "2933a8315b11a731a22fdb691ecb24500c2d1501e8383b8c1d6d14ea8b43b202",
     ("a133-open-7x-gpu", "env"): "d8f9bd9b1fc5159735ae4a9fc2ed413bf2db17a46615e49651020d0b1d7a2f3a",
-    ("a133-open-7x-gpu", "resolve"): "2fab49e17d3e7f3dc8ed88ab8f33b0c478da33042c1f07abb13e4b1326ec8ca7",
+    ("a133-open-7x-gpu", "resolve"): "a2642020512cf814971b7b2f89db4aedfa067d46d9b226303d74bfdea0aec6a9",
     ("a133-open-7x-gpu-noradio", "buildargs dev"): "5bcabe3cfbfb73f7524044f6516d96cdcc277ce4cfcb9fb7f644c130f8ea03b9",
     ("a133-open-7x-gpu-noradio", "buildargs release"): "e1f84199f439af205ea93aec746dda90988b9fe0dc1bececc558ce0c7475873b",
     ("a133-open-7x-gpu-noradio", "env"): "d3efc6a7693b973a9581d5115c61b2cd3b53f8f291b008d930cb72351cdbd5a8",

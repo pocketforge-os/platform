@@ -58,7 +58,8 @@ def without_platform_runtime(args: dict[str, Any]) -> dict[str, Any]:
     """Keep this sibling-profile assertion independent of selected payload args."""
     return {
         key: value for key, value in args.items()
-        if not (key == "PF_STEAMLINK_FFMPEG59_MODE" or key.startswith("PF_FFMPEG_"))
+        if not (key == "PF_STEAMLINK_FFMPEG59_MODE" or key.startswith("PF_FFMPEG_")
+                or key.startswith("PF_GAMESCOPE_"))
     }
 
 
@@ -83,6 +84,7 @@ class Open7NoradioProfileTest(unittest.TestCase):
             ),
         }
         self.assertEqual(noradio_raw["device"]["base"], "a133")
+        normal_raw.pop("gamescope")
         self.assertEqual(differences(normal_raw, noradio_raw), expected)
 
         normal_resolved, _ = profile.resolve(NORMAL_DEVICE)
@@ -92,6 +94,7 @@ class Open7NoradioProfileTest(unittest.TestCase):
         noradio_errors, _ = profile.validate(NORADIO_DEVICE, lock)
         self.assertEqual(normal_errors, [])
         self.assertEqual(noradio_errors, [])
+        normal_resolved.pop("gamescope")
         self.assertEqual(differences(normal_resolved, noradio_resolved), expected)
 
         golden_path = ROOT / "regression/profile" / f"{NORADIO_DEVICE}-resolved.json"
