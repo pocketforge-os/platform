@@ -46,7 +46,8 @@ def without_platform_runtime(args: dict[str, Any]) -> dict[str, Any]:
     """Keep this sibling-profile assertion independent of selected payload args."""
     return {
         key: value for key, value in args.items()
-        if not (key == "PF_STEAMLINK_FFMPEG59_MODE" or key.startswith("PF_FFMPEG_"))
+        if not (key == "PF_STEAMLINK_FFMPEG59_MODE" or key.startswith("PF_FFMPEG_")
+                or key.startswith("PF_GAMESCOPE_"))
     }
 
 
@@ -60,6 +61,7 @@ class Open7SplTraceProfileTest(unittest.TestCase):
             trace_raw = tomllib.load(handle)
 
         self.assertEqual(trace_raw["device"]["base"], "a133")
+        normal_raw.pop("gamescope")
         self.assertEqual(
             differences(normal_raw, trace_raw),
             {
@@ -82,6 +84,7 @@ class Open7SplTraceProfileTest(unittest.TestCase):
         trace_errors, _ = profile.validate(TRACE_DEVICE, lock)
         self.assertEqual(normal_errors, [])
         self.assertEqual(trace_errors, [])
+        normal_resolved.pop("gamescope")
         self.assertEqual(
             differences(normal_resolved, trace_resolved),
             {

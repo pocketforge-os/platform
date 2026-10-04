@@ -337,7 +337,7 @@ def resolve(dev_id):
     if not os.path.isfile(ppath):
         raise FileNotFoundError(f"no profile for device '{dev_id}' at {ppath}")
     profile = _load(ppath)
-    _require_tables(profile, PROFILE_TABLE_SECTIONS)
+    _require_tables(profile, PROFILE_TABLE_SECTIONS + ("gamescope",))
     _reject_derived_sections(profile)
     # Device-level inheritance (tsp-147u.13): a VARIANT profile may declare
     # [device].base = "<other-device-id>" to inherit that device's ENTIRE profile,
@@ -356,7 +356,7 @@ def resolve(dev_id):
             raise FileNotFoundError(
                 f"device '{dev_id}' base '{base_id}' has no profile at {base_path}")
         base = _load(base_path)
-        _require_tables(base, PROFILE_TABLE_SECTIONS)
+        _require_tables(base, PROFILE_TABLE_SECTIONS + ("gamescope",))
         _reject_derived_sections(base)
         _deep_fill(profile, base)  # variant wins; base fills absent keys
     family_id = profile.get("device", {}).get("family")
@@ -433,6 +433,7 @@ def validate(dev_id, lock):
     blobs = table("[blobs]", merged.get("blobs", {}))
     gpu = table("[gpu]", merged.get("gpu", {}))
     display = table("[display]", merged.get("display", {}))
+    gamescope = table("[gamescope]", merged.get("gamescope", {}))
     bc = table("[bootchain]", merged.get("bootchain", {}))
 
     if not container.get("build_image"):
@@ -459,6 +460,38 @@ def validate(dev_id, lock):
     if pipeline not in ("fbdev", "drm", "none"):
         errs.append(
             f"{dev_id}: [display].pipeline is required and must be 'fbdev', 'drm', or 'none'")
+
+    if gamescope:
+        allowed = {
+            "mode", "repo", "ref", "upstream_base", "present_head", "staging_head",
+            "rotation_head", "required_patch_ids", "patch_series_sha256",
+            "dependency_manifest_sha256", "license_sha256", "diagnostics",
+        }
+        unknown = sorted(set(gamescope) - allowed)
+        if unknown:
+            errs.append(f"{dev_id}: [gamescope] unknown keys: {', '.join(unknown)}")
+        for key in ("repo", "ref"):
+            if not isinstance(gamescope.get(key), str) or not gamescope[key]:
+                errs.append(f"{dev_id}: [gamescope].{key} is required")
+        if gamescope.get("mode") != "g1":
+            errs.append(f"{dev_id}: [gamescope].mode must be 'g1'")
+        for key in ("upstream_base", "present_head", "staging_head", "rotation_head"):
+            if not isinstance(gamescope.get(key), str) or not re.fullmatch(
+                    r"[0-9a-f]{40}", gamescope[key]):
+                errs.append(f"{dev_id}: [gamescope].{key} must be a full 40-hex SHA")
+        for key in ("patch_series_sha256", "dependency_manifest_sha256", "license_sha256"):
+            if not isinstance(gamescope.get(key), str) or not re.fullmatch(
+                    r"[0-9a-f]{64}", gamescope[key]):
+                errs.append(f"{dev_id}: [gamescope].{key} must be a full SHA-256")
+        patch_ids = gamescope.get("required_patch_ids")
+        if (not isinstance(patch_ids, list) or not patch_ids
+                or any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{40}", value)
+                       for value in patch_ids)
+                or len(patch_ids) != len(set(patch_ids))):
+            errs.append(
+                f"{dev_id}: [gamescope].required_patch_ids must be unique stable patch IDs")
+        if not isinstance(gamescope.get("diagnostics"), bool):
+            errs.append(f"{dev_id}: [gamescope].diagnostics must be boolean")
 
     # GPU stack selection is explicit.  Legacy profiles remain the closed/DDK
     # model, open profiles must completely describe both halves of the ABI, and
@@ -521,6 +554,7 @@ def validate(dev_id, lock):
     check_repo(gpu.get("um_repo"), "[gpu].um")
     check_repo(uboot.get("repo"), "[bootchain].uboot")
     check_repo(tfa.get("repo"), "[bootchain].tfa")
+    check_repo(gamescope.get("repo"), "[gamescope]")
 
     if not lock["seeded"] and not is_example:
         if lock.get("interim"):
@@ -602,6 +636,7 @@ def build_args(dev_id, variant="dev"):
     k = merged.get("kernel", {})
     gpu = merged.get("gpu", {})
     display = merged.get("display", {})
+    gamescope = merged.get("gamescope", {})
     bc = merged.get("bootchain", {})
     tc = merged.get("toolchain", {})
     img = merged.get("image", {})
@@ -703,6 +738,30 @@ def build_args(dev_id, variant="dev"):
         # owned-SPL branch consumes it to place u-boot-sunxi-with-spl.bin. tsp-147u.13).
         "PF_SPL_OFFSET_KIB": str(bc.get("spl_offset_kib", "") or ""),
     }
+    if gamescope:
+        gamescope_repo = gamescope.get("repo", "")
+        source = repos.get(gamescope_repo, {}) or {}
+        if source.get("url") != "https://github.com/pocketforge-os/gamescope.git":
+            raise ProfileSchemaError(
+                "[gamescope] source must be the governed PocketForge Gamescope fork")
+        args.update({
+            "PF_GAMESCOPE_MODE": gamescope["mode"],
+            "PF_GAMESCOPE_REPO": gamescope_repo,
+            "PF_GAMESCOPE_REPO_URL": source["url"],
+            "PF_GAMESCOPE_REF": gamescope["ref"],
+            "PF_GAMESCOPE_SHA": sha(gamescope_repo),
+            "PF_GAMESCOPE_UPSTREAM_BASE": gamescope["upstream_base"],
+            "PF_GAMESCOPE_PRESENT_HEAD": gamescope["present_head"],
+            "PF_GAMESCOPE_STAGING_HEAD": gamescope["staging_head"],
+            "PF_GAMESCOPE_ROTATION_HEAD": gamescope["rotation_head"],
+            "PF_GAMESCOPE_REQUIRED_PATCH_IDS": " ".join(gamescope["required_patch_ids"]),
+            "PF_GAMESCOPE_PATCH_SERIES_SHA256": gamescope["patch_series_sha256"],
+            "PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256":
+                gamescope["dependency_manifest_sha256"],
+            "PF_GAMESCOPE_LICENSE_SHA256": gamescope["license_sha256"],
+            "PF_GAMESCOPE_DIAGNOSTICS":
+                "1" if variant == "dev" and gamescope["diagnostics"] else "0",
+        })
     app_runtime = merged.get("app_runtime")
     if app_runtime is not None:
         args.update({
@@ -758,6 +817,8 @@ def build_args(dev_id, variant="dev"):
         needed.append(("PF_UBOOT_SHA", uboot_repo))
     if tfa_repo:
         needed.append(("PF_TFA_SHA", tfa_repo))
+    if gamescope:
+        needed.append(("PF_GAMESCOPE_SHA", gamescope.get("repo")))
     missing = [ak for ak, rn in needed if rn and not args.get(ak)]
     state = "authoritative" if lock["seeded"] else ("interim" if lock.get("interim") else "unseeded")
     return args, state, missing

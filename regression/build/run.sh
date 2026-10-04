@@ -9,6 +9,9 @@ bash "$HERE/epoch-test.sh"
 echo "### open GPU userspace source staging ###"
 bash "$HERE/gpu-um-staging-test.sh"
 
+echo "### exact Gamescope source/package staging ###"
+bash "$HERE/gamescope-staging-test.sh"
+
 echo "### A133-open device descriptor staging (tsp-f3fm.202.1.3) ###"
 bash "$HERE/device-descriptor-staging-test.sh"
 
