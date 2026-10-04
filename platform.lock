@@ -132,10 +132,14 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.924.29.1: image#174 merge 803f1f3848b33f9363d0054e1bb1d43957828fbc
-                       # (reviewed head dabffb0f7438eb8eb0e137a0fa7340f085c2f97e) refreshes the Steam Link
-                       # FFmpeg 59 v1 kernel-UAPI source lock to the canonical kernel pin. No runtime version,
-                       # other repository pin, profile override or boot-chain input changes.
+ref  = "main"          # tsp-mc9m.41.924.29.3: image#175 merge 623b33ea118217aa88f0ca310ad1460f591bacce
+                       # (reviewed head 77ca24f2b9c74006bb7a1a39383052479346a788) refreshes the exact
+                       # gpu-um-tsp toolchain mirror identity to fd904962. The mirrored recipe bytes do not
+                       # change; the fail-closed guard now covers both live and fixture provenance annotations.
+                       # Previous pin (803f1f3848b33f9363d0054e1bb1d43957828fbc):
+                       # tsp-mc9m.41.924.29.1: image#174 refreshes the Steam Link FFmpeg 59 v1 kernel-UAPI
+                       # source lock to the canonical kernel pin. No runtime version, other repository pin,
+                       # profile override or boot-chain input changes.
                        # Previous pin (4b92b6d625c38ffd4dce36e63cf847645b18da18):
                        # tsp-mc9m.41.996.2 linked stack: image#172 adds the selected-profile-only, versioned
                        # Steam Link FFmpeg 59 platform-runtime producer; based on image#170 merge
@@ -411,7 +415,7 @@ ref  = "main"          # tsp-mc9m.41.924.29.1: image#174 merge 803f1f3848b33f936
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
+sha  = "623b33ea118217aa88f0ca310ad1460f591bacce"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -740,7 +744,12 @@ sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 [[repos]]
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
-ref  = "main"                 # tsp-60df20c562d859df6fc1: gpu-um-tsp#168/#169/#171 merged as c7d55c1a.
+ref  = "main"                 # tsp-mc9m.41.924.29.3: gpu-um-tsp#172/#173 merged as fd904962.
+                               # #172 reviewed head 72b3832a merged as 10220758 and adds binary sync-file
+                               # interop for Zink native fences. #173 reviewed head 4385753a merged as
+                               # fd904962 and validates safe explicit-LINEAR YUV imports. Fast-forward, 6.
+                               # Previous pin (c7d55c1a6abffabb8f2b5b81dacfda1ebb5720d6):
+                               # tsp-60df20c562d859df6fc1: gpu-um-tsp#168/#169/#171 merged as c7d55c1a.
                                # Reviewed heads dc9e27d6, 053221ff, and 0db9b815 each have the same tree as
                                # their merge commit. The batch enables proven linear storage images, opaque
                                # timeline semaphore FDs, and truthful shared-memory budgets consumed by Zink.
@@ -826,7 +835,7 @@ ref  = "main"                 # tsp-60df20c562d859df6fc1: gpu-um-tsp#168/#169/#1
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "c7d55c1a6abffabb8f2b5b81dacfda1ebb5720d6"
+sha  = "fd904962ec4726d038cf5b5e895598ac48081cce"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
