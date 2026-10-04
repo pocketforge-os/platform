@@ -222,17 +222,20 @@ class ProfileTest(unittest.TestCase):
         # tsp-mc9m.41.924.29.3 native-fence/YUV batch (image 803f1f38 -> 623b33ea and gpu-um-tsp
         # c7d55c1a -> fd904962) again changes only PF_IMAGE_SHA in this non-open golden set;
         # PF_GPU_UM_SHA moves only on open profiles outside this table.
+        # The tsp-e7ad6d3ba67d46e4c58b full GLES 3.0 lock (image 623b33ea -> 0ff637a9 and
+        # gpu-um-tsp fd904962 -> 1d805654) likewise changes only PF_IMAGE_SHA here;
+        # PF_GPU_UM_SHA remains open-only and outside this table.
         expected = {
-            ("a133", "dev"): "571943ed4e84f1284e2b7b90c4e2fe832963fe3022aee0341baf5f27dd2eb282",
-            ("a133", "release"): "7900fafe084fa621ec29294aaa58114aa792d7e507e0035cb2d3b90ebe7287d2",
-            ("a133-open-7x", "dev"): "5a2a85323a5cbae91a45d1abd70974ef108dfe30b5241bd52ff7468b6b678969",
-            ("a133-open-7x", "release"): "7539a00a3a97bf6da4efb43155468e791a79d3e9a3237ab2499931c835832275",
-            ("a133-owned", "dev"): "4b66f86e3184107e31cb6c859c159811b552f61fc1ef9dad74d8c25ced725bad",
-            ("a133-owned", "release"): "46027ac4eb748efa591084a3e4d34c1b6d79a01cd5170e1befc89ae5ae83a949",
-            ("a523", "dev"): "7bf7c525ee21a3222c36358707980a17fdeeed39806971ab95907a50cff3b922",
-            ("a523", "release"): "4c3edbc0dd90882622ff33ee713b3ccc548ef6ba0b64b885e289b01dd14f6c67",
-            ("sdm845", "dev"): "bd1bdd1378198a9c3dae46e6238eb8f5bca5dde0f84b061f9234e53378ed332f",
-            ("sdm845", "release"): "2075e70ffff8a6b422c8ccab3103377f4f757d2810ceecba6f656acb661cbbb0",
+            ("a133", "dev"): "09d523818d280f91fa13f98eb17d972f59a41724aa94683cb9c8257ff8758025",
+            ("a133", "release"): "df33659a3df0acfc60270f28533c3db4d8a974b59288497cc57c660b51048f57",
+            ("a133-open-7x", "dev"): "1573fc200ac5358dee767185238c4b3ec4dab1f58fc62ea7013b5a427c575e24",
+            ("a133-open-7x", "release"): "8b0a329e8b8330abedbe629b85e7c9186e349228440afbdaba5e38fadf274954",
+            ("a133-owned", "dev"): "e3558926c3e0a07fbeb9662cb790258a919d591ca4c4520ec0f2f135f1c99cdc",
+            ("a133-owned", "release"): "bac5c391d4962d3d7bbc3b9a3b9f42b8ff87da1cc4ed4b3b66fcf7777fa0c85c",
+            ("a523", "dev"): "b4ca688aad4e8791ef7f7ead21863e7cda93e8f79d71832d839350a5003e8d97",
+            ("a523", "release"): "3e789cae3b4cd8f7d27f7ba70f7f451b68375ecb14716bbf33478f0df6aee85b",
+            ("sdm845", "dev"): "04f4852f8b531c475046af7860dcf3355f61229923a7cc9fbee1c311752b5baf",
+            ("sdm845", "release"): "049b413ef8d656c31a503e73a91a0cb4ec20e4628d6fc7485bd45d56214fa4e8",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -319,7 +322,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "6ccb87902144babc2838b03840c0413bf0941ab4")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "fd904962ec4726d038cf5b5e895598ac48081cce")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "1d8056548b79b236e45d3ba0b0dec94a25660930")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -393,8 +396,8 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": args["PF_IMAGE_SHA"],
             },
             {
-                "PF_GPU_UM_SHA": "fd904962ec4726d038cf5b5e895598ac48081cce",
-                "PF_IMAGE_SHA": "623b33ea118217aa88f0ca310ad1460f591bacce",
+                "PF_GPU_UM_SHA": "1d8056548b79b236e45d3ba0b0dec94a25660930",
+                "PF_IMAGE_SHA": "0ff637a980973af6510db1ab69340c126fc499d8",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
