@@ -23,7 +23,8 @@ archive_b=$(find "$tmp/store-b" -name '*.tar' -print -quit)
 test "$(basename "$archive_a")" = "$(basename "$archive_b")"
 test -L "$tmp/a/link"
 test -L "$tmp/b/link"
-test -z "$(tar -tvf "$archive_a" | grep ' l ' || true)"
+# The fixture includes a source symlink; reject tar's type-column marker (lrwx...).
+test -z "$(LC_ALL=C tar -tvf "$archive_a" | grep -E '^l' || true)"
 test -f "$archive_a.json"
 python3 "$archiver" "${args[@]/SOURCE/$tmp/a}" --store "$tmp/store-b-lock" \
     --lock-sha256 "$(sha different-lock)"
