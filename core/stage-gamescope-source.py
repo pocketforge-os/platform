@@ -220,6 +220,21 @@ def stage(args: argparse.Namespace) -> None:
         }
         (args.output / ".pf-gamescope-source.json").write_text(
             json.dumps(source_receipt, sort_keys=True) + "\n", encoding="utf-8")
+        lock_sha = getattr(args, "platform_lock_sha256", "")
+        if not HEX64.fullmatch(lock_sha):
+            raise StageError("platform.lock SHA256 is required for deterministic publication")
+        run(
+            "python3", str(Path(__file__).with_name("gamescope-deterministic-archive.py")),
+            "--source", str(args.output),
+            "--store", os.environ.get(
+                "PF_GAMESCOPE_MM_STORE",
+                str(Path(args.cache_root).parent / "mm" / "gamescope")),
+            "--source-url", source_receipt["source_url"],
+            "--head", args.head, "--base", args.base,
+            "--patch-series-sha256", patch_digest,
+            "--manifest-sha256", args.manifest_sha256,
+            "--lock-sha256", lock_sha,
+        )
     finally:
         if receipt_path.exists():
             receipt_path.unlink()
@@ -239,6 +254,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--manifest-sha256", required=True)
     parser.add_argument("--source-tree-sha256", required=True)
     parser.add_argument("--license-sha256", required=True)
+    parser.add_argument("--platform-lock-sha256", required=True)
     parser.add_argument("--cache-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()

@@ -277,6 +277,7 @@ pf_stage_sources() {
                 --manifest-sha256 "$(v PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256)" \
                 --source-tree-sha256 "$(v PF_GAMESCOPE_SOURCE_TREE_SHA256)" \
                 --license-sha256 "$(v PF_GAMESCOPE_LICENSE_SHA256)" \
+                --platform-lock-sha256 "$(sha256sum "$SCRIPT_DIR/../platform.lock" | awk '{print $1}')" \
                 --cache-root "$dependency_cache" --output "$dest" \
                 || pf_die "stage: Gamescope offline admission/materialization failed"
         else
