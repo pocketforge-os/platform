@@ -1,0 +1,312 @@
+# Exact consumer-side mirrors of platform.lock values. The gate reads this file
+# from the candidate platform commit, resolves each consumer through the named
+# candidate-lock SHA, and scans the full exact commit tree. Every 40/64-hex hit
+# must be classified once as a load-bearing mirror or an incidental reference.
+# Existing consumers and [[mirrors]] are also exact identities anchored to the
+# verified PR-base copy of this file. Additions are allowed. A legitimate
+# identity migration must use a separately reviewed, exact-base-scoped policy
+# change first; deleting or weakening a mirror in the migration PR fails closed.
+schema_version = 1
+
+[[consumers]]
+repo = "image"
+url = "https://github.com/pocketforge-os/image.git"
+commit_selector = "repos.image.sha"
+
+[[mirrors]]
+id = "image-gpu-um-toolchain-source"
+platform_field = "repos.gpu-um-tsp.sha"
+consumer_repo = "image"
+consumer_path = "build/Dockerfile.pf"
+parser = "template"
+template = 'docker/Dockerfile.ge8300-mesa-cross at {value}. Do NOT add'
+comparison = "equal"
+
+[[mirrors]]
+id = "image-runtime-guard"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "build/Dockerfile.pf"
+parser = "template"
+template = '[ "${PF_RUNTIME_SHA}" = "{value}" ] || { echo "FATAL: runtime pin drift: ${PF_RUNTIME_SHA}"; exit 1; }'
+comparison = "equal"
+
+[[mirrors]]
+id = "image-recovery-args"
+platform_field = "repos.recovery.sha"
+consumer_repo = "image"
+consumer_path = "build/Dockerfile.pf"
+parser = "template"
+template = 'ARG PF_RECOVERY_SHA={value}'
+comparison = "equal"
+expected_matches = 2
+
+[[mirrors]]
+id = "image-recovery-build-guard"
+platform_field = "repos.recovery.sha"
+consumer_repo = "image"
+consumer_path = "build/Dockerfile.pf"
+parser = "template"
+template = '[ "${PF_RECOVERY_SHA}" = "{value}" ] || {'
+comparison = "equal"
+
+[[mirrors]]
+id = "image-recovery-rootfs-guard"
+platform_field = "repos.recovery.sha"
+consumer_repo = "image"
+consumer_path = "scripts/build-rootfs.sh"
+parser = "template"
+template = '[ "${PF_RECOVERY_SHA:-}" = "{value}" ] || {'
+comparison = "equal"
+
+[[mirrors]]
+id = "image-launcher-guard"
+platform_field = "repos.launcher.sha"
+consumer_repo = "image"
+consumer_path = "build/Dockerfile.pf"
+parser = "template"
+template = '[ "${PF_LAUNCHER_SHA}" = "{value}" ] || { echo "FATAL: F13 launcher pin drift: ${PF_LAUNCHER_SHA}"; exit 1; }'
+comparison = "equal"
+
+[[mirrors]]
+id = "steamlink-ffmpeg-debian-version"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_DEBIAN_VERSION"
+consumer_repo = "image"
+consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
+parser = "shell-assignment"
+key = "FFMPEG_DEBIAN_VERSION"
+comparison = "equal"
+
+[[mirrors]]
+id = "steamlink-ffmpeg-dsc"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_DSC_SHA256"
+consumer_repo = "image"
+consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
+parser = "shell-assignment"
+key = "FFMPEG_DSC_SHA256"
+comparison = "equal"
+
+[[mirrors]]
+id = "steamlink-ffmpeg-orig"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_ORIG_SHA256"
+consumer_repo = "image"
+consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
+parser = "shell-assignment"
+key = "FFMPEG_ORIG_SHA256"
+comparison = "equal"
+
+[[mirrors]]
+id = "steamlink-ffmpeg-orig-signature"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_ORIG_ASC_SHA256"
+consumer_repo = "image"
+consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
+parser = "shell-assignment"
+key = "FFMPEG_ORIG_ASC_SHA256"
+comparison = "equal"
+
+[[mirrors]]
+id = "steamlink-ffmpeg-debian-patch"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_DEBIAN_SHA256"
+consumer_repo = "image"
+consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
+parser = "shell-assignment"
+key = "FFMPEG_DEBIAN_SHA256"
+comparison = "equal"
+
+[[mirrors]]
+id = "steamlink-kernel-uapi-repo"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.source_repo"
+consumer_repo = "image"
+consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
+parser = "shell-assignment"
+key = "KERNEL_UAPI_REPO"
+comparison = "equal"
+
+[[mirrors]]
+id = "steamlink-kernel-uapi-sha"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+aliases = [
+  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+  "repos.kernel-sunxi-7.x.sha",
+]
+consumer_repo = "image"
+consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
+parser = "shell-assignment"
+key = "KERNEL_UAPI_SHA"
+comparison = "equal"
+
+[[mirrors]]
+id = "steamlink-patch-series"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_PATCH_SERIES_SHA256"
+consumer_repo = "image"
+consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
+parser = "shell-assignment"
+key = "PATCH_SERIES_SHA256"
+comparison = "equal"
+
+# The entries below classify non-load-bearing occurrences so the fallback sweep
+# can distinguish documentation/test provenance from a newly introduced mirror.
+# They are intentionally optional: historical prose may remain at an older SHA,
+# but a current lock value at any undeclared location still fails closed.
+
+[[references]]
+id = "gpu-um-vendored-fixture-comment"
+platform_field = "repos.gpu-um-tsp.sha"
+consumer_repo = "image"
+consumer_path = "build/tests/fixtures/gpu-um-toolchain-1d805654.Dockerfile"
+parser = "template"
+template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {value}.'
+reason = "fixture source provenance"
+
+[[references]]
+id = "gpu-um-drift-test-pin"
+platform_field = "repos.gpu-um-tsp.sha"
+consumer_repo = "image"
+consumer_path = "build/tests/test_gpu_um_toolchain_drift.py"
+parser = "template"
+template = 'PINNED_GPU_UM_SHA = "{value}"'
+reason = "test expectation for the declared production mirror"
+
+[[references]]
+id = "kernel-49-shipping-plan"
+platform_field = "repos.kernel-sunxi-4.9.sha"
+consumer_repo = "image"
+consumer_path = "docs/A133-OPEN-GPU-SHIPPING-PLAN.md"
+parser = "template"
+template = 'lock SHA `{value}`;'
+reason = "historical shipping-plan provenance"
+
+[[references]]
+id = "kernel-49-cedar-spike"
+platform_field = "repos.kernel-sunxi-4.9.sha"
+consumer_repo = "image"
+consumer_path = "docs/CEDAR-H264-SPIKE.md"
+parser = "template"
+template = '`{value}` passes the kernel preflight'
+reason = "historical experiment provenance"
+
+[[references]]
+id = "runtime-default-apps-doc"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "docs/DEFAULT-APPS.md"
+parser = "template"
+template = 'merge `{value}`)'
+reason = "historical merged-commit citation"
+
+[[references]]
+id = "runtime-session-compositor-doc"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "docs/SESSION-COMPOSITOR.md"
+parser = "template"
+template = '| `{value}` | authority and input-broker contract'
+reason = "historical contract citation"
+
+[[references]]
+id = "runtime-steamlink-doc"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "docs/STEAM-LINK-APP-RUNTIME-ROOT.md"
+parser = "template"
+template = '### Runtime `{value}`'
+reason = "historical runtime citation"
+
+[[references]]
+id = "kernel-6x-alsa-fixture-source"
+platform_field = "repos.kernel-sunxi-6.x.sha"
+consumer_repo = "image"
+consumer_path = "tests/fixtures/alsa/sun4i-codec-controls.kernel-sunxi-6.x.tsv"
+parser = "template"
+template = 'commit: {value}  (platform.lock kernel-sunxi-6.x pin)'
+reason = "fixture derivation provenance"
+
+[[references]]
+id = "kernel-6x-alsa-fixture-command"
+platform_field = "repos.kernel-sunxi-6.x.sha"
+consumer_repo = "image"
+consumer_path = "tests/fixtures/alsa/sun4i-codec-controls.kernel-sunxi-6.x.tsv"
+parser = "template"
+template = 'Re-derive: git show {value}:sound/soc/sunxi/sun4i-codec.c'
+reason = "fixture regeneration command"
+
+[[references]]
+id = "runtime-session-contract-fixture"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "tests/fixtures/session-compositor-contract.toml"
+parser = "template"
+template = 'runtime = "{value}"'
+reason = "test fixture provenance"
+
+[[references]]
+id = "gpu-um-transform-test-target"
+platform_field = "repos.gpu-um-tsp.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-dockerfile-pf-transforms.sh"
+parser = "template"
+template = 'target_gpu_um_sha={value}'
+reason = "test expectation for the declared production mirror"
+
+[[references]]
+id = "runtime-launcher-contract-test"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-launcher-runtime-contract.sh"
+parser = "template"
+template = 'expected_runtime={value}'
+reason = "test expectation for the declared production mirror"
+
+[[references]]
+id = "launcher-contract-test"
+platform_field = "repos.launcher.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-launcher-runtime-contract.sh"
+parser = "template"
+template = 'expected_launcher={value}'
+reason = "test expectation for the declared production mirror"
+
+[[references]]
+id = "recovery-entry-test"
+platform_field = "repos.recovery.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-recovery-entry.sh"
+parser = "template"
+template = "PF_RECOVERY_SHA={value}'"
+reason = "test expectation for the declared production mirror"
+
+[[references]]
+id = "runtime-session-authority-test"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-session-authority-systemd.sh"
+parser = "template"
+template = 'runtime_sha={value}'
+reason = "test expectation for the declared production mirror"
+
+[[references]]
+id = "steamlink-uapi-test"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+consumer_repo = "image"
+consumer_path = "tests/test-steamlink-ffmpeg59-runtime.sh"
+parser = "template"
+template = 'export PF_FFMPEG_UAPI_SHA={value}'
+reason = "test expectation for the declared production mirror"
+
+[[references]]
+id = "runtime-w2c-wiring-test"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "tests/verify-w2c-prefsd-wiring.py"
+parser = "template"
+template = 'assert runtime_guard == ["{value}"]'
+reason = "test expectation for the declared production mirror"
+
+[[references]]
+id = "launcher-w2c-wiring-test"
+platform_field = "repos.launcher.sha"
+consumer_repo = "image"
+consumer_path = "tests/verify-w2c-prefsd-wiring.py"
+parser = "template"
+template = 'assert launcher_guard == ["{value}"]'
+reason = "test expectation for the declared production mirror"
