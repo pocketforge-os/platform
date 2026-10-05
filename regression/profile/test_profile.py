@@ -251,17 +251,19 @@ class ProfileTest(unittest.TestCase):
         # PF_GPU_UM_SHA remains open-only and outside this table.
         # The tsp-op5a.440.1.1 Gamescope packaging lock (image 0ff637a9 -> 6831e335)
         # again changes only the already-emitted PF_IMAGE_SHA on these profiles.
+        # The tsp-mc9m.41.997.23.1.1 image#178 merge (6831e335 -> 12d8b9a1e8d1f986baa6673a15640d081c0b90fe)
+        # likewise changes only PF_IMAGE_SHA on the A133 image-bearing profiles.
         expected = {
-            ("a133", "dev"): "28a2f9928ad4a8af21c1d7ffc9eaec46aadef1d5e96bd291251a60a6a280d647",
-            ("a133", "release"): "7af39ac4c2620abc6e25428ab9a8964608f1cb052cd616752dc78f14a041313e",
-            ("a133-open-7x", "dev"): "b7dcedfacf00ec7ad9a0bacf0275728c7aebeb8592c177a3b12f566b209fa911",
-            ("a133-open-7x", "release"): "245f8c54c0840d65b53aa54ceb2ec781bee28707617120ee1af585a598af3c55",
-            ("a133-owned", "dev"): "8f3ffae022a378d8659da71462538b4889c309424d2daeb05b7ff7d9ea929eab",
-            ("a133-owned", "release"): "74fbf8ecb7043e3d5ea923f028c08196876f5234ab0758cdf7cfaa40fbc77100",
-            ("a523", "dev"): "79742133a13117bac358d18244c1fee4534b249b46e92a47933190da14c053de",
-            ("a523", "release"): "e28a9304578a21d87d9d193b2473028191f1af8f3bb56097d1fdd4f3f1124ac3",
-            ("sdm845", "dev"): "47f3ceecb677b9f142bf6fe43da5c74570f280d946ad5105b588888c6cbb2ce7",
-            ("sdm845", "release"): "d62dfbf0cf52a06606602c59ae53a40fb22899bae4f014aad4f38d16e3e13787",
+            ("a133", "dev"): "d1456035ef4c5969577192b3d95b160dc251893bfd5f805113870cc1234faf37",
+            ("a133", "release"): "712879cc65a9fc7aab9b22c7759330f326de3307f1547607deb556094f985693",
+            ("a133-open-7x", "dev"): "42a453040929ad03d071ddbbb5a0ea9db412a1eeb8848a5379f42cc42f910ebf",
+            ("a133-open-7x", "release"): "01710cf2d01cc1c0e01055df89e0aed4c68c8a42c3c6fdc0bfd8b42b5da2120c",
+            ("a133-owned", "dev"): "5af71d9515e646587aa05bfe6a12342fce70fbd681b7b008f77a73848d5d70ed",
+            ("a133-owned", "release"): "405188113d040f2cd48ba8fb766d5439eb32b660dd96cef8cf3c67ab5d773fc8",
+            ("a523", "dev"): "062cb116a901f7726645abfa0ec3eec7f7019d0724e77c914e80d18309e576e5",
+            ("a523", "release"): "8777664f7cf3088f85823e34867800bc17eee432257178477c10eeff7b93e34e",
+            ("sdm845", "dev"): "4c9dacd4e1928eea93c3988a28db4110e5be59ba213e4ac904fe55f7e52bcd52",
+            ("sdm845", "release"): "d0618108ac575704f53955e88ff50d65298a88a889dc2694c906d8362244295d",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -423,7 +425,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "1d8056548b79b236e45d3ba0b0dec94a25660930",
-                "PF_IMAGE_SHA": "6831e335341ce8397b9c9f80bad0bff8b6fe2517",
+                "PF_IMAGE_SHA": "12d8b9a1e8d1f986baa6673a15640d081c0b90fe",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
