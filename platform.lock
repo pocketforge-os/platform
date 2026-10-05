@@ -426,7 +426,7 @@ sha  = "0ff637a980973af6510db1ab69340c126fc499d8"
 name = "gamescope"
 url  = "https://github.com/pocketforge-os/gamescope.git"
 ref  = "tsp-op5a.440.1.1" # Branch-only integration candidate; never resolve this ref at build time.
-sha  = "7a8b81ff6401fc18e6778c93f29f0e4309683385"
+sha  = "4232739e75c95113871e260967e8b4ff995ea897"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
