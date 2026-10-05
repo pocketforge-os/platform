@@ -465,7 +465,8 @@ def validate(dev_id, lock):
         allowed = {
             "mode", "repo", "ref", "upstream_base", "present_head", "staging_head",
             "rotation_head", "required_patch_ids", "patch_series_sha256",
-            "dependency_manifest_sha256", "license_sha256", "diagnostics",
+            "dependency_manifest_sha256", "source_tree_sha256",
+            "license_sha256", "diagnostics",
         }
         unknown = sorted(set(gamescope) - allowed)
         if unknown:
@@ -479,7 +480,8 @@ def validate(dev_id, lock):
             if not isinstance(gamescope.get(key), str) or not re.fullmatch(
                     r"[0-9a-f]{40}", gamescope[key]):
                 errs.append(f"{dev_id}: [gamescope].{key} must be a full 40-hex SHA")
-        for key in ("patch_series_sha256", "dependency_manifest_sha256", "license_sha256"):
+        for key in ("patch_series_sha256", "dependency_manifest_sha256",
+                    "source_tree_sha256", "license_sha256"):
             if not isinstance(gamescope.get(key), str) or not re.fullmatch(
                     r"[0-9a-f]{64}", gamescope[key]):
                 errs.append(f"{dev_id}: [gamescope].{key} must be a full SHA-256")
@@ -758,6 +760,7 @@ def build_args(dev_id, variant="dev"):
             "PF_GAMESCOPE_PATCH_SERIES_SHA256": gamescope["patch_series_sha256"],
             "PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256":
                 gamescope["dependency_manifest_sha256"],
+            "PF_GAMESCOPE_SOURCE_TREE_SHA256": gamescope["source_tree_sha256"],
             "PF_GAMESCOPE_LICENSE_SHA256": gamescope["license_sha256"],
             "PF_GAMESCOPE_DIAGNOSTICS":
                 "1" if variant == "dev" and gamescope["diagnostics"] else "0",

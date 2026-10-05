@@ -275,6 +275,7 @@ pf_stage_sources() {
                 --expected-patch-ids "$(v PF_GAMESCOPE_REQUIRED_PATCH_IDS)" \
                 --patch-series-sha256 "$(v PF_GAMESCOPE_PATCH_SERIES_SHA256)" \
                 --manifest-sha256 "$(v PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256)" \
+                --source-tree-sha256 "$(v PF_GAMESCOPE_SOURCE_TREE_SHA256)" \
                 --license-sha256 "$(v PF_GAMESCOPE_LICENSE_SHA256)" \
                 --cache-root "$dependency_cache" --output "$dest" \
                 || pf_die "stage: Gamescope offline admission/materialization failed"

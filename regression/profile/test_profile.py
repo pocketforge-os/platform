@@ -108,6 +108,30 @@ class ProfileTest(unittest.TestCase):
             expected = json.load(f)
         self.assertEqual(resolved, expected)
 
+    def test_gamescope_source_tree_digest_is_required_lowercase_and_emitted(self):
+        expected = "e4e22746b20841f130b29c9a6c7061f45701e5a844cef282cec486ca1fce90bf"
+        resolved, _ = profile.resolve("a133-open-7x-gpu")
+        self.assertEqual(resolved["gamescope"]["source_tree_sha256"], expected)
+        args, _, missing = profile.build_args("a133-open-7x-gpu")
+        self.assertEqual(missing, [])
+        self.assertEqual(args["PF_GAMESCOPE_SOURCE_TREE_SHA256"], expected)
+
+        for replacement in (None, expected.upper()):
+            invalid = copy.deepcopy(resolved)
+            if replacement is None:
+                del invalid["gamescope"]["source_tree_sha256"]
+            else:
+                invalid["gamescope"]["source_tree_sha256"] = replacement
+            with self.subTest(replacement=replacement), \
+                    mock.patch.object(profile, "resolve", return_value=(invalid, {})):
+                errors, _ = profile.validate(
+                    "a133-open-7x-gpu", profile.load_lock())
+                self.assertIn(
+                    "a133-open-7x-gpu: [gamescope].source_tree_sha256 "
+                    "must be a full SHA-256",
+                    errors,
+                )
+
     def test_app_runtime_support_is_exactly_a133_open_for_both_variants(self):
         app_keys = set(APP_BUILD_ARGS)
         observed_open = set()
