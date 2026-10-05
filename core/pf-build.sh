@@ -218,6 +218,11 @@ pf_stage_sources() {
         # NOT-SHIPPED stub (closed a133 + a523) never references recovery-src.
         specs+=( "recovery|$(v PF_RECOVERY_REPO)|$(v PF_RECOVERY_SHA)|1" )
     fi
+    case "$(v PF_GAMESCOPE_MODE)" in
+        "") ;;
+        g1) specs+=( "gamescope|$(v PF_GAMESCOPE_REPO)|$(v PF_GAMESCOPE_SHA)|1" ) ;;
+        *) pf_die "stage: unsupported PF_GAMESCOPE_MODE=$(v PF_GAMESCOPE_MODE)" ;;
+    esac
     local spec logical repo sha required gitdir dest n
     for spec in "${specs[@]}"; do
         IFS='|' read -r logical repo sha required <<< "$spec"
@@ -252,8 +257,32 @@ pf_stage_sources() {
         pf_ensure_commit "$gitdir" "$repo" "$sha" \
             || pf_die "stage: SHA $sha absent from $repo after fetch — is platform.lock stale for this repo?"
         dest="$src_dir/$logical"
-        create_context_dir "$dest"
-        git --git-dir="$gitdir" archive --format=tar "$sha" | tar -x -C "$dest"
+        if [ "$logical" = gamescope ]; then
+            local dependency_cache="${PF_GAMESCOPE_DEPENDENCY_CACHE:-}"
+            [ "$(v PF_GAMESCOPE_REPO_URL)" = \
+                "https://github.com/pocketforge-os/gamescope.git" ] \
+                || pf_die "stage: Gamescope source URL is not the governed PocketForge fork"
+            [ -n "$dependency_cache" ] && [ -d "$dependency_cache" ] \
+                || pf_die "stage: tsp-op5a.440.7 controlled Gamescope dependency cache is unavailable"
+            [ -z "$(find "$dependency_cache" -type l -print -quit)" ] \
+                || pf_die "stage: Gamescope dependency cache contains a symlink"
+            python3 "$SCRIPT_DIR/stage-gamescope-source.py" \
+                --git-dir "$gitdir" --head "$sha" \
+                --base "$(v PF_GAMESCOPE_UPSTREAM_BASE)" \
+                --present-head "$(v PF_GAMESCOPE_PRESENT_HEAD)" \
+                --staging-head "$(v PF_GAMESCOPE_STAGING_HEAD)" \
+                --rotation-head "$(v PF_GAMESCOPE_ROTATION_HEAD)" \
+                --expected-patch-ids "$(v PF_GAMESCOPE_REQUIRED_PATCH_IDS)" \
+                --patch-series-sha256 "$(v PF_GAMESCOPE_PATCH_SERIES_SHA256)" \
+                --manifest-sha256 "$(v PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256)" \
+                --source-tree-sha256 "$(v PF_GAMESCOPE_SOURCE_TREE_SHA256)" \
+                --license-sha256 "$(v PF_GAMESCOPE_LICENSE_SHA256)" \
+                --cache-root "$dependency_cache" --output "$dest" \
+                || pf_die "stage: Gamescope offline admission/materialization failed"
+        else
+            create_context_dir "$dest"
+            git --git-dir="$gitdir" archive --format=tar "$sha" | tar -x -C "$dest"
+        fi
         # The kernel build consumes PF_KERNEL_SHA as live UTS identity. Carry a
         # staging receipt from this exact archive operation so the image build
         # can reject a valid-looking build arg paired with a different tree.
@@ -591,6 +620,9 @@ pf_os_image_dockerbuild() {
     # pf_stage_device_descriptor; every other profile's command is unchanged.
     if [ -n "$(printf '%s\n' "$ba" | sed -n 's/^PF_DEVICE_DESCRIPTOR_ID=//p')" ]; then
         cmd+=( --build-context "platform-inputs-src=$src_dir/platform-inputs" )
+    fi
+    if [ "$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_MODE=//p')" = g1 ]; then
+        cmd+=( --build-context "gamescope-src=$src_dir/gamescope" )
     fi
     # Local BuildKit cache export (tsp-1dl.4.7): emit ONLY for ci-dell. On a persistent dev host
     # docker's own layer cache already persists between builds for free, so an explicit

@@ -310,3 +310,12 @@ consumer_path = "tests/verify-w2c-prefsd-wiring.py"
 parser = "template"
 template = 'assert launcher_guard == ["{value}"]'
 reason = "test expectation for the declared production mirror"
+
+[[references]]
+id = "gamescope-package-path-test-source-pin"
+platform_field = "repos.gamescope.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-gamescope-package-path.py"
+parser = "template"
+template = 'HEAD = "{value}"'
+reason = "test expectation for the declared Gamescope source"

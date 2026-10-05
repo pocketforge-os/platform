@@ -108,6 +108,30 @@ class ProfileTest(unittest.TestCase):
             expected = json.load(f)
         self.assertEqual(resolved, expected)
 
+    def test_gamescope_source_tree_digest_is_required_lowercase_and_emitted(self):
+        expected = "e4e22746b20841f130b29c9a6c7061f45701e5a844cef282cec486ca1fce90bf"
+        resolved, _ = profile.resolve("a133-open-7x-gpu")
+        self.assertEqual(resolved["gamescope"]["source_tree_sha256"], expected)
+        args, _, missing = profile.build_args("a133-open-7x-gpu")
+        self.assertEqual(missing, [])
+        self.assertEqual(args["PF_GAMESCOPE_SOURCE_TREE_SHA256"], expected)
+
+        for replacement in (None, expected.upper()):
+            invalid = copy.deepcopy(resolved)
+            if replacement is None:
+                del invalid["gamescope"]["source_tree_sha256"]
+            else:
+                invalid["gamescope"]["source_tree_sha256"] = replacement
+            with self.subTest(replacement=replacement), \
+                    mock.patch.object(profile, "resolve", return_value=(invalid, {})):
+                errors, _ = profile.validate(
+                    "a133-open-7x-gpu", profile.load_lock())
+                self.assertIn(
+                    "a133-open-7x-gpu: [gamescope].source_tree_sha256 "
+                    "must be a full SHA-256",
+                    errors,
+                )
+
     def test_app_runtime_support_is_exactly_a133_open_for_both_variants(self):
         app_keys = set(APP_BUILD_ARGS)
         observed_open = set()
@@ -225,17 +249,19 @@ class ProfileTest(unittest.TestCase):
         # The tsp-e7ad6d3ba67d46e4c58b full GLES 3.0 lock (image 623b33ea -> 0ff637a9 and
         # gpu-um-tsp fd904962 -> 1d805654) likewise changes only PF_IMAGE_SHA here;
         # PF_GPU_UM_SHA remains open-only and outside this table.
+        # The tsp-op5a.440.1.1 Gamescope packaging lock (image 0ff637a9 -> 6831e335)
+        # again changes only the already-emitted PF_IMAGE_SHA on these profiles.
         expected = {
-            ("a133", "dev"): "09d523818d280f91fa13f98eb17d972f59a41724aa94683cb9c8257ff8758025",
-            ("a133", "release"): "df33659a3df0acfc60270f28533c3db4d8a974b59288497cc57c660b51048f57",
-            ("a133-open-7x", "dev"): "1573fc200ac5358dee767185238c4b3ec4dab1f58fc62ea7013b5a427c575e24",
-            ("a133-open-7x", "release"): "8b0a329e8b8330abedbe629b85e7c9186e349228440afbdaba5e38fadf274954",
-            ("a133-owned", "dev"): "e3558926c3e0a07fbeb9662cb790258a919d591ca4c4520ec0f2f135f1c99cdc",
-            ("a133-owned", "release"): "bac5c391d4962d3d7bbc3b9a3b9f42b8ff87da1cc4ed4b3b66fcf7777fa0c85c",
-            ("a523", "dev"): "b4ca688aad4e8791ef7f7ead21863e7cda93e8f79d71832d839350a5003e8d97",
-            ("a523", "release"): "3e789cae3b4cd8f7d27f7ba70f7f451b68375ecb14716bbf33478f0df6aee85b",
-            ("sdm845", "dev"): "04f4852f8b531c475046af7860dcf3355f61229923a7cc9fbee1c311752b5baf",
-            ("sdm845", "release"): "049b413ef8d656c31a503e73a91a0cb4ec20e4628d6fc7485bd45d56214fa4e8",
+            ("a133", "dev"): "28a2f9928ad4a8af21c1d7ffc9eaec46aadef1d5e96bd291251a60a6a280d647",
+            ("a133", "release"): "7af39ac4c2620abc6e25428ab9a8964608f1cb052cd616752dc78f14a041313e",
+            ("a133-open-7x", "dev"): "b7dcedfacf00ec7ad9a0bacf0275728c7aebeb8592c177a3b12f566b209fa911",
+            ("a133-open-7x", "release"): "245f8c54c0840d65b53aa54ceb2ec781bee28707617120ee1af585a598af3c55",
+            ("a133-owned", "dev"): "8f3ffae022a378d8659da71462538b4889c309424d2daeb05b7ff7d9ea929eab",
+            ("a133-owned", "release"): "74fbf8ecb7043e3d5ea923f028c08196876f5234ab0758cdf7cfaa40fbc77100",
+            ("a523", "dev"): "79742133a13117bac358d18244c1fee4534b249b46e92a47933190da14c053de",
+            ("a523", "release"): "e28a9304578a21d87d9d193b2473028191f1af8f3bb56097d1fdd4f3f1124ac3",
+            ("sdm845", "dev"): "47f3ceecb677b9f142bf6fe43da5c74570f280d946ad5105b588888c6cbb2ce7",
+            ("sdm845", "release"): "d62dfbf0cf52a06606602c59ae53a40fb22899bae4f014aad4f38d16e3e13787",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -397,7 +423,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "1d8056548b79b236e45d3ba0b0dec94a25660930",
-                "PF_IMAGE_SHA": "0ff637a980973af6510db1ab69340c126fc499d8",
+                "PF_IMAGE_SHA": "6831e335341ce8397b9c9f80bad0bff8b6fe2517",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

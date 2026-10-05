@@ -132,7 +132,14 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-e7ad6d3ba67d46e4c58b: image#176 merge
+ref  = "main"          # tsp-op5a.440.1.1: image#177 merge
+                       # 6831e335341ce8397b9c9f80bad0bff8b6fe2517 (reviewed head
+                       # ac78e12ac5c342bd094d8c2d7d07cba2a9590bd1) packages the admitted
+                       # Gamescope source, binds the platform-locked materialized tree, and
+                       # derives the installed Meson identity from the exact setup argv and
+                       # normalized cross-file digest.
+                       # Previous pin (0ff637a980973af6510db1ab69340c126fc499d8):
+                       # tsp-e7ad6d3ba67d46e4c58b: image#176 merge
                        # 0ff637a980973af6510db1ab69340c126fc499d8 (reviewed head
                        # 89f5d7654dba05706714352a5552e021e234a459) refreshes the exact gpu-um-tsp
                        # mirror/guard identity to 1d805654. Recipe and runtime behavior are unchanged.
@@ -420,7 +427,13 @@ ref  = "main"          # tsp-e7ad6d3ba67d46e4c58b: image#176 merge
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "0ff637a980973af6510db1ab69340c126fc499d8"
+sha  = "6831e335341ce8397b9c9f80bad0bff8b6fe2517"
+
+[[repos]]
+name = "gamescope"
+url  = "https://github.com/pocketforge-os/gamescope.git"
+ref  = "tsp-op5a.440.1.1" # Branch-only integration candidate; never resolve this ref at build time.
+sha  = "4232739e75c95113871e260967e8b4ff995ea897"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
