@@ -20,10 +20,10 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "6831e335341ce8397b9c9f80bad0bff8b6fe2517"
+CURRENT_IMAGE = "12d8b9a1e8d1f986baa6673a15640d081c0b90fe"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 STALE_UAPI = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
-RUNTIME_SHA = "7536aa1f5af76f0220b582ee68e29e254251fd76"
+RUNTIME_SHA = "1dd87ecc2952584a7ef1473c5dcb872662b7c0cb"
 LAUNCHER_SHA = "1ef9671afdd687d53f61a91e92c51da9fb614293"
 SOURCE_LOCK_PATH = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
 FIXTURES = Path(__file__).with_name("fixtures")

@@ -195,6 +195,15 @@ template = 'merge `{value}`)'
 reason = "historical merged-commit citation"
 
 [[references]]
+id = "runtime-default-apps-doc-current-merge"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "docs/DEFAULT-APPS.md"
+parser = "template"
+template = 'merge `{value}`,'
+reason = "current merged-commit citation"
+
+[[references]]
 id = "runtime-session-compositor-doc"
 platform_field = "repos.runtime.sha"
 consumer_repo = "image"
