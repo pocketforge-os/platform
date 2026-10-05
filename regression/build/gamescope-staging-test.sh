@@ -9,9 +9,9 @@ SELECTED=a133-open-7x-gpu
 selected_args="$(python3 "${ROOT}/core/profile.py" buildargs "${SELECTED}")"
 grep -Fxq 'PF_GAMESCOPE_MODE=g1' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_REPO=gamescope' <<<"${selected_args}"
-grep -Fxq 'PF_GAMESCOPE_SHA=7a8b81ff6401fc18e6778c93f29f0e4309683385' <<<"${selected_args}"
+grep -Fxq 'PF_GAMESCOPE_SHA=4232739e75c95113871e260967e8b4ff995ea897' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_UPSTREAM_BASE=bb2ddfc8b1091d6c4d0133b1ea9dcd2494b69ab9' <<<"${selected_args}"
-grep -Fxq 'PF_GAMESCOPE_PATCH_SERIES_SHA256=adcd0dbe6f047727f7f4226347b31167eecbd6cceaefb24de91f4d7e7e4d5d44' <<<"${selected_args}"
+grep -Fxq 'PF_GAMESCOPE_PATCH_SERIES_SHA256=cf0736049af178c1e94fd40bea54a28d309010c65d07fb3a981e130395a9508c' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256=08222e97c66d1bc737d9ef0483e23476bd4b127ca19136e70dd0e843f3af51cf' <<<"${selected_args}"
 
 for device in a133 a133-open a523 a133-open-7x-gpu-noradio a133-open-7x-gpu-spl-trace; do
