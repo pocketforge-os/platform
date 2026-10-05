@@ -13,6 +13,7 @@ grep -Fxq 'PF_GAMESCOPE_SHA=4232739e75c95113871e260967e8b4ff995ea897' <<<"${sele
 grep -Fxq 'PF_GAMESCOPE_UPSTREAM_BASE=bb2ddfc8b1091d6c4d0133b1ea9dcd2494b69ab9' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_PATCH_SERIES_SHA256=cf0736049af178c1e94fd40bea54a28d309010c65d07fb3a981e130395a9508c' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256=08222e97c66d1bc737d9ef0483e23476bd4b127ca19136e70dd0e843f3af51cf' <<<"${selected_args}"
+grep -Fxq 'PF_GAMESCOPE_SOURCE_TREE_SHA256=e4e22746b20841f130b29c9a6c7061f45701e5a844cef282cec486ca1fce90bf' <<<"${selected_args}"
 
 for device in a133 a133-open a523 a133-open-7x-gpu-noradio a133-open-7x-gpu-spl-trace; do
     if python3 "${ROOT}/core/profile.py" buildargs "${device}" | grep -q '^PF_GAMESCOPE_'; then
@@ -25,6 +26,7 @@ stage_body="$(sed -n '/^pf_stage_sources()/,/^}/p' "${BUILD}")"
 docker_body="$(sed -n '/^pf_os_image_dockerbuild()/,/^}/p' "${BUILD}")"
 grep -Fq 'gamescope|$(v PF_GAMESCOPE_REPO)|$(v PF_GAMESCOPE_SHA)|1' <<<"${stage_body}"
 grep -Fq 'stage-gamescope-source.py' <<<"${stage_body}"
+grep -Fq -- '--source-tree-sha256 "$(v PF_GAMESCOPE_SOURCE_TREE_SHA256)"' <<<"${stage_body}"
 grep -Fq -- '--build-context "gamescope-src=$src_dir/gamescope"' <<<"${docker_body}"
 if grep -Fq 'gamescope-deps' <<<"${docker_body}"; then
     echo 'FAIL: raw Gamescope dependency cache remains a Docker context' >&2
@@ -172,26 +174,56 @@ pathlib.Path(sys.argv[1]).write_text(json.dumps({
 }, indent=2, sort_keys=True) + "\n")
 PY
 
+( umask 022
+python3 "${tmp}/home/gamescope/.github/scripts/materialize-source-closure.py" \
+    --repo-root "${tmp}/home/gamescope" \
+    --manifest "${tmp}/home/gamescope/.github/pocketforge-source-closure.tsv" \
+    --vendored-registry "${tmp}/home/gamescope/.github/vendored-sources.tsv" \
+    --cache-root "${tmp}/cache/${manifest_digest}" \
+    --output "${tmp}/preflight-source" \
+    --receipt "${tmp}/preflight-receipt.json"
+)
+source_tree_digest="$(python3 - "${tmp}/preflight-receipt.json" <<'PY'
+import json, pathlib, sys
+print(json.loads(pathlib.Path(sys.argv[1]).read_text())["source_tree_sha256"])
+PY
+)"
+find "${tmp}/preflight-source" -mindepth 1 -delete
+rmdir "${tmp}/preflight-source"
+find "${tmp}" -maxdepth 1 -name preflight-receipt.json -delete
+
 for repo in image libsdl3-sunxifb wpa-supplicant-tsp runtime sim pf-hwprobe poolsuite blobs vendor-manifest; do
     ln -s gamescope "${tmp}/home/${repo}"
 done
 common=$'PF_IMAGE_SHA='"${head}"$'\nPF_KERNEL_REPO=gamescope\nPF_KERNEL_SHA='"${head}"$'\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_GPU_MODEL=ddk\nPF_LIBSDL3_SHA='"${head}"$'\nPF_WPA_SHA='"${head}"$'\nPF_RUNTIME_SHA='"${head}"$'\nPF_SIM_SHA='"${head}"$'\nPF_HWPROBE_SHA='"${head}"$'\nPF_POOLSUITE_SHA='"${head}"$'\nPF_BLOBS_SHA='"${head}"$'\nPF_VENDOR_MANIFEST_SHA='"${head}"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
-gamescope=$'\nPF_GAMESCOPE_MODE=g1\nPF_GAMESCOPE_REPO=gamescope\nPF_GAMESCOPE_REPO_URL=https://github.com/pocketforge-os/gamescope.git\nPF_GAMESCOPE_SHA='"${head}"$'\nPF_GAMESCOPE_UPSTREAM_BASE='"${base}"$'\nPF_GAMESCOPE_PRESENT_HEAD='"${head}"$'\nPF_GAMESCOPE_STAGING_HEAD='"${head}"$'\nPF_GAMESCOPE_ROTATION_HEAD='"${head}"$'\nPF_GAMESCOPE_REQUIRED_PATCH_IDS='"${patch_ids}"$'\nPF_GAMESCOPE_PATCH_SERIES_SHA256='"${patch_digest}"$'\nPF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256='"${manifest_digest}"$'\nPF_GAMESCOPE_LICENSE_SHA256='"${license_digest}"$'\nPF_GAMESCOPE_DIAGNOSTICS=0'
+gamescope=$'\nPF_GAMESCOPE_MODE=g1\nPF_GAMESCOPE_REPO=gamescope\nPF_GAMESCOPE_REPO_URL=https://github.com/pocketforge-os/gamescope.git\nPF_GAMESCOPE_SHA='"${head}"$'\nPF_GAMESCOPE_UPSTREAM_BASE='"${base}"$'\nPF_GAMESCOPE_PRESENT_HEAD='"${head}"$'\nPF_GAMESCOPE_STAGING_HEAD='"${head}"$'\nPF_GAMESCOPE_ROTATION_HEAD='"${head}"$'\nPF_GAMESCOPE_REQUIRED_PATCH_IDS='"${patch_ids}"$'\nPF_GAMESCOPE_PATCH_SERIES_SHA256='"${patch_digest}"$'\nPF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256='"${manifest_digest}"$'\nPF_GAMESCOPE_SOURCE_TREE_SHA256='"${source_tree_digest}"$'\nPF_GAMESCOPE_LICENSE_SHA256='"${license_digest}"$'\nPF_GAMESCOPE_DIAGNOSTICS=0'
 
 HOME="${tmp}/home" PF_MIRROR_DIR="${tmp}/mirrors" VARIANT=dev \
     PF_GAMESCOPE_DEPENDENCY_CACHE="${tmp}/cache" \
     pf_stage_sources "${tmp}/selected" "${common}${gamescope}"
-python3 - "${tmp}/selected/gamescope" "${head}" <<'PY'
+python3 - "${tmp}/selected/gamescope" "${head}" "${source_tree_digest}" <<'PY'
 import json, pathlib, sys
 root = pathlib.Path(sys.argv[1])
 receipt = json.loads((root / ".pf-gamescope-source.json").read_text())
 assert receipt["schema"] == "pocketforge.gamescope-source/v1"
 assert receipt["integrated_head"] == sys.argv[2]
 assert receipt["source_url"] == "https://github.com/pocketforge-os/gamescope.git"
+assert receipt["source_tree_sha256"] == sys.argv[3]
 assert len(list((root / ".pf-source-licenses").iterdir())) == 32
 assert (root / ".pf-gamescope-admission.json").is_file()
 assert (root / ".pf-gamescope-materialization.json").is_file()
 PY
+
+wrong_tree_digest="$(printf '0%.0s' {1..64})"
+if ( HOME="${tmp}/home" PF_MIRROR_DIR="${tmp}/mirrors" VARIANT=dev \
+    PF_GAMESCOPE_DEPENDENCY_CACHE="${tmp}/cache" \
+    pf_stage_sources "${tmp}/wrong-tree" \
+    "${common}${gamescope/PF_GAMESCOPE_SOURCE_TREE_SHA256=${source_tree_digest}/PF_GAMESCOPE_SOURCE_TREE_SHA256=${wrong_tree_digest}}" \
+    2>"${tmp}/wrong-tree.log" ); then
+    echo 'FAIL: platform-stale Gamescope source-tree digest was accepted' >&2
+    exit 1
+fi
+grep -Fq 'platform-locked expected digest' "${tmp}/wrong-tree.log"
 
 if ( HOME="${tmp}/home" PF_MIRROR_DIR="${tmp}/mirrors" VARIANT=dev \
     PF_GAMESCOPE_DEPENDENCY_CACHE="${tmp}/cache" \

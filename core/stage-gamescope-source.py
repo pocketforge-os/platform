@@ -191,6 +191,11 @@ def stage(args: argparse.Namespace) -> None:
         source_tree_sha = materialization.get("source_tree_sha256")
         if not isinstance(source_tree_sha, str) or HEX64.fullmatch(source_tree_sha) is None:
             raise StageError("Gamescope materialization source-tree digest is invalid")
+        if source_tree_sha != args.source_tree_sha256:
+            raise StageError(
+                "Gamescope materialized source-tree digest does not match "
+                "platform-locked expected digest "
+                f"(actual={source_tree_sha}, expected={args.source_tree_sha256})")
 
         export_licenses(rows, cache, args.output)
         admission_bytes = admission_path.read_bytes()
@@ -232,6 +237,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--expected-patch-ids", required=True)
     parser.add_argument("--patch-series-sha256", required=True)
     parser.add_argument("--manifest-sha256", required=True)
+    parser.add_argument("--source-tree-sha256", required=True)
     parser.add_argument("--license-sha256", required=True)
     parser.add_argument("--cache-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -239,7 +245,8 @@ def parse_args() -> argparse.Namespace:
     for name in ("head", "base", "present_head", "staging_head", "rotation_head"):
         if HEX40.fullmatch(getattr(args, name)) is None:
             parser.error(f"--{name.replace('_', '-')} must be a lowercase SHA-1")
-    for name in ("patch_series_sha256", "manifest_sha256", "license_sha256"):
+    for name in ("patch_series_sha256", "manifest_sha256", "source_tree_sha256",
+                 "license_sha256"):
         if HEX64.fullmatch(getattr(args, name)) is None:
             parser.error(f"--{name.replace('_', '-')} must be a lowercase SHA-256")
     return args

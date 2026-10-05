@@ -50,6 +50,7 @@ required_patch_ids = [
 ]
 patch_series_sha256 = "cf0736049af178c1e94fd40bea54a28d309010c65d07fb3a981e130395a9508c"
 dependency_manifest_sha256 = "08222e97c66d1bc737d9ef0483e23476bd4b127ca19136e70dd0e843f3af51cf"
+source_tree_sha256 = "e4e22746b20841f130b29c9a6c7061f45701e5a844cef282cec486ca1fce90bf"
 license_sha256 = "907dd845489cd09c25f18b6819f476805285e2adcad8c099e3506260023e9e5f"
 diagnostics = false
 
