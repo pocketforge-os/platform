@@ -90,9 +90,25 @@ def main() -> int:
         manifest_path.write_bytes(file_manifest)
         manifest_path.chmod(0o644)
         os.utime(manifest_path, (0, 0))
+        provenance = {
+            "schema": "pocketforge.gamescope-deterministic-publication/v1",
+            "source_url": args.source_url, "integrated_head": args.head,
+            "upstream_base": args.base, "patch_series_sha256": args.patch_series_sha256,
+            "dependency_manifest_sha256": args.manifest_sha256,
+            "platform_lock_sha256": args.lock_sha256,
+            "file_manifest_sha256": file_manifest_sha, "files": len(manifest_lines),
+        }
+        provenance_path = normalized / ".pf-gamescope-deterministic.json"
+        provenance_path.write_text(
+            json.dumps(provenance, sort_keys=True) + "\n", encoding="utf-8")
+        provenance_path.chmod(0o644)
+        os.utime(provenance_path, (0, 0))
+        entries = sorted(
+            normalized.rglob("*"),
+            key=lambda p: p.relative_to(normalized).as_posix())
         archive_tmp = Path(td) / "gamescope.tar"
         with tarfile.open(archive_tmp, "w", format=tarfile.USTAR_FORMAT) as tar:
-            for item in [normalized] + entries + [manifest_path]:
+            for item in [normalized] + entries:
                 rel = item.relative_to(normalized).as_posix() if item != normalized else "gamescope"
                 info = tar.gettarinfo(str(item), arcname=("gamescope" if item == normalized else f"gamescope/{rel}"))
                 info.uid = info.gid = 0
@@ -110,24 +126,11 @@ def main() -> int:
         if not final.exists():
             shutil.copyfile(archive_tmp, final)
             final.chmod(0o644)
-        receipt = {
-            "schema": "pocketforge.gamescope-deterministic-publication/v1",
-            "source_url": args.source_url, "integrated_head": args.head,
-            "upstream_base": args.base, "patch_series_sha256": args.patch_series_sha256,
-            "dependency_manifest_sha256": args.manifest_sha256,
-            "platform_lock_sha256": args.lock_sha256,
-            "file_manifest_sha256": file_manifest_sha,
-            "archive_sha256": archive_sha,
-            "archive": str(final), "files": len(manifest_lines),
-        }
-        # Replace the staged tree atomically after all validation and publication.
-        backup = Path(td) / "original"
-        source.rename(backup)
-        normalized.rename(source)
-        (source / ".pf-gamescope-deterministic.json").write_text(
+        receipt = dict(provenance, archive_sha256=archive_sha, archive=str(final))
+        sidecar = final.with_suffix(final.suffix + ".json")
+        sidecar.write_text(
             json.dumps(receipt, sort_keys=True) + "\n", encoding="utf-8")
-        (source / ".pf-gamescope-deterministic.json").chmod(0o644)
-        os.utime(source / ".pf-gamescope-deterministic.json", (0, 0))
+        sidecar.chmod(0o644)
     return 0
 
 
