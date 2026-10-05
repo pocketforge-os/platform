@@ -71,7 +71,8 @@ def verify_series(control: Path, args: argparse.Namespace) -> str:
     for commit in commits:
         patch = run("git", "-C", str(control), "show", "--pretty=email",
                     "--patch", commit)
-        patch_id = run("git", "patch-id", "--stable", input_bytes=patch).decode().split()[0]
+        patch_id = run("git", "-C", str(control), "patch-id", "--stable",
+                       input_bytes=patch).decode().split()[0]
         patch_ids.append(patch_id)
     if " ".join(patch_ids) != args.expected_patch_ids:
         raise StageError("Gamescope patch identities/order do not match the admitted series")
@@ -134,6 +135,9 @@ def export_licenses(rows: list[dict[str, str]], cache: Path, output: Path) -> in
 def stage(args: argparse.Namespace) -> None:
     if args.output.exists():
         raise StageError(f"Gamescope output already exists: {args.output}")
+    # GNU tar applies the caller's umask while extracting Git archives. Pin it
+    # so materialized file modes, receipts, and source-tree digests are stable.
+    os.umask(0o022)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     control = Path(tempfile.mkdtemp(prefix=".gamescope-control.", dir=args.output.parent))
     receipt_path = control.parent / f".{args.output.name}.materialization.json"
