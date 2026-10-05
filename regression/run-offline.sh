@@ -10,6 +10,7 @@
 # goldens goes RED in CI, not only in review.
 #
 # Suites (all stdlib-only; the build gates grep shipped sources / fake docker):
+#   regression/lock_mirrors/ exact-pin gate's hermetic RED/GREEN and fail-closed cases
 #   regression/abi/run.sh        ABI view drift gate + version policy + appmanifest
 #   regression/build/run.sh      pf build orchestration gates
 #   regression/profile/test_*.py profile goldens incl. test_profile.py (the #261 miss)
@@ -48,6 +49,10 @@ export PF_PY="$PY"
 echo "using $PY ($("$PY" -V 2>&1))"
 
 cd "$ROOT"
+
+echo
+echo "### regression/lock_mirrors ###"
+"$PY" -B -m unittest discover -s "$HERE/lock_mirrors" -p 'test_*.py' -v
 
 echo
 echo "### regression/abi ###"
