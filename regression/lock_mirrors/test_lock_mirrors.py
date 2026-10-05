@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from contextlib import redirect_stderr
+import io
 from pathlib import Path
 import subprocess
 import sys
@@ -25,6 +27,7 @@ RUNTIME_SHA = "7536aa1f5af76f0220b582ee68e29e254251fd76"
 LAUNCHER_SHA = "1ef9671afdd687d53f61a91e92c51da9fb614293"
 SOURCE_LOCK_PATH = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
 FIXTURES = Path(__file__).with_name("fixtures")
+BASE_COMMIT = "dc4b6a6fc5adf583a4b1697bc8c54a9f1be13803"
 
 
 class FixtureResolver:
@@ -129,6 +132,17 @@ comparison = "equal"
 {reference}'''.encode()
 
 
+def reviewer_bypass_lock() -> bytes:
+    return (
+        f'''\
+[platform_runtime.steamlink_ffmpeg59_v1.build_args]
+PF_FFMPEG_UAPI_SHA = "{EXPECTED_UAPI}"
+
+'''.encode()
+        + pin_lock(PLATFORM267_IMAGE)
+    )
+
+
 class LockMirrorGateTests(unittest.TestCase):
     def test_platform267_red_and_corrected_green(self) -> None:
         stale_tree = {
@@ -154,6 +168,246 @@ class LockMirrorGateTests(unittest.TestCase):
         self.assertTrue(green.ok, green.render())
         self.assertEqual(corrected_resolver.requests, [("image", CORRECTED_IMAGE)])
         print("GREEN evidence:", green.render())
+
+    def test_baseline_rejects_reviewer_candidate_only_bypass(self) -> None:
+        tree = {
+            SOURCE_LOCK_PATH: (FIXTURES / "platform267" / "source.lock").read_bytes(),
+            "guard.sh": f"PIN_SHA='{LAUNCHER_SHA}'\n".encode(),
+        }
+        lock = reviewer_bypass_lock()
+        candidate_without_uapi = classification_manifest()
+
+        parent_behavior = gate.check_gate(
+            lock,
+            candidate_without_uapi,
+            FixtureResolver({("image", PLATFORM267_IMAGE): tree}),
+        )
+        self.assertTrue(parent_behavior.ok, parent_behavior.render())
+        self.assertNotIn(STALE_UAPI, gate.parse_lock(lock)[1])
+        print("STRICT PARENT RED: candidate-only gate incorrectly returned PASS")
+        print(parent_behavior.render())
+
+        repaired = gate.check_gate(
+            lock,
+            candidate_without_uapi,
+            FixtureResolver({("image", PLATFORM267_IMAGE): tree}),
+            baseline_manifest_raw=uapi_manifest(),
+            baseline_commit=BASE_COMMIT,
+        )
+        self.assertFalse(repaired.ok)
+        removed = next(
+            diagnostic
+            for diagnostic in repaired.diagnostics
+            if diagnostic.classification == "BASELINE_MIRROR_REMOVED"
+        )
+        self.assertEqual(removed.platform_field, "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA")
+        self.assertEqual(removed.consumer_repo, "image")
+        self.assertEqual(removed.commit, BASE_COMMIT)
+        self.assertEqual(removed.path, SOURCE_LOCK_PATH)
+        self.assertEqual(removed.actual, "<missing>")
+        print("STRICT REPAIR GREEN: baseline anchor rejected removed UAPI mirror")
+        print(removed.render())
+
+    def test_baseline_rejects_required_consumer_removal(self) -> None:
+        replacement_consumer = b'''\
+[[consumers]]
+repo = "other"
+url = "https://github.com/pocketforge-os/other.git"
+commit_selector = "repos.other.sha"
+
+'''
+        candidate = (
+            replacement_consumer
+            + b"[[mirrors]]"
+            + uapi_manifest().split(b"[[mirrors]]", 1)[1]
+        )
+        candidate = b"schema_version = 1\n\n" + candidate.replace(
+            b'consumer_repo = "image"', b'consumer_repo = "other"'
+        )
+        result = gate.check_gate(
+            uapi_lock(CORRECTED_IMAGE),
+            candidate,
+            FixtureResolver({}),
+            baseline_manifest_raw=uapi_manifest(),
+            baseline_commit=BASE_COMMIT,
+        )
+        removed = next(
+            diagnostic
+            for diagnostic in result.diagnostics
+            if diagnostic.classification == "BASELINE_CONSUMER_REMOVED"
+        )
+        self.assertEqual(removed.consumer_repo, "image")
+        self.assertEqual(removed.platform_field, "repos.image.sha")
+        self.assertEqual(removed.actual, "<missing>")
+
+    def test_baseline_rejects_every_load_bearing_mirror_identity_change(self) -> None:
+        baseline = uapi_manifest()
+        other_consumer = b'''\
+[[consumers]]
+repo = "other"
+url = "https://github.com/pocketforge-os/other.git"
+commit_selector = "repos.other.sha"
+
+'''
+        template_baseline = baseline.replace(
+            b'parser = "shell-assignment"\nkey = "KERNEL_UAPI_SHA"',
+            b'parser = "template"\ntemplate = "KERNEL_UAPI_SHA=\'{value}\'"',
+        )
+        cases = {
+            "platform_field": (
+                baseline,
+                baseline.replace(
+                    b'platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"',
+                    b'platform_field = "repos.image.sha"',
+                ),
+            ),
+            "aliases": (
+                baseline,
+                baseline.replace(
+                    b'consumer_repo = "image"',
+                    b'aliases = ["repos.image.sha"]\nconsumer_repo = "image"',
+                ),
+            ),
+            "consumer_repo": (
+                baseline,
+                baseline.replace(b"[[mirrors]]", other_consumer + b"[[mirrors]]", 1).replace(
+                    b'consumer_repo = "image"', b'consumer_repo = "other"', 1
+                ),
+            ),
+            "consumer_path": (
+                baseline,
+                baseline.replace(SOURCE_LOCK_PATH.encode(), b"moved/source.lock"),
+            ),
+            "parser": (
+                baseline,
+                baseline.replace(
+                    b'parser = "shell-assignment"\nkey = "KERNEL_UAPI_SHA"',
+                    b'parser = "template"\ntemplate = "KERNEL_UAPI_SHA=\'{value}\'"',
+                ),
+            ),
+            "key": (
+                baseline,
+                baseline.replace(b'key = "KERNEL_UAPI_SHA"', b'key = "OTHER_SHA"'),
+            ),
+            "template": (
+                template_baseline,
+                template_baseline.replace(
+                    b"KERNEL_UAPI_SHA='{value}'", b"KERNEL_UAPI_SHA = '{value}'"
+                ),
+            ),
+            "expected_matches": (
+                baseline,
+                baseline.replace(
+                    b'comparison = "equal"',
+                    b'comparison = "equal"\nexpected_matches = 2',
+                ),
+            ),
+        }
+        tree = {
+            SOURCE_LOCK_PATH: (FIXTURES / "corrected" / "source.lock").read_bytes(),
+        }
+        for field, (required, candidate) in cases.items():
+            with self.subTest(field=field):
+                result = gate.check_gate(
+                    uapi_lock(CORRECTED_IMAGE),
+                    candidate,
+                    FixtureResolver({("image", CORRECTED_IMAGE): tree}),
+                    baseline_manifest_raw=required,
+                    baseline_commit=BASE_COMMIT,
+                )
+                changed = next(
+                    diagnostic
+                    for diagnostic in result.diagnostics
+                    if diagnostic.classification == "BASELINE_MIRROR_CHANGED"
+                )
+                self.assertIn(field, changed.detail)
+
+        comparison_change = baseline.replace(
+            b'comparison = "equal"', b'comparison = "prefix-match"'
+        )
+        malformed = gate.check_gate(
+            uapi_lock(CORRECTED_IMAGE),
+            comparison_change,
+            FixtureResolver({("image", CORRECTED_IMAGE): tree}),
+            baseline_manifest_raw=baseline,
+            baseline_commit=BASE_COMMIT,
+        )
+        self.assertEqual(
+            [diagnostic.classification for diagnostic in malformed.diagnostics],
+            ["MALFORMED_MANIFEST"],
+        )
+
+    def test_baseline_allows_additions_and_reference_removal(self) -> None:
+        baseline_reference = f'''\
+
+[[references]]
+id = "uapi-prose"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+consumer_repo = "image"
+consumer_path = "README.md"
+parser = "template"
+template = "documented {{value}}"
+reason = "incidental prose"
+'''.encode()
+        added_mirror = f'''\
+
+[[mirrors]]
+id = "added-launcher-guard"
+platform_field = "repos.launcher.sha"
+consumer_repo = "image"
+consumer_path = "guard.sh"
+parser = "shell-assignment"
+key = "PIN_SHA"
+comparison = "equal"
+'''.encode()
+        baseline = uapi_manifest() + baseline_reference
+        candidate = uapi_manifest() + added_mirror
+        tree = {
+            SOURCE_LOCK_PATH: (FIXTURES / "corrected" / "source.lock").read_bytes(),
+            "guard.sh": f"PIN_SHA='{LAUNCHER_SHA}'\n".encode(),
+        }
+        result = gate.check_gate(
+            reviewer_bypass_lock().replace(PLATFORM267_IMAGE.encode(), CORRECTED_IMAGE.encode()),
+            candidate,
+            FixtureResolver({("image", CORRECTED_IMAGE): tree}),
+            baseline_manifest_raw=baseline,
+            baseline_commit=BASE_COMMIT,
+        )
+        self.assertTrue(result.ok, result.render())
+        self.assertEqual(result.mirror_rule_count, 2)
+
+    def test_malformed_baseline_manifest_fails_closed(self) -> None:
+        result = gate.check_gate(
+            uapi_lock(PLATFORM267_IMAGE),
+            uapi_manifest(),
+            FixtureResolver({}),
+            baseline_manifest_raw=b"schema_version = [",
+            baseline_commit=BASE_COMMIT,
+        )
+        self.assertEqual(
+            [diagnostic.classification for diagnostic in result.diagnostics],
+            ["MALFORMED_BASELINE_MANIFEST"],
+        )
+
+    def test_cli_requires_baseline_and_limits_bootstrap_commit(self) -> None:
+        errors = io.StringIO()
+        with redirect_stderr(errors):
+            missing = gate.main(["--baseline-commit", CURRENT_IMAGE])
+            wrong_bootstrap = gate.main(
+                ["--baseline-commit", CURRENT_IMAGE, "--bootstrap-missing-baseline"]
+            )
+            unreadable = gate.main(
+                [
+                    "--baseline-commit",
+                    CURRENT_IMAGE,
+                    "--baseline-manifest",
+                    "/definitely/missing/lock-mirrors.toml",
+                ]
+            )
+        self.assertEqual((missing, wrong_bootstrap, unreadable), (1, 1, 1))
+        self.assertIn("verified exact-base manifest is required", errors.getvalue())
+        self.assertIn("bootstrap is allowed only for exact introductory base", errors.getvalue())
+        self.assertIn("No such file or directory", errors.getvalue())
 
     def test_missing_consumer_commit_fails_closed(self) -> None:
         result = gate.check_gate(uapi_lock(PLATFORM267_IMAGE), uapi_manifest(), FixtureResolver({}))
@@ -259,6 +513,8 @@ class LockMirrorGateTests(unittest.TestCase):
             (ROOT / "platform.lock").read_bytes(),
             (ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
             resolver,
+            baseline_manifest_raw=(ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            baseline_commit=BASE_COMMIT,
         )
         self.assertTrue(result.ok, result.render())
         self.assertEqual(resolver.requests, [("image", CURRENT_IMAGE)])

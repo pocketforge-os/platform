@@ -2,6 +2,10 @@
 # from the candidate platform commit, resolves each consumer through the named
 # candidate-lock SHA, and scans the full exact commit tree. Every 40/64-hex hit
 # must be classified once as a load-bearing mirror or an incidental reference.
+# Existing consumers and [[mirrors]] are also exact identities anchored to the
+# verified PR-base copy of this file. Additions are allowed. A legitimate
+# identity migration must use a separately reviewed, exact-base-scoped policy
+# change first; deleting or weakening a mirror in the migration PR fails closed.
 schema_version = 1
 
 [[consumers]]

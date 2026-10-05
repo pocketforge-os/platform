@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Fail closed when a pinned consumer's platform.lock mirrors drift.
 
-The candidate platform.lock is the only source of consumer commit identities.
-Production resolution fetches those literal commits into temporary Git object
-databases and reads their trees without consulting a branch or checkout.
+The candidate platform.lock is the only source of consumer commit identities,
+while the exact PR-base manifest anchors the required consumer/mirror inventory.
+Production resolution fetches literal commits into temporary Git object databases
+and reads their trees without consulting a branch or checkout.
 """
 
 from __future__ import annotations
@@ -29,6 +30,19 @@ except ModuleNotFoundError:  # pragma: no cover - CI and supported hosts use 3.1
 HEX_RE = re.compile(r"(?<![0-9A-Fa-f])(?:[0-9A-Fa-f]{64}|[0-9A-Fa-f]{40})(?![0-9A-Fa-f])")
 COMMIT_RE = re.compile(r"[0-9a-f]{40}")
 RULE_PARSERS = frozenset({"shell-assignment", "template"})
+BOOTSTRAP_BASE_COMMIT = "dc4b6a6fc5adf583a4b1697bc8c54a9f1be13803"
+MANIFEST_PATH = "ci/lock-mirrors.toml"
+MIRROR_IDENTITY_FIELDS = (
+    "platform_field",
+    "aliases",
+    "consumer_repo",
+    "consumer_path",
+    "parser",
+    "key",
+    "template",
+    "comparison",
+    "expected_matches",
+)
 
 
 @dataclass(frozen=True)
@@ -205,7 +219,7 @@ class GitCommitResolver:
         return tree
 
 
-def _manifest_error(detail: str, path: str = "ci/lock-mirrors.toml") -> GateResult:
+def _manifest_error(detail: str, path: str = MANIFEST_PATH) -> GateResult:
     return GateResult(
         diagnostics=(
             Diagnostic(
@@ -213,6 +227,23 @@ def _manifest_error(detail: str, path: str = "ci/lock-mirrors.toml") -> GateResu
                 "<manifest>",
                 "<none>",
                 "<none>",
+                path,
+                "valid-schema-v1",
+                "invalid",
+                detail,
+            ),
+        )
+    )
+
+
+def _baseline_error(detail: str, commit: str, path: str = MANIFEST_PATH) -> GateResult:
+    return GateResult(
+        diagnostics=(
+            Diagnostic(
+                "MALFORMED_BASELINE_MANIFEST",
+                "<baseline-manifest>",
+                "<none>",
+                commit,
                 path,
                 "valid-schema-v1",
                 "invalid",
@@ -378,6 +409,95 @@ def parse_manifest(raw: bytes) -> Manifest:
     return Manifest(tuple(consumers), tuple(rules))
 
 
+def _consumer_identity(consumer: Consumer) -> str:
+    return f"url={consumer.url};commit_selector={consumer.commit_selector}"
+
+
+def _mirror_identity(rule: Rule) -> str:
+    return ";".join(f"{field}={getattr(rule, field)!r}" for field in MIRROR_IDENTITY_FIELDS)
+
+
+def _changed_mirror_fields(required: Rule, candidate: Rule) -> list[str]:
+    return [
+        field
+        for field in MIRROR_IDENTITY_FIELDS
+        if getattr(required, field) != getattr(candidate, field)
+    ]
+
+
+def baseline_diagnostics(
+    candidate: Manifest, baseline: Manifest, baseline_commit: str
+) -> list[Diagnostic]:
+    """Require every trusted-base consumer and mirror declaration unchanged.
+
+    Candidate additions are allowed. References are deliberately not part of
+    the load-bearing baseline inventory. A legitimate future mirror migration
+    must first land a separately reviewed, exact-base-scoped policy exception,
+    then migrate in a follow-up and remove that exception; it must never happen
+    by silently weakening this subset comparison.
+    """
+
+    diagnostics: list[Diagnostic] = []
+    candidate_consumers = {consumer.repo: consumer for consumer in candidate.consumers}
+    for required in baseline.consumers:
+        actual = candidate_consumers.get(required.repo)
+        if actual is None:
+            classification = "BASELINE_CONSUMER_REMOVED"
+            actual_identity = "<missing>"
+            detail = f"required consumer {required.repo!r} was removed from the candidate manifest"
+        elif actual != required:
+            classification = "BASELINE_CONSUMER_CHANGED"
+            actual_identity = _consumer_identity(actual)
+            detail = f"required consumer {required.repo!r} changed load-bearing identity"
+        else:
+            continue
+        diagnostics.append(
+            Diagnostic(
+                classification,
+                required.commit_selector,
+                required.repo,
+                baseline_commit,
+                MANIFEST_PATH,
+                _consumer_identity(required),
+                actual_identity,
+                detail,
+            )
+        )
+
+    candidate_mirrors = {
+        rule.rule_id: rule for rule in candidate.rules if rule.kind == "mirror"
+    }
+    for required in (rule for rule in baseline.rules if rule.kind == "mirror"):
+        actual = candidate_mirrors.get(required.rule_id)
+        if actual is None:
+            classification = "BASELINE_MIRROR_REMOVED"
+            actual_identity = "<missing>"
+            detail = f"required mirror {required.rule_id!r} was removed from the candidate manifest"
+        else:
+            changed = _changed_mirror_fields(required, actual)
+            if not changed:
+                continue
+            classification = "BASELINE_MIRROR_CHANGED"
+            actual_identity = _mirror_identity(actual)
+            detail = (
+                f"required mirror {required.rule_id!r} changed load-bearing field(s): "
+                + ",".join(changed)
+            )
+        diagnostics.append(
+            Diagnostic(
+                classification,
+                required.platform_field,
+                required.consumer_repo,
+                baseline_commit,
+                required.consumer_path,
+                _mirror_identity(required),
+                actual_identity,
+                detail,
+            )
+        )
+    return diagnostics
+
+
 def _flatten_lock(value: object, path: tuple[str, ...] = ()) -> dict[str, object]:
     flattened: dict[str, object] = {}
     if isinstance(value, dict):
@@ -449,7 +569,14 @@ def _rule_matches(rule: Rule, content: str) -> list[tuple[int, int, str]]:
     return matches
 
 
-def check_gate(lock_raw: bytes, manifest_raw: bytes, resolver: ConsumerResolver) -> GateResult:
+def check_gate(
+    lock_raw: bytes,
+    manifest_raw: bytes,
+    resolver: ConsumerResolver,
+    *,
+    baseline_manifest_raw: bytes | None = None,
+    baseline_commit: str = "<not-enforced>",
+) -> GateResult:
     try:
         fields, hex_values = parse_lock(lock_raw)
     except ValueError as error:
@@ -468,6 +595,12 @@ def check_gate(lock_raw: bytes, manifest_raw: bytes, resolver: ConsumerResolver)
         "lock_value_count": len(hex_values),
     }
     diagnostics: list[Diagnostic] = []
+    if baseline_manifest_raw is not None:
+        try:
+            baseline = parse_manifest(baseline_manifest_raw)
+        except ValueError as error:
+            return _baseline_error(str(error), baseline_commit)
+        diagnostics.extend(baseline_diagnostics(manifest, baseline, baseline_commit))
     commits: dict[str, str] = {}
     trees: dict[str, dict[str, str]] = {}
     for consumer in manifest.consumers:
@@ -662,20 +795,75 @@ def main(argv: list[str]) -> int:
     parser.add_argument(
         "--manifest", default="ci/lock-mirrors.toml", help="declared consumer mirror manifest"
     )
+    parser.add_argument(
+        "--baseline-manifest",
+        help="manifest extracted from the verified exact base commit",
+    )
+    parser.add_argument(
+        "--baseline-commit",
+        required=True,
+        help="authoritative exact PR base (or push before) commit",
+    )
+    parser.add_argument(
+        "--bootstrap-missing-baseline",
+        action="store_true",
+        help="allow the one admitted introductory base that predates the manifest",
+    )
     args = parser.parse_args(argv)
-    try:
-        lock_raw = Path(args.lock).read_bytes()
-    except OSError as error:
-        result = _lock_error(str(error), args.lock)
+    baseline_raw: bytes | None = None
+    if not COMMIT_RE.fullmatch(args.baseline_commit):
+        baseline_status = f"lock-mirror baseline: FAIL base={args.baseline_commit}"
+        result = _baseline_error("baseline commit must be an exact 40-hex SHA", args.baseline_commit)
+    elif args.baseline_manifest and args.bootstrap_missing_baseline:
+        baseline_status = f"lock-mirror baseline: FAIL base={args.baseline_commit}"
+        result = _baseline_error(
+            "baseline manifest and bootstrap flag are mutually exclusive", args.baseline_commit
+        )
+    elif args.bootstrap_missing_baseline:
+        baseline_status = f"lock-mirror baseline: BOOTSTRAP base={args.baseline_commit}"
+        if args.baseline_commit != BOOTSTRAP_BASE_COMMIT:
+            result = _baseline_error(
+                f"bootstrap is allowed only for exact introductory base {BOOTSTRAP_BASE_COMMIT}",
+                args.baseline_commit,
+            )
+        else:
+            result = None
+    elif not args.baseline_manifest:
+        baseline_status = f"lock-mirror baseline: FAIL base={args.baseline_commit}"
+        result = _baseline_error(
+            "verified exact-base manifest is required after the introductory bootstrap",
+            args.baseline_commit,
+        )
     else:
         try:
-            manifest_raw = Path(args.manifest).read_bytes()
+            baseline_raw = Path(args.baseline_manifest).read_bytes()
         except OSError as error:
-            result = _manifest_error(str(error), args.manifest)
+            baseline_status = f"lock-mirror baseline: FAIL base={args.baseline_commit}"
+            result = _baseline_error(str(error), args.baseline_commit, args.baseline_manifest)
         else:
-            with GitCommitResolver(temp_root=os.environ.get("RUNNER_TEMP")) as resolver:
-                result = check_gate(lock_raw, manifest_raw, resolver)
+            baseline_status = f"lock-mirror baseline: VERIFIED base={args.baseline_commit}"
+            result = None
+    if result is None:
+        try:
+            lock_raw = Path(args.lock).read_bytes()
+        except OSError as error:
+            result = _lock_error(str(error), args.lock)
+        else:
+            try:
+                manifest_raw = Path(args.manifest).read_bytes()
+            except OSError as error:
+                result = _manifest_error(str(error), args.manifest)
+            else:
+                with GitCommitResolver(temp_root=os.environ.get("RUNNER_TEMP")) as resolver:
+                    result = check_gate(
+                        lock_raw,
+                        manifest_raw,
+                        resolver,
+                        baseline_manifest_raw=baseline_raw,
+                        baseline_commit=args.baseline_commit,
+                    )
     stream = sys.stdout if result.ok else sys.stderr
+    stream.write(baseline_status + "\n")
     stream.write(result.render() + "\n")
     return 0 if result.ok else 1
 

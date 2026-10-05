@@ -49,6 +49,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: |
           set -euo pipefail
           wd="$(mktemp -d "${RUNNER_TEMP:?}/platform-regression.XXXXXX")"
@@ -56,8 +57,29 @@ jobs:
           git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
           cd "$wd"
           sha="${HEAD_SHA:-$GITHUB_SHA}"
-          git fetch --quiet origin "$sha"
+          base_sha="${BASE_SHA:?missing authoritative base SHA}"
+          git fetch --quiet --no-tags --depth=1 origin "$sha"
+          resolved="$(git rev-parse --verify 'FETCH_HEAD^{commit}')"
+          [ "$resolved" = "$sha" ] || { echo "FATAL: head fetch resolved $resolved, expected $sha" >&2; exit 1; }
           git checkout --quiet --detach "$sha"
-          echo "regression suites @ $sha on runner $RUNNER_NAME"
-          bash ci/check-lock-mirrors.sh
+          git fetch --quiet --no-tags --depth=1 origin "$base_sha"
+          resolved_base="$(git rev-parse --verify 'FETCH_HEAD^{commit}')"
+          [ "$resolved_base" = "$base_sha" ] || { echo "FATAL: base fetch resolved $resolved_base, expected $base_sha" >&2; exit 1; }
+
+          bootstrap_base=dc4b6a6fc5adf583a4b1697bc8c54a9f1be13803
+          manifest_path=ci/lock-mirrors.toml
+          baseline_args=(--baseline-commit "$base_sha")
+          if git cat-file -e "$base_sha:$manifest_path"; then
+            baseline_manifest="$wd/.lock-mirrors.base.toml"
+            git show "$base_sha:$manifest_path" > "$baseline_manifest"
+            baseline_args+=(--baseline-manifest "$baseline_manifest")
+          elif [ "$base_sha" = "$bootstrap_base" ]; then
+            baseline_args+=(--bootstrap-missing-baseline)
+          else
+            echo "FATAL: exact base $base_sha lacks required $manifest_path" >&2
+            exit 1
+          fi
+
+          echo "regression suites @ $sha base $base_sha on runner $RUNNER_NAME"
+          bash ci/check-lock-mirrors.sh "${baseline_args[@]}"
           bash regression/run-offline.sh

@@ -19,4 +19,5 @@ fi
 
 exec "$PY" -B "$ROOT/ci/check_lock_mirrors.py" \
     --lock "$ROOT/platform.lock" \
-    --manifest "$ROOT/ci/lock-mirrors.toml"
+    --manifest "$ROOT/ci/lock-mirrors.toml" \
+    "$@"
