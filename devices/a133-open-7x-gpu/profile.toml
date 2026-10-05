@@ -28,14 +28,13 @@ modules = ["powervr.ko"]
 pipeline = "fbdev"
 
 # Branch-only G1 package candidate. The source SHA is resolved through
-# platform.lock; the dependency-manifest digest is the bootstrap admission pin
-# and must move atomically to the complete fork-only tsp-op5a.440.7 manifest
-# before this profile can be promoted.
+# platform.lock; the dependency-manifest digest is the landed fork-only closure
+# pin and must move atomically with the exact integration identity.
 [gamescope]
 mode = "g1"
 repo = "gamescope"
 ref = "tsp-op5a.440.1.1"
-upstream_base = "79399f4b34b5571ba5b03f61c4717eaf93ff75b3"
+upstream_base = "bb2ddfc8b1091d6c4d0133b1ea9dcd2494b69ab9"
 present_head = "b1d220453331e28554d938f060156abfeb504757"
 staging_head = "a5b1f4697a13e671f9e8bfd108c3003987ca1fa4"
 rotation_head = "eb3ae2c705326b0c6535ea99ee233c17a170ace4"
@@ -48,8 +47,8 @@ required_patch_ids = [
   "591578cf34408c343bc2c1d061a270acee76dca3",
   "593d5bc49038eeefe0ac553ee17cd112413a4840",
 ]
-patch_series_sha256 = "bcf1ee23703ad096371a41f6d4fe83c696d4c3803716ba98839213bf7e65d8ea"
-dependency_manifest_sha256 = "cb7169f3d8c2848aadd25c5d4e40b8d954a03cda106e194968ef16d6f71e3fbd"
+patch_series_sha256 = "adcd0dbe6f047727f7f4226347b31167eecbd6cceaefb24de91f4d7e7e4d5d44"
+dependency_manifest_sha256 = "08222e97c66d1bc737d9ef0483e23476bd4b127ca19136e70dd0e843f3af51cf"
 license_sha256 = "907dd845489cd09c25f18b6819f476805285e2adcad8c099e3506260023e9e5f"
 diagnostics = false
 

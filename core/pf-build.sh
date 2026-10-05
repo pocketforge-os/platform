@@ -177,42 +177,6 @@ pf_stage_device_descriptor() {
     pf_log "stage: platform-inputs <- devices/$id/capabilities.toml (sha256=${got:0:12})"
 }
 
-pf_verify_gamescope_source() {
-    local gitdir="$1" sha="$2" dest="$3" ba="$4"
-    v_gamescope() { sed -n "s/^$1=//p" <<< "$ba"; }
-    local base expected_patch_ids actual_patch_ids patch_digest license_digest
-    base="$(v_gamescope PF_GAMESCOPE_UPSTREAM_BASE)"
-    expected_patch_ids="$(v_gamescope PF_GAMESCOPE_REQUIRED_PATCH_IDS)"
-    [ "$(v_gamescope PF_GAMESCOPE_REPO_URL)" = \
-        "https://github.com/pocketforge-os/gamescope.git" ] \
-        || pf_die "stage: Gamescope source URL is not the governed PocketForge fork"
-    git --git-dir="$gitdir" merge-base --is-ancestor "$base" "$sha" \
-        || pf_die "stage: Gamescope integration does not descend from audited base $base"
-    [ -z "$(git --git-dir="$gitdir" rev-list --merges "$base..$sha")" ] \
-        || pf_die "stage: Gamescope integration contains a merge commit"
-    actual_patch_ids="$(
-        git --git-dir="$gitdir" rev-list --reverse "$base..$sha" |
-            while read -r commit; do
-                git --git-dir="$gitdir" show --pretty=email --patch "$commit" |
-                    git patch-id --stable | awk '{print $1}'
-            done | paste -sd' ' -
-    )"
-    [ -n "$expected_patch_ids" ] && [ "$actual_patch_ids" = "$expected_patch_ids" ] \
-        || pf_die "stage: Gamescope patch identities/order do not match the admitted series"
-    patch_digest="$(
-        git --git-dir="$gitdir" format-patch --stdout --no-stat "$base..$sha" |
-            sha256sum | cut -d' ' -f1
-    )"
-    [ "$patch_digest" = "$(v_gamescope PF_GAMESCOPE_PATCH_SERIES_SHA256)" ] \
-        || pf_die "stage: Gamescope format-patch digest mismatch"
-    license_digest="$(sha256sum "$dest/LICENSE" | cut -d' ' -f1)"
-    [ "$license_digest" = "$(v_gamescope PF_GAMESCOPE_LICENSE_SHA256)" ] \
-        || pf_die "stage: Gamescope licence digest mismatch"
-    cat >"$dest/.pf-gamescope-source.json" <<EOF
-{"schema":"pocketforge.gamescope-source/v1","source_url":"https://github.com/pocketforge-os/gamescope.git","upstream_base":"$base","integrated_head":"$sha","patch_series_sha256":"$patch_digest","required_heads":{"present":"$(v_gamescope PF_GAMESCOPE_PRESENT_HEAD)","staging":"$(v_gamescope PF_GAMESCOPE_STAGING_HEAD)","rotation":"$(v_gamescope PF_GAMESCOPE_ROTATION_HEAD)"}}
-EOF
-}
-
 pf_stage_sources() {
     local src_dir="$1" ba="$2"
     local mirror_dir="${PF_MIRROR_DIR:-$HOME/wt/.mirrors}"
@@ -293,8 +257,31 @@ pf_stage_sources() {
         pf_ensure_commit "$gitdir" "$repo" "$sha" \
             || pf_die "stage: SHA $sha absent from $repo after fetch — is platform.lock stale for this repo?"
         dest="$src_dir/$logical"
-        create_context_dir "$dest"
-        git --git-dir="$gitdir" archive --format=tar "$sha" | tar -x -C "$dest"
+        if [ "$logical" = gamescope ]; then
+            local dependency_cache="${PF_GAMESCOPE_DEPENDENCY_CACHE:-}"
+            [ "$(v PF_GAMESCOPE_REPO_URL)" = \
+                "https://github.com/pocketforge-os/gamescope.git" ] \
+                || pf_die "stage: Gamescope source URL is not the governed PocketForge fork"
+            [ -n "$dependency_cache" ] && [ -d "$dependency_cache" ] \
+                || pf_die "stage: tsp-op5a.440.7 controlled Gamescope dependency cache is unavailable"
+            [ -z "$(find "$dependency_cache" -type l -print -quit)" ] \
+                || pf_die "stage: Gamescope dependency cache contains a symlink"
+            python3 "$SCRIPT_DIR/stage-gamescope-source.py" \
+                --git-dir "$gitdir" --head "$sha" \
+                --base "$(v PF_GAMESCOPE_UPSTREAM_BASE)" \
+                --present-head "$(v PF_GAMESCOPE_PRESENT_HEAD)" \
+                --staging-head "$(v PF_GAMESCOPE_STAGING_HEAD)" \
+                --rotation-head "$(v PF_GAMESCOPE_ROTATION_HEAD)" \
+                --expected-patch-ids "$(v PF_GAMESCOPE_REQUIRED_PATCH_IDS)" \
+                --patch-series-sha256 "$(v PF_GAMESCOPE_PATCH_SERIES_SHA256)" \
+                --manifest-sha256 "$(v PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256)" \
+                --license-sha256 "$(v PF_GAMESCOPE_LICENSE_SHA256)" \
+                --cache-root "$dependency_cache" --output "$dest" \
+                || pf_die "stage: Gamescope offline admission/materialization failed"
+        else
+            create_context_dir "$dest"
+            git --git-dir="$gitdir" archive --format=tar "$sha" | tar -x -C "$dest"
+        fi
         # The kernel build consumes PF_KERNEL_SHA as live UTS identity. Carry a
         # staging receipt from this exact archive operation so the image build
         # can reject a valid-looking build arg paired with a different tree.
@@ -302,27 +289,12 @@ pf_stage_sources() {
         if [ "$logical" = kernel ]; then
             printf '%s\n' "$sha" > "$dest/.pf-source-revision"
         fi
-        if [ "$logical" = gamescope ]; then
-            pf_verify_gamescope_source "$gitdir" "$sha" "$dest" "$ba"
-        fi
         n="$(find "$dest" -type f | wc -l)"
         pf_log "stage: $logical <- $repo@${sha:0:12}  ($n files, src=$gitdir)"
     done
     # The image interface is unconditional even though Poolsuite source is dev-only.
     # Release builds therefore receive a real, empty named context.
     [ -e "$src_dir/poolsuite" ] || create_context_dir "$src_dir/poolsuite"
-    if [ "$(v PF_GAMESCOPE_MODE)" = g1 ]; then
-        local dependency_cache="${PF_GAMESCOPE_DEPENDENCY_CACHE:-}"
-        [ -n "$dependency_cache" ] && [ -d "$dependency_cache" ] \
-            || pf_die "stage: tsp-op5a.440.7 controlled Gamescope dependency cache is unavailable"
-        [ -z "$(find "$dependency_cache" -type l -print -quit)" ] \
-            || pf_die "stage: Gamescope dependency cache contains a symlink"
-        [ -n "$(find "$dependency_cache" -type f -print -quit)" ] \
-            || pf_die "stage: tsp-op5a.440.7 controlled Gamescope dependency cache is empty"
-        create_context_dir "$src_dir/gamescope-deps"
-        cp -a "$dependency_cache/." "$src_dir/gamescope-deps/"
-        pf_log "stage: gamescope-deps <- hash-verified cache candidate $dependency_cache"
-    fi
     if [ -n "$(v PF_DEVICE_DESCRIPTOR_ID)" ]; then
         pf_stage_device_descriptor "$src_dir" "$(v PF_DEVICE_DESCRIPTOR_ID)" \
             "$(v PF_DEVICE_DESCRIPTOR_SHA256)"
@@ -649,8 +621,7 @@ pf_os_image_dockerbuild() {
         cmd+=( --build-context "platform-inputs-src=$src_dir/platform-inputs" )
     fi
     if [ "$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_MODE=//p')" = g1 ]; then
-        cmd+=( --build-context "gamescope-src=$src_dir/gamescope"
-               --build-context "gamescope-deps=$src_dir/gamescope-deps" )
+        cmd+=( --build-context "gamescope-src=$src_dir/gamescope" )
     fi
     # Local BuildKit cache export (tsp-1dl.4.7): emit ONLY for ci-dell. On a persistent dev host
     # docker's own layer cache already persists between builds for free, so an explicit
