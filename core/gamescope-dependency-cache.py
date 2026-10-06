@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 import csv
 import hashlib
 import io
@@ -11,11 +12,14 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import re
+import secrets
 import shutil
+import signal
 import stat
 import subprocess
 import tarfile
 import tempfile
+import threading
 import tomllib
 
 
@@ -33,9 +37,15 @@ MANIFEST_FIELDS = (
     "transform_receipt", "fork_history_proof", "fork_pin_ref",
 )
 REVISION_ROLES = ("upstream_revision", "locator_revision", "pf_revision")
+TRANSACTION_SCHEMA = "pocketforge.gamescope-dependency-cache-transaction/v1"
+TRANSACTION_TOKEN = re.compile(r"[0-9a-f]{32}")
 
 
 class CacheError(RuntimeError):
+    pass
+
+
+class PublicationInterrupted(CacheError):
     pass
 
 
@@ -319,6 +329,201 @@ def write_archive(root: Path, destination: Path) -> None:
                 archive.addfile(info)
 
 
+def fsync_directory(path: Path) -> None:
+    descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def output_paths(args: argparse.Namespace) -> dict[str, Path]:
+    return {
+        "output_root": args.output_root.absolute(),
+        "archive": args.archive.absolute(),
+        "manifest": Path(f"{args.archive}.manifest.json").absolute(),
+        "receipt": Path(f"{args.archive}.receipt.json").absolute(),
+    }
+
+
+def transaction_journal(archive: Path) -> Path:
+    return archive.with_name(
+        f".{archive.name}.gamescope-dependency-cache.transaction.json")
+
+
+def transaction_stage(path: Path, token: str) -> Path:
+    return path.with_name(f".{path.name}.gamescope-cache-{token}.staged")
+
+
+def transaction_identity(args: argparse.Namespace,
+                         targets: dict[str, Path]) -> dict[str, object]:
+    return {
+        "schema": TRANSACTION_SCHEMA,
+        "gamescope_head": args.gamescope_head,
+        "manifest_sha256": args.manifest_sha256,
+        "targets": {name: str(path) for name, path in targets.items()},
+    }
+
+
+def path_exists(path: Path) -> bool:
+    return path.exists() or path.is_symlink()
+
+
+def remove_transaction_path(path: Path, *, directory: bool) -> None:
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return
+    if stat.S_ISLNK(info.st_mode):
+        raise CacheError(f"transaction path became a symlink: {path}")
+    if directory:
+        if not stat.S_ISDIR(info.st_mode):
+            raise CacheError(f"transaction directory has wrong type: {path}")
+        shutil.rmtree(path)
+    else:
+        if not stat.S_ISREG(info.st_mode):
+            raise CacheError(f"transaction file has wrong type: {path}")
+        path.unlink()
+
+
+def rollback_publication(targets: dict[str, Path], token: str,
+                         journal: Path) -> None:
+    failures = []
+    ordered = (
+        (targets["output_root"], True),
+        (targets["receipt"], False),
+        (targets["manifest"], False),
+        (targets["archive"], False),
+        (transaction_stage(targets["output_root"], token), True),
+        (transaction_stage(targets["receipt"], token), False),
+        (transaction_stage(targets["manifest"], token), False),
+        (transaction_stage(targets["archive"], token), False),
+        (Path(f"{journal}.tmp"), False),
+    )
+    for path, directory in ordered:
+        try:
+            remove_transaction_path(path, directory=directory)
+        except (CacheError, OSError) as error:
+            failures.append(str(error))
+    if failures:
+        raise CacheError("publication rollback incomplete: " + "; ".join(failures))
+    if path_exists(journal):
+        remove_transaction_path(journal, directory=False)
+    for parent in {path.parent for path, _ in ordered} | {journal.parent}:
+        fsync_directory(parent)
+
+
+def recover_publication(args: argparse.Namespace) -> None:
+    targets = output_paths(args)
+    journal = transaction_journal(targets["archive"])
+    journal_tmp = Path(f"{journal}.tmp")
+    if path_exists(journal_tmp):
+        remove_transaction_path(journal_tmp, directory=False)
+        fsync_directory(journal.parent)
+    if not path_exists(journal):
+        return
+    if journal.is_symlink() or not journal.is_file():
+        raise CacheError(f"unsafe publication transaction journal: {journal}")
+    try:
+        record = json.loads(journal.read_text(encoding="utf-8"))
+    except (UnicodeError, json.JSONDecodeError) as error:
+        raise CacheError(f"invalid publication transaction journal: {error}") from error
+    token = record.get("token") if isinstance(record, dict) else None
+    expected = transaction_identity(args, targets)
+    if (not isinstance(record, dict)
+            or TRANSACTION_TOKEN.fullmatch(str(token)) is None
+            or {key: value for key, value in record.items() if key != "token"} != expected):
+        raise CacheError(f"publication transaction identity mismatch: {journal}")
+    for target in targets.values():
+        target.parent.mkdir(parents=True, exist_ok=True)
+    rollback_publication(targets, str(token), journal)
+
+
+def write_transaction_journal(journal: Path, record: dict[str, object]) -> None:
+    temporary = Path(f"{journal}.tmp")
+    payload = (json.dumps(record, indent=2, sort_keys=True) + "\n").encode()
+    with temporary.open("xb") as stream:
+        stream.write(payload)
+        stream.flush()
+        os.fsync(stream.fileno())
+    temporary.chmod(0o600)
+    os.replace(temporary, journal)
+    fsync_directory(journal.parent)
+
+
+def stage_file(source: Path, destination: Path,
+               copy_file: Callable[[Path, Path], object]) -> None:
+    copy_file(source, destination)
+    destination.chmod(0o644)
+    with destination.open("rb") as stream:
+        os.fsync(stream.fileno())
+    fsync_directory(destination.parent)
+
+
+def publish_outputs(
+        args: argparse.Namespace, cache_root: Path, archive_tmp: Path,
+        manifest_tmp: Path, receipt_tmp: Path,
+        publication_hook: Callable[[str], None] | None = None,
+        copy_file: Callable[[Path, Path], object] = shutil.copyfile) -> None:
+    targets = output_paths(args)
+    if len(set(targets.values())) != len(targets):
+        raise CacheError("cache output paths must be distinct")
+    for path in targets.values():
+        if path_exists(path):
+            raise CacheError(f"refusing pre-existing output: {path}")
+
+    token = secrets.token_hex(16)
+    journal = transaction_journal(targets["archive"])
+    stages = {name: transaction_stage(path, token) for name, path in targets.items()}
+    for path in (journal, Path(f"{journal}.tmp"), *stages.values()):
+        if path_exists(path):
+            raise CacheError(f"refusing pre-existing transaction path: {path}")
+
+    record = {**transaction_identity(args, targets), "token": token}
+    hook = publication_hook or (lambda _boundary: None)
+    previous_sigterm = None
+    handler_installed = threading.current_thread() is threading.main_thread()
+    if handler_installed:
+        previous_sigterm = signal.getsignal(signal.SIGTERM)
+
+        def interrupt(_signum: int, _frame: object) -> None:
+            raise PublicationInterrupted("publication interrupted by SIGTERM")
+
+        signal.signal(signal.SIGTERM, interrupt)
+    try:
+        write_transaction_journal(journal, record)
+        os.replace(cache_root, stages["output_root"])
+        fsync_directory(stages["output_root"].parent)
+        for name, source in (
+                ("archive", archive_tmp),
+                ("manifest", manifest_tmp),
+                ("receipt", receipt_tmp)):
+            stage_file(source, stages[name], copy_file)
+
+        # The cache root is the commit marker: it becomes visible only after all
+        # validating sidecars have reached their final names.
+        for name in ("archive", "manifest", "receipt", "output_root"):
+            os.replace(stages[name], targets[name])
+            fsync_directory(targets[name].parent)
+            hook(f"after_{name}")
+        journal.unlink()
+        fsync_directory(journal.parent)
+    except BaseException as error:
+        if handler_installed:
+            signal.signal(signal.SIGTERM, previous_sigterm)
+            handler_installed = False
+        try:
+            rollback_publication(targets, token, journal)
+        except (CacheError, OSError) as rollback_error:
+            raise CacheError(
+                f"publication failed and rollback requires retry recovery: {rollback_error}"
+            ) from error
+        raise
+    finally:
+        if handler_installed:
+            signal.signal(signal.SIGTERM, previous_sigterm)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--gamescope-git-dir", type=Path, required=True)
@@ -331,11 +536,13 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def build(args: argparse.Namespace) -> None:
-    manifest_sidecar = Path(f"{args.archive}.manifest.json")
-    receipt_sidecar = Path(f"{args.archive}.receipt.json")
-    for path in (args.output_root, args.archive, manifest_sidecar, receipt_sidecar):
-        if path.exists() or path.is_symlink():
+def build(args: argparse.Namespace,
+          publication_hook: Callable[[str], None] | None = None,
+          copy_file: Callable[[Path, Path], object] = shutil.copyfile) -> None:
+    recover_publication(args)
+    targets = output_paths(args)
+    for path in targets.values():
+        if path_exists(path):
             raise CacheError(f"refusing pre-existing output: {path}")
     require_bare_mirror(args.gamescope_git_dir, GAMESCOPE_URL, "gamescope")
     platform_lock_sha256 = validate_platform_lock(
@@ -442,12 +649,9 @@ def build(args: argparse.Namespace) -> None:
         receipt_tmp.write_text(
             json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
-        shutil.move(cache_root, args.output_root)
-        shutil.move(archive_tmp, args.archive)
-        shutil.move(manifest_tmp, manifest_sidecar)
-        shutil.move(receipt_tmp, receipt_sidecar)
-        for path in (args.archive, manifest_sidecar, receipt_sidecar):
-            path.chmod(0o644)
+        publish_outputs(
+            args, cache_root, archive_tmp, manifest_tmp, receipt_tmp,
+            publication_hook=publication_hook, copy_file=copy_file)
 
     print(f"schema={artifact_manifest['schema']}")
     print(f"archive_sha256={archive_sha256}")

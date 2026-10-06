@@ -3,21 +3,32 @@
 
 from __future__ import annotations
 
+from contextlib import redirect_stdout
 import csv
+import errno
 import hashlib
+import importlib.util
 import io
 import json
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import tarfile
 import tempfile
+from types import SimpleNamespace
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[2]
 PRODUCER = ROOT / "core" / "gamescope-dependency-cache.py"
+PRODUCER_SPEC = importlib.util.spec_from_file_location(
+    "gamescope_dependency_cache", PRODUCER)
+if PRODUCER_SPEC is None or PRODUCER_SPEC.loader is None:
+    raise RuntimeError(f"cannot load producer: {PRODUCER}")
+CACHE_PRODUCER = importlib.util.module_from_spec(PRODUCER_SPEC)
+PRODUCER_SPEC.loader.exec_module(CACHE_PRODUCER)
 FIELDS = (
     "schema", "edge_id", "parent_id", "project_id", "path", "kind",
     "upstream_url", "upstream_revision", "declared_url", "locator_revision",
@@ -177,8 +188,27 @@ class DependencyCacheTest(unittest.TestCase):
                 manifest_sha: str | None = None,
                 platform_lock: Path | None = None,
                 check: bool = True) -> subprocess.CompletedProcess[str]:
+        args = self.producer_args(
+            label, mirrors, gamescope=gamescope, head=head,
+            manifest_sha=manifest_sha, platform_lock=platform_lock)
+        return run(
+            "python3", PRODUCER,
+            "--gamescope-git-dir", args.gamescope_git_dir,
+            "--gamescope-head", args.gamescope_head,
+            "--manifest-sha256", args.manifest_sha256,
+            "--mirror-root", args.mirror_root,
+            "--platform-lock", args.platform_lock,
+            "--output-root", args.output_root,
+            "--archive", args.archive,
+            check=check,
+        )
+
+    def producer_args(self, label: str, mirrors: Path | None = None, *,
+                      gamescope: Path | None = None, head: str | None = None,
+                      manifest_sha: str | None = None,
+                      platform_lock: Path | None = None) -> SimpleNamespace:
         target = self.root / label
-        target.mkdir()
+        target.mkdir(exist_ok=True)
         selected_head = head or self.head
         if platform_lock is None and selected_head != self.head:
             platform_lock = target / "platform.lock"
@@ -188,17 +218,30 @@ class DependencyCacheTest(unittest.TestCase):
                 "url = \"https://github.com/pocketforge-os/gamescope.git\"\n"
                 f"sha = \"{selected_head}\"\n",
                 encoding="utf-8")
-        return run(
-            "python3", PRODUCER,
-            "--gamescope-git-dir", gamescope or self.gamescope,
-            "--gamescope-head", selected_head,
-            "--manifest-sha256", manifest_sha or self.manifest_sha,
-            "--mirror-root", mirrors or self.mirrors_a,
-            "--platform-lock", platform_lock or self.platform_lock,
-            "--output-root", target / "cache-root",
-            "--archive", target / "gamescope-dependency-cache.tar",
-            check=check,
+        return SimpleNamespace(
+            gamescope_git_dir=gamescope or self.gamescope,
+            gamescope_head=selected_head,
+            manifest_sha256=manifest_sha or self.manifest_sha,
+            mirror_root=mirrors or self.mirrors_a,
+            platform_lock=platform_lock or self.platform_lock,
+            output_root=target / "cache-root",
+            archive=target / "gamescope-dependency-cache.tar",
         )
+
+    def assert_no_publication_state(self, args: SimpleNamespace) -> None:
+        self.assertEqual(list(args.output_root.parent.iterdir()), [])
+
+    def assert_complete_publication(self, args: SimpleNamespace) -> None:
+        self.assertTrue(args.output_root.is_dir())
+        self.assertTrue(args.archive.is_file())
+        self.assertTrue(Path(f"{args.archive}.manifest.json").is_file())
+        self.assertTrue(Path(f"{args.archive}.receipt.json").is_file())
+        self.assertFalse(CACHE_PRODUCER.transaction_journal(
+            args.archive.absolute()).exists())
+
+    def build_direct(self, args: SimpleNamespace, **kwargs: object) -> None:
+        with redirect_stdout(io.StringIO()):
+            CACHE_PRODUCER.build(args, **kwargs)
 
     def test_two_pack_layouts_produce_one_complete_safe_cache(self) -> None:
         # RED property: equal admitted objects in all three known repositories
@@ -298,6 +341,90 @@ class DependencyCacheTest(unittest.TestCase):
             "wrong-lock", platform_lock=wrong_lock, check=False)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("platform.lock Gamescope pin mismatch", result.stderr)
+
+    def test_each_final_publication_boundary_rolls_back_and_retries(self) -> None:
+        cases = (
+            ("after_archive", OSError(errno.EIO, "injected archive failure"), OSError),
+            ("after_manifest", KeyboardInterrupt("injected SIGINT"), KeyboardInterrupt),
+            ("after_receipt", None, CACHE_PRODUCER.PublicationInterrupted),
+            ("after_output_root", RuntimeError("injected root failure"), RuntimeError),
+        )
+        for boundary, injected, expected in cases:
+            with self.subTest(boundary=boundary):
+                args = self.producer_args(f"boundary-{boundary}")
+
+                def interrupt(observed: str) -> None:
+                    if observed != boundary:
+                        return
+                    if injected is None:
+                        os.kill(os.getpid(), signal.SIGTERM)
+                        raise AssertionError("SIGTERM handler did not interrupt publication")
+                    raise injected
+
+                with self.assertRaises(expected):
+                    self.build_direct(args, publication_hook=interrupt)
+                self.assert_no_publication_state(args)
+                self.build_direct(args)
+                self.assert_complete_publication(args)
+
+    def test_partial_cross_filesystem_archive_copy_never_reaches_final_name(self) -> None:
+        args = self.producer_args("cross-filesystem-copy")
+
+        def partial_copy(source: Path, destination: Path) -> object:
+            if source.name == "gamescope-dependency-cache.tar":
+                with (source.open("rb") as input_stream,
+                      destination.open("xb") as output_stream):
+                    output_stream.write(input_stream.read(128))
+                    output_stream.flush()
+                    os.fsync(output_stream.fileno())
+                raise OSError(errno.EIO, "injected cross-filesystem copy failure")
+            return shutil.copyfile(source, destination)
+
+        with self.assertRaisesRegex(OSError, "cross-filesystem copy failure"):
+            self.build_direct(args, copy_file=partial_copy)
+        self.assert_no_publication_state(args)
+        self.build_direct(args)
+        self.assert_complete_publication(args)
+
+    def test_partial_receipt_copy_never_reaches_final_name(self) -> None:
+        args = self.producer_args("partial-receipt-copy")
+
+        def partial_copy(source: Path, destination: Path) -> object:
+            if source.name == "receipt.json":
+                destination.write_bytes(source.read_bytes()[:32])
+                raise OSError(errno.EIO, "injected receipt copy failure")
+            return shutil.copyfile(source, destination)
+
+        with self.assertRaisesRegex(OSError, "receipt copy failure"):
+            self.build_direct(args, copy_file=partial_copy)
+        self.assert_no_publication_state(args)
+        self.build_direct(args)
+        self.assert_complete_publication(args)
+
+    def test_stale_transaction_is_resumable_but_unowned_output_is_refused(self) -> None:
+        args = self.producer_args("stale-transaction")
+        targets = CACHE_PRODUCER.output_paths(args)
+        token = "a" * 32
+        journal = CACHE_PRODUCER.transaction_journal(targets["archive"])
+        record = {
+            **CACHE_PRODUCER.transaction_identity(args, targets),
+            "token": token,
+        }
+        CACHE_PRODUCER.write_transaction_journal(journal, record)
+        targets["archive"].write_bytes(b"partial archive")
+        targets["manifest"].write_bytes(b"partial manifest")
+        staged_receipt = CACHE_PRODUCER.transaction_stage(targets["receipt"], token)
+        staged_receipt.write_bytes(b"partial receipt")
+
+        self.build_direct(args)
+        self.assert_complete_publication(args)
+
+        unowned = self.producer_args("unowned-output")
+        unowned.archive.write_bytes(b"not producer-owned")
+        with self.assertRaisesRegex(
+                CACHE_PRODUCER.CacheError, "refusing pre-existing output"):
+            self.build_direct(unowned)
+        self.assertEqual(unowned.archive.read_bytes(), b"not producer-owned")
 
 
 if __name__ == "__main__":
