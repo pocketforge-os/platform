@@ -12,6 +12,9 @@ bash "$HERE/gpu-um-staging-test.sh"
 echo "### exact Gamescope source/package staging ###"
 bash "$HERE/gamescope-staging-test.sh"
 
+echo "### deterministic Gamescope dependency cache ###"
+python3 "$HERE/test_gamescope_dependency_cache.py"
+
 echo "### A133-open device descriptor staging (tsp-f3fm.202.1.3) ###"
 bash "$HERE/device-descriptor-staging-test.sh"
 
