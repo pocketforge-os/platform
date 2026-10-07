@@ -17,9 +17,6 @@ spec.loader.exec_module(profile)
 NORMAL_DEVICE = "a133-open-7x-gpu"
 TRACE_DEVICE = "a133-open-7x-gpu-spl-trace"
 NORMAL_UBOOT_SHA = "db70249c8b25b7c3271cce71a19005b361527aaf"
-# tsp-3rd3.10: the trace override is deliberately NOT moved with the canonical pin
-# (u-boot#49 BOOTDELAY=0 / cursor), so the trace profile now differs in U-Boot SHA too.
-TRACE_UBOOT_SHA = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 
 
 def flatten(value: Any, prefix: str = "") -> dict[str, Any]:
@@ -115,24 +112,20 @@ class Open7SplTraceProfileTest(unittest.TestCase):
                     "tg5040_defconfig",
                     "tg5040_mmc_trace_defconfig",
                 ),
-                "PF_UBOOT_SHA": (NORMAL_UBOOT_SHA, TRACE_UBOOT_SHA),
             },
         )
         self.assertEqual(normal_args["PF_UBOOT_REPO"], "u-boot-tsp-a133")
         self.assertEqual(trace_args["PF_UBOOT_REPO"], "u-boot-tsp-a133")
         self.assertEqual(normal_args["PF_UBOOT_SHA"], NORMAL_UBOOT_SHA)
-        self.assertEqual(trace_args["PF_UBOOT_SHA"], TRACE_UBOOT_SHA)
+        self.assertEqual(trace_args["PF_UBOOT_SHA"], NORMAL_UBOOT_SHA)
 
-    def test_trace_pin_is_lock_owned_without_changing_the_normal_repo_pin(self):
+    def test_trace_inherits_the_normal_repo_pin(self):
         lock = profile.load_lock()
         self.assertEqual(
             lock["repos"]["u-boot-tsp-a133"]["sha"],
             NORMAL_UBOOT_SHA,
         )
-        self.assertEqual(
-            lock["profile_pins"][TRACE_DEVICE],
-            {"uboot": TRACE_UBOOT_SHA},
-        )
+        self.assertNotIn(TRACE_DEVICE, lock["profile_pins"])
 
     def test_malformed_profile_pin_fails_closed(self):
         lock_data = profile._load(ROOT / "platform.lock")
