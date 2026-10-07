@@ -253,17 +253,20 @@ class ProfileTest(unittest.TestCase):
         # again changes only the already-emitted PF_IMAGE_SHA on these profiles.
         # The tsp-mc9m.41.997.23.1.1 image#178 merge (6831e335 -> 12d8b9a1e8d1f986baa6673a15640d081c0b90fe)
         # likewise changes only PF_IMAGE_SHA on the A133 image-bearing profiles.
+        # The tsp-35b9d6d1816b25822ebb.3 CMA lock moves image to 7a5bd0c5 and canonical
+        # U-Boot to db70249c: PF_IMAGE_SHA changes on every image-bearing row and
+        # PF_UBOOT_SHA changes only on canonical owned-U-Boot rows; diagnostic overrides stay held.
         expected = {
-            ("a133", "dev"): "d1456035ef4c5969577192b3d95b160dc251893bfd5f805113870cc1234faf37",
-            ("a133", "release"): "712879cc65a9fc7aab9b22c7759330f326de3307f1547607deb556094f985693",
-            ("a133-open-7x", "dev"): "42a453040929ad03d071ddbbb5a0ea9db412a1eeb8848a5379f42cc42f910ebf",
-            ("a133-open-7x", "release"): "01710cf2d01cc1c0e01055df89e0aed4c68c8a42c3c6fdc0bfd8b42b5da2120c",
-            ("a133-owned", "dev"): "5af71d9515e646587aa05bfe6a12342fce70fbd681b7b008f77a73848d5d70ed",
-            ("a133-owned", "release"): "405188113d040f2cd48ba8fb766d5439eb32b660dd96cef8cf3c67ab5d773fc8",
-            ("a523", "dev"): "062cb116a901f7726645abfa0ec3eec7f7019d0724e77c914e80d18309e576e5",
-            ("a523", "release"): "8777664f7cf3088f85823e34867800bc17eee432257178477c10eeff7b93e34e",
-            ("sdm845", "dev"): "4c9dacd4e1928eea93c3988a28db4110e5be59ba213e4ac904fe55f7e52bcd52",
-            ("sdm845", "release"): "d0618108ac575704f53955e88ff50d65298a88a889dc2694c906d8362244295d",
+            ("a133", "dev"): "cb92ddb9ea73163f464327e61ee52ab811312ba1d386287de29871a67d18429a",
+            ("a133", "release"): "6e6dc77b76650d0d82a50da40ab58abd73e461236cfb8cc1d4c1f2abe33c4306",
+            ("a133-open-7x", "dev"): "d635f41a3d9950ece76ec1f99106931420df164e40a9aab7b5c7b4b8030593c8",
+            ("a133-open-7x", "release"): "0711e655e7728bcf1e7af72311062d5309d7cb2a62c556445fc86b22897d2c61",
+            ("a133-owned", "dev"): "7d998377bcdf5f42c1f50323851d7f770b28e9552a8f57be19dd81c7b39ba4ae",
+            ("a133-owned", "release"): "f28c2a7ac207a778685ca41a3daff13948c9f177962c23cc86257735192000f9",
+            ("a523", "dev"): "71b78171ae62585ef2183719a2cf313bf9ca047c69d7d7073f2f44b51d5b325b",
+            ("a523", "release"): "7adc35215d84a52abfe9ef8e40b69b6e770fc80a3d71035fe8444c5e5258d6c2",
+            ("sdm845", "dev"): "745b2d5a0d0bf4559dbcb21d0e671276b58d4dcea6505d820b616aded2266d59",
+            ("sdm845", "release"): "30a9d25e43abd54b30d9b327af55a5cfb494278df0d9e5821b9e2a2a1dbde72b",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -425,7 +428,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "1d8056548b79b236e45d3ba0b0dec94a25660930",
-                "PF_IMAGE_SHA": "12d8b9a1e8d1f986baa6673a15640d081c0b90fe",
+                "PF_IMAGE_SHA": "7a5bd0c5d0984b3905edb23cc0f8ec2adb377545",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
