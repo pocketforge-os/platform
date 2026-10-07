@@ -253,17 +253,21 @@ class ProfileTest(unittest.TestCase):
         # again changes only the already-emitted PF_IMAGE_SHA on these profiles.
         # The tsp-mc9m.41.997.23.1.1 image#178 merge (6831e335 -> 12d8b9a1e8d1f986baa6673a15640d081c0b90fe)
         # likewise changes only PF_IMAGE_SHA on the A133 image-bearing profiles.
+        # The tsp-mc9m.41.995.30.4 compatible-generation lock moves image and runtime
+        # together, then advances image to the image#180 successor containing that generation;
+        # launcher moves only on open profiles outside this table. No profile shape, key,
+        # state, missing entry or other pin changes.
         expected = {
-            ("a133", "dev"): "d1456035ef4c5969577192b3d95b160dc251893bfd5f805113870cc1234faf37",
-            ("a133", "release"): "712879cc65a9fc7aab9b22c7759330f326de3307f1547607deb556094f985693",
-            ("a133-open-7x", "dev"): "42a453040929ad03d071ddbbb5a0ea9db412a1eeb8848a5379f42cc42f910ebf",
-            ("a133-open-7x", "release"): "01710cf2d01cc1c0e01055df89e0aed4c68c8a42c3c6fdc0bfd8b42b5da2120c",
-            ("a133-owned", "dev"): "5af71d9515e646587aa05bfe6a12342fce70fbd681b7b008f77a73848d5d70ed",
-            ("a133-owned", "release"): "405188113d040f2cd48ba8fb766d5439eb32b660dd96cef8cf3c67ab5d773fc8",
-            ("a523", "dev"): "062cb116a901f7726645abfa0ec3eec7f7019d0724e77c914e80d18309e576e5",
-            ("a523", "release"): "8777664f7cf3088f85823e34867800bc17eee432257178477c10eeff7b93e34e",
-            ("sdm845", "dev"): "4c9dacd4e1928eea93c3988a28db4110e5be59ba213e4ac904fe55f7e52bcd52",
-            ("sdm845", "release"): "d0618108ac575704f53955e88ff50d65298a88a889dc2694c906d8362244295d",
+            ("a133", "dev"): "da4bbca03b3078f1f9a8111ad9ae922b00aecede1f61090949599fc17bebbb78",
+            ("a133", "release"): "91ffe3138f3b917aafc2b0c1330ee9fc0a9194c816deee4c37a05b4bbc9eea67",
+            ("a133-open-7x", "dev"): "f9280940782f6ae2f6a7024f56951f2e481a1c3dfd09966e31c9148452f6fae7",
+            ("a133-open-7x", "release"): "e227210951efadd20ef7819284245f82cd8bccc10409450d168eb95e939bac95",
+            ("a133-owned", "dev"): "c1d0277eaf417071589fc35d03c112ba363669fafbacb5f85bc64ab5c5e38b72",
+            ("a133-owned", "release"): "0abc4cb2a8d9acd6827834a44b35f4c2830a00cf501a905710f8b807b3e26ef9",
+            ("a523", "dev"): "f38b39e242e44e19641e59860499c9f86045c148b7ea43f3b67cf62ea714427e",
+            ("a523", "release"): "00af332fedb6789285ec0a844d91707adb1a431401471de97f18fabbf43a5eff",
+            ("sdm845", "dev"): "0346b9cec4e5dac8aa1cd76dde3b5e9021eaaee89ef6a7f9410d899517dec882",
+            ("sdm845", "release"): "0591ee264ecaa99516bfe400aa87129a3eb5335095ce1c31c1ba985be70383fc",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -360,7 +364,7 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "1ef9671afdd687d53f61a91e92c51da9fb614293")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5")
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
@@ -425,14 +429,14 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "1d8056548b79b236e45d3ba0b0dec94a25660930",
-                "PF_IMAGE_SHA": "12d8b9a1e8d1f986baa6673a15640d081c0b90fe",
+                "PF_IMAGE_SHA": "7a5bd0c5d0984b3905edb23cc0f8ec2adb377545",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
-        self.assertEqual(args["PF_LAUNCHER_SHA"], "1ef9671afdd687d53f61a91e92c51da9fb614293")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], "73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5")
         self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
         self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
         self.assertEqual(
