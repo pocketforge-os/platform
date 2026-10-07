@@ -103,7 +103,13 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.998: image#183 merge
+ref  = "main"          # tsp-mc9m.41.998: image#184 merge
+                       # 387d4bfd2361079494acd733373b0981eacc31b7 (approved exact head
+                       # 15409e9a1386c5cccb61b033d7b3095a676b3a8f) attests Zink through
+                       # gpu-um-tsp's actual unified libgallium_dri.so megadriver.
+                       # Kernel and Steam Link UAPI remain pinned at 671e7090.
+                       # Previous pin (964888900c4ba6eb3211353f22ac5ecc03af1a7a):
+                       # tsp-mc9m.41.998: image#183 merge
                        # 964888900c4ba6eb3211353f22ac5ecc03af1a7a (approved exact head
                        # 6484ad4a36141f55503b025b85434feec84bfcd9) adds the standard GLES
                        # and Vulkan demo tools with a fail-closed gpu-um-tsp ownership tripwire.
@@ -437,7 +443,7 @@ ref  = "main"          # tsp-mc9m.41.998: image#183 merge
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "964888900c4ba6eb3211353f22ac5ecc03af1a7a"
+sha  = "387d4bfd2361079494acd733373b0981eacc31b7"
 
 [[repos]]
 name = "gamescope"
