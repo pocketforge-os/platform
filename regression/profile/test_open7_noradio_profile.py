@@ -28,7 +28,7 @@ NORMAL_KERNEL_SHA = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 # the override held while the canonical pin moves 3434d3fd -> 40ea8fd9. The PowerVR recovery
 # batch again leaves it held while the canonical pin moves 40ea8fd9 -> a75bf257.
 NORADIO_KERNEL_SHA = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
-NORMAL_UBOOT_SHA = "c21fbfb88293b9427b471a0725d1851484a8adba"
+NORMAL_UBOOT_SHA = "db70249c8b25b7c3271cce71a19005b361527aaf"
 # tsp-3rd3.10: the no-radio U-Boot override stays at dfcc7773 (coordinator ruling), so
 # it no longer equals the normal pin.
 NORADIO_UBOOT_SHA = "dfcc77739aa647fa195abd2e01d9fab6b2633474"

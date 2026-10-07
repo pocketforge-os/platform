@@ -132,12 +132,16 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.995.30.4: image#180 merge
-                       # 7a5bd0c5d0984b3905edb23cc0f8ec2adb377545 contains image#179's
+ref  = "main"          # tsp-35b9d6d1816b25822ebb.3: image#180 merge
+                       # 7a5bd0c5d0984b3905edb23cc0f8ec2adb377545 (approved exact head
+                       # e79a68b96cfc6770a3f92a3bf5508e57b66a19cc) contains image#179's
                        # reviewed session-authority head 68cb3f101bb5ef3513469bb78f90610414c04652
                        # (merged as 6fe5655e9c46e8b55d716742147c0ccfdbf4b1f5) plus the
-                       # Cedrus/open-stack cmdline guard. It requires the compatible runtime#106
-                       # and launcher#153 reviewed heads pinned below.
+                       # Cedrus/open-stack change: remove the Linux 7.x cma= cmdline override,
+                       # preserve vendor 4.9, sanitize the shipped environment, and fail the build
+                       # if effective bootargs override a DTB-owned linux,cma-default pool. It
+                       # requires the compatible runtime#106 and launcher#153 heads pinned below,
+                       # plus u-boot-tsp-a133 db70249c.
                        # Previous pin (68cb3f101bb5ef3513469bb78f90610414c04652):
                        # tsp-mc9m.41.995.30.4 initial image#179 reviewed generation.
                        # Previous pin (12d8b9a1e8d1f986baa6673a15640d081c0b90fe):
@@ -964,7 +968,13 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # above). The logo returns with a fixed U-Boot after a device bench.
                               # BANNER: "U-Boot SPL 2025.10-gc21fbfb88293" again (was -g2a5610ed44bd).
                               # Reverted probe pin (2a5610ed44bd4b536614b2bf15f77695bff33e3a).
-sha  = "c21fbfb88293b9427b471a0725d1851484a8adba"
+                              # tsp-35b9d6d1816b25822ebb.3: u-boot-tsp-a133#55 merge db70249c
+                              # (approved exact head 3b1eeaf2) removes cma=64M from CONFIG_BOOTARGS
+                              # in both tg5040_defconfig and tg5040_mmc_trace_defconfig so Linux 7.2
+                              # honors the DTB-owned CMA pool. Diagnostic profile overrides above
+                              # remain deliberately held. BANNER CHANGE: 2025.10-gdb70249c8b25.
+                              # Prior canonical pin (c21fbfb88293b9427b471a0725d1851484a8adba).
+sha  = "db70249c8b25b7c3271cce71a19005b361527aaf"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
