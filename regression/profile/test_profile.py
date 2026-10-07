@@ -263,17 +263,19 @@ class ProfileTest(unittest.TestCase):
         # image-bearing row and PF_KERNEL_SHA on the a133-open-7x rows; the full GPU profile
         # also moves its in-tree KM and Steam Link UAPI source, while the no-radio override
         # remains frozen outside this table.
+        # The tsp-mc9m.41.998 GPU demo-tool publication again moves only PF_IMAGE_SHA;
+        # kernel, GPU UM, runtime, launcher, and Steam Link UAPI pins remain unchanged.
         expected = {
-            ("a133", "dev"): "77b8d880142eca5eaebc3ac2a5f4c2eaa71d7f2bb5619cf5d90610d00750a7bb",
-            ("a133", "release"): "eaae956cff4bbc99f2a304c005d5fea5e56324669b17efca12a7e48583f9b5bb",
-            ("a133-open-7x", "dev"): "80b1cc9cfc85182ffb715f04d8df8305d3a9774fbe6a7e62e4f04b39cf8881b4",
-            ("a133-open-7x", "release"): "16c0a98f2827b8f8450d648c3fa47194a4de53c2ca7d3222961e06f8b6e67bda",
-            ("a133-owned", "dev"): "a582e68ad0fb0cd4b144de4fd6923a38a335b88973bdb787d6f9a4f2e0a07d49",
-            ("a133-owned", "release"): "bd4a0d340aa7b789c1e93bf3203a18c094f099d6e5b656299496cf92002f1705",
-            ("a523", "dev"): "a6bf546380fe57e8d9e25479247edbd34503a281d667d93ba14f8e89f510d889",
-            ("a523", "release"): "17640ba20e7fddf44d2bd9bd71d3da91b530ef554d5bd4438a9983b939f683ea",
-            ("sdm845", "dev"): "1308adc51c5a1372ac78b2e54cb950c36188232c434fc19ef4ff85e9ff48cb43",
-            ("sdm845", "release"): "72c1543858671d09cca23360ee425512709d3e51193ff0bde0cc527c6e20d0d2",
+            ("a133", "dev"): "87f0c4a88d2d2e051e23604a267d3a2c6a78e59a17c73b94b82e6395f0f4ee72",
+            ("a133", "release"): "f8485d5f448cbf3ab4c3488e5d370aa8064149c9ca1d4f8eced34eb92a504705",
+            ("a133-open-7x", "dev"): "3df2e06e6f7f74faf26625c0f082e3526140895ed6f944b2d3d1071c803799a4",
+            ("a133-open-7x", "release"): "8f8c094e104137ccadec5fd5429a198e1f79a8c3c07bfecbbc33726e02c2aa74",
+            ("a133-owned", "dev"): "c260a262ee134982766bd14091b8313b93b9b85fe1192a4d3519778c2eca3b6e",
+            ("a133-owned", "release"): "ba6837eda64a7ffef267d1260e95db3dca8347fce6d637e6ecbb4e666ff3c7a3",
+            ("a523", "dev"): "f3f8d4d2531d86555aaee768bb55d6410436476f935803e7eff132ba3b3952b8",
+            ("a523", "release"): "bfd6412b908b0a5025b8cfcf4c9a73e9fd21d66f18235aba2931b59edc393e5b",
+            ("sdm845", "dev"): "667d627961414bf5a2b798736e13f88585adeeb9e1fa892232d6ffca8eb11ed1",
+            ("sdm845", "release"): "86c52bd22289b132a61f0c8a1dc5434f8850732b318022d47553a71377e00ec5",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -435,7 +437,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "1d8056548b79b236e45d3ba0b0dec94a25660930",
-                "PF_IMAGE_SHA": "c67588b157c476824aa49a585e0b1cf1a4db4f66",
+                "PF_IMAGE_SHA": "964888900c4ba6eb3211353f22ac5ecc03af1a7a",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
