@@ -23,8 +23,9 @@ CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
 CURRENT_IMAGE = "7a5bd0c5d0984b3905edb23cc0f8ec2adb377545"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 STALE_UAPI = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
-RUNTIME_SHA = "1dd87ecc2952584a7ef1473c5dcb872662b7c0cb"
-LAUNCHER_SHA = "1ef9671afdd687d53f61a91e92c51da9fb614293"
+RUNTIME_SHA = "5738f3d5e108b52186b129a5db1c62a878278b19"
+LAUNCHER_SHA = "73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5"
+PREVIOUS_RUNTIME_SHA = "1dd87ecc2952584a7ef1473c5dcb872662b7c0cb"
 SOURCE_LOCK_PATH = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
 FIXTURES = Path(__file__).with_name("fixtures")
 BASE_COMMIT = "dc4b6a6fc5adf583a4b1697bc8c54a9f1be13803"
@@ -502,7 +503,7 @@ comparison = "equal"
         self.assertIn("repos.runtime.sha", ambiguous.platform_field)
         self.assertIn("profile_pins.fixture.runtime", ambiguous.platform_field)
 
-    def test_current_lock_passes_with_network_independent_exact_tree(self) -> None:
+    def test_current_contract_generation_passes_and_mixed_generation_fails(self) -> None:
         current_tree = {
             "build/Dockerfile.pf": (FIXTURES / "current" / "Dockerfile.pf").read_bytes(),
             SOURCE_LOCK_PATH: (FIXTURES / "corrected" / "source.lock").read_bytes(),
@@ -519,6 +520,27 @@ comparison = "equal"
         self.assertTrue(result.ok, result.render())
         self.assertEqual(resolver.requests, [("image", CURRENT_IMAGE)])
         self.assertEqual(result.mirror_rule_count, 14)
+
+        mixed_lock = (ROOT / "platform.lock").read_bytes().replace(
+            f'sha  = "{RUNTIME_SHA}"'.encode(),
+            f'sha  = "{PREVIOUS_RUNTIME_SHA}"'.encode(),
+            1,
+        )
+        mixed = gate.check_gate(
+            mixed_lock,
+            (ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            FixtureResolver({("image", CURRENT_IMAGE): current_tree}),
+            baseline_manifest_raw=(ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            baseline_commit=BASE_COMMIT,
+        )
+        self.assertFalse(mixed.ok)
+        drift = next(
+            diagnostic for diagnostic in mixed.diagnostics
+            if diagnostic.classification == "STALE_MIRROR"
+            and diagnostic.platform_field == "repos.runtime.sha"
+        )
+        self.assertEqual(drift.expected, PREVIOUS_RUNTIME_SHA)
+        self.assertEqual(drift.actual, RUNTIME_SHA)
 
 
 if __name__ == "__main__":
