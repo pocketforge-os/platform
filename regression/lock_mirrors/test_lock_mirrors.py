@@ -20,7 +20,7 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "7a5bd0c5d0984b3905edb23cc0f8ec2adb377545"
+CURRENT_IMAGE = "d81a1d7ff4abe9e14b34f41cbd3c6ddbfe3abf5f"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 STALE_UAPI = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
 RUNTIME_SHA = "5738f3d5e108b52186b129a5db1c62a878278b19"

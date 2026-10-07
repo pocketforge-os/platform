@@ -258,6 +258,15 @@ template = 'target_gpu_um_sha={value}'
 reason = "test expectation for the declared production mirror"
 
 [[references]]
+id = "blobs-a133-cma-real-env-fixture"
+platform_field = "repos.blobs.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-a133-cma-bootargs.sh"
+parser = "template"
+template = '# blobs@{value}:'
+reason = "provenance for the real redundant A133 environment regression fixture"
+
+[[references]]
 id = "runtime-launcher-contract-test"
 platform_field = "repos.runtime.sha"
 consumer_repo = "image"
