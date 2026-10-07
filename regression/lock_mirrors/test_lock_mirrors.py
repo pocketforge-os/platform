@@ -20,7 +20,8 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "d81a1d7ff4abe9e14b34f41cbd3c6ddbfe3abf5f"
+CURRENT_IMAGE = "c67588b157c476824aa49a585e0b1cf1a4db4f66"
+CURRENT_UAPI = "671e7090246a6ae9d347a70e2b3952b7819f937d"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 STALE_UAPI = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
 RUNTIME_SHA = "5738f3d5e108b52186b129a5db1c62a878278b19"
@@ -506,7 +507,9 @@ comparison = "equal"
     def test_current_contract_generation_passes_and_mixed_generation_fails(self) -> None:
         current_tree = {
             "build/Dockerfile.pf": (FIXTURES / "current" / "Dockerfile.pf").read_bytes(),
-            SOURCE_LOCK_PATH: (FIXTURES / "corrected" / "source.lock").read_bytes(),
+            SOURCE_LOCK_PATH: (FIXTURES / "corrected" / "source.lock").read_bytes().replace(
+                EXPECTED_UAPI.encode(), CURRENT_UAPI.encode(), 1
+            ),
             "scripts/build-rootfs.sh": (FIXTURES / "current" / "build-rootfs.sh").read_bytes(),
         }
         resolver = FixtureResolver({("image", CURRENT_IMAGE): current_tree})
