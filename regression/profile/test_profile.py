@@ -254,19 +254,20 @@ class ProfileTest(unittest.TestCase):
         # The tsp-mc9m.41.997.23.1.1 image#178 merge (6831e335 -> 12d8b9a1e8d1f986baa6673a15640d081c0b90fe)
         # likewise changes only PF_IMAGE_SHA on the A133 image-bearing profiles.
         # The tsp-mc9m.41.995.30.4 compatible-generation lock moves image and runtime
-        # together; launcher moves only on open profiles outside this table. No profile
-        # shape, key, state, missing entry or other pin changes.
+        # together, then advances image to the image#180 successor containing that generation;
+        # launcher moves only on open profiles outside this table. No profile shape, key,
+        # state, missing entry or other pin changes.
         expected = {
-            ("a133", "dev"): "6dddd0130bb6fc4af4dce8bbf860e51ae551a982d6f570e023578ab55627823c",
-            ("a133", "release"): "10529f10ab4ec34edccd6117b74d730dc217f1340ec9b3f3b21587af2901d4f6",
-            ("a133-open-7x", "dev"): "e648fd8cf4d9ad0e78c4ced4284f09cf7d8ac1ea6e239bc9ccb63a6ae2e5fccb",
-            ("a133-open-7x", "release"): "c1b4c82883191d86c01f22260d938b57e80d8597063e778138e333f5dd276f53",
-            ("a133-owned", "dev"): "e4fd31fa62a85c88ea94f63513bbdb2971041ac23e412235b18e206530a39b21",
-            ("a133-owned", "release"): "9611bd125805736b2baeb31c6e7c3ab400ad6179a093ee046cced4f5eab0e2b2",
-            ("a523", "dev"): "70b9581e6e4bd14697cd6857c85297efd1d974c1f0def64b734f2ea8e4c940a7",
-            ("a523", "release"): "bce0d70c055443d4d5190a3f3c9a866f980c1c347ee97b8e3dccf9d8f900719e",
-            ("sdm845", "dev"): "3660b95d83dfc323b78725275912895998d19e82678f56a5f16d9984de96e105",
-            ("sdm845", "release"): "a10d31b6a2484c611f3c2e43c1361bb15e4da26e4b56d6146a66146f4ebc9962",
+            ("a133", "dev"): "da4bbca03b3078f1f9a8111ad9ae922b00aecede1f61090949599fc17bebbb78",
+            ("a133", "release"): "91ffe3138f3b917aafc2b0c1330ee9fc0a9194c816deee4c37a05b4bbc9eea67",
+            ("a133-open-7x", "dev"): "f9280940782f6ae2f6a7024f56951f2e481a1c3dfd09966e31c9148452f6fae7",
+            ("a133-open-7x", "release"): "e227210951efadd20ef7819284245f82cd8bccc10409450d168eb95e939bac95",
+            ("a133-owned", "dev"): "c1d0277eaf417071589fc35d03c112ba363669fafbacb5f85bc64ab5c5e38b72",
+            ("a133-owned", "release"): "0abc4cb2a8d9acd6827834a44b35f4c2830a00cf501a905710f8b807b3e26ef9",
+            ("a523", "dev"): "f38b39e242e44e19641e59860499c9f86045c148b7ea43f3b67cf62ea714427e",
+            ("a523", "release"): "00af332fedb6789285ec0a844d91707adb1a431401471de97f18fabbf43a5eff",
+            ("sdm845", "dev"): "0346b9cec4e5dac8aa1cd76dde3b5e9021eaaee89ef6a7f9410d899517dec882",
+            ("sdm845", "release"): "0591ee264ecaa99516bfe400aa87129a3eb5335095ce1c31c1ba985be70383fc",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -428,7 +429,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "1d8056548b79b236e45d3ba0b0dec94a25660930",
-                "PF_IMAGE_SHA": "68cb3f101bb5ef3513469bb78f90610414c04652",
+                "PF_IMAGE_SHA": "7a5bd0c5d0984b3905edb23cc0f8ec2adb377545",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
