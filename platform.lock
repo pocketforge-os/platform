@@ -103,7 +103,13 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-35b9d6d1816b25822ebb.4: image#182 merge
+ref  = "main"          # tsp-mc9m.41.998: image#183 merge
+                       # 964888900c4ba6eb3211353f22ac5ecc03af1a7a (approved exact head
+                       # 6484ad4a36141f55503b025b85434feec84bfcd9) adds the standard GLES
+                       # and Vulkan demo tools with a fail-closed gpu-um-tsp ownership tripwire.
+                       # Kernel and Steam Link UAPI remain pinned at 671e7090.
+                       # Previous pin (c67588b157c476824aa49a585e0b1cf1a4db4f66):
+                       # tsp-35b9d6d1816b25822ebb.4: image#182 merge
                        # c67588b157c476824aa49a585e0b1cf1a4db4f66 (approved exact head
                        # b171985ea564a4e252c62c73982e5fd22d334cc2) advances the Steam Link
                        # FFmpeg 59 kernel-UAPI source lock and its hermetic producer-admission
@@ -431,7 +437,7 @@ ref  = "main"          # tsp-35b9d6d1816b25822ebb.4: image#182 merge
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "c67588b157c476824aa49a585e0b1cf1a4db4f66"
+sha  = "964888900c4ba6eb3211353f22ac5ecc03af1a7a"
 
 [[repos]]
 name = "gamescope"
