@@ -132,9 +132,17 @@ uboot = "dfcc77739aa647fa195abd2e01d9fab6b2633474"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-35b9d6d1816b25822ebb.3: image#180 merge
-                       # 7a5bd0c5d0984b3905edb23cc0f8ec2adb377545 (approved exact head
-                       # e79a68b96cfc6770a3f92a3bf5508e57b66a19cc) contains image#179's
+ref  = "main"          # tsp-35b9d6d1816b25822ebb.3: image#181 merge
+                       # d81a1d7ff4abe9e14b34f41cbd3c6ddbfe3abf5f (approved exact head
+                       # b923ea50bf1fa6ec203885e94a763fc1ba2b5c4c) makes the A133 CMA env
+                       # sanitizer and guard consume the owned U-Boot redundant-environment layout:
+                       # a 0x20000-byte CRC region with its flag byte preserved and trailing image
+                       # padding left byte-for-byte intact. This repairs the real env.img build path
+                       # while retaining image#180's DT-owned CMA contract and the compatible
+                       # runtime#106, launcher#153, and u-boot-tsp-a133 db70249c pins below.
+                       # Previous pin (7a5bd0c5d0984b3905edb23cc0f8ec2adb377545):
+                       # image#180 (approved exact head e79a68b96cfc6770a3f92a3bf5508e57b66a19cc)
+                       # contains image#179's
                        # reviewed session-authority head 68cb3f101bb5ef3513469bb78f90610414c04652
                        # (merged as 6fe5655e9c46e8b55d716742147c0ccfdbf4b1f5) plus the
                        # Cedrus/open-stack change: remove the Linux 7.x cma= cmdline override,
@@ -446,7 +454,7 @@ ref  = "main"          # tsp-35b9d6d1816b25822ebb.3: image#180 merge
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "7a5bd0c5d0984b3905edb23cc0f8ec2adb377545"
+sha  = "d81a1d7ff4abe9e14b34f41cbd3c6ddbfe3abf5f"
 
 [[repos]]
 name = "gamescope"
