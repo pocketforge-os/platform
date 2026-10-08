@@ -1,5 +1,5 @@
 # Exact load-bearing snippets retained by image#181 from image#179's reviewed contract generation.
-# docker/Dockerfile.ge8300-mesa-cross at 299d52947864fd42aa9a153aaaf5a14f6e23c1ce. Do NOT add
+# docker/Dockerfile.ge8300-mesa-cross at 977370a239cfe5d8e06aea7fb0e475bd0da58738. Do NOT add
 [ "${PF_RUNTIME_SHA}" = "5738f3d5e108b52186b129a5db1c62a878278b19" ] || { echo "FATAL: runtime pin drift: ${PF_RUNTIME_SHA}"; exit 1; }
 ARG PF_RECOVERY_SHA=443a84e47c96d83de967948844d8e5eaa41d7413
 [ "${PF_RECOVERY_SHA}" = "443a84e47c96d83de967948844d8e5eaa41d7413" ] || {
