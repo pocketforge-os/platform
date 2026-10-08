@@ -130,7 +130,7 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.1000.1: image#201/#202 publication batch
+ref  = "main"          # tsp-98733d6399be82e4f00c.9.2: image#204 corrective KMSRO gate
                        # b4ff0051ae96fb61f5c9c885f0581da4717219e9 scopes the ES 3.2
                        # candidate drirc to the CTS profile, proves it cannot leak into release,
                        # and advances the exact gpu-um mirror to d7637e31. Image#197 merged as
@@ -148,6 +148,9 @@ ref  = "main"          # tsp-mc9m.41.1000.1: image#201/#202 publication batch
                        # adds the Gamescope PVR pipeline-cache producer, and image#202 merged as
                        # 9993c3b7573e86f07db2f23a4c3ec131258ed2bd, removing the invalid
                        # sun4i-drm-to-Zink device map while retaining the powervr-to-Zink map.
+                       # Image#204 merged as 8d02ea701b325b46a2ffc5df9bf99b473fe7f6c5
+                       # and verifies the built internal KMSRO path from the shipped static
+                       # symbol table, with an authenticated build-options fallback for stripped DSOs.
                        # Previous pin (380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b):
                        # tsp-mc9m.41.1000.1: image#195 shared-Xwayland repair.
                        # 380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b contains approved head
@@ -538,7 +541,7 @@ ref  = "main"          # tsp-mc9m.41.1000.1: image#201/#202 publication batch
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "9993c3b7573e86f07db2f23a4c3ec131258ed2bd"
+sha  = "8d02ea701b325b46a2ffc5df9bf99b473fe7f6c5"
 
 [[repos]]
 name = "gamescope"
