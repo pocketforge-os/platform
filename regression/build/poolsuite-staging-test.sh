@@ -40,11 +40,11 @@ printf 'poolsuite fixture\n' > "$tmp/home/poolsuite/README"
 git -C "$tmp/home/poolsuite" add README
 git -C "$tmp/home/poolsuite" commit -qm fixture
 sha="$(git -C "$tmp/home/poolsuite" rev-parse HEAD)"
-for repo in image source-kernel libsdl3-sunxifb wpa-supplicant-tsp runtime sim pf-hwprobe blobs vendor-manifest; do
+for repo in image source-kernel libsdl3-sunxifb wpa-supplicant-tsp cloud-init-tsp runtime sim pf-hwprobe blobs vendor-manifest; do
     ln -s poolsuite "$tmp/home/$repo"
 done
 
-common_args=$'PF_IMAGE_SHA='"$sha"$'\nPF_KERNEL_REPO=source-kernel\nPF_KERNEL_SHA='"$sha"$'\nPF_GPU_MODEL=ddk\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_LIBSDL3_SHA='"$sha"$'\nPF_WPA_SHA='"$sha"$'\nPF_RUNTIME_SHA='"$sha"$'\nPF_SIM_SHA='"$sha"$'\nPF_HWPROBE_SHA='"$sha"$'\nPF_BLOBS_SHA='"$sha"$'\nPF_VENDOR_MANIFEST_SHA='"$sha"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
+common_args=$'PF_IMAGE_SHA='"$sha"$'\nPF_KERNEL_REPO=source-kernel\nPF_KERNEL_SHA='"$sha"$'\nPF_GPU_MODEL=ddk\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_LIBSDL3_SHA='"$sha"$'\nPF_WPA_SHA='"$sha"$'\nPF_CLOUD_INIT_SHA='"$sha"$'\nPF_RUNTIME_SHA='"$sha"$'\nPF_SIM_SHA='"$sha"$'\nPF_HWPROBE_SHA='"$sha"$'\nPF_BLOBS_SHA='"$sha"$'\nPF_VENDOR_MANIFEST_SHA='"$sha"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
 
 HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" VARIANT=dev \
     pf_stage_sources "$tmp/dev" "$common_args"$'\nPF_POOLSUITE_SHA='"$sha"

@@ -192,10 +192,10 @@ find "${tmp}/preflight-source" -mindepth 1 -delete
 rmdir "${tmp}/preflight-source"
 find "${tmp}" -maxdepth 1 -name preflight-receipt.json -delete
 
-for repo in image libsdl3-sunxifb wpa-supplicant-tsp runtime sim pf-hwprobe poolsuite blobs vendor-manifest; do
+for repo in image libsdl3-sunxifb wpa-supplicant-tsp cloud-init-tsp runtime sim pf-hwprobe poolsuite blobs vendor-manifest; do
     ln -s gamescope "${tmp}/home/${repo}"
 done
-common=$'PF_IMAGE_SHA='"${head}"$'\nPF_KERNEL_REPO=gamescope\nPF_KERNEL_SHA='"${head}"$'\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_GPU_MODEL=ddk\nPF_LIBSDL3_SHA='"${head}"$'\nPF_WPA_SHA='"${head}"$'\nPF_RUNTIME_SHA='"${head}"$'\nPF_SIM_SHA='"${head}"$'\nPF_HWPROBE_SHA='"${head}"$'\nPF_POOLSUITE_SHA='"${head}"$'\nPF_BLOBS_SHA='"${head}"$'\nPF_VENDOR_MANIFEST_SHA='"${head}"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
+common=$'PF_IMAGE_SHA='"${head}"$'\nPF_KERNEL_REPO=gamescope\nPF_KERNEL_SHA='"${head}"$'\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_GPU_MODEL=ddk\nPF_LIBSDL3_SHA='"${head}"$'\nPF_WPA_SHA='"${head}"$'\nPF_CLOUD_INIT_SHA='"${head}"$'\nPF_RUNTIME_SHA='"${head}"$'\nPF_SIM_SHA='"${head}"$'\nPF_HWPROBE_SHA='"${head}"$'\nPF_POOLSUITE_SHA='"${head}"$'\nPF_BLOBS_SHA='"${head}"$'\nPF_VENDOR_MANIFEST_SHA='"${head}"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
 gamescope=$'\nPF_GAMESCOPE_MODE=g1\nPF_GAMESCOPE_REPO=gamescope\nPF_GAMESCOPE_REPO_URL=https://github.com/pocketforge-os/gamescope.git\nPF_GAMESCOPE_SHA='"${head}"$'\nPF_GAMESCOPE_UPSTREAM_BASE='"${base}"$'\nPF_GAMESCOPE_PRESENT_HEAD='"${head}"$'\nPF_GAMESCOPE_STAGING_HEAD='"${head}"$'\nPF_GAMESCOPE_ROTATION_HEAD='"${head}"$'\nPF_GAMESCOPE_REQUIRED_PATCH_IDS='"${patch_ids}"$'\nPF_GAMESCOPE_PATCH_SERIES_SHA256='"${patch_digest}"$'\nPF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256='"${manifest_digest}"$'\nPF_GAMESCOPE_SOURCE_TREE_SHA256='"${source_tree_digest}"$'\nPF_GAMESCOPE_LICENSE_SHA256='"${license_digest}"$'\nPF_GAMESCOPE_DIAGNOSTICS=0'
 
 HOME="${tmp}/home" PF_MIRROR_DIR="${tmp}/mirrors" VARIANT=dev \

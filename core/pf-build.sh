@@ -196,6 +196,7 @@ pf_stage_sources() {
         "gpu|$(v PF_GPU_REPO)|$(v PF_GPU_SHA)"
         "libsdl3-sunxifb|libsdl3-sunxifb|$(v PF_LIBSDL3_SHA)"
         "wpa-supplicant-tsp|wpa-supplicant-tsp|$(v PF_WPA_SHA)"
+        "cloud-init-tsp|cloud-init-tsp|$(v PF_CLOUD_INIT_SHA)"
         "runtime|runtime|$(v PF_RUNTIME_SHA)"
         "blobs|blobs|$(v PF_BLOBS_SHA)"
         "vendor-manifest|vendor-manifest|$(v PF_VENDOR_MANIFEST_SHA)"
@@ -284,13 +285,15 @@ pf_stage_sources() {
             create_context_dir "$dest"
             git --git-dir="$gitdir" archive --format=tar "$sha" | tar -x -C "$dest"
         fi
-        # The kernel build consumes PF_KERNEL_SHA as live UTS identity. Carry a
-        # staging receipt from this exact archive operation so the image build
-        # can reject a valid-looking build arg paired with a different tree.
-        # The Dockerfile verifies and removes it before invoking Kbuild.
-        if [ "$logical" = kernel ]; then
-            printf '%s\n' "$sha" > "$dest/.pf-source-revision"
-        fi
+        # Carry a staging receipt wherever the downstream build consumes the
+        # revision as live package provenance. The image verifies and removes
+        # these before building, rejecting a valid-looking arg paired with a
+        # different archive.
+        case "$logical" in
+            kernel|wpa-supplicant-tsp|cloud-init-tsp)
+                printf '%s\n' "$sha" > "$dest/.pf-source-revision"
+                ;;
+        esac
         n="$(find "$dest" -type f | wc -l)"
         pf_log "stage: $logical <- $repo@${sha:0:12}  ($n files, src=$gitdir)"
     done
@@ -595,6 +598,7 @@ pf_os_image_dockerbuild() {
            --build-context "gpu-src=$src_dir/gpu"
            --build-context "sdl-src=$src_dir/libsdl3-sunxifb"
            --build-context "wpa-src=$src_dir/wpa-supplicant-tsp"
+           --build-context "cloud-init-src=$src_dir/cloud-init-tsp"
            --build-context "runtime-src=$src_dir/runtime"
            --build-context "blobs-src=$src_dir/blobs"
            --build-context "vendor-manifest-src=$src_dir/vendor-manifest"

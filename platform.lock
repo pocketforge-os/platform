@@ -130,7 +130,7 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-98733d6399be82e4f00c.9.2: image#204 corrective KMSRO gate
+ref  = "main"          # tsp-mc9m.41.1002: image#203 first-boot cloud-init packaging
                        # b4ff0051ae96fb61f5c9c885f0581da4717219e9 scopes the ES 3.2
                        # candidate drirc to the CTS profile, proves it cannot leak into release,
                        # and advances the exact gpu-um mirror to d7637e31. Image#197 merged as
@@ -151,6 +151,8 @@ ref  = "main"          # tsp-98733d6399be82e4f00c.9.2: image#204 corrective KMSR
                        # Image#204 merged as 8d02ea701b325b46a2ffc5df9bf99b473fe7f6c5
                        # and verifies the built internal KMSRO path from the shipped static
                        # symbol table, with an authenticated build-options fallback for stripped DSOs.
+                       # Image#203 then merged as 9c1fc33144ad5fcb120b6d88863c2b101275429c
+                       # on that base and adds the Stage-A first-boot cloud-init package path.
                        # Previous pin (380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b):
                        # tsp-mc9m.41.1000.1: image#195 shared-Xwayland repair.
                        # 380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b contains approved head
@@ -541,7 +543,7 @@ ref  = "main"          # tsp-98733d6399be82e4f00c.9.2: image#204 corrective KMSR
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "8d02ea701b325b46a2ffc5df9bf99b473fe7f6c5"
+sha  = "9c1fc33144ad5fcb120b6d88863c2b101275429c"
 
 [[repos]]
 name = "gamescope"
@@ -1222,10 +1224,16 @@ sha  = "7411a94803c95b2f93a898f3773ffe95dfec4263"
 name = "wpa-supplicant-tsp"   # owned wpa_supplicant 2.10 fork (GREAT_SNR 25->45 roam hysteresis,
 url  = "https://github.com/pocketforge-os/wpa-supplicant-tsp.git"   # tsp-urq.7). Consumed by the a133
 ref  = "main"                 # image's device-gated `wpa` Dockerfile.pf stage (tsp-myp1.8.2); the
-                              # a523 fullmac profile ships stock Debian wpasupplicant. Tip is source-
-                              # identical to the bench-validated acc77223f732 (post-acc7722 commits
-                              # are governance/workflow only).
-sha  = "089aab801088a87484565d4b708c5c9df671fd9b"
+                              # a523 fullmac profile ships stock Debian wpasupplicant. tsp-mc9m.41.1002
+                              # adds file-backed ext-password support with literal values and exact
+                              # key-name matching for the Stage-A PMK credential.
+sha  = "0d483c38a1e67543022c51244dd2437cd71332d6"
+
+[[repos]]
+name = "cloud-init-tsp"  # canonical/cloud-init 26.2 plus PocketForge's strict local
+url  = "https://github.com/pocketforge-os/cloud-init-tsp.git"  # NoCloud seed policy.
+ref  = "pocketforge-main"
+sha  = "558269b993c74d87304355d5ef9546f3a10454b2"
 
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
