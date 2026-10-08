@@ -153,7 +153,7 @@ comparison = "equal"
 id = "gpu-um-vendored-fixture-comment"
 platform_field = "repos.gpu-um-tsp.sha"
 consumer_repo = "image"
-consumer_path = "build/tests/fixtures/gpu-um-toolchain-1d805654.Dockerfile"
+consumer_path = "build/tests/fixtures/gpu-um-toolchain-299d5294.Dockerfile"
 parser = "template"
 template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {value}.'
 reason = "fixture source provenance"
@@ -184,6 +184,32 @@ consumer_path = "tests/test-open-gpu-tools.sh"
 parser = "template"
 template = 'gpu-um-tsp@{value} (unknown stack)'
 reason = "negative ownership-tripwire fixture provenance"
+
+[[references]]
+id = "steamlink-uapi-runtime-test-drift-expectation"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+aliases = [
+  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+  "repos.kernel-sunxi-7.x.sha",
+]
+consumer_repo = "image"
+consumer_path = "tests/test-steamlink-ffmpeg59-runtime.sh"
+parser = "template"
+template = "want '{value}'"
+reason = "negative producer-admission expectation for the current image UAPI lock"
+
+[[references]]
+id = "steamlink-uapi-runtime-test-current-control"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+aliases = [
+  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+  "repos.kernel-sunxi-7.x.sha",
+]
+consumer_repo = "image"
+consumer_path = "tests/test-steamlink-ffmpeg59-runtime.sh"
+parser = "template"
+template = 'run_contract_builder {value}'
+reason = "positive producer-admission control for the current image UAPI lock"
 
 [[references]]
 id = "kernel-49-shipping-plan"
