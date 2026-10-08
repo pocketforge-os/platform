@@ -13,7 +13,7 @@ profile = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(profile)
 
 SELECTED = "a133-open-7x-gpu"
-UAPI_SHA = "671e7090246a6ae9d347a70e2b3952b7819f937d"
+UAPI_SHA = "a65b6107b0ab0938a80cee810d103e759da8f8c2"
 EXPECTED_ARGS = {
     "PF_STEAMLINK_FFMPEG59_MODE": "v1",
     "PF_FFMPEG_DEBIAN_VERSION": "7:5.1.8-0+deb12u1",

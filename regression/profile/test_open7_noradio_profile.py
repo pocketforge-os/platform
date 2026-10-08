@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "671e7090246a6ae9d347a70e2b3952b7819f937d"
+NORMAL_KERNEL_SHA = "a65b6107b0ab0938a80cee810d103e759da8f8c2"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -28,6 +28,8 @@ NORMAL_KERNEL_SHA = "671e7090246a6ae9d347a70e2b3952b7819f937d"
 # the override held while the canonical pin moves 3434d3fd -> 40ea8fd9. The PowerVR recovery
 # batch again leaves it held while the canonical pin moves 40ea8fd9 -> a75bf257. The
 # Cedrus SRAM/poll fix likewise leaves it held while the canonical pin moves to 671e7090.
+# The PowerVR MMU/freelist and DTB-guard batch again leaves it held while the canonical
+# pin moves to a65b6107; it remains an explicit diagnostic override.
 NORADIO_KERNEL_SHA = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 NORMAL_UBOOT_SHA = "db70249c8b25b7c3271cce71a19005b361527aaf"
 
