@@ -168,6 +168,15 @@ template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {val
 reason = "fixture source provenance after image#190 renamed the exact-pin fixture"
 
 [[references]]
+id = "gpu-um-vendored-fixture-comment-7cc55c90"
+platform_field = "repos.gpu-um-tsp.sha"
+consumer_repo = "image"
+consumer_path = "build/tests/fixtures/gpu-um-toolchain-7cc55c90.Dockerfile"
+parser = "template"
+template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {value}.'
+reason = "fixture source provenance after image#192 advanced the exact-pin fixture"
+
+[[references]]
 id = "gpu-um-drift-test-pin"
 platform_field = "repos.gpu-um-tsp.sha"
 consumer_repo = "image"
@@ -184,6 +193,15 @@ consumer_path = "tests/test-open-gpu-tools.sh"
 parser = "template"
 template = 'gpu-um-tsp@{value} (open Mesa GLES/EGL/GBM/Vulkan userspace, GE8300 Zink)'
 reason = "positive ownership-tripwire fixture provenance"
+
+[[references]]
+id = "gpu-um-open-stack-glx-provenance-test"
+platform_field = "repos.gpu-um-tsp.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-open-gpu-tools.sh"
+parser = "template"
+template = 'gpu-um-tsp@{value} (open Mesa GLX/GLES/EGL/GBM/Vulkan userspace, GE8300 Zink)'
+reason = "positive GLVND ownership-tripwire fixture provenance after image#189"
 
 [[references]]
 id = "gpu-um-foreign-stack-provenance-test"
@@ -309,6 +327,15 @@ consumer_path = "tests/test-dockerfile-pf-transforms.sh"
 parser = "template"
 template = 'target_gpu_um_sha={value}'
 reason = "test expectation for the declared production mirror"
+
+[[references]]
+id = "gpu-um-transform-test-stale-control"
+platform_field = "repos.gpu-um-tsp.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-dockerfile-pf-transforms.sh"
+parser = "template"
+template = 'stale_gpu_um_sha={value}'
+reason = "deliberate previous-generation identity used by the drift negative control"
 
 [[references]]
 id = "blobs-a133-cma-real-env-fixture"
