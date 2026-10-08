@@ -110,7 +110,7 @@ def _resolve_app_runtime_support(merged):
         raise ProfileSchemaError("ABI family registry must contain [[family]] entries")
 
     device = merged.get("device", {})
-    device_ids = {device.get("id"), device.get("base")}
+    device_ids = set(_device_profile_lineage(device))
     matches = [family for family in families
                if isinstance(family, dict) and family.get("device") in device_ids]
     if len(matches) > 1:
@@ -199,7 +199,7 @@ def _resolve_device_descriptor(merged):
     if merged.get("app_runtime") is None:
         return None
     device = merged.get("device", {})
-    candidates = [device.get("id"), device.get("base")]
+    candidates = _device_profile_lineage(device)
     for descriptor_id in candidates:
         if not isinstance(descriptor_id, str) or not descriptor_id:
             continue
@@ -240,10 +240,33 @@ def list_devices():
     return _list_devices_at(DEVICES)
 
 
+def _device_profile_lineage(device):
+    """Return a profile id followed by its declared base chain, fail-closed on cycles."""
+    device_id = device.get("id")
+    base_id = device.get("base")
+    lineage = []
+    if isinstance(device_id, str) and device_id:
+        lineage.append(device_id)
+    seen = set(lineage)
+    while isinstance(base_id, str) and base_id:
+        if base_id in seen:
+            raise ProfileSchemaError(
+                f"device profile inheritance cycle at '{base_id}'")
+        lineage.append(base_id)
+        seen.add(base_id)
+        base_path = os.path.join(DEVICES, base_id, "profile.toml")
+        if not os.path.isfile(base_path):
+            raise FileNotFoundError(
+                f"device '{device_id}' base '{base_id}' has no profile at {base_path}")
+        base = _load(base_path)
+        base_id = base.get("device", {}).get("base")
+    return lineage
+
+
 def load_lock():
     if not os.path.isfile(LOCK):
         return {"seeded": False, "interim": False, "repos": {}, "profile_pins": {},
-                "platform_runtime": {}}
+                "platform_runtime": {}, "platform_payload": {}}
     data = _load(LOCK)
     profile_pins = data.get("profile_pins", {})
     if not isinstance(profile_pins, dict):
@@ -315,9 +338,68 @@ def load_lock():
         if source.get("sha") != source_sha:
             raise ProfileSchemaError(
                 f"{where}.source_sha must equal the canonical {runtime['source_repo']} pin")
+    platform_payload = data.get("platform_payload", {})
+    if not isinstance(platform_payload, dict):
+        raise ProfileSchemaError("[platform_payload] must be a table")
+    payload_keys = {
+        "schema_version", "profile", "variants", "mode_arg", "mode_value",
+        "artifact_url_arg", "artifact_url", "artifact_sha256_arg",
+        "artifact_sha256", "build_args",
+    }
+    for payload_id, payload in platform_payload.items():
+        where = f"[platform_payload.{payload_id}]"
+        if (not isinstance(payload_id, str)
+                or not re.fullmatch(r"[a-z0-9][a-z0-9_]*", payload_id)):
+            raise ProfileSchemaError("[platform_payload] keys must be lowercase path-safe IDs")
+        if not isinstance(payload, dict):
+            raise ProfileSchemaError(f"{where} must be a table")
+        unknown = sorted(set(payload) - payload_keys)
+        if unknown:
+            raise ProfileSchemaError(f"{where} unknown keys: {', '.join(unknown)}")
+        if payload.get("schema_version") != 1:
+            raise ProfileSchemaError(f"{where}.schema_version must be 1")
+        for key in ("profile", "mode_value", "artifact_url", "artifact_sha256"):
+            if not isinstance(payload.get(key), str) or not payload[key]:
+                raise ProfileSchemaError(f"{where}.{key} must be a non-empty string")
+        if payload["profile"] not in profile_ids:
+            raise ProfileSchemaError(
+                f"{where}.profile '{payload['profile']}' is not a device profile")
+        variants = payload.get("variants")
+        if variants != ["dev"]:
+            raise ProfileSchemaError(f"{where}.variants must be exactly ['dev']")
+        for key in ("mode_arg", "artifact_url_arg", "artifact_sha256_arg"):
+            value = payload.get(key)
+            if not isinstance(value, str) or not re.fullmatch(r"PF_[A-Z0-9_]+", value):
+                raise ProfileSchemaError(f"{where}.{key} must be a PF_* build-arg name")
+        selector_args = {
+            payload["mode_arg"], payload["artifact_url_arg"],
+            payload["artifact_sha256_arg"],
+        }
+        if len(selector_args) != 3:
+            raise ProfileSchemaError(f"{where} selector build-arg names must be unique")
+        digest = payload["artifact_sha256"]
+        if not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise ProfileSchemaError(f"{where}.artifact_sha256 must be a full SHA-256")
+        url_pattern = rf"http://[^/?#]+/artifacts/sha256/{digest}/[A-Za-z0-9._-]+"
+        if not re.fullmatch(url_pattern, payload["artifact_url"]):
+            raise ProfileSchemaError(
+                f"{where}.artifact_url must be a content-addressed HTTP artifact URL")
+        payload_args = payload.get("build_args")
+        if not isinstance(payload_args, dict) or not payload_args:
+            raise ProfileSchemaError(f"{where}.build_args must be a non-empty table")
+        collisions = sorted(selector_args & set(payload_args))
+        if collisions:
+            raise ProfileSchemaError(
+                f"{where}.build_args repeats selector args: {', '.join(collisions)}")
+        for arg, value in payload_args.items():
+            if not isinstance(arg, str) or not re.fullmatch(r"PF_[A-Z0-9_]+", arg):
+                raise ProfileSchemaError(f"{where}.build_args keys must be PF_* names")
+            if not isinstance(value, str) or not value:
+                raise ProfileSchemaError(f"{where}.build_args.{arg} must be a non-empty string")
     return {"seeded": bool(data.get("seeded", False)),
             "interim": bool(data.get("interim_seed", False)), "repos": repos,
-            "profile_pins": profile_pins, "platform_runtime": platform_runtime}
+            "profile_pins": profile_pins, "platform_runtime": platform_runtime,
+            "platform_payload": platform_payload}
 
 
 def _deep_fill(dst, src):
@@ -346,11 +428,16 @@ def resolve(dev_id):
     # the variant (variant wins per-key), so the variant is provably identical to its
     # base except the sections/keys it explicitly restates — no drift, and the eventual
     # default-flip is a crisp "repoint the base's [bootchain]" diff, not a divergent
-    # profile re-review. Single-level (a base's own [device].base is not chased).
+    # profile re-review. Bases are followed transitively so a narrowly scoped
+    # child can extend an existing variant without losing that variant's family
+    # defaults; cycles and missing links fail before any build args are emitted.
     base_id = profile.get("device", {}).get("base")
-    if base_id:
-        if base_id == dev_id:
-            raise ValueError(f"device '{dev_id}' [device].base points at itself")
+    seen = {dev_id}
+    while base_id:
+        if base_id in seen:
+            raise ValueError(
+                f"device '{dev_id}' profile inheritance cycle at '{base_id}'")
+        seen.add(base_id)
         base_path = os.path.join(DEVICES, base_id, "profile.toml")
         if not os.path.isfile(base_path):
             raise FileNotFoundError(
@@ -359,6 +446,7 @@ def resolve(dev_id):
         _require_tables(base, PROFILE_TABLE_SECTIONS + ("gamescope",))
         _reject_derived_sections(base)
         _deep_fill(profile, base)  # variant wins; base fills absent keys
+        base_id = base.get("device", {}).get("base")
     family_id = profile.get("device", {}).get("family")
     family = {}
     if family_id:
@@ -784,13 +872,15 @@ def build_args(dev_id, variant="dev"):
             "PF_DEVICE_DESCRIPTOR_ID": descriptor["id"],
             "PF_DEVICE_DESCRIPTOR_SHA256": descriptor["sha256"],
         })
-    # Optional platform-owned compatibility payloads are selected by exact profile
-    # id. The lock describes their build-arg surface generically so core does not
-    # learn a consumer, codec, or hardware implementation. Diagnostic siblings do
-    # not inherit a payload accidentally. A payload that consumes kernel source
-    # must match both the selected repo and the profile-resolved revision.
+    # Optional platform-owned compatibility payloads are selected by a profile
+    # in the explicit inheritance lineage. The lock describes their build-arg
+    # surface generically so core does not learn a consumer, codec, or hardware
+    # implementation. Siblings do not inherit a payload accidentally. A
+    # payload that consumes kernel source must match both the selected repo and
+    # the profile-resolved revision.
+    profile_lineage = set(_device_profile_lineage(merged["device"]))
     for runtime_id, runtime in lock["platform_runtime"].items():
-        if runtime["profile"] != dev_id:
+        if runtime["profile"] not in profile_lineage:
             continue
         if not kernel_sha:
             # Preserve the existing missing-pin diagnostic surface. The payload
@@ -804,6 +894,25 @@ def build_args(dev_id, variant="dev"):
         if collisions:
             raise ProfileSchemaError(
                 f"platform runtime '{runtime_id}' build-arg collisions: {', '.join(collisions)}")
+        args.update(selected_args)
+    # Immutable external payloads use the same exact-profile selection model,
+    # but are content-addressed artifacts rather than source-coupled runtimes.
+    # They are intentionally dev-only so a release build cannot acquire test
+    # payload bytes through a profile selector.
+    for payload_id, payload in lock["platform_payload"].items():
+        if payload["profile"] != dev_id or variant not in payload["variants"]:
+            continue
+        selected_args = {
+            payload["mode_arg"]: payload["mode_value"],
+            payload["artifact_url_arg"]: payload["artifact_url"],
+            payload["artifact_sha256_arg"]: payload["artifact_sha256"],
+            **payload["build_args"],
+        }
+        collisions = sorted(set(args) & set(selected_args))
+        if collisions:
+            raise ProfileSchemaError(
+                f"platform payload '{payload_id}' build-arg collisions: "
+                f"{', '.join(collisions)}")
         args.update(selected_args)
     # Repos this device genuinely needs a SHA for (repo named, not the "none" sentinel).
     needed = [("PF_KERNEL_SHA", k.get("repo")), ("PF_IMAGE_SHA", "image"),

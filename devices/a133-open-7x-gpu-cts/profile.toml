@@ -1,0 +1,7 @@
+# Opt-in full Khronos GLES CTS test image. Every hardware/runtime selection is
+# inherited from the ordinary open-GPU profile; only the exact profile id causes
+# platform.lock to select the immutable dev-only CTS payload.
+[device]
+base = "a133-open-7x-gpu"
+id = "a133-open-7x-gpu-cts"
+name = "TrimUI Smart Pro (v7.x open GPU, full GLES CTS)"
