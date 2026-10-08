@@ -274,18 +274,26 @@ class ProfileTest(unittest.TestCase):
         # adds the profile-scoped CTS path and the 16550cc1 producer mirror, moving only
         # PF_IMAGE_SHA in this non-open table. Kernel and Steam Link UAPI remain unchanged.
         # Image#195 makes Xwayland a shared A133 open-GPU package input and again moves only
-        # PF_IMAGE_SHA in every image-bearing row; all source/runtime pins stay unchanged.
+        # PF_IMAGE_SHA in every image-bearing row. Image#196 plus the kernel/UM batch moves
+        # PF_IMAGE_SHA globally; canonical A133 rows also inherit the new kernel identity.
+        # Image#197's byte-identical UAPI provenance mirror and image#198's exact gpu-um mirror
+        # each move only PF_IMAGE_SHA in this non-open table; the gpu-um pin remains open-only.
+        # Image#199 moves PF_IMAGE_SHA again for the byte-identical e9952056 UAPI provenance;
+        # kernel#81 also moves PF_KERNEL_SHA only on the canonical open-7x rows. Image#200
+        # advances PF_IMAGE_SHA globally; gpu-um 27219a2a remains open-profile-only.
+        # Image#201/#202 move only PF_IMAGE_SHA again for the pipeline-cache producer and
+        # corrected KMSRO device mapping; kernel and gpu-um remain pinned unchanged.
         expected = {
-            ("a133", "dev"): "de9e9ea8c51012fc65be6d1c95301e3c27a9cc304bdd930e2c2cce07ca1aa413",
-            ("a133", "release"): "f9d77596fcb927e59b3d01a6331c86e7c4c8635c82c0dee1dc62e0b9bedc7180",
-            ("a133-open-7x", "dev"): "b8157b58b8b464c3d6bf30d4b2bf540e2177254499995af28b328ee8d0965d2b",
-            ("a133-open-7x", "release"): "130ca80a327744b53c80e6849c8e6be8712c9733bd6a357b64409baafb9fab3b",
-            ("a133-owned", "dev"): "2fe371afac3f1745d116826da77bdebea4a48f1b777026d3d0fe9a07c1349d2c",
-            ("a133-owned", "release"): "4e5af86a2fcf9a440621bbac11dcbc4bb3962488703fa069d1103c58140891da",
-            ("a523", "dev"): "8618092bc7ceb0a77ed3ee41d13aaefc31220f484eeafd5edb11fca21d604d09",
-            ("a523", "release"): "026e1db159c9c642af4e6340fa9657aba3ad1d70159be5ad097d37c797e96a2d",
-            ("sdm845", "dev"): "2abf9a1423519a16bc1af9b38b17f1b861cabe291a7b442ab8dae72f3ed0329a",
-            ("sdm845", "release"): "2d52b0708189139f6f1416f165f748707288d438ae8b98b998fdd70e60cec918",
+            ("a133", "dev"): "926dd80fb4b73114f5c653ed78879a66c8887e51d10e4b24cca3dfd68adfdc5a",
+            ("a133", "release"): "eee24ab0deaa2ec5dabec34740101702190935f386cda3661c3083365c98fcf7",
+            ("a133-open-7x", "dev"): "69f2302bca61c53c1c52b643aa6e617a0884caf7e5198b61357e4725044723a5",
+            ("a133-open-7x", "release"): "cfd6a27f04ff1fdc6a84cdb28a9f57fc93687b6a4510a6758635c12231741118",
+            ("a133-owned", "dev"): "11106f21a05873177003689ff766085bc5db94772f6c686696ede899378a99cc",
+            ("a133-owned", "release"): "748a870bc3e76a8d0366469ab8384c2c11dab7bee1f7ebcde1e66664bf5e2cea",
+            ("a523", "dev"): "86db37e9daa456fe3decdce47671b9cd6bf2543c8aba0068b1165eb7477ec551",
+            ("a523", "release"): "f91e079060f53951a2229ec5cc871eecc2ce1442e9434d6464f7a185ddfd363a",
+            ("sdm845", "dev"): "340f787cf474d0b330ada46421cd50a635f3094c60976c1ba0a3548a161a164d",
+            ("sdm845", "release"): "51fc5a4ed024b8b32fb795faa1dd93ded0788a55952742bc2541ddd545504cba",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -372,7 +380,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "6ccb87902144babc2838b03840c0413bf0941ab4")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "16550cc17c5cafa9ba8aed705c7c024f82cd71ca")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "27219a2a996285caeb0eb83f8b188ab6d0cee8b3")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -415,7 +423,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "a65b6107b0ab0938a80cee810d103e759da8f8c2")
+        self.assertEqual(args["PF_KERNEL_SHA"], "e9952056e12826f13092f4b7804c73f27286dec8")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -432,7 +440,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "a65b6107b0ab0938a80cee810d103e759da8f8c2")
+        self.assertEqual(args["PF_KERNEL_SHA"], "e9952056e12826f13092f4b7804c73f27286dec8")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
@@ -446,8 +454,8 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": args["PF_IMAGE_SHA"],
             },
             {
-                "PF_GPU_UM_SHA": "16550cc17c5cafa9ba8aed705c7c024f82cd71ca",
-                "PF_IMAGE_SHA": "380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b",
+                "PF_GPU_UM_SHA": "27219a2a996285caeb0eb83f8b188ab6d0cee8b3",
+                "PF_IMAGE_SHA": "9993c3b7573e86f07db2f23a4c3ec131258ed2bd",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
