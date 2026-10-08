@@ -168,13 +168,13 @@ template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {val
 reason = "fixture source provenance after image#190 renamed the exact-pin fixture"
 
 [[references]]
-id = "gpu-um-vendored-fixture-comment-7cc55c90"
+id = "gpu-um-vendored-fixture-comment-16550cc1"
 platform_field = "repos.gpu-um-tsp.sha"
 consumer_repo = "image"
-consumer_path = "build/tests/fixtures/gpu-um-toolchain-7cc55c90.Dockerfile"
+consumer_path = "build/tests/fixtures/gpu-um-toolchain-16550cc1.Dockerfile"
 parser = "template"
 template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {value}.'
-reason = "fixture source provenance after image#192 advanced the exact-pin fixture"
+reason = "fixture source provenance after image#194 advanced the exact-pin fixture"
 
 [[references]]
 id = "gpu-um-drift-test-pin"
@@ -336,6 +336,60 @@ consumer_path = "tests/test-dockerfile-pf-transforms.sh"
 parser = "template"
 template = 'stale_gpu_um_sha={value}'
 reason = "deliberate previous-generation identity used by the drift negative control"
+
+[[references]]
+id = "cts-build-id-bundle-sha-test"
+platform_field = "platform_payload.cts_bundle_v1.artifact_sha256"
+consumer_repo = "image"
+consumer_path = "tests/test-build-id.sh"
+parser = "template"
+template = 'PF_CTS_BUNDLE_SHA256={value}'
+reason = "build-id fixture proving the optional CTS payload changes image identity"
+
+[[references]]
+id = "cts-bundle-receipt-archive-sha-test"
+platform_field = "platform_payload.cts_bundle_v1.build_args.PF_CTS_SOURCE_ARCHIVE_SHA256"
+consumer_repo = "image"
+consumer_path = "tests/test-cts-bundle-image.sh"
+parser = "template"
+template = 'source_archive_sha256={value}'
+reason = "positive CTS bundle receipt fixture"
+
+[[references]]
+id = "cts-bundle-export-archive-sha-test"
+platform_field = "platform_payload.cts_bundle_v1.build_args.PF_CTS_SOURCE_ARCHIVE_SHA256"
+consumer_repo = "image"
+consumer_path = "tests/test-cts-bundle-image.sh"
+parser = "template"
+template = 'export PF_CTS_SOURCE_ARCHIVE_SHA256={value}'
+reason = "CTS bundle source-archive admission fixture"
+
+[[references]]
+id = "cts-bundle-good-source-commit-test"
+platform_field = "platform_payload.cts_bundle_v1.build_args.PF_CTS_SOURCE_COMMIT"
+consumer_repo = "image"
+consumer_path = "tests/test-cts-bundle-image.sh"
+parser = "template"
+template = 'make_bundle "${good_archive}" {value} no'
+reason = "positive CTS bundle source-commit fixture"
+
+[[references]]
+id = "cts-bundle-export-source-commit-test"
+platform_field = "platform_payload.cts_bundle_v1.build_args.PF_CTS_SOURCE_COMMIT"
+consumer_repo = "image"
+consumer_path = "tests/test-cts-bundle-image.sh"
+parser = "template"
+template = 'export PF_CTS_SOURCE_COMMIT={value}'
+reason = "CTS bundle source-commit admission fixture"
+
+[[references]]
+id = "cts-bundle-bad-manifest-source-commit-test"
+platform_field = "platform_payload.cts_bundle_v1.build_args.PF_CTS_SOURCE_COMMIT"
+consumer_repo = "image"
+consumer_path = "tests/test-cts-bundle-image.sh"
+parser = "template"
+template = 'make_bundle "${bad_manifest_archive}" {value} yes'
+reason = "negative CTS list-manifest fixture retaining the admitted source commit"
 
 [[references]]
 id = "blobs-a133-cma-real-env-fixture"

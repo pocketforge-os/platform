@@ -270,19 +270,20 @@ class ProfileTest(unittest.TestCase):
         # correction, and runtime-loader attestation correction move only PF_IMAGE_SHA.
         # The combined image#190/#191 publication moves PF_IMAGE_SHA on every image-bearing
         # profile. The image#189/#192 provider publication moves it again; gpu-um-tsp#193
-        # moves PF_GPU_UM_SHA only on open profiles outside this table. Kernel and Steam Link
-        # UAPI remain unchanged.
+        # moves PF_GPU_UM_SHA only on open profiles outside this table. Image#193/#194 then
+        # adds the profile-scoped CTS path and the 16550cc1 producer mirror, moving only
+        # PF_IMAGE_SHA in this non-open table. Kernel and Steam Link UAPI remain unchanged.
         expected = {
-            ("a133", "dev"): "db0a25c4a0762414ba6eb91e855adf348e6e580cb1e0c3da9a3e5f95a2547810",
-            ("a133", "release"): "a7b10e03a3dc22d23f56765958facff36780b77a9379389a7d67af3063ada13e",
-            ("a133-open-7x", "dev"): "0b146dd958d7528a7d1e1835fa096c0b94309680b622b8ef7711a63ff7683eb8",
-            ("a133-open-7x", "release"): "40ce7d0285a99a2acd465994ccc01e1a41a8ea9c38781dee0f3c8bb40ce2fbed",
-            ("a133-owned", "dev"): "7636088ce90964ccc9167509c1816cc8a66776a1a26da72c9c13c4922ed98a80",
-            ("a133-owned", "release"): "4a8565250116833198f429ec56342a1202abc9173911181a689f06eaa073bbba",
-            ("a523", "dev"): "5b40b020aae0bc6f58072a6c81b645a9fa2987ce3758abd705230459c9e6574a",
-            ("a523", "release"): "a71b8b93db0943e1cf2f0088ad331f1dfe53a572d2ffbe24683f30591b858893",
-            ("sdm845", "dev"): "17a0a071e525cc90d0df2592f2cd0c66a7f0dd2e5da7eebe91b35556f3cf002d",
-            ("sdm845", "release"): "3586e5eb9bf724c03a9f86340ba495142adc292777f29885ff0487b1c3454e07",
+            ("a133", "dev"): "22ae046b44ef678cb1ae941af0c09de3163ff7eb07429f1096b2b92f08dd280c",
+            ("a133", "release"): "9a9af254ec7446e9c5b43b7f503d246377021d8450d43de81afbacb227405111",
+            ("a133-open-7x", "dev"): "d7243ca07ddcfca793f8ba503544718cdba31b8fad1cff89dcce0ed8b8e27407",
+            ("a133-open-7x", "release"): "0b8c0a060bc06f612f8ff3245b3ea8d661e2c5b691271972f5177298fe93be1c",
+            ("a133-owned", "dev"): "c088f4a385ee0041c6984f817105fbf65e42620fe36fff8e8b295b015e5328c9",
+            ("a133-owned", "release"): "39f4d6c735df8eafca0879d793516a35594e476cf4c7676be8ee33ff320b8d2d",
+            ("a523", "dev"): "13edf4010b2f55f6b4cb28e3398355ce312473dea031936fad2c63c70f25157a",
+            ("a523", "release"): "360a7f6229d4db674c05f35fea2ce7a8b7ac97b919271b9095a1ffe833e187a0",
+            ("sdm845", "dev"): "a4cec0f9ad8ceccb27ba6445c590527ef61207dc276f012db214d40baa416ed0",
+            ("sdm845", "release"): "6e326d66786a4f017c7ae22a65bc1b8e58efdda46eb6b9a76ac2f3db1a5ddb3b",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -369,7 +370,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "6ccb87902144babc2838b03840c0413bf0941ab4")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "7cc55c9006d1516ec8b77d200f8ac18f1e691219")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "16550cc17c5cafa9ba8aed705c7c024f82cd71ca")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -443,8 +444,8 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": args["PF_IMAGE_SHA"],
             },
             {
-                "PF_GPU_UM_SHA": "7cc55c9006d1516ec8b77d200f8ac18f1e691219",
-                "PF_IMAGE_SHA": "0b440d03815ada2bf06f4aacff6df12db11d8035",
+                "PF_GPU_UM_SHA": "16550cc17c5cafa9ba8aed705c7c024f82cd71ca",
+                "PF_IMAGE_SHA": "98ea3fc74621ee38525a47d5e573c17f03245922",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
