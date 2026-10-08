@@ -49,10 +49,10 @@ printf 'fixture\n' > "$tmp/home/src-fixture/README"
 git -C "$tmp/home/src-fixture" add README
 git -C "$tmp/home/src-fixture" commit -qm fixture
 sha="$(git -C "$tmp/home/src-fixture" rev-parse HEAD)"
-for repo in image libsdl3-sunxifb wpa-supplicant-tsp runtime sim pf-hwprobe poolsuite blobs vendor-manifest launcher recovery gpu-um; do
+for repo in image libsdl3-sunxifb wpa-supplicant-tsp cloud-init-tsp runtime sim pf-hwprobe poolsuite blobs vendor-manifest launcher recovery gpu-um; do
     ln -s src-fixture "$tmp/home/$repo"
 done
-common=$'PF_IMAGE_SHA='"$sha"$'\nPF_KERNEL_REPO=src-fixture\nPF_KERNEL_SHA='"$sha"$'\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_LIBSDL3_SHA='"$sha"$'\nPF_WPA_SHA='"$sha"$'\nPF_RUNTIME_SHA='"$sha"$'\nPF_SIM_SHA='"$sha"$'\nPF_HWPROBE_SHA='"$sha"$'\nPF_POOLSUITE_SHA='"$sha"$'\nPF_BLOBS_SHA='"$sha"$'\nPF_VENDOR_MANIFEST_SHA='"$sha"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
+common=$'PF_IMAGE_SHA='"$sha"$'\nPF_KERNEL_REPO=src-fixture\nPF_KERNEL_SHA='"$sha"$'\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_LIBSDL3_SHA='"$sha"$'\nPF_WPA_SHA='"$sha"$'\nPF_CLOUD_INIT_SHA='"$sha"$'\nPF_RUNTIME_SHA='"$sha"$'\nPF_SIM_SHA='"$sha"$'\nPF_HWPROBE_SHA='"$sha"$'\nPF_POOLSUITE_SHA='"$sha"$'\nPF_BLOBS_SHA='"$sha"$'\nPF_VENDOR_MANIFEST_SHA='"$sha"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
 open_stack=$'\nPF_GPU_MODEL=open\nPF_GPU_UM_REPO=gpu-um\nPF_GPU_UM_SHA='"$sha"$'\nPF_LAUNCHER_REPO=launcher\nPF_LAUNCHER_SHA='"$sha"$'\nPF_RECOVERY_REPO=recovery\nPF_RECOVERY_SHA='"$sha"
 descriptor_lines="$(grep '^PF_DEVICE_DESCRIPTOR_' <<< "$open_args")"
 

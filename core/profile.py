@@ -779,6 +779,11 @@ def build_args(dev_id, variant="dev"):
         "PF_GPU_UM_SHA": sha(gpu.get("um_repo")),
         "PF_LIBSDL3_SHA": sha("libsdl3-sunxifb"),
         "PF_WPA_SHA": sha("wpa-supplicant-tsp"),
+        # Stage-A first boot is built from the governed cloud-init fork. Like
+        # wpa-supplicant-tsp, it is universal userspace source rather than a
+        # profile-selected repository; the image validates the matching
+        # .pf-source-revision receipt before packaging it.
+        "PF_CLOUD_INIT_SHA": sha("cloud-init-tsp"),
         # E2 runtime layer (tsp-e1b.11): the image's `runtime` Dockerfile.pf stage cross-builds
         # pf-input-decode from this SHA. Literal-name lookup like libsdl3/wpa — not-per-device, so
         # it is not driven off a profile section. Missing SHA fails at pf_stage_sources (not in the

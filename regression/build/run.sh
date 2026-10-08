@@ -12,6 +12,9 @@ bash "$HERE/gpu-um-staging-test.sh"
 echo "### exact Gamescope source/package staging ###"
 bash "$HERE/gamescope-staging-test.sh"
 
+echo "### cloud-init-tsp source staging ###"
+bash "$HERE/cloud-init-staging-test.sh"
+
 echo "### deterministic Gamescope dependency cache ###"
 python3 "$HERE/test_gamescope_dependency_cache.py"
 
