@@ -273,17 +273,19 @@ class ProfileTest(unittest.TestCase):
         # moves PF_GPU_UM_SHA only on open profiles outside this table. Image#193/#194 then
         # adds the profile-scoped CTS path and the 16550cc1 producer mirror, moving only
         # PF_IMAGE_SHA in this non-open table. Kernel and Steam Link UAPI remain unchanged.
+        # Image#195 makes Xwayland a shared A133 open-GPU package input and again moves only
+        # PF_IMAGE_SHA in every image-bearing row; all source/runtime pins stay unchanged.
         expected = {
-            ("a133", "dev"): "22ae046b44ef678cb1ae941af0c09de3163ff7eb07429f1096b2b92f08dd280c",
-            ("a133", "release"): "9a9af254ec7446e9c5b43b7f503d246377021d8450d43de81afbacb227405111",
-            ("a133-open-7x", "dev"): "d7243ca07ddcfca793f8ba503544718cdba31b8fad1cff89dcce0ed8b8e27407",
-            ("a133-open-7x", "release"): "0b8c0a060bc06f612f8ff3245b3ea8d661e2c5b691271972f5177298fe93be1c",
-            ("a133-owned", "dev"): "c088f4a385ee0041c6984f817105fbf65e42620fe36fff8e8b295b015e5328c9",
-            ("a133-owned", "release"): "39f4d6c735df8eafca0879d793516a35594e476cf4c7676be8ee33ff320b8d2d",
-            ("a523", "dev"): "13edf4010b2f55f6b4cb28e3398355ce312473dea031936fad2c63c70f25157a",
-            ("a523", "release"): "360a7f6229d4db674c05f35fea2ce7a8b7ac97b919271b9095a1ffe833e187a0",
-            ("sdm845", "dev"): "a4cec0f9ad8ceccb27ba6445c590527ef61207dc276f012db214d40baa416ed0",
-            ("sdm845", "release"): "6e326d66786a4f017c7ae22a65bc1b8e58efdda46eb6b9a76ac2f3db1a5ddb3b",
+            ("a133", "dev"): "de9e9ea8c51012fc65be6d1c95301e3c27a9cc304bdd930e2c2cce07ca1aa413",
+            ("a133", "release"): "f9d77596fcb927e59b3d01a6331c86e7c4c8635c82c0dee1dc62e0b9bedc7180",
+            ("a133-open-7x", "dev"): "b8157b58b8b464c3d6bf30d4b2bf540e2177254499995af28b328ee8d0965d2b",
+            ("a133-open-7x", "release"): "130ca80a327744b53c80e6849c8e6be8712c9733bd6a357b64409baafb9fab3b",
+            ("a133-owned", "dev"): "2fe371afac3f1745d116826da77bdebea4a48f1b777026d3d0fe9a07c1349d2c",
+            ("a133-owned", "release"): "4e5af86a2fcf9a440621bbac11dcbc4bb3962488703fa069d1103c58140891da",
+            ("a523", "dev"): "8618092bc7ceb0a77ed3ee41d13aaefc31220f484eeafd5edb11fca21d604d09",
+            ("a523", "release"): "026e1db159c9c642af4e6340fa9657aba3ad1d70159be5ad097d37c797e96a2d",
+            ("sdm845", "dev"): "2abf9a1423519a16bc1af9b38b17f1b861cabe291a7b442ab8dae72f3ed0329a",
+            ("sdm845", "release"): "2d52b0708189139f6f1416f165f748707288d438ae8b98b998fdd70e60cec918",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -445,7 +447,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "16550cc17c5cafa9ba8aed705c7c024f82cd71ca",
-                "PF_IMAGE_SHA": "98ea3fc74621ee38525a47d5e573c17f03245922",
+                "PF_IMAGE_SHA": "380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

@@ -128,7 +128,13 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.1000.1: image#193/#194 CTS + PCO-spill batch
+ref  = "main"          # tsp-mc9m.41.1000.1: image#195 shared-Xwayland repair
+                       # 380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b contains approved head
+                       # 790c4f2f3be199ab92ff4e920d8bd3a06970a27c, making Xwayland an
+                       # explicit input for every A133 open-GPU profile, including noradio,
+                       # while retaining the owned Mesa provider and CTS release isolation.
+                       # Previous pin (98ea3fc74621ee38525a47d5e573c17f03245922):
+                       # tsp-mc9m.41.1000.1: image#193/#194 CTS + PCO-spill batch.
                        # 98ea3fc74621ee38525a47d5e573c17f03245922 contains image#193
                        # b314fbf0951832cec0d3e118eb2fef5e85a4a4ab (profile-scoped CTS
                        # bundle install with release-image isolation) plus image#194 head
@@ -511,7 +517,7 @@ ref  = "main"          # tsp-mc9m.41.1000.1: image#193/#194 CTS + PCO-spill batc
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "98ea3fc74621ee38525a47d5e573c17f03245922"
+sha  = "380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b"
 
 [[repos]]
 name = "gamescope"
