@@ -265,20 +265,20 @@ class ProfileTest(unittest.TestCase):
         # remains frozen outside this table.
         # The tsp-mc9m.41.998 GPU demo-tool publication, unified-Zink attestation
         # correction, and runtime-loader attestation correction move only PF_IMAGE_SHA.
-        # The tsp-mc9m.41.1000.1 diagnostic batch moves PF_IMAGE_SHA for every image-bearing
-        # profile and canonical PF_KERNEL_SHA for a133-open-7x; GPU UM and the Steam Link
-        # UAPI move only on the full GPU profile outside this golden set.
+        # The combined image#190/#191 publication moves PF_IMAGE_SHA on every image-bearing
+        # profile. gpu-um-tsp#192 moves PF_GPU_UM_SHA only on open profiles outside this table;
+        # kernel and Steam Link UAPI remain unchanged.
         expected = {
-            ("a133", "dev"): "58d4a3939aa543a2f0ee14816b9178a6d822f71920a9a77b150d8187d8276374",
-            ("a133", "release"): "f05d661a76829dd332a9c59fe103bccc3f5178a7d593a47212b7c7902d5b03d2",
-            ("a133-open-7x", "dev"): "7bf3c32f8ff78d77c9dd98eb992e5b2c3f4ffb76ff615f565a64abc9b12df15e",
-            ("a133-open-7x", "release"): "c07528d81d95263342d5069e1e3c67b4f6e3dfeedab6b22bfc22ddc1efb2977d",
-            ("a133-owned", "dev"): "d361987c4c2840ff4239c0d135c286816a8bc215f844985f2db4bd3255507fde",
-            ("a133-owned", "release"): "9142c9bbb92d67994b2fcc94d79e8de9d6096b04eb3eb422cbf5f710e58a93a0",
-            ("a523", "dev"): "6650571f1e209e0e299566f91beb389bf21aa0ccbdbbef5e630215ddf8956000",
-            ("a523", "release"): "4435e009b7d95cc42843ec2960312d084efb384c821b8d5e7fd2578366f60fb7",
-            ("sdm845", "dev"): "44cdbe5c8bd1023e30589cf9a7cf3ee2f37c59b26efd8eceb11f4fb781829beb",
-            ("sdm845", "release"): "90088b26f0835fcec166ea8cfdc96f6d4d34c673df0adc570581216f4bb835fd",
+            ("a133", "dev"): "5b5655d6d0a1f3b4aa0c4a7f50ae8bae23f90c2caac8e331a2d39053b201e6ee",
+            ("a133", "release"): "edc65fbff9b58c80df7e1354cb1f6f3d0696eda2c1aba1b4b9ab3128c1247c08",
+            ("a133-open-7x", "dev"): "6cf2ae809e0219459e49096ff2cb00da05fe7af965c77bb77205bd1360798170",
+            ("a133-open-7x", "release"): "c11df06e9b61a1c0df5c42926cb3175087df63ee15623284fb553fe6a9a6be3e",
+            ("a133-owned", "dev"): "face0e715fe373a19eba21a3c99725d2f130cf17b135d6aac95e8aa72040b04b",
+            ("a133-owned", "release"): "1d57324013ff1e5d1fb1b9b5d298e2d926f7bd015e6d533dc8d24999775e08a7",
+            ("a523", "dev"): "3167652d791265d77b89db54b56539f4994f4f26377d9218258fbc121d72fe3b",
+            ("a523", "release"): "f3b8d8a9d0f6e2ed99afebb9d824a6100fb6bf7e33d49630cbd8ef96ede78b21",
+            ("sdm845", "dev"): "957dac1cfcf1ebc324b6a8744a701a24e999d03389afd81dacddfb057e9b378e",
+            ("sdm845", "release"): "12df144748da60d4702f0d23d6e0fdf904b7830a08c725eeb54bbffef66c9072",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -365,7 +365,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "6ccb87902144babc2838b03840c0413bf0941ab4")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "299d52947864fd42aa9a153aaaf5a14f6e23c1ce")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "977370a239cfe5d8e06aea7fb0e475bd0da58738")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -439,8 +439,8 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": args["PF_IMAGE_SHA"],
             },
             {
-                "PF_GPU_UM_SHA": "299d52947864fd42aa9a153aaaf5a14f6e23c1ce",
-                "PF_IMAGE_SHA": "8f5e71caf08bd8660db2c7ef554108a8b7ab06b5",
+                "PF_GPU_UM_SHA": "977370a239cfe5d8e06aea7fb0e475bd0da58738",
+                "PF_IMAGE_SHA": "f6fd073b639c3e4b4209579686e9003b3fe69c8f",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

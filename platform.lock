@@ -103,7 +103,16 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.1000.1: image#188 consumer-pin merge
+ref  = "main"          # tsp-mc9m.41.1000.1: image#190/#191 publication batch
+                       # f6fd073b639c3e4b4209579686e9003b3fe69c8f contains image#190 merge
+                       # 9a2dcc2a8724a29aa76d2932adff9ac2d7e30a16 (removes all six
+                       # PVR_I_WANT_A_BROKEN_VULKAN_DRIVER exports and advances the image-owned
+                       # gpu-um mirrors to 977370a2) plus image#191's approved exact head
+                       # 7c0645bc4d3377b0d59323c1a69d2a1a46f226e7, which admits only an exact
+                       # gpu-um producer mirror at /usr/local/lib/dri while preserving the
+                       # Debian-Mesa and foreign-driver tripwires.
+                       # Previous pin (8f5e71caf08bd8660db2c7ef554108a8b7ab06b5):
+                       # tsp-mc9m.41.1000.1: image#188 consumer-pin merge
                        # 8f5e71caf08bd8660db2c7ef554108a8b7ab06b5 (approved exact head
                        # b72832e466e020217250c353506e4e7e8bf18537) aligns the image-owned
                        # gpu-um toolchain source identity with gpu-um-tsp#190 at 299d5294 and
@@ -462,7 +471,7 @@ ref  = "main"          # tsp-mc9m.41.1000.1: image#188 consumer-pin merge
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "8f5e71caf08bd8660db2c7ef554108a8b7ab06b5"
+sha  = "f6fd073b639c3e4b4209579686e9003b3fe69c8f"
 
 [[repos]]
 name = "gamescope"
@@ -815,7 +824,13 @@ sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 [[repos]]
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
-ref  = "main"                 # tsp-mc9m.41.1000.1: gpu-um-tsp#190
+ref  = "main"                 # tsp-mc9m.41.1000.1: gpu-um-tsp#190/#192 batch
+                               # gpu-um-tsp#192 merged as
+                               # 977370a239cfe5d8e06aea7fb0e475bd0da58738, adding the GE8300
+                               # gate allowance and honest 2^30 limits on top of #190's PCO
+                               # dynamic descriptor-index fix.
+                               # Previous pin (299d52947864fd42aa9a153aaaf5a14f6e23c1ce):
+                               # tsp-mc9m.41.1000.1: gpu-um-tsp#190
                                # merged as 299d52947864fd42aa9a153aaaf5a14f6e23c1ce (approved
                                # exact head 85e9971ea301b48157526192820c58e0b6259f4f), preserving
                                # dynamic descriptor-array indices in PCO.
@@ -916,7 +931,7 @@ ref  = "main"                 # tsp-mc9m.41.1000.1: gpu-um-tsp#190
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "299d52947864fd42aa9a153aaaf5a14f6e23c1ce"
+sha  = "977370a239cfe5d8e06aea7fb0e475bd0da58738"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
