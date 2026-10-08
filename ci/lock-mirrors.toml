@@ -69,6 +69,15 @@ template = '[ "${PF_LAUNCHER_SHA}" = "{value}" ] || { echo "FATAL: F13 launcher 
 comparison = "equal"
 
 [[mirrors]]
+id = "gamescope-pvr-cache-producer-pin"
+platform_field = "repos.gamescope.sha"
+consumer_repo = "image"
+consumer_path = "build/produce-gamescope-pvr-cache.sh"
+parser = "shell-assignment"
+key = "expected_gamescope_sha"
+comparison = "equal"
+
+[[mirrors]]
 id = "steamlink-ffmpeg-debian-version"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_DEBIAN_VERSION"
 consumer_repo = "image"
@@ -480,3 +489,12 @@ consumer_path = "tests/test-gamescope-package-path.py"
 parser = "template"
 template = 'HEAD = "{value}"'
 reason = "test expectation for the declared Gamescope source"
+
+[[references]]
+id = "gamescope-pvr-cache-test-source-pin"
+platform_field = "repos.gamescope.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-gamescope-pvr-cache.sh"
+parser = "template"
+template = "grep -F '{value}'"
+reason = "test expectation for the Gamescope PVR pipeline-cache producer"

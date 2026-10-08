@@ -20,8 +20,10 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "7f516ff6e5859b0460e89ccf398fbc8327f9cd7d"
+CURRENT_IMAGE = "9993c3b7573e86f07db2f23a4c3ec131258ed2bd"
 CURRENT_UAPI = "e9952056e12826f13092f4b7804c73f27286dec8"
+CURRENT_GAMESCOPE = "4232739e75c95113871e260967e8b4ff995ea897"
+STALE_GAMESCOPE = "0000000000000000000000000000000000000000"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 STALE_UAPI = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
 RUNTIME_SHA = "5738f3d5e108b52186b129a5db1c62a878278b19"
@@ -507,10 +509,16 @@ comparison = "equal"
     def test_current_contract_generation_passes_and_mixed_generation_fails(self) -> None:
         current_tree = {
             "build/Dockerfile.pf": (FIXTURES / "current" / "Dockerfile.pf").read_bytes(),
+            "build/produce-gamescope-pvr-cache.sh": (
+                f"expected_gamescope_sha={CURRENT_GAMESCOPE}\n".encode()
+            ),
             SOURCE_LOCK_PATH: (FIXTURES / "corrected" / "source.lock").read_bytes().replace(
                 EXPECTED_UAPI.encode(), CURRENT_UAPI.encode(), 1
             ),
             "scripts/build-rootfs.sh": (FIXTURES / "current" / "build-rootfs.sh").read_bytes(),
+            "tests/test-gamescope-pvr-cache.sh": (
+                f"grep -F '{CURRENT_GAMESCOPE}' producer\n".encode()
+            ),
         }
         resolver = FixtureResolver({("image", CURRENT_IMAGE): current_tree})
         result = gate.check_gate(
@@ -522,7 +530,7 @@ comparison = "equal"
         )
         self.assertTrue(result.ok, result.render())
         self.assertEqual(resolver.requests, [("image", CURRENT_IMAGE)])
-        self.assertEqual(result.mirror_rule_count, 14)
+        self.assertEqual(result.mirror_rule_count, 15)
 
         mixed_lock = (ROOT / "platform.lock").read_bytes().replace(
             f'sha  = "{RUNTIME_SHA}"'.encode(),
@@ -543,6 +551,27 @@ comparison = "equal"
             and diagnostic.platform_field == "repos.runtime.sha"
         )
         self.assertEqual(drift.expected, PREVIOUS_RUNTIME_SHA)
+
+        mixed_gamescope_lock = (ROOT / "platform.lock").read_bytes().replace(
+            f'sha  = "{CURRENT_GAMESCOPE}"'.encode(),
+            f'sha  = "{STALE_GAMESCOPE}"'.encode(),
+            1,
+        )
+        mixed_gamescope = gate.check_gate(
+            mixed_gamescope_lock,
+            (ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            FixtureResolver({("image", CURRENT_IMAGE): current_tree}),
+            baseline_manifest_raw=(ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            baseline_commit=BASE_COMMIT,
+        )
+        self.assertFalse(mixed_gamescope.ok)
+        gamescope_drift = next(
+            diagnostic for diagnostic in mixed_gamescope.diagnostics
+            if diagnostic.classification == "STALE_MIRROR"
+            and diagnostic.platform_field == "repos.gamescope.sha"
+        )
+        self.assertEqual(gamescope_drift.expected, STALE_GAMESCOPE)
+        self.assertEqual(gamescope_drift.actual, CURRENT_GAMESCOPE)
         self.assertEqual(drift.actual, RUNTIME_SHA)
 
 
