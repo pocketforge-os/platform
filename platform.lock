@@ -46,13 +46,15 @@ manifest_signing_active = false
 # source.lock before downloading or transforming any external source. The source
 # revision is intentionally repeated: it couples the exported userspace headers
 # to the exact kernel revision selected by the admitted profile.
+# tsp-mc9m.41.1000.1: a65b6107 -> 4684f03b -> e9952056 changes no include/uapi file;
+# these provenance moves therefore leave the FFmpeg 59 runtime ABI/input bytes unchanged.
 [platform_runtime.steamlink_ffmpeg59_v1]
 schema_version = 1
 profile         = "a133-open-7x-gpu"
 mode_arg        = "PF_STEAMLINK_FFMPEG59_MODE"
 mode_value      = "v1"
 source_repo     = "kernel-sunxi-7.x"
-source_sha      = "a65b6107b0ab0938a80cee810d103e759da8f8c2"
+source_sha      = "e9952056e12826f13092f4b7804c73f27286dec8"
 runtime_path    = "/usr/lib/pocketforge/platform-runtimes/steamlink-ffmpeg59/v1"
 
 [platform_runtime.steamlink_ffmpeg59_v1.build_args]
@@ -62,7 +64,7 @@ PF_FFMPEG_ORIG_SHA256        = "56d4daf10c17330a45c8fe11bc260997677ca2432d3d5951
 PF_FFMPEG_ORIG_ASC_SHA256    = "ee93598ac566d1be4a80801e0a58f91ede2e6a5e9e670f681723b447f23c59d0"
 PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a39512921680090952e1"
 PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
-PF_FFMPEG_UAPI_SHA           = "a65b6107b0ab0938a80cee810d103e759da8f8c2"
+PF_FFMPEG_UAPI_SHA           = "e9952056e12826f13092f4b7804c73f27286dec8"
 
 # tsp-mc9m.41.924.24.14: immutable full GLES CTS checklist used only by the
 # opt-in dev test image. Unlike platform_runtime above, this input is already a
@@ -128,7 +130,23 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.1000.1: image#195 shared-Xwayland repair
+ref  = "main"          # tsp-mc9m.41.1000.1: image#196/#197 plus gpu-um mirror
+                       # b4ff0051ae96fb61f5c9c885f0581da4717219e9 scopes the ES 3.2
+                       # candidate drirc to the CTS profile, proves it cannot leak into release,
+                       # and advances the exact gpu-um mirror to d7637e31. Image#197 merged as
+                       # 2fed96f7fe0c0d61488067e0fae302a0a245f77d (approved head
+                       # 4be60e77e843b7fd51861bbc7319b60c8ce7af7f) and moves only the
+                       # byte-identical SteamLink kernel-UAPI provenance mirror to 4684f03b.
+                       # Image#198 then merged as 1afcb17965d3ff24e55e75fb2728e8707a715bf9,
+                       # advancing every exact gpu-um source/provenance witness to 6d0344fe while
+                       # preserving the byte-identical cross-toolchain recipe. Image#199 merged as
+                       # 597b1be2269123848c70ebb4bded4a426efaddba and moves only the
+                       # byte-identical SteamLink kernel-UAPI provenance mirror to e9952056.
+                       # Image#200 merged as 7f516ff6e5859b0460e89ccf398fbc8327f9cd7d
+                       # and advances every exact gpu-um source/provenance witness to 27219a2a
+                       # while preserving the byte-identical cross-toolchain recipe.
+                       # Previous pin (380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b):
+                       # tsp-mc9m.41.1000.1: image#195 shared-Xwayland repair.
                        # 380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b contains approved head
                        # 790c4f2f3be199ab92ff4e920d8bd3a06970a27c, making Xwayland an
                        # explicit input for every A133 open-GPU profile, including noradio,
@@ -517,7 +535,7 @@ ref  = "main"          # tsp-mc9m.41.1000.1: image#195 shared-Xwayland repair
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b"
+sha  = "7f516ff6e5859b0460e89ccf398fbc8327f9cd7d"
 
 [[repos]]
 name = "gamescope"
@@ -646,7 +664,14 @@ sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
 name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.1000.1): device/a133
-                               # a65b6107b0ab0938a80cee810d103e759da8f8c2 = prior pin
+                               # e9952056e12826f13092f4b7804c73f27286dec8 contains #78 guilty-context
+                               # recovery, #79 A133 DE2 writeback, #80 USB0 dual-route OTG policy,
+                               # and #81 the A133 G2D rotator node/driver plus its DT resource guard.
+                               # The 4684f03b..e9952056 range changes no include/uapi file. The
+                               # no-radio override remains frozen and independent below.
+                               # Previous pin (4684f03b7630fd032bea2ddaac40e2d2a034ab16):
+                               # a65b6107 plus kernel-sunxi-7.x#78/#79/#80.
+                               # Previous pin (a65b6107b0ab0938a80cee810d103e759da8f8c2):
                                # 671e7090246a6ae9d347a70e2b3952b7819f937d plus kernel-sunxi-7.x#76
                                # (reviewed head beadfe8fd4c1b7bf8195010748f98d953cb8aaa5;
                                # merge 9547ce38e442744db77e11fd44144355e0a26ead), backporting
@@ -853,7 +878,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.1000.1): device/a133
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "a65b6107b0ab0938a80cee810d103e759da8f8c2"
+sha  = "e9952056e12826f13092f4b7804c73f27286dec8"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -870,7 +895,21 @@ sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 [[repos]]
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
-ref  = "main"                 # tsp-mc9m.41.1000.1: gpu-um-tsp#194 batched PCO spilling
+ref  = "main"                 # tsp-mc9m.41.1000.1: CTS GLES candidate and Mesa follow-up batch
+                               # gpu-um-tsp#195/#196/#198/#199/#200/#191/#201 are ancestors of
+                               # 27219a2a996285caeb0eb83f8b188ab6d0cee8b3: compiled PVR compute
+                               # pipeline caching, opt-in GLES 3.2 qualification, Zink ES 3.1
+                               # capability aliases, RGB32 TBO buffer-view descriptors, the final
+                               # TCS spill fallback, device-validated unaligned transfer fix, and
+                               # GE8300 PBO-blit upload fallback. Image#200 mirrors this generation.
+                               # Previous pin (6d0344fe93aa58f9b894e7b199c5aabfafe7655f):
+                               # gpu-um-tsp#195/#196/#198/#199 candidate generation mirrored by
+                               # image#198.
+                               # Previous pin (d7637e31011c6fd90255f94d169dedab06099ca9):
+                               # gpu-um-tsp#196 added the PVR XML configuration and opt-in PVR/Zink
+                               # GLES 3.2 qualification path consumed only by image#196's CTS drirc.
+                               # Previous pin (16550cc17c5cafa9ba8aed705c7c024f82cd71ca):
+                               # tsp-mc9m.41.1000.1: gpu-um-tsp#194 batched PCO spilling
                                # gpu-um-tsp#194 merged as
                                # 16550cc17c5cafa9ba8aed705c7c024f82cd71ca, batching spill-slot
                                # liveness/reload work in PCO; the full gamescope pipeline corpus
@@ -990,7 +1029,7 @@ ref  = "main"                 # tsp-mc9m.41.1000.1: gpu-um-tsp#194 batched PCO s
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "16550cc17c5cafa9ba8aed705c7c024f82cd71ca"
+sha  = "27219a2a996285caeb0eb83f8b188ab6d0cee8b3"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
