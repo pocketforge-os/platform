@@ -26,6 +26,7 @@ spec.loader.exec_module(profile)
 A133_OPEN_PROFILES = {
     "a133-open",
     "a133-open-7x-gpu",
+    "a133-open-7x-gpu-cts",
     "a133-open-7x-gpu-noradio",
     "a133-open-7x-gpu-spl-trace",
 }
@@ -201,7 +202,10 @@ class DeviceDescriptorStagingTest(unittest.TestCase):
                 self.assertEqual(descriptor["path"], "devices/a133/capabilities.toml", dev_id)
 
     def test_every_profile_output_is_byte_identical_to_pre_descriptor_main(self):
-        self.assertEqual({dev for dev, _ in PRE_DESCRIPTOR_DIGESTS}, set(profile.list_devices()))
+        self.assertEqual(
+            {dev for dev, _ in PRE_DESCRIPTOR_DIGESTS},
+            set(profile.list_devices()) - {"a133-open-7x-gpu-cts"},
+        )
         commands = {
             "buildargs dev": ("buildargs", "{dev}", "dev"),
             "buildargs release": ("buildargs", "{dev}", "release"),

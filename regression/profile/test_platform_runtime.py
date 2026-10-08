@@ -42,10 +42,10 @@ class PlatformRuntimeTest(unittest.TestCase):
         self.assertEqual(
             {key: args[key] for key in EXPECTED_ARGS if key in args}, EXPECTED_ARGS)
 
-    def test_diagnostic_and_unrelated_profiles_do_not_select_payload(self):
+    def test_only_selected_profile_and_explicit_child_select_payload(self):
         payload_keys = set(EXPECTED_ARGS)
         for device in profile.list_devices():
-            if device == SELECTED:
+            if device in {SELECTED, "a133-open-7x-gpu-cts"}:
                 continue
             with self.subTest(device=device):
                 args, _, _ = profile.build_args(device)

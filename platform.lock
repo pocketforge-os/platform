@@ -64,6 +64,31 @@ PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a395
 PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
 PF_FFMPEG_UAPI_SHA           = "a65b6107b0ab0938a80cee810d103e759da8f8c2"
 
+# tsp-mc9m.41.924.24.14: immutable full GLES CTS checklist used only by the
+# opt-in dev test image. Unlike platform_runtime above, this input is already a
+# reproducibly built artifact; its content-addressed URL and SHA-256 are the
+# source identity. The image verifies both the archive and its embedded receipt
+# before materializing /opt/pocketforge/cts.
+[platform_payload.cts_bundle_v1]
+schema_version      = 1
+profile             = "a133-open-7x-gpu-cts"
+variants            = ["dev"]
+mode_arg            = "PF_CTS_BUNDLE_MODE"
+mode_value          = "v1"
+artifact_url_arg    = "PF_CTS_BUNDLE_URL"
+artifact_url        = "http://10.0.40.90:8790/artifacts/sha256/9ce9b9c252c1b288ffb4a58dd8e976fd35110b4e2b1d9cc1a3a0cd3be13e5125/pf-deqp-gles-aarch64.tar.gz"
+artifact_sha256_arg = "PF_CTS_BUNDLE_SHA256"
+artifact_sha256     = "9ce9b9c252c1b288ffb4a58dd8e976fd35110b4e2b1d9cc1a3a0cd3be13e5125"
+
+[platform_payload.cts_bundle_v1.build_args]
+PF_CTS_SOURCE_TAG    = "opengl-es-cts-3.2.14.1"
+PF_CTS_SOURCE_COMMIT = "067e8832315e79817ede1c4863804e440f5d1c80"
+PF_CTS_SOURCE_ARCHIVE_SHA256 = "ce9f37f536373b6d616cdf854876477be79503999b655d90bb2e0e9483d502df"
+PF_CTS_LIST_COUNT    = "13"
+PF_CTS_CASE_COUNT    = "124248"
+PF_CTS_SURFACES      = "pbuffer:256x256,pbuffer:64x64"
+PF_CTS_SOURCE_DATE_EPOCH = "0"
+
 # tsp-35b9d6d1816b25822ebb.3 ruling: the 7.x CMA guard makes both diagnostic profiles inherit canonical cma-free U-Boot; only automation-required kernel overrides remain.
 
 # tsp-mc9m.41.923.42: ARM B1 diagnostic, Linux-only when pinned. The normal repository pin

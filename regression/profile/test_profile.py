@@ -30,6 +30,7 @@ APP_BUILD_ARGS = {
 A133_OPEN_PROFILES = {
     "a133-open",
     "a133-open-7x-gpu",
+    "a133-open-7x-gpu-cts",
     "a133-open-7x-gpu-noradio",
     "a133-open-7x-gpu-spl-trace",
 }
@@ -51,6 +52,7 @@ class ProfileTest(unittest.TestCase):
             set(profile.list_devices()) - {
                 "a133-open-7x",
                 "a133-open-7x-gpu",
+                "a133-open-7x-gpu-cts",
                 "a133-open-7x-gpu-noradio",
                 "a133-open-7x-gpu-spl-trace",
             },
@@ -73,6 +75,7 @@ class ProfileTest(unittest.TestCase):
             "a133-open": "fbdev",
             "a133-open-7x": "none",
             "a133-open-7x-gpu": "fbdev",
+            "a133-open-7x-gpu-cts": "fbdev",
             "a133-open-7x-gpu-noradio": "fbdev",
             "a133-open-7x-gpu-spl-trace": "fbdev",
             "a133-owned": "fbdev",
