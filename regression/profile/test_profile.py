@@ -283,17 +283,18 @@ class ProfileTest(unittest.TestCase):
         # advances PF_IMAGE_SHA globally; gpu-um 27219a2a remains open-profile-only.
         # Image#201/#202 move only PF_IMAGE_SHA again for the pipeline-cache producer and
         # corrected KMSRO device mapping; kernel and gpu-um remain pinned unchanged.
+        # Image#204 corrects the KMSRO verification evidence and again moves only PF_IMAGE_SHA.
         expected = {
-            ("a133", "dev"): "926dd80fb4b73114f5c653ed78879a66c8887e51d10e4b24cca3dfd68adfdc5a",
-            ("a133", "release"): "eee24ab0deaa2ec5dabec34740101702190935f386cda3661c3083365c98fcf7",
-            ("a133-open-7x", "dev"): "69f2302bca61c53c1c52b643aa6e617a0884caf7e5198b61357e4725044723a5",
-            ("a133-open-7x", "release"): "cfd6a27f04ff1fdc6a84cdb28a9f57fc93687b6a4510a6758635c12231741118",
-            ("a133-owned", "dev"): "11106f21a05873177003689ff766085bc5db94772f6c686696ede899378a99cc",
-            ("a133-owned", "release"): "748a870bc3e76a8d0366469ab8384c2c11dab7bee1f7ebcde1e66664bf5e2cea",
-            ("a523", "dev"): "86db37e9daa456fe3decdce47671b9cd6bf2543c8aba0068b1165eb7477ec551",
-            ("a523", "release"): "f91e079060f53951a2229ec5cc871eecc2ce1442e9434d6464f7a185ddfd363a",
-            ("sdm845", "dev"): "340f787cf474d0b330ada46421cd50a635f3094c60976c1ba0a3548a161a164d",
-            ("sdm845", "release"): "51fc5a4ed024b8b32fb795faa1dd93ded0788a55952742bc2541ddd545504cba",
+            ("a133", "dev"): "9c65da2ccadaa2b8a14480993227bfc5a5713eb4e01f76775fac092e2d09e066",
+            ("a133", "release"): "9a331b42605e0dd795560c962c27864971b8cb1310884d5de9192b564d2b5398",
+            ("a133-open-7x", "dev"): "5907dbfa5b0826d3a30f92caca7dc6060f7f6ed065d5017ac0f8aab45f33fa03",
+            ("a133-open-7x", "release"): "7d2eaca0ef79126ac029cc12760bdb75efd921f2e3433db08ff2a1eeb1bf0f98",
+            ("a133-owned", "dev"): "ee7b1ef278a9b35c7e6c223c0785178ef26db402bd157d2dd13abc1815ee9181",
+            ("a133-owned", "release"): "18e749abb48bba9d71af2dd4884c4e169fc1304e0c35d322752bb5a3e6812b28",
+            ("a523", "dev"): "0d2b02c35e7633908b36d773e3ebe25676402fd66687d17534f71c8a59aae317",
+            ("a523", "release"): "5a695f34d771239ac9f7ba3ecccc6255077c7286c5cce260d12424f8580edddc",
+            ("sdm845", "dev"): "7159cc02a366c41769e6e91f9b9e7db0d75544ae5d886d9e2423179c48f6ad17",
+            ("sdm845", "release"): "7a8847adc56ea345ffb5bc8228d6608456d1e7e920565c6c68b4a495caa4c716",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -455,7 +456,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "27219a2a996285caeb0eb83f8b188ab6d0cee8b3",
-                "PF_IMAGE_SHA": "9993c3b7573e86f07db2f23a4c3ec131258ed2bd",
+                "PF_IMAGE_SHA": "8d02ea701b325b46a2ffc5df9bf99b473fe7f6c5",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
