@@ -287,18 +287,18 @@ class ProfileTest(unittest.TestCase):
         # Stage-A first boot then moves PF_IMAGE_SHA, advances universal PF_WPA_SHA,
         # and adds universal PF_CLOUD_INIT_SHA. No profile selector or missing pin changes.
         # Image#205 advances PF_IMAGE_SHA globally and PF_GPU_UM_SHA on open profiles.
-        # Image#206/#207/#208 again move only the already-emitted PF_IMAGE_SHA.
+        # Image#206/#207/#208/#209 again move only the already-emitted PF_IMAGE_SHA.
         expected = {
-            ("a133", "dev"): "e37927a61297f5e0528da687ae02095fe3f3a9bde1ca67d658ea39bd7374ad2e",
-            ("a133", "release"): "643186b38c5bb905445de1bb5e1ac7a056da2d6929fdb9c8a8f1510a00119337",
-            ("a133-open-7x", "dev"): "49508fd0ed25c581e14d3caf508a2b4d1c4fe2b7201e5a988af6b3fea201eb77",
-            ("a133-open-7x", "release"): "b3d22938dc7b3bf64da14a47da17d7237e37fe8891835572adc0d2915b1f4932",
-            ("a133-owned", "dev"): "b1e86d5a30ba5ae2cb2aee299310beebe28f1166c6033b289c5e20cb496f3ef6",
-            ("a133-owned", "release"): "58e6eb4c41d73ffc33fec3ab5bb527eda05990dc482bb37f5a4bb9c9fc8c1c2c",
-            ("a523", "dev"): "9f7de19b4d87321ac5855f647cec7c4b76582cffb683449b27e644ac47cf525e",
-            ("a523", "release"): "5d2f9ff3a91a6a04c54cb9451a5cc8a1f21f6c990cb89b23e140207492309828",
-            ("sdm845", "dev"): "ca2e207c1fa58d0e14018b58bdb78c7ba6df0a7612af008026f2c3f94cacfbad",
-            ("sdm845", "release"): "14e0f9fcd89004ea54a3452e4eedfc9428d4236b6eb223f70bb9892df364702f",
+            ("a133", "dev"): "cb14cd2c9352fe98cab48e1ae1cb14914b6d2f0372d62f6d00f59c929eba2fae",
+            ("a133", "release"): "769342d548831df418f5862d2f6956327c689b191edc1119fdbef07f17eca4b1",
+            ("a133-open-7x", "dev"): "3025b5fa95f7943710344b608dbc29ea60e13a90af4c9b7165b8e8778e250510",
+            ("a133-open-7x", "release"): "3580c1120496e9455beb3df123d9eedfa088f0009747d29f29772d1944532ca3",
+            ("a133-owned", "dev"): "1a0e67147a4a895dae99eac1ca8f4cf58f1c6fb71da51b97901a34930c06dc71",
+            ("a133-owned", "release"): "5f570ad4cf01ae5365110c0b3b62cc7d9d154c3a75ac23567dda0da94220264b",
+            ("a523", "dev"): "65b829feec050c0d40e7b4c8c8ab6939de04d73ab4729893e02dd83b0e7c2234",
+            ("a523", "release"): "490d916dca998cbea8faa4ddf57ea6a9352ac0f37d05863a71e757d79a5f1887",
+            ("sdm845", "dev"): "dcc11a47ba413d9e136221ed60b375a4aba8d65d1e38d4aa5dc0fc2baacf200d",
+            ("sdm845", "release"): "7ea7f7f50a0e1ceed9f2a4ecb5e3dfba9e2f5c9398fd6629867ffac3a75189b5",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -460,7 +460,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "d0c388059e577067c82590c14a602c69ad67e58d",
-                "PF_IMAGE_SHA": "3a29122e8a18f9cdd33c7b89a07621677d512fc7",
+                "PF_IMAGE_SHA": "b1b6f9bb87ba0b657cb034633c9b7e0f38821d9c",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

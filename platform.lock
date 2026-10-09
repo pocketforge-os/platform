@@ -132,7 +132,7 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.923.75: image#208 kernel/UAPI witness
+ref  = "main"          # tsp-mc9m.41.924.24.14.1: image#209 CTS dlopen links
                        # b4ff0051ae96fb61f5c9c885f0581da4717219e9 scopes the ES 3.2
                        # candidate drirc to the CTS profile, proves it cannot leak into release,
                        # and advances the exact gpu-um mirror to d7637e31. Image#197 merged as
@@ -163,6 +163,9 @@ ref  = "main"          # tsp-mc9m.41.923.75: image#208 kernel/UAPI witness
                        # and passes each local package to mmdebstrap as a distinct include argument.
                        # Image#208 merged as 3a29122e8a18f9cdd33c7b89a07621677d512fc7
                        # and advances the Steam Link kernel/UAPI provenance witness to 16d3cc8e.
+                       # Image#209 merged as b1b6f9bb87ba0b657cb034633c9b7e0f38821d9c
+                       # and adds CTS-only GLVND development-name links plus an exact-rootfs
+                       # resolver gate for the surfaceless bundle's dlopen names.
                        # Previous pin (380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b):
                        # tsp-mc9m.41.1000.1: image#195 shared-Xwayland repair.
                        # 380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b contains approved head
@@ -553,7 +556,7 @@ ref  = "main"          # tsp-mc9m.41.923.75: image#208 kernel/UAPI witness
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "3a29122e8a18f9cdd33c7b89a07621677d512fc7"
+sha  = "b1b6f9bb87ba0b657cb034633c9b7e0f38821d9c"
 
 [[repos]]
 name = "gamescope"
