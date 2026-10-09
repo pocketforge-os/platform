@@ -286,17 +286,18 @@ class ProfileTest(unittest.TestCase):
         # Image#204 corrects the KMSRO verification evidence and again moves only PF_IMAGE_SHA.
         # Stage-A first boot then moves PF_IMAGE_SHA, advances universal PF_WPA_SHA,
         # and adds universal PF_CLOUD_INIT_SHA. No profile selector or missing pin changes.
+        # Image#205 advances PF_IMAGE_SHA globally and PF_GPU_UM_SHA on open profiles.
         expected = {
-            ("a133", "dev"): "d1d75036f15ad203af08114dd52a9ce786a00100724de73e5593d8fa4c41abf8",
-            ("a133", "release"): "837feec8d5f3d921886846bda9b46afe00af58794b2d8793c2c8f5c1beea8f14",
-            ("a133-open-7x", "dev"): "e1e6b87bdbcc0068a8b20e65ba3902ebe44c13f5c118481fdf0ec13ac3f2cb9b",
-            ("a133-open-7x", "release"): "0cd97edcfcf25b3fa140ff44a7e4aaa67a748f415c3c4ed2893afb0127ddb17b",
-            ("a133-owned", "dev"): "510860e0e6aa442f78ea64a7603a978e30347320d1e80eb994bd793525c7a0ce",
-            ("a133-owned", "release"): "a313d603362229abdcce558ed30b9c7c6f3a3479b9b4bb5d5471da93c3a6b4bd",
-            ("a523", "dev"): "07b0aa7b0c88d87752e04a0fed5d344290c4961919f77afea0cce4920469799e",
-            ("a523", "release"): "ffa75e05809819e29631a84330967eb6ca8bf68663a4e51997b42c76b9e67d62",
-            ("sdm845", "dev"): "45fe1eaaf8c2c16d61710d054524e759b81e82202ce3ccda5d9703e333da73c1",
-            ("sdm845", "release"): "881fd32b524e3390cc07355eb01a362e7ab46cd70ba387bec6ae5320f543cf6d",
+            ("a133", "dev"): "b9bbca369d0a1f830c267d2c12d007d1e36285a15192f2e236df42f8b61006d7",
+            ("a133", "release"): "ee56851912cab8ba8d43502bf82c15c5be85fd34ab257f275458e0afa1ad6aa9",
+            ("a133-open-7x", "dev"): "6d1452baa29a5e1f15b7a0264945c7f80f1e06469b340f8bac9326bda3a78455",
+            ("a133-open-7x", "release"): "c9a767759e5b943dadacbfa495c8225dc4ab47548c7475dc78e4e546f523efc0",
+            ("a133-owned", "dev"): "33179d073a53691006fdd45570d3a5f630ead46aeeaed600aa757d90751a53fb",
+            ("a133-owned", "release"): "1975f0a76a6a88a3e01fcdfa981799dff941903b7497048b062fa459912d6a6c",
+            ("a523", "dev"): "4d33ec5a8636b519aad24267da24282780b23eb5ba9ec9271ccccd256557dab8",
+            ("a523", "release"): "06f516dd081e8d5a01294b25638f0fec39a81722bbcef82490b5d12f3cf52c6e",
+            ("sdm845", "dev"): "eaf2a53d0f7505dab6683f08d71e201c4cc3ebc05e9cc415b93887a72c851957",
+            ("sdm845", "release"): "4967dbedde36fd01bb0a6647a85284604bed86c853f6efab44a4d0e0d77496f6",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -383,7 +384,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "6ccb87902144babc2838b03840c0413bf0941ab4")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "27219a2a996285caeb0eb83f8b188ab6d0cee8b3")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "d0c388059e577067c82590c14a602c69ad67e58d")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -457,8 +458,8 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": args["PF_IMAGE_SHA"],
             },
             {
-                "PF_GPU_UM_SHA": "27219a2a996285caeb0eb83f8b188ab6d0cee8b3",
-                "PF_IMAGE_SHA": "9c1fc33144ad5fcb120b6d88863c2b101275429c",
+                "PF_GPU_UM_SHA": "d0c388059e577067c82590c14a602c69ad67e58d",
+                "PF_IMAGE_SHA": "a4159efe5bce308f5b9c6bf87839c4ce8329ef96",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
