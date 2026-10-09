@@ -293,17 +293,19 @@ class ProfileTest(unittest.TestCase):
         # UAPI witness, while the no-radio kernel override remains frozen.
         # Build 5 includes image#211/#212 and kernel#85: PF_IMAGE_SHA moves globally;
         # canonical open-7x kernel/UAPI identities move while no-radio remains frozen.
+        # Build 6 image#213 again moves PF_IMAGE_SHA globally; kernel#86 changes only
+        # canonical open-7x kernel/UAPI identities and gpu-um#203/#205/#206 remain open-only.
         expected = {
-            ("a133", "dev"): "b095d2081db6f968f75fa86b061a66aeb7d9d89d53b3d1c6c28368b503bf670b",
-            ("a133", "release"): "51682165a96a6b83c5b94e6e9f06ff6975bd51c57c0f63839a15e1f5fdb8dd68",
-            ("a133-open-7x", "dev"): "0949e11410a71c49a940f6102924be62c3f7ca5b9eb5e9d14c91f9192df323b7",
-            ("a133-open-7x", "release"): "f191d45181d82aaf8e3d05f079950ad780995f2089fc976de7f9a20fa72040cd",
-            ("a133-owned", "dev"): "3fc4773a2bf17fc1147c783648309d4a81978346393c91dd8fc5b4438b7e55e0",
-            ("a133-owned", "release"): "9f9747d65e3a98f8123f8f9b0b07552a557f62769bbe29bc67a5096955d943a6",
-            ("a523", "dev"): "89fc3eea00d889e97fcd15dc703f2769a9c4f17da7f3e702a4190ec8a81b848a",
-            ("a523", "release"): "fe39f2d224afd93013069322335eacfbe364ce58ec238a94516002aeb5e30083",
-            ("sdm845", "dev"): "3cfacaac34bf7c88f3c6f52a8b5bb332db662f89ca37f3006e426bfadb9a164e",
-            ("sdm845", "release"): "8eb79b05844a7a32ed3a1c457b0acfd81c577b7c9bcf60cde58cacd6c5ab9286",
+            ("a133", "dev"): "d6170b24898d799671fae300618271efa9595870102535f1fa327dada1a53e80",
+            ("a133", "release"): "540d177e9dc714fc80ddabdf2984cbe9b9515a3549b99d22fb2c5ee3320e27b9",
+            ("a133-open-7x", "dev"): "50cef4ae0cbd9f30597a2639fea412e714b70516e22d367b97b14c3c4bade984",
+            ("a133-open-7x", "release"): "787b8b3f865fdfef884e2717cbf31040c97c1e8da654c8c1dbc24751ba3bc578",
+            ("a133-owned", "dev"): "df1f380568da0f80e06e9ac4f24a7011f4905a44f2c4a0b2f41af90cf7062b45",
+            ("a133-owned", "release"): "e4bf889516903afdd867f6c1c08532fb220c12194728539586127afc8ad2892f",
+            ("a523", "dev"): "fc0ab031440ddfbc75f49ba367bcb243cbe37eb8e0e4ae1d10ff4ee0971c2775",
+            ("a523", "release"): "3be68ac83e283af16592339a8b9d124dcd4e4df0f94ea279992dab0e16054bcd",
+            ("sdm845", "dev"): "df053ce4792a6c3519edda3e87687069a6b2bcd9f7bca42113fae5021c4d488f",
+            ("sdm845", "release"): "e4bd15965f8f05a5930c3c6e91605f250abd30581d81194859ca56e0c81820f0",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -390,7 +392,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "6ccb87902144babc2838b03840c0413bf0941ab4")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "d0c388059e577067c82590c14a602c69ad67e58d")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "e2c29ab8a84f57ae500f4ad6c6aea86ac0bbe01f")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -433,7 +435,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "8143e381126993e83af322cbb29e17229df0afdd")
+        self.assertEqual(args["PF_KERNEL_SHA"], "c22dbc0226242cd1e582073eac5d82d36953c0d8")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -450,7 +452,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "8143e381126993e83af322cbb29e17229df0afdd")
+        self.assertEqual(args["PF_KERNEL_SHA"], "c22dbc0226242cd1e582073eac5d82d36953c0d8")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
@@ -464,8 +466,8 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": args["PF_IMAGE_SHA"],
             },
             {
-                "PF_GPU_UM_SHA": "d0c388059e577067c82590c14a602c69ad67e58d",
-                "PF_IMAGE_SHA": "aaa917305e05db21e4356e9d47c7c7a985ab478b",
+                "PF_GPU_UM_SHA": "e2c29ab8a84f57ae500f4ad6c6aea86ac0bbe01f",
+                "PF_IMAGE_SHA": "0c80e4d56ca5cec7dd6bb50e2c19acaac30eb249",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
