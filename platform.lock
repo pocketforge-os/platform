@@ -130,7 +130,7 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-98733d6399be82e4f00c.9.2: image#205 gpu-um witness advance
+ref  = "main"          # tsp-98733d6399be82e4f00c.9.2: image#207 local-deb argv repair
                        # b4ff0051ae96fb61f5c9c885f0581da4717219e9 scopes the ES 3.2
                        # candidate drirc to the CTS profile, proves it cannot leak into release,
                        # and advances the exact gpu-um mirror to d7637e31. Image#197 merged as
@@ -156,6 +156,9 @@ ref  = "main"          # tsp-98733d6399be82e4f00c.9.2: image#205 gpu-um witness 
                        # Image#205 merged as a4159efe5bce308f5b9c6bf87839c4ce8329ef96
                        # and advances every exact gpu-um source/provenance witness to d0c38805
                        # while preserving the byte-identical cross-toolchain recipe.
+                       # Image#206 makes the Gamescope cache producer conditional on its profile
+                       # mode. Image#207 merged as 6d422d0c87f262a73652f23ce3ab5bbf2faac094
+                       # and passes each local package to mmdebstrap as a distinct include argument.
                        # Previous pin (380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b):
                        # tsp-mc9m.41.1000.1: image#195 shared-Xwayland repair.
                        # 380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b contains approved head
@@ -546,7 +549,7 @@ ref  = "main"          # tsp-98733d6399be82e4f00c.9.2: image#205 gpu-um witness 
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "a4159efe5bce308f5b9c6bf87839c4ce8329ef96"
+sha  = "6d422d0c87f262a73652f23ce3ab5bbf2faac094"
 
 [[repos]]
 name = "gamescope"

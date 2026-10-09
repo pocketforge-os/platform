@@ -20,7 +20,7 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "a4159efe5bce308f5b9c6bf87839c4ce8329ef96"
+CURRENT_IMAGE = "6d422d0c87f262a73652f23ce3ab5bbf2faac094"
 CURRENT_UAPI = "e9952056e12826f13092f4b7804c73f27286dec8"
 CURRENT_GAMESCOPE = "4232739e75c95113871e260967e8b4ff995ea897"
 STALE_GAMESCOPE = "0000000000000000000000000000000000000000"
@@ -517,6 +517,7 @@ comparison = "equal"
             ),
             "scripts/build-rootfs.sh": (FIXTURES / "current" / "build-rootfs.sh").read_bytes(),
             "tests/test-gamescope-pvr-cache.sh": (
+                f"g1_sha={CURRENT_GAMESCOPE}\n"
                 f"grep -F '{CURRENT_GAMESCOPE}' producer\n".encode()
             ),
         }
