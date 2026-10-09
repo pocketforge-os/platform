@@ -498,3 +498,12 @@ consumer_path = "tests/test-gamescope-pvr-cache.sh"
 parser = "template"
 template = "grep -F '{value}'"
 reason = "test expectation for the Gamescope PVR pipeline-cache producer"
+
+[[references]]
+id = "gamescope-pvr-cache-mode-test-source-pin"
+platform_field = "repos.gamescope.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-gamescope-pvr-cache.sh"
+parser = "template"
+template = "g1_sha={value}"
+reason = "mode-runner test input for the locked Gamescope source"
