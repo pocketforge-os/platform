@@ -257,6 +257,19 @@ template = 'run_contract_builder {value}'
 reason = "positive producer-admission control for the current image UAPI lock"
 
 [[references]]
+id = "volatile-root-kernel-pr-provenance"
+platform_field = "repos.kernel-sunxi-7.x.sha"
+aliases = [
+  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+  "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA",
+]
+consumer_repo = "image"
+consumer_path = "docs/VOLATILE-ROOT-SELECTION.md"
+parser = "template"
+template = 'by kernel PR #84 at exact head `{value}`;'
+reason = "volatile-root kernel dependency provenance"
+
+[[references]]
 id = "kernel-49-shipping-plan"
 platform_field = "repos.kernel-sunxi-4.9.sha"
 consumer_repo = "image"

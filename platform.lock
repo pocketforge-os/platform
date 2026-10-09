@@ -50,13 +50,15 @@ manifest_signing_active = false
 # these provenance moves therefore leave the FFmpeg 59 runtime ABI/input bytes unchanged.
 # tsp-mc9m.41.923.75: move the exact exported-header witness with the replacement
 # kernel revision so the runtime producer and boot kernel cannot drift.
+# tsp-mc9m.41.995.43.1: kernel#84 changes only configuration by enabling built-in
+# overlayfs. Move the exact source witness while preserving the runtime input bytes.
 [platform_runtime.steamlink_ffmpeg59_v1]
 schema_version = 1
 profile         = "a133-open-7x-gpu"
 mode_arg        = "PF_STEAMLINK_FFMPEG59_MODE"
 mode_value      = "v1"
 source_repo     = "kernel-sunxi-7.x"
-source_sha      = "16d3cc8e1204f074000fb4a44d95b1ee0e46e3dc"
+source_sha      = "ea46664cf1695e83be3bd3bfb2bc14c0276b2e59"
 runtime_path    = "/usr/lib/pocketforge/platform-runtimes/steamlink-ffmpeg59/v1"
 
 [platform_runtime.steamlink_ffmpeg59_v1.build_args]
@@ -66,7 +68,7 @@ PF_FFMPEG_ORIG_SHA256        = "56d4daf10c17330a45c8fe11bc260997677ca2432d3d5951
 PF_FFMPEG_ORIG_ASC_SHA256    = "ee93598ac566d1be4a80801e0a58f91ede2e6a5e9e670f681723b447f23c59d0"
 PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a39512921680090952e1"
 PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
-PF_FFMPEG_UAPI_SHA           = "16d3cc8e1204f074000fb4a44d95b1ee0e46e3dc"
+PF_FFMPEG_UAPI_SHA           = "ea46664cf1695e83be3bd3bfb2bc14c0276b2e59"
 
 # tsp-mc9m.41.924.24.14: immutable full GLES CTS checklist used only by the
 # opt-in dev test image. Unlike platform_runtime above, this input is already a
@@ -132,7 +134,7 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.924.24.14.1: image#209 CTS dlopen links
+ref  = "main"          # tsp-mc9m.41.995.43.1: image#210 volatile-root initrd
                        # b4ff0051ae96fb61f5c9c885f0581da4717219e9 scopes the ES 3.2
                        # candidate drirc to the CTS profile, proves it cannot leak into release,
                        # and advances the exact gpu-um mirror to d7637e31. Image#197 merged as
@@ -166,6 +168,10 @@ ref  = "main"          # tsp-mc9m.41.924.24.14.1: image#209 CTS dlopen links
                        # Image#209 merged as b1b6f9bb502e70e2fbfc1dae19790d051b2531e1
                        # and adds CTS-only GLVND development-name links plus an exact-rootfs
                        # resolver gate for the surfaceless bundle's dlopen names.
+                       # Image#210 exact dependency candidate
+                       # edaa740bd3e5187746399c3e08c071186bbbf8fe adds strict transient
+                       # volatile-root selection and moves the byte-identical kernel-UAPI
+                       # provenance witness to the overlayfs-enabled kernel candidate.
                        # Previous pin (380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b):
                        # tsp-mc9m.41.1000.1: image#195 shared-Xwayland repair.
                        # 380a0ce94cd0a68e1e391c3af08e6ed4c7c9301b contains approved head
@@ -556,7 +562,7 @@ ref  = "main"          # tsp-mc9m.41.924.24.14.1: image#209 CTS dlopen links
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "b1b6f9bb502e70e2fbfc1dae19790d051b2531e1"
+sha  = "edaa740bd3e5187746399c3e08c071186bbbf8fe"
 
 [[repos]]
 name = "gamescope"
@@ -684,7 +690,11 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.923.75): device/a133
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.995.43.1): device/a133
+                               # ea46664cf1695e83be3bd3bfb2bc14c0276b2e59 is kernel#84's
+                               # exact dependency candidate: CONFIG_OVERLAY_FS=y is built in for
+                               # the release image; no-radio remains independently frozen.
+                               # Previous pin (16d3cc8e1204f074000fb4a44d95b1ee0e46e3dc):
                                # 16d3cc8e1204f074000fb4a44d95b1ee0e46e3dc contains #82 binding
                                # and alignment fixes plus #83's display-bind cleanup repair:
                                # the managed writeback connector no longer supplies .destroy,
@@ -904,7 +914,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.923.75): device/a133
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "16d3cc8e1204f074000fb4a44d95b1ee0e46e3dc"
+sha  = "ea46664cf1695e83be3bd3bfb2bc14c0276b2e59"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
