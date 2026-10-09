@@ -288,17 +288,20 @@ class ProfileTest(unittest.TestCase):
         # and adds universal PF_CLOUD_INIT_SHA. No profile selector or missing pin changes.
         # Image#205 advances PF_IMAGE_SHA globally and PF_GPU_UM_SHA on open profiles.
         # Image#206/#207/#208/#209 again move only the already-emitted PF_IMAGE_SHA.
+        # Image#210 moves PF_IMAGE_SHA globally; its kernel#84 dependency additionally
+        # moves PF_KERNEL_SHA for canonical open-7x profiles and the selected Steam Link
+        # UAPI witness, while the no-radio kernel override remains frozen.
         expected = {
-            ("a133", "dev"): "3205e4bbf446e195aa71562911ca092a3e95e485cc8e747ef1fab541fcb71941",
-            ("a133", "release"): "f711e9e190d51d95e0d8377d9579b47c223574e196e105123f60c63434548212",
-            ("a133-open-7x", "dev"): "57f6b4db37438a144d91741b928437ad08b4bd51493ad00b496909b50ed81b8c",
-            ("a133-open-7x", "release"): "59e8739ebf6b3f7e296abe0cc2a34f6f3b2386d74870c13a2c174a3a5031fd87",
-            ("a133-owned", "dev"): "6962ee279c7f4546de9e30c00dfc10b7e7b0c5fc503c44a2b7495c42a9a99390",
-            ("a133-owned", "release"): "af35cce9e5d3921cec1ae05ac62e68d3db57f3ad436c3f221f0b17ba9dbe12d0",
-            ("a523", "dev"): "9ff70dff1d444fec8f954e2544ec039842f0be9f1158bf54d5c09eefde87fffc",
-            ("a523", "release"): "a294bc22f8a3018ab451bbb5186821fb729c197dcdf6caabf4dd5e68db3aab15",
-            ("sdm845", "dev"): "0830634e7217b25a9d1d78760e57d944dd9bcd2f4f4a758b2ad50a006278b606",
-            ("sdm845", "release"): "65e33da7d1911ce85e1fb7063f35375f899ffdc13039f4c6c0f61cf26ed6d1a1",
+            ("a133", "dev"): "3f19676ef34570e02d395e7ddde6eb7d9f532c25c53a6be3cb7fed4bc861ec48",
+            ("a133", "release"): "d6f46f867742e678dcf52439c234c06d6cf07bd49776934a643212ae4ced55b9",
+            ("a133-open-7x", "dev"): "64ac2536858523fb20bf584a577972bd63ff3d3977151c1d1aed697d069c29c5",
+            ("a133-open-7x", "release"): "450cbede7e1c76416d61f17852f15fafcd39de90162037f6c9c47a8f5e78b09e",
+            ("a133-owned", "dev"): "ed22312783a86c20d2674ec4ec06d2d9a257334ecb59c244ddfa1078df5e33ea",
+            ("a133-owned", "release"): "efac4cfd7db1cd6491198add90c71c9b40bab698f6a6a9df2e5a775bc861bb1c",
+            ("a523", "dev"): "6a6e9a8a6904dad9157d55da152f079dbcb066ee82c44fc5cc3718ee9affa24c",
+            ("a523", "release"): "68e64071dc058fe552edb08ca68281bc7327f243f58e38d0a237413a3aa91271",
+            ("sdm845", "dev"): "61f7bbf031bc90b2347f43b9b591773120f5f57d5603650a60e964334e855a99",
+            ("sdm845", "release"): "c32aed64ee53c57c365cb7e4b5393d54ad491605dff863f2b6f7441d0aded8ad",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -428,7 +431,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "16d3cc8e1204f074000fb4a44d95b1ee0e46e3dc")
+        self.assertEqual(args["PF_KERNEL_SHA"], "ea46664cf1695e83be3bd3bfb2bc14c0276b2e59")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -445,7 +448,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "16d3cc8e1204f074000fb4a44d95b1ee0e46e3dc")
+        self.assertEqual(args["PF_KERNEL_SHA"], "ea46664cf1695e83be3bd3bfb2bc14c0276b2e59")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
@@ -460,7 +463,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "d0c388059e577067c82590c14a602c69ad67e58d",
-                "PF_IMAGE_SHA": "b1b6f9bb502e70e2fbfc1dae19790d051b2531e1",
+                "PF_IMAGE_SHA": "edaa740bd3e5187746399c3e08c071186bbbf8fe",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
