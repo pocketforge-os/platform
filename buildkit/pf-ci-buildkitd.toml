@@ -1,0 +1,6 @@
+# BuildKit policy for ordinary container-producing jobs on pf-builder-vm.
+[worker.oci]
+  gc = true
+  reservedSpace = "2GB"
+  maxUsedSpace = "8GB"
+  minFreeSpace = "64GB"

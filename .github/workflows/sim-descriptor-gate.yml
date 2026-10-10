@@ -39,9 +39,9 @@
 #
 # NO MARKETPLACE ACTIONS — DELIBERATE (matches abi-drift/skin-drift + the org pr-review-gate). The org
 # requires SHA-pinned actions (org Actions policy sha_pinning_required=true), so a bare tag ref yields
-# a startup_failure. This job uses ZERO `uses:` actions: it needs no platform checkout at all (the
-# descriptors reach the build via the sim Dockerfile's own pinned git clone of platform @ the PR head
-# sha), so it just `git clone`s sim with the ephemeral github.token and drives docker directly.
+# a startup_failure. This job uses ZERO `uses:` actions. It clones platform for the source-owned,
+# bounded BuildKit entry point and clones sim for the image source; the descriptors still reach the
+# build via sim's own pinned git clone of platform @ the PR head sha.
 #
 # RUNNER ROUTING + FORK GUARD — DELIBERATE (build-lab confinement invariant, tsp-20u1). The nested sim
 # needs /dev/uinput + SYS_ADMIN + unconfined seccomp/apparmor (the tsp-qc1.2 verdict; infra-113
@@ -66,6 +66,9 @@ on:
       - 'device-models/**'
       - 'schemas/**'
       - '.github/workflows/sim-descriptor-gate.yml'
+      - 'buildkit/pf-ci-buildkitd.toml'
+      - 'scripts/pf-ci-buildx'
+      - 'scripts/tests/pf-ci-buildx-test.sh'
   workflow_dispatch:
 
 # Least-privilege GITHUB_TOKEN for a job that executes untrusted (org-authored, per the fork guard)
@@ -127,6 +130,7 @@ jobs:
             echo "head sha $sha not in base repo (fork PR?) — deriving the matrix from the merge ref $GITHUB_SHA"
             git checkout --quiet --detach "$GITHUB_SHA"
           }
+          bash scripts/tests/pf-ci-buildx-test.sh
           # Pick a Python 3.11+ (tomllib) interpreter — no third-party deps (core/caps.py is stdlib-only).
           PY=""
           for c in python3.12 python3.11 python3; do
@@ -174,13 +178,17 @@ jobs:
       - name: Ensure uinput module (host node is required for the nested sim)
         run: sudo modprobe uinput || true
 
-      - name: Clone sim @ main (the pinned sim) + build with platform overridden to the PR head
+      - name: Clone source-owned builder + sim @ main and build against the PR head
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          platform_wd="$RUNNER_TEMP/platform-builder-$GITHUB_RUN_ID"
           wd="$RUNNER_TEMP/sim-src-$GITHUB_RUN_ID"
-          rm -rf "$wd"
+          [[ ! -e "$platform_wd" && ! -L "$platform_wd" ]]
+          [[ ! -e "$wd" && ! -L "$wd" ]]
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$platform_wd"
+          git -C "$platform_wd" checkout --quiet --detach "${PLATFORM_SHA:-$GITHUB_SHA}"
           # sim is public; the ephemeral token clones it fine. --depth 1 of main = the pinned sim tip.
           git clone --quiet --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/pocketforge-os/sim.git" "$wd"
           echo "sim @ $(git -C "$wd" rev-parse HEAD)"
@@ -194,7 +202,7 @@ jobs:
           else
             echo "workflow_dispatch: no PR head — building against sim's baked platform pin"
           fi
-          docker build "${args[@]}" -t "$IMG" .
+          "$platform_wd/scripts/pf-ci-buildx" build --load "${args[@]}" -t "$IMG" .
 
       # --network none on the RUN phase: the headless suite runs entirely from baked, pinned artifacts
       # (no out-of-band input — sim docker/README.md), so denying the run any network shrinks the blast
