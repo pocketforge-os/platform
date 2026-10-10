@@ -1,6 +1,6 @@
 {
   "atlas_composition": "pairwise-disjoint-one-control-renders",
-  "body_lit_sha256": "156506c710248603206afc2eaf89c0b4c61eb3ae6d82a8ed87d37321caa22223",
+  "body_lit_sha256": "db9d3b54276fe36feef6f3ab2e9c2fd6b8156032734c8b6d2cbfc935b7087510",
   "body_sha256": "6ba84e7a1a7e379d62f2a6cca80ac770a7172b282e27f7e6db01acffa982e565",
   "camera": {
     "colorscheme": "Tomorrow",
@@ -44,6 +44,12 @@
       "x": 1271,
       "y": 134
     },
+    "btn_power": {
+      "h": 11,
+      "w": 83,
+      "x": 392,
+      "y": 29
+    },
     "btn_r1": {
       "h": 40,
       "w": 189,
@@ -67,6 +73,18 @@
       "w": 54,
       "x": 1244,
       "y": 527
+    },
+    "btn_vol_down": {
+      "h": 11,
+      "w": 102,
+      "x": 876,
+      "y": 29
+    },
+    "btn_vol_up": {
+      "h": 11,
+      "w": 100,
+      "x": 978,
+      "y": 29
     },
     "btn_west": {
       "h": 55,
@@ -119,17 +137,17 @@
     "w": 3200
   },
   "renderer": "device-models/trimui-smart-pro/render.py",
-  "renderer_sha256": "214699ffde896a541e5d7c5a121a279bf5af30986c3245ac63e741a6734fb783",
+  "renderer_sha256": "b4dd9ab07b087378eddce924ce3fbd29cd737f1b86becf1735ea4069c3eacc9d",
   "schema_version": 3,
   "shoulder_crop_policy": "split-overlap-midpoint+4px-horizontal+front-control-trim",
   "source": "device-models/trimui-smart-pro/trimui-smart-pro.scad",
-  "source_sha256": "75f9455ab6d2fe799630cf3a0da52964ec5013da7cfa72e6c1dc634e2f6104e4",
+  "source_sha256": "b2eaf19ae7eb0da3b5896a04c5eff556f75146c1af5323eef5251aad563d6a42",
   "views": {
     "top": {
       "atlas_composition": "pairwise-disjoint-one-control-renders",
       "body": "skins/a133/body_top.png",
       "body_lit": "skins/a133/body_lit_top.png",
-      "body_lit_sha256": "222a8be066a0bbb9af8e83a9a7f52b4969ed4accf482b3c0dcde3e46bb237cdd",
+      "body_lit_sha256": "27aeef5c43fe09b3412128fd4013f9212c6fcdead8f4ac3d25fc5493f9277d27",
       "body_sha256": "47ae9e7b6f1c959ce6fbfab2d99a63a24b8e3559f96f6cc87a55bfdebd94e28c",
       "camera": {
         "colorscheme": "Tomorrow",
@@ -155,11 +173,29 @@
           "x": 60,
           "y": 310
         },
+        "btn_power": {
+          "h": 34,
+          "w": 85,
+          "x": 384,
+          "y": 266
+        },
         "btn_r1": {
           "h": 26,
           "w": 193,
           "x": 1227,
           "y": 310
+        },
+        "btn_vol_down": {
+          "h": 34,
+          "w": 104,
+          "x": 879,
+          "y": 266
+        },
+        "btn_vol_up": {
+          "h": 34,
+          "w": 103,
+          "x": 983,
+          "y": 266
         },
         "trig_l": {
           "h": 55,

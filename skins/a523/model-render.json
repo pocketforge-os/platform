@@ -1,7 +1,7 @@
 {
   "atlas_composition": "pairwise-disjoint-one-control-renders",
-  "body_lit_sha256": "da75542aea2c05c219681cce559be62500f219e5a172de838a0edf628809363c",
-  "body_sha256": "8b2779c80fe385df7b3087ea35bd9eb51bf1a139f08440c01801bc8033c9fbdc",
+  "body_lit_sha256": "2cefba2f96d2078673402621f1c94847855a926a45e5973e7b9fffd6f29a63db",
+  "body_sha256": "b0ff248ddc42d202d34e413cc959d83d205f32659c1eb9ff83a77767b318e50f",
   "camera": {
     "colorscheme": "Tomorrow",
     "crop": [
@@ -50,6 +50,12 @@
       "x": 1241,
       "y": 134
     },
+    "btn_power": {
+      "h": 11,
+      "w": 83,
+      "x": 419,
+      "y": 28
+    },
     "btn_r1": {
       "h": 40,
       "w": 189,
@@ -73,6 +79,18 @@
       "w": 54,
       "x": 1224,
       "y": 527
+    },
+    "btn_vol_down": {
+      "h": 11,
+      "w": 87,
+      "x": 876,
+      "y": 28
+    },
+    "btn_vol_up": {
+      "h": 11,
+      "w": 88,
+      "x": 963,
+      "y": 28
     },
     "btn_west": {
       "h": 55,
@@ -125,17 +143,17 @@
     "w": 3200
   },
   "renderer": "device-models/trimui-smart-pro-s/render.py",
-  "renderer_sha256": "54af3a2710b03bd25e7092e74d9e113d14078bd4d04608dc13ef842f75271cba",
+  "renderer_sha256": "8bbdbdc3a05c3f3b29fba616dd759b350191294f722fdbe7ad7ecb754ea29f05",
   "schema_version": 3,
   "shoulder_crop_policy": "split-overlap-midpoint+4px-horizontal+front-control-trim",
   "source": "device-models/trimui-smart-pro-s/trimui-smart-pro-s.scad",
-  "source_sha256": "0d5c8153639537d5e70941492ad2cc930f5fb1c93f3694e9a160f5770693224d",
+  "source_sha256": "7071b54d53a73bf86ec1b78f5a2863f8a562488d6546eb4ec5aef9c9dff0821e",
   "views": {
     "top": {
       "atlas_composition": "pairwise-disjoint-one-control-renders",
       "body": "skins/a523/body_top.png",
       "body_lit": "skins/a523/body_lit_top.png",
-      "body_lit_sha256": "1171f6b8d70c5ca1394a02ed20e4895d7b00085d7a9cda2462a30f891d317756",
+      "body_lit_sha256": "26a8c8ad496855a075e44e6a928d5ae25d711bb2483f37f0a73446e9f6fc2eb0",
       "body_sha256": "fca53c591e429dc85243030e9355c05db31982877aad0bea374bd3cf38f3a9e8",
       "camera": {
         "colorscheme": "Tomorrow",
@@ -167,11 +185,29 @@
           "x": 60,
           "y": 310
         },
+        "btn_power": {
+          "h": 34,
+          "w": 85,
+          "x": 412,
+          "y": 260
+        },
         "btn_r1": {
           "h": 26,
           "w": 193,
           "x": 1227,
           "y": 310
+        },
+        "btn_vol_down": {
+          "h": 34,
+          "w": 89,
+          "x": 879,
+          "y": 260
+        },
+        "btn_vol_up": {
+          "h": 34,
+          "w": 90,
+          "x": 968,
+          "y": 260
         },
         "trig_l": {
           "h": 55,

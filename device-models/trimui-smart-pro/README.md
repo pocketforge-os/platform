@@ -65,12 +65,18 @@ by decoding pixels and writing new PNG files.
 
 ## Semantic contract
 
-The model exposes the fourteen physical controls already described by
-`devices/a133/capabilities.toml`:
+The model exposes the seventeen physical controls in the
+`devices/a133/capabilities.toml` `[skin.parts]`:
 
 `dpad`, `stick_l`, `stick_r`, `btn_north`, `btn_east`, `btn_south`,
-`btn_west`, `btn_select`, `btn_guide`, `btn_start`, `btn_l1`, `btn_r1`,
-`trig_l`, and `trig_r`.
+`btn_west`, `btn_select`, `btn_guide`, `btn_start`, `btn_power`,
+`btn_vol_down`, `btn_vol_up`, `btn_l1`, `btn_r1`, `trig_l`, and `trig_r`.
+
+The volume rocker stays one moulded part on screen: `btn_vol_down` and
+`btn_vol_up` are its two halves cut at the centre seam (the seam itself is
+shell), bound to the descriptor's `vol_down`/`vol_up` system inputs. `btn_power`
+is the top-edge POWER key; the descriptor has no power input row yet, so it is a
+clickable part bound to no input.
 
 The base unit's L2/R2 parts are physical binary switches reported on ABS_Z and
 ABS_RZ.  Keeping them as separately highlightable trigger geometry makes that

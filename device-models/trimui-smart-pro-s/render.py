@@ -79,6 +79,9 @@ CONTROL_IDS = (
     "btn_guide",
     "btn_start",
     "btn_home",
+    "btn_power",
+    "btn_vol_down",
+    "btn_vol_up",
     "btn_l1",
     "btn_r1",
     "trig_l",
@@ -96,13 +99,17 @@ VIEW_CAMERAS = {
 
 # The clickable non-front views this device carries (see the base trimui-smart-pro
 # render.py for the full contract). The TG5050 exposes the four top-edge paddles PLUS
-# btn_home (its top-edge home button) from the top. Rendered by --write-views into
-# TOP_BODY/TOP_BODY_LIT + model-render.json["views"][name]; front is untouched.
+# btn_home (its top-edge home button), POWER and the two volume-rocker halves from the
+# top. Rendered by --write-views into TOP_BODY/TOP_BODY_LIT +
+# model-render.json["views"][name]; front is untouched.
 SKIN_VIEWS = {
     "top": {
         "camera": VIEW_CAMERAS["top"][0],
         "rotate": VIEW_CAMERAS["top"][1],
-        "controls": ("btn_l1", "trig_l", "btn_r1", "trig_r", "btn_home"),
+        "controls": (
+            "btn_l1", "trig_l", "btn_r1", "trig_r", "btn_home",
+            "btn_power", "btn_vol_down", "btn_vol_up",
+        ),
         "body": TOP_BODY,
         "body_lit": TOP_BODY_LIT,
     },
@@ -343,6 +350,31 @@ def split_shoulder_overlaps(
         rectangle["w"] = right - rectangle["x"]
 
 
+def split_rocker_overlap(
+    rectangles: dict[str, dict[str, int]],
+) -> None:
+    """Give the two volume-rocker halves disjoint crop columns.
+
+    VOL- and VOL+ are one moulded rocker clipped at its centre seam, so their
+    one-at-a-time diffs (plus RECT_PADDING) meet or overlap at the seam. Split
+    the shared horizontal band at its midpoint, like the stacked shoulders. A
+    view without both halves is left alone.
+    """
+    down = rectangles.get("btn_vol_down")
+    up = rectangles.get("btn_vol_up")
+    if down is None or up is None:
+        return
+    overlap_left = max(down["x"], up["x"])
+    overlap_right = min(down["x"] + down["w"], up["x"] + up["w"])
+    if overlap_right <= overlap_left:
+        return
+    split = round((overlap_left + overlap_right) / 2)
+    down["w"] = split - down["x"]
+    up_right = up["x"] + up["w"]
+    up["x"] = split
+    up["w"] = up_right - split
+
+
 def overlap_box(
     first: dict[str, int],
     second: dict[str, int],
@@ -436,6 +468,7 @@ def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
         rectangles[control_id] = diff_rect(neutral, control)
     split_shoulder_overlaps(rectangles)
     trim_shoulder_bumpers_from_front_controls(rectangles)
+    split_rocker_overlap(rectangles)
 
     overlaps = rectangle_overlaps(rectangles)
     if overlaps:
@@ -560,6 +593,7 @@ def render_view_set(
         control_frames[control_id] = control
         rectangles[control_id] = diff_rect(neutral, control)
     split_view_paddle_overlaps(rectangles)
+    split_rocker_overlap(rectangles)
 
     overlaps = rectangle_overlaps(rectangles)
     if overlaps:
@@ -883,7 +917,8 @@ def main(argv: list[str]) -> int:
             if SKIN_VIEWS:
                 check_views()
             print(
-                f"skin_check=pass assets=2 controls=15 views={len(SKIN_VIEWS)}"
+                f"skin_check=pass assets=2 controls={len(CONTROL_IDS)} "
+                f"views={len(SKIN_VIEWS)}"
             )
     return 0
 

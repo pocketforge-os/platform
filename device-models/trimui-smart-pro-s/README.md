@@ -69,12 +69,16 @@ Public corroboration:
 
 ## Semantic contract
 
-The model exposes the fifteen drawable controls in
+The model exposes the eighteen drawable controls in
 `devices/a523/capabilities.toml`:
 
 `dpad`, `stick_l`, `stick_r`, `btn_north`, `btn_east`, `btn_south`,
-`btn_west`, `btn_select`, `btn_guide`, `btn_start`, `btn_home`, `btn_l1`,
-`btn_r1`, `trig_l`, and `trig_r`.
+`btn_west`, `btn_select`, `btn_guide`, `btn_start`, `btn_home`, `btn_power`,
+`btn_vol_down`, `btn_vol_up`, `btn_l1`, `btn_r1`, `trig_l`, and `trig_r`.
+
+POWER and the two volume-rocker halves follow the base model (see
+[`../trimui-smart-pro/README.md`](../trimui-smart-pro/README.md)): the rocker
+halves bind `vol_down`/`vol_up`, and `btn_power` is bound to no input yet.
 
 The Pro S adds clickable L3/R3 switches, but those inputs intentionally reuse
 the existing `stick_l` and `stick_r` visual parts. Home is separate from the
