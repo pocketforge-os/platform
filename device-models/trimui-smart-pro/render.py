@@ -60,6 +60,18 @@ DIFF_THRESHOLD = 24
 RECT_PADDING = 1
 SHOULDER_HORIZONTAL_SAFETY = 4
 
+# Tie jitter (tsp-h5ed.46.29). OpenSCAD 2021.01 does not draw identical geometry from
+# one process to the next: a few pixels on edges where two faces tie take one face's
+# shade or the other's. Measured on this camera set: 0-30 differing pixels per canvas
+# (one raw pixel per top frame), on Mesa radeonsi AND on single-threaded llvmpipe,
+# with ASLR off, with --preview=throwntogether, without --viewall and without text,
+# so neither render.py nor the GL driver can pin it. A re-render of an UNEDITED .scad
+# (same source_sha256) whose derived camera/crop/rects equal the committed ones and
+# whose PNG differs from the committed PNG in at most JITTER_MAX_PIXELS pixels keeps
+# the committed bytes. A .scad edit always writes fresh renders; a different renderer
+# (another OpenSCAD, driver or font set) differs in hundreds of pixels and is written.
+JITTER_MAX_PIXELS = 128
+
 # The six-number camera is eye XYZ, target XYZ. OpenSCAD chooses an inverted
 # up vector for this top-biased view, so the raw image is rotated 180 degrees
 # before the shared crop/fit transform. That rotation is part of the committed
@@ -629,6 +641,63 @@ def render_view_set(
     return neutral, lit, metadata
 
 
+def tie_jitter_pixels(committed: Path, image: Image.Image) -> int | None:
+    """Pixels where ``image`` differs from the committed PNG in any channel; None
+    when there is no committed PNG or the sizes differ."""
+    if not committed.is_file():
+        return None
+    with Image.open(committed) as source:
+        previous = source.convert("RGB")
+    if previous.size != image.size:
+        return None
+    red, green, blue = ImageChops.difference(previous, image.convert("RGB")).split()
+    changed = ImageChops.lighter(ImageChops.lighter(red, green), blue)
+    return changed.point(lambda value: 255 if value else 0).histogram()[255]
+
+
+def keeps_committed(committed: Path, image: Image.Image, same: bool) -> bool:
+    """True when ``image`` is a tie-jitter re-render of the committed PNG and ``same``
+    (see ``same_derivation``) holds."""
+    if not same:
+        return False
+    count = tie_jitter_pixels(committed, image)
+    return count is not None and count <= JITTER_MAX_PIXELS
+
+
+def same_derivation(
+    committed: dict | None,
+    committed_source_sha256: str | None,
+    derived: dict,
+    keys: tuple[str, ...],
+) -> bool:
+    """The committed render came from this .scad and derived the same geometry."""
+    return (
+        committed is not None
+        and committed_source_sha256 == sha256(MODEL)
+        and all(committed.get(key) == derived.get(key) for key in keys)
+    )
+
+
+def save_canonical_png(image: Image.Image, path: Path, same: bool) -> None:
+    """Write ``image`` unless it only tie-jitters against the committed ``path``."""
+    if not keeps_committed(path, image, same):
+        save_png(image, path)
+        return
+    count = tie_jitter_pixels(path, image)
+    if count:
+        print(f"tie_jitter=kept path={path.relative_to(ROOT)} pixels={count}")
+
+
+FRONT_DERIVATION_KEYS = ("camera", "canvas", "controls", "display_rect")
+VIEW_DERIVATION_KEYS = ("camera", "canvas", "controls")
+
+
+def _read_metadata() -> dict | None:
+    if not METADATA.is_file():
+        return None
+    return json.loads(METADATA.read_text(encoding="utf-8"))
+
+
 def _load_committed_metadata() -> dict:
     if not METADATA.is_file():
         raise RuntimeError(
@@ -641,6 +710,7 @@ def write_views() -> dict[str, dict]:
     """Render every SKIN_VIEWS entry and merge them under model-render.json['views'],
     writing ONLY the view PNGs + the 'views' block — the front top-level stays as-is."""
     metadata = _load_committed_metadata()
+    committed_source = metadata.get("source_sha256")
     # Adding view code edits this render.py, so the recorded renderer hash drifts.
     # Refresh the shared source/renderer hashes (the .scad is untouched; the front
     # render path is textually unchanged, so the committed front art still stands).
@@ -651,8 +721,11 @@ def write_views() -> dict[str, dict]:
         work = Path(directory)
         for name, view in SKIN_VIEWS.items():
             neutral, lit, view_meta = render_view_set(work, name, view)
-            save_png(neutral, view["body"])
-            save_png(lit, view["body_lit"])
+            same = same_derivation(
+                views.get(name), committed_source, view_meta, VIEW_DERIVATION_KEYS
+            )
+            save_canonical_png(neutral, view["body"], same)
+            save_canonical_png(lit, view["body_lit"], same)
             view_meta["body_sha256"] = sha256(view["body"])
             view_meta["body_lit_sha256"] = sha256(view["body_lit"])
             views[name] = view_meta
@@ -686,13 +759,20 @@ def check_views() -> None:
             generated_lit = work / f"{name}-body_lit.png"
             save_png(neutral, generated_body)
             save_png(lit, generated_lit)
-            for committed_path, generated in (
-                (view["body"], generated_body),
-                (view["body_lit"], generated_lit),
+            same = same_derivation(
+                committed.get("views", {}).get(name),
+                committed.get("source_sha256"),
+                view_meta,
+                VIEW_DERIVATION_KEYS,
+            )
+            for committed_path, image, generated in (
+                (view["body"], neutral, generated_body),
+                (view["body_lit"], lit, generated_lit),
             ):
                 if not committed_path.is_file():
                     failures.append(f"{name}: missing committed asset {committed_path}")
-                elif committed_path.read_bytes() != generated.read_bytes():
+                elif (committed_path.read_bytes() != generated.read_bytes()
+                        and not keeps_committed(committed_path, image, same)):
                     failures.append(
                         f"{name}: stale generated asset {committed_path.relative_to(ROOT)}"
                     )
@@ -718,9 +798,18 @@ def save_png(image: Image.Image, path: Path) -> None:
 
 
 def write_outputs(neutral: Image.Image, lit: Image.Image, metadata: dict) -> None:
-    save_png(neutral, BODY)
-    save_png(lit, BODY_LIT)
+    committed = _read_metadata()
+    committed_source = committed.get("source_sha256") if committed else None
+    same = same_derivation(
+        committed, committed_source, metadata, FRONT_DERIVATION_KEYS
+    )
+    save_canonical_png(neutral, BODY, same)
+    save_canonical_png(lit, BODY_LIT, same)
     metadata = dict(metadata)
+    # The 'views' block is --write-views' output. It survives a front rewrite only
+    # while the .scad is unedited, so --write-views can tell it came from this source.
+    if committed and committed_source == metadata["source_sha256"] and "views" in committed:
+        metadata["views"] = committed["views"]
     metadata["body_sha256"] = sha256(BODY)
     metadata["body_lit_sha256"] = sha256(BODY_LIT)
     METADATA.write_text(
@@ -737,13 +826,25 @@ def check_outputs(neutral: Image.Image, lit: Image.Image, metadata: dict) -> Non
         save_png(neutral, generated_body)
         save_png(lit, generated_lit)
         failures = []
-        for committed, generated in (
-            (BODY, generated_body),
-            (BODY_LIT, generated_lit),
+        previous = _read_metadata()
+        same = same_derivation(
+            previous,
+            previous.get("source_sha256") if previous else None,
+            metadata,
+            FRONT_DERIVATION_KEYS,
+        )
+        for committed, image, generated in (
+            (BODY, neutral, generated_body),
+            (BODY_LIT, lit, generated_lit),
         ):
             if not committed.is_file():
                 failures.append(f"missing committed asset: {committed}")
-            elif committed.read_bytes() != generated.read_bytes():
+            elif committed.read_bytes() == generated.read_bytes():
+                continue
+            elif keeps_committed(committed, image, same):
+                # Tie jitter only: the committed bytes are the canonical render.
+                shutil.copyfile(committed, generated)
+            else:
                 failures.append(
                     f"stale generated asset: {committed.relative_to(ROOT)}"
                 )

@@ -340,6 +340,13 @@ def descriptor_cases(tmp):
             check(f"{case_id}: rejected by exactly {sorted(expected)}",
                   not ok and tags == expected and not any("cannot parse" in e for e in errs),
                   "\n".join(errs))
+    # The glb hash lives in export_gltf.py's skins/<id>/model-glb.json, not model-render.json
+    # (tsp-h5ed.46.29); the positive controls above carry no E_MODEL_SHA in the same invocation.
+    _, errs, _ = res.get("neg-model-sha", (False, [], []))
+    sha_errs = [e for e in errs if "E_MODEL_SHA" in e]
+    check("neg-model-sha: E_MODEL_SHA names skins/<id>/model-glb.json, not model-render.json",
+          sha_errs and all("skins/<id>/model-glb.json" in e and "model-render.json" not in e
+                           for e in sha_errs), "\n".join(errs))
     return out
 
 

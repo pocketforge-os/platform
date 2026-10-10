@@ -504,12 +504,12 @@ def screen_ids(data):
 
 
 def model_sha_errors(data):
-    """The glb sha lives in skins/<id>/model-render.json (D4), never in [model]. Checked before the
-    schema so the author gets the named reason, not just 'unknown key'."""
+    """The glb sha lives in skins/<id>/model-glb.json (D4, written by export_gltf.py), never in
+    [model]. Checked before the schema so the author gets the named reason, not just 'unknown key'."""
     model = data.get("model")
     if not isinstance(model, dict):
         return []
-    return [f"E_MODEL_SHA [model].{k}: the glb hash belongs in model-render.json (D4, owned by "
+    return [f"E_MODEL_SHA [model].{k}: the glb hash belongs in skins/<id>/model-glb.json (D4, owned by "
             f"the skin drift gate), never in the descriptor" for k in model if "sha" in k.lower()]
 
 
