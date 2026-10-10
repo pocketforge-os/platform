@@ -11,8 +11,13 @@ hand-authored; the binaries it references are produced HERE, deterministically, 
                                       pf-semantic-v1 node names (one node per skin_part,
                                       screen_top / screen_bottom quads, pivot_lid)
 
+Convention: the same as a real package, with device-models/export_gltf.py the authority. The glb
+is in glTF metres (pf-mm-v1 millimetres x 0.001, export_gltf.MM_TO_M) and asset.extras declares
+the exporter's frame, units and naming strings verbatim. Dimensions below stay in millimetres;
+node transforms are scaled to metres (float32-rounded, like the exporter) as they are written.
+
 Model, authored at the joint's REST value (range[0] = 0 deg = closed). Frame pf-mm-v1:
-X left->right, Y bottom->top, Z rear->front, millimetres. The base lies on its back (front face
+X left->right, Y bottom->top, Z rear->front, millimetres (written as metres). The base lies on its back (front face
 +Z); the lid lies closed on top of it, hinged along the base's top edge (y = 75, z = 11). Opening
 rotates pivot_lid about axis [-1, 0, 0] by the joint value: at 90 deg the lid stands up, at 180
 deg it lies flat above the base with screen_top facing +Z and reading upright.
@@ -25,6 +30,11 @@ import json, os, struct, sys, zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKIN_DIR = os.path.join(HERE, "skins", "synth-clamshell")
+MM_TO_M = 0.001                     # == export_gltf.MM_TO_M
+# == the asset.extras export_gltf.build_document writes (frame/units/naming), plus a source note.
+ASSET_EXTRAS = {"frame": "pf-mm-v1", "units": "metres (pf-mm-v1 millimetres x 0.001)",
+                "naming": "pf-semantic-v1", "model": "synth-clamshell",
+                "source": "tests/caps-fixtures/clamshell/gen_fixture.py"}
 
 BASE = (150.0, 75.0, 11.0)          # body box w, h, d (mm); the lid is the same box
 SCREEN = (71.1, 53.3)               # active area w, h (mm), both panels
@@ -36,6 +46,11 @@ FRONT_CONTROLS = [
 ]
 REAR_CONTROLS = [("btn_l1", -60.0, 70.0), ("btn_r1", 60.0, 70.0)]   # on the rear face (z = 0)
 SIDE_CONTROLS = [("btn_vol_up", 45.0), ("btn_vol_down", 30.0)]      # on the left face (x = -75)
+
+
+def m(*mm):
+    """Millimetres -> glTF metres, float32-rounded as export_gltf.f32 does."""
+    return [struct.unpack("<f", struct.pack("<f", v * MM_TO_M))[0] for v in mm]
 
 
 def png(w, h, rgb):
@@ -70,7 +85,8 @@ def quad():
 
 
 def glb():
-    gl = {"asset": {"version": "2.0", "generator": "pf gen_fixture.py (synthetic clamshell)"},
+    gl = {"asset": {"version": "2.0", "generator": "pf gen_fixture.py (synthetic clamshell)",
+                    "extras": ASSET_EXTRAS},
           "buffers": [], "bufferViews": [], "accessors": [], "meshes": [], "nodes": [],
           "materials": [
               {"name": "body", "pbrMetallicRoughness": {"baseColorFactor": [0.25, 0.25, 0.27, 1.0],
@@ -127,23 +143,23 @@ def glb():
     w, h, d = BASE
     root = node("synth-clamshell")
     top = []
-    node("body_base", top, mesh=body_mesh, translation=[0.0, h / 2, d / 2], scale=[w, h, d])
-    node("screen_bottom", top, mesh=screen_mesh, translation=[0.0, h / 2, d + 0.01],
-         scale=[SCREEN[0], SCREEN[1], 1.0], extras={"panel_rotation_deg": 0})
+    node("body_base", top, mesh=body_mesh, translation=m(0.0, h / 2, d / 2), scale=m(w, h, d))
+    node("screen_bottom", top, mesh=screen_mesh, translation=m(0.0, h / 2, d + 0.01),
+         scale=m(*SCREEN) + [1.0], extras={"panel_rotation_deg": 0})
     for name, x, y in FRONT_CONTROLS:
-        node(name, top, mesh=control_mesh, translation=[x, y, d + 1.0], scale=[8.0, 8.0, 2.0])
+        node(name, top, mesh=control_mesh, translation=m(x, y, d + 1.0), scale=m(8.0, 8.0, 2.0))
     for name, x, y in REAR_CONTROLS:
-        node(name, top, mesh=control_mesh, translation=[x, y, -1.0], scale=[20.0, 4.0, 2.0])
+        node(name, top, mesh=control_mesh, translation=m(x, y, -1.0), scale=m(20.0, 4.0, 2.0))
     for name, y in SIDE_CONTROLS:
-        node(name, top, mesh=control_mesh, translation=[-w / 2 - 1.0, y, d / 2], scale=[2.0, 10.0, 4.0])
+        node(name, top, mesh=control_mesh, translation=m(-w / 2 - 1.0, y, d / 2), scale=m(2.0, 10.0, 4.0))
     lid = []
     # Closed, the lid's screen faces -Z onto the base: the quad is flipped 180 deg about X, which
     # the 180 deg opening rotation about -X undoes exactly (screen faces +Z, image upright).
-    node("body_lid", lid, mesh=body_mesh, translation=[0.0, -h / 2, d / 2], scale=[w, h, d])
-    node("screen_top", lid, mesh=screen_mesh, translation=[0.0, -h / 2, -0.01],
-         rotation=[1.0, 0.0, 0.0, 0.0], scale=[SCREEN[0], SCREEN[1], 1.0],
+    node("body_lid", lid, mesh=body_mesh, translation=m(0.0, -h / 2, d / 2), scale=m(w, h, d))
+    node("screen_top", lid, mesh=screen_mesh, translation=m(0.0, -h / 2, -0.01),
+         rotation=[1.0, 0.0, 0.0, 0.0], scale=m(*SCREEN) + [1.0],
          extras={"panel_rotation_deg": 0})
-    pivot = node("pivot_lid", top, translation=[0.0, h, d])
+    pivot = node("pivot_lid", top, translation=m(0.0, h, d))
     gl["nodes"][pivot]["children"] = lid
     gl["nodes"][root]["children"] = top
 
