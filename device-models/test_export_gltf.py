@@ -433,6 +433,106 @@ class RegenScriptTests(unittest.TestCase):
         self.assertIn("usage", usage.stderr)
 
 
+def load_render_module(slug: str):
+    """A device render.py for its pure rect helpers. Pillow is only needed to
+    render, so stub it where it is absent (the CI drift leg) rather than skip."""
+    try:
+        import PIL  # noqa: F401
+    except ImportError:
+        import types
+
+        pil = types.ModuleType("PIL")
+        for name in ("Image", "ImageChops", "ImageDraw", "ImageOps"):
+            setattr(pil, name, types.ModuleType(f"PIL.{name}"))
+            sys.modules[f"PIL.{name}"] = getattr(pil, name)
+        sys.modules["PIL"] = pil
+    spec = importlib.util.spec_from_file_location(
+        f"render_{slug.replace('-', '_')}", HERE / slug / "render.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def system_key_failures(descriptor: dict, doc: dict) -> list[str]:
+    """Every class=system input is bound to a glb control node carrying it."""
+    nodes = {n.get("name"): n for n in doc.get("nodes", [])}
+    parts = descriptor.get("skin", {}).get("parts", {})
+    failures = []
+    for row in descriptor.get("inputs", []):
+        if row.get("class") != "system":
+            continue
+        part = row.get("skin_part")
+        if not part:
+            failures.append(f"{row['id']}: no skin_part")
+        elif part not in parts:
+            failures.append(f"{row['id']}: skin_part {part} not in [skin.parts]")
+        elif part not in nodes:
+            failures.append(f"{row['id']}: skin_part {part} is not a glb node")
+        elif row["id"] not in [i["id"] for i in nodes[part]["extras"]["inputs"]]:
+            failures.append(f"{row['id']}: glb node {part} does not carry it")
+    if "btn_power" not in nodes:
+        failures.append("no btn_power glb node")
+    return failures
+
+
+class SystemKeyNodeTests(unittest.TestCase):
+    """tsp-h5ed.46.21: VOL+/VOL- and POWER are clickable glb nodes (repository)."""
+
+    def test_system_inputs_bind_glb_nodes(self):
+        import tomllib
+
+        for device in ("a133", "a523"):
+            with (HERE.parent / "devices" / device / "capabilities.toml").open("rb") as f:
+                descriptor = tomllib.load(f)
+            doc, _ = export_gltf.read_glb(
+                (HERE.parent / "skins" / device / "model.glb").read_bytes()
+            )
+            self.assertEqual(system_key_failures(descriptor, doc), [], device)
+            # Negative controls: an unbound row and a dropped node both fail.
+            unbound = copy.deepcopy(descriptor)
+            for row in unbound["inputs"]:
+                if row["id"] == "vol_up":
+                    row.pop("skin_part", None)
+            self.assertIn("vol_up: no skin_part",
+                          system_key_failures(unbound, doc), device)
+            dropped = copy.deepcopy(doc)
+            dropped["nodes"] = [n for n in dropped["nodes"]
+                                if n.get("name") not in ("btn_vol_down", "btn_power")]
+            failures = system_key_failures(descriptor, dropped)
+            self.assertIn("no btn_power glb node", failures, device)
+            self.assertTrue(any(f.startswith("vol_down:") for f in failures), failures)
+
+    def test_rocker_halves_get_disjoint_rects(self):
+        for slug in ("trimui-smart-pro", "trimui-smart-pro-s"):
+            render = load_render_module(slug)
+            # Two one-at-a-time diffs that share the seam column (+1 px padding).
+            rects = {
+                "btn_vol_down": {"x": 930, "y": 20, "w": 62, "h": 12},
+                "btn_vol_up": {"x": 988, "y": 21, "w": 61, "h": 11},
+                "btn_power": {"x": 400, "y": 20, "w": 40, "h": 12},
+            }
+            render.split_rocker_overlap(rects)
+            self.assertEqual(render.rectangle_overlaps(rects), [], slug)
+            down, up = rects["btn_vol_down"], rects["btn_vol_up"]
+            self.assertEqual((down["x"], down["x"] + down["w"]), (930, 990), slug)
+            self.assertEqual((up["x"], up["x"] + up["w"]), (990, 1049), slug)
+            self.assertEqual(rects["btn_power"],
+                             {"x": 400, "y": 20, "w": 40, "h": 12}, slug)
+            # Positive control: already-disjoint halves are left alone, and a
+            # view without the rocker is a no-op instead of an error.
+            apart = {
+                "btn_vol_down": {"x": 930, "y": 20, "w": 50, "h": 12},
+                "btn_vol_up": {"x": 990, "y": 20, "w": 50, "h": 12},
+            }
+            before = copy.deepcopy(apart)
+            render.split_rocker_overlap(apart)
+            self.assertEqual(apart, before, slug)
+            render.split_rocker_overlap({"btn_l1": {"x": 0, "y": 0, "w": 9, "h": 9}})
+            self.assertIn("btn_vol_up", render.CONTROL_IDS, slug)
+            self.assertIn("btn_vol_up", render.SKIN_VIEWS["top"]["controls"], slug)
+
+
 class ExporterTests(unittest.TestCase):
     def test_refuses_part_name_mismatch(self):
         repo = FakeRepo(self)
