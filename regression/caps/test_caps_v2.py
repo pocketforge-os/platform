@@ -60,6 +60,28 @@ def read(path):
         return f.read()
 
 
+CONVENTION_KEYS = ("frame", "naming", "units")
+
+
+def convention_mismatches(gl, exported):
+    """Ways fixture glb JSON `gl` departs from the exporter's convention (`exported`: a real
+    export_gltf.py glb): asset.extras frame/naming/units, and the base box (150 x 75 x 11 mm) and
+    lid hinge (y = 75, z = 11 mm) in metres."""
+    bad = []
+    got, want = gl.get("asset", {}).get("extras", {}), exported["asset"]["extras"]
+    for k in CONVENTION_KEYS:
+        if got.get(k) != want[k]:
+            bad.append(f"asset.extras.{k} = {got.get(k)!r}, exporter writes {want[k]!r}")
+    nodes = {n.get("name"): n for n in gl.get("nodes", [])}
+    for name, key, mm in (("body_base", "scale", [150.0, 75.0, 11.0]),
+                          ("pivot_lid", "translation", [0.0, 75.0, 11.0])):
+        v = nodes.get(name, {}).get(key)
+        if not (isinstance(v, list) and len(v) == 3
+                and all(abs(a - b * 0.001) < 1e-6 for a, b in zip(v, mm))):
+            bad.append(f"{name}.{key} = {v!r}, need {[b * 0.001 for b in mm]} (metres)")
+    return bad
+
+
 def by_device(stdout):
     """{device: (ok?, [error lines])} from `caps.py validate` output."""
     out = {}
@@ -449,6 +471,26 @@ def main():
     nodes = getattr(caps, "glb_node_names", lambda p: None)(os.path.join(FIXTURE, "skins", "synth-clamshell", "model.glb"))
     check("fixture glb parses as glTF 2.0 and names pivot_lid + both screen quads",
           isinstance(nodes, set) and {"pivot_lid", "screen_top", "screen_bottom"} <= nodes)
+    # One convention everywhere (tsp-h5ed.46.23): the fixture declares the exporter's frame, naming
+    # and units, and is in metres. The reference is a real exported glb, never a copied literal.
+    exported = caps._glb_json(os.path.join(ROOT, "skins", "a133", "model.glb"))
+    fixture_gl = caps._glb_json(REAL_GLB)
+    check("exported a133 glb declares frame/naming/units in asset.extras (reference for the fixture)",
+          isinstance(exported, dict)
+          and all(isinstance(exported["asset"].get("extras", {}).get(k), str) for k in CONVENTION_KEYS))
+    if isinstance(exported, dict) and isinstance(fixture_gl, dict):
+        bad = convention_mismatches(fixture_gl, exported)
+        check("fixture glb: exporter's asset.extras frame/naming/units, body and pivot_lid in metres",
+              bad == [], "\n".join(bad))
+        mm_era = json.loads(json.dumps(fixture_gl))     # negative control: the pre-.23 millimetre glb
+        mm_era["asset"].pop("extras", None)
+        for n in mm_era["nodes"]:
+            for k in ("translation", "scale"):
+                if k in n:
+                    n[k] = [v * 1000.0 for v in n[k]]
+        bad = convention_mismatches(mm_era, exported)
+        check("negative control: an undeclared millimetre glb is flagged on all three keys and both nodes",
+              len(bad) == len(CONVENTION_KEYS) + 2, "\n".join(bad))
     try:
         import jsonschema
         data = caps._load(os.path.join(FIXTURE_DEV, "capabilities.toml"))

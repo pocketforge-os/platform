@@ -181,7 +181,8 @@ the joint instead.
 **Reference fixture.** `tests/caps-fixtures/clamshell/` is a SYNTHETIC two-screen clamshell
 (lid hinge 0–180°, postures `closed` [0,10) / `half` [10,150) / `open` [150,180], `SW_LID`
 active in [0,10], a touch bottom screen, 12 inputs), with a generated PNG skin and a tiny glb
-(`gen_fixture.py`, `--check` = drift gate). It lives outside `devices/`, so it is never in
+(`gen_fixture.py`, `--check` = drift gate) in the exporter's convention (metres, `asset.extras`
+frame/units/naming as `device-models/export_gltf.py` writes; see the fixture's README). It lives outside `devices/`, so it is never in
 `ci-matrix.toml`, `pf build` or the catalog:
 `pf caps --root tests/caps-fixtures/clamshell validate`.
 
