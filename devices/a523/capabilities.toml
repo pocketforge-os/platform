@@ -15,6 +15,9 @@
 # IMU (qmi8658) is claimed here; the magnetometer (mmc5603) and GNSS are OMITTED until
 # SPIKE-0 proves they actually BIND. The Home key code/device is a SPIKE-0 confirm (see below).
 
+# Schema v2 (tsp-h5ed.46.9): adds [maturity], [physical], [model] and per-screen node/panel facts.
+schema_version = 2
+
 # Default "confirm" face button (Xbox/PS = south). HINT only; full action mapping is E2's.
 accept_default = "south"
 
@@ -26,6 +29,18 @@ codename     = "5050"                                # Android-picker leaf: Trim
 sdl_guid     = "030000005e0400008e02000010010000"   # same Xbox-360 gamepad identity as the base (§17)
 match        = { evdev_name = "TRIMUI Player1", vid = "045e", pid = "028e" }
 
+[maturity]
+declared = "sim-ready"           # derived: [model] present, every screen has a node, every non-system input a skin_part
+
+[physical]
+envelope_mm = { w = 188.35, h = 79.77, d = 17.0 }   # device-models/trimui-smart-pro-s/trimui-smart-pro-s.scad envelope
+
+[model]
+glb    = "skins/a523/model.glb"
+frame  = "pf-mm-v1"
+naming = "pf-semantic-v1"
+source = "device-models/trimui-smart-pro-s"
+
 # Same chassis + panel as the base. Render INTENT is identical (app draws landscape 1280x720,
 # present portrait). The rotation MECHANISM differs per-SoC (A523 = sunxi DRM/KMS, not the
 # A133's legacy disp2) but that is CODE, not descriptor data — the logical enum is the same.
@@ -35,6 +50,9 @@ present       = "portrait"
 rotation      = "cw90"
 render_canvas = { w = 1280, h = 720 }
 display_rect  = { x = 332, y = 106, w = 816, h = 444 }
+node          = "screen_main"
+panel_px      = { w = 720, h = 1280 }   # portrait-native panel
+fourcc        = "XR24"
 
 # ---- INPUTS: the a133 set, verbatim (POSITIONAL face ids + label; see the a133 note) ----
 # Face labels are NINTENDO-arranged on the chassis (SPIKE-0 press-test on silicon, 2026-07-11:

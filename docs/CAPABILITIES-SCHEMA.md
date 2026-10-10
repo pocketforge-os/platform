@@ -162,9 +162,10 @@ events are NOT posture side effects: they are thresholds on the joint value (`sw
 lid switch fires at the same angle however the user got there.
 
 **Maturity (descriptor).** The derived rung is the highest one the descriptor's own content
-supports: `sim-ready` = `[model]` present AND every screen has a `node` AND every input a
-`skin_part`; `model-only` = `[model]` present with some binding missing; `planned` = no
-`[model]`. `declared` above the derived rung is `E_MATURITY_EXCEEDS`.
+supports: sim-ready requires [model], a node for every screen, and a skin_part on every input
+except class = "system" inputs, which the simulator reaches through its toolbar and control
+plane rather than the 3D model; `model-only` = `[model]` present with some binding missing;
+`planned` = no `[model]`. `declared` above the derived rung is `E_MATURITY_EXCEEDS`.
 
 **Rule names.** Every v2 error starts with a stable name: `E_SCHEMA_VERSION`, `E_V2_AT_V1`,
 `E_SCREEN_PRIMARY` (exactly one primary and it is `screens[0]`: consumers index `screens[0]`),

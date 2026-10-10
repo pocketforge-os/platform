@@ -13,6 +13,9 @@
 # only the PHYSICAL, drawable controls; the SPIKE-0 fidelity check is asymmetric (these
 # codes ⊆ the probe's advertised codes; extra advertised codes are expected, not mismatches).
 
+# Schema v2 (tsp-h5ed.46.9): adds [maturity], [physical], [model] and per-screen node/panel facts.
+schema_version = 2
+
 # Default "confirm" face button (Xbox/PS = south, Switch-region = east). A HINT only;
 # full confirm/cancel/action mapping is the broker/SDK layer's job (E2), not this file.
 accept_default = "south"
@@ -25,6 +28,18 @@ codename     = "5040"                                # Android-picker leaf: Trim
 sdl_guid     = "030000005e0400008e02000010010000"   # Xbox-360 wired; ship gamecontrollerdb verbatim (probe §13)
 match        = { evdev_name = "TRIMUI Player1", vid = "045e", pid = "028e" }
 
+[maturity]
+declared = "sim-ready"           # derived: [model] present, every screen has a node, every non-system input a skin_part
+
+[physical]
+envelope_mm = { w = 188.35, h = 79.77, d = 17.0 }   # device-models/trimui-smart-pro/trimui-smart-pro.scad envelope
+
+[model]
+glb    = "skins/a133/model.glb"
+frame  = "pf-mm-v1"
+naming = "pf-semantic-v1"
+source = "device-models/trimui-smart-pro"
+
 # Screen = render INTENT, not panel pixel truth. The app draws a LANDSCAPE 1280x720 canvas;
 # the disp engine rotates it onto the physically-portrait panel (present=portrait). The
 # rotation MECHANISM (A133 legacy disp2, derived rotate-768) is per-SoC CODE, not data here
@@ -35,6 +50,9 @@ present       = "portrait"
 rotation      = "cw90"
 render_canvas = { w = 1280, h = 720 }
 display_rect  = { x = 332, y = 108, w = 816, h = 443 }  # model-derived projected active panel
+node          = "screen_main"
+panel_px      = { w = 720, h = 1280 }   # portrait-native panel
+fourcc        = "XR24"
 
 # ---- INPUTS: each row = one drawable, bindable PHYSICAL control ----
 # Face labels are NINTENDO-arranged on the shared chassis (east=A, south=B, north=X, west=Y):
