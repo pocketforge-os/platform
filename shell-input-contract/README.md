@@ -40,11 +40,13 @@ schema ID at `schemas/shell-input-contract-v2.schema.json`; v2 documents use
 `schema_version` and must never interpret a v2 document as v1.
 
 `validate.py` accepts both frozen representations. Its `migrate_v1()` function
-is the deterministic compatibility path: validate v1, set `schema_version` to
-2, rename the protected action and the one representation-specific top-level
-key, update the invariant, then validate the v2 result. Tests cover all three
-document shapes in both versions and prove that migration yields the shipped v2
-fixtures.
+is a fail-closed compatibility path: it validates v1, performs the mechanical
+rename, and returns only a result that passes all v2 rules. Contracts or binding
+sets which use a legal v1 value outside the ruled v2 System Menu set are rejected
+with `migration-unsupported`. The one-document helper always rejects defaults
+registries because it cannot also migrate their referenced contract fixtures; a
+coordinated release must create the v2 fixtures and registry together. A registry
+and each referenced fixture must declare the same version.
 
 | Device identity | Physical control | Shipped binding | Presentation truth |
 | --- | --- | --- | --- |

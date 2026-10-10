@@ -4,8 +4,10 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location("shell_input_validate", ROOT / "validate.py")
@@ -138,6 +140,8 @@ class ShellInputContractTest(unittest.TestCase):
         except ImportError:
             self.skipTest("optional jsonschema package unavailable")
         schema = json.loads((ROOT.parent / "schemas/shell-input-contract-v2.schema.json").read_text())
+        schema_bindings = [item["const"] for item in schema["$defs"]["systemMenuBinding"]["oneOf"]]
+        self.assertEqual(list(validator.SYSTEM_MENU_BINDINGS), schema_bindings)
         checker = jsonschema.Draft202012Validator(schema)
         checker.validate(self.shipped)
         checker.validate(self.shapes)
@@ -161,7 +165,7 @@ class ShellInputContractTest(unittest.TestCase):
             with self.subTest(schema_collision=action), self.assertRaises(jsonschema.ValidationError):
                 checker.validate(collision)
 
-    def test_v1_documents_remain_valid_and_migrate_to_v2(self) -> None:
+    def test_frozen_v1_documents_and_supported_migrations(self) -> None:
         contract = copy.deepcopy(self.shipped)
         contract["schema_version"] = 1
         contract["protected_actions"] = ["SafeReturn"]
@@ -188,10 +192,142 @@ class ShellInputContractTest(unittest.TestCase):
 
         validator.validate_contract(contract)
         validator.validate_binding_set(shapes)
-        validator.validate_defaults_registry(defaults)
-        self.assertEqual(self.shipped, validator.migrate_v1(contract))
-        self.assertEqual(self.shapes, validator.migrate_v1(shapes))
-        self.assertEqual(self.defaults, validator.migrate_v1(defaults))
+        migrated_contract = validator.migrate_v1(contract)
+        migrated_shapes = validator.migrate_v1(shapes)
+        self.assertEqual(self.shipped, migrated_contract)
+        self.assertEqual(self.shapes, migrated_shapes)
+        if jsonschema is not None:
+            v2_schema = json.loads((ROOT.parent / "schemas/shell-input-contract-v2.schema.json").read_text())
+            checker = jsonschema.Draft202012Validator(v2_schema)
+            checker.validate(migrated_contract)
+            checker.validate(migrated_shapes)
+        with self.assertRaises(validator.ContractError) as raised:
+            validator.validate_defaults_registry(defaults)
+        self.assertEqual("contract-version-mismatch", raised.exception.reason)
+
+    def test_noncanonical_v1_migrations_fail_closed(self) -> None:
+        contract = copy.deepcopy(self.shipped)
+        contract["schema_version"] = 1
+        contract["protected_actions"] = ["SafeReturn"]
+        protected = next(item for item in contract["effective_map"] if item["action"] == "SystemMenu")
+        protected.update(
+            action="SafeReturn",
+            context="overlay",
+            binding={"shape": "single_press", "controls": ["l1"]},
+        )
+        validator.validate_contract(contract)
+        with self.assertRaises(validator.ContractError) as raised:
+            validator.migrate_v1(contract)
+        self.assertEqual("migration-unsupported", raised.exception.reason)
+
+        shapes = copy.deepcopy(self.shapes)
+        shapes["schema_version"] = 1
+        shapes["safe_return_alternatives"] = shapes.pop("system_menu_alternatives")
+        shapes["safe_return_alternatives"][0]["binding"] = {
+            "shape": "single_press",
+            "controls": ["l1"],
+        }
+        validator.validate_binding_set(shapes)
+        with self.assertRaises(validator.ContractError) as raised:
+            validator.migrate_v1(shapes)
+        self.assertEqual("migration-unsupported", raised.exception.reason)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture_root = Path(temporary)
+            defaults = copy.deepcopy(self.defaults)
+            defaults["schema_version"] = 1
+            defaults["safe_return_defaults"] = defaults.pop("system_menu_defaults")
+            defaults["re_resolution_rule"]["invariant"] = "SafeReturn-never-unreachable"
+            for device_id, entry in defaults["safe_return_defaults"].items():
+                source = ROOT / entry["contract_fixture"]
+                fixture = json.loads(source.read_text())
+                fixture["schema_version"] = 1
+                fixture["protected_actions"] = ["SafeReturn"]
+                mapping = next(item for item in fixture["effective_map"] if item["action"] == "SystemMenu")
+                mapping["action"] = "SafeReturn"
+                if device_id == "a133":
+                    mapping["binding"] = {"shape": "single_press", "controls": ["l1"]}
+                    entry["shipped_default"] = copy.deepcopy(mapping["binding"])
+                entry["descriptor"] = "synthetic:fixture-buttonless"
+                entry["contract_fixture"] = f"{device_id}.json"
+                (fixture_root / entry["contract_fixture"]).write_text(json.dumps(fixture))
+            defaults["re_resolution_fixtures"][0]["expected_binding"] = {
+                "shape": "single_press",
+                "controls": ["l1"],
+            }
+            defaults["re_resolution_fixtures"][1]["stored_binding"] = {
+                "shape": "single_press",
+                "controls": ["l1"],
+            }
+            with mock.patch.object(validator, "ROOT", fixture_root):
+                validator.validate_defaults_registry(defaults)
+                with self.assertRaises(validator.ContractError) as raised:
+                    validator.migrate_v1(defaults)
+            self.assertEqual("migration-unsupported", raised.exception.reason)
+
+    def test_v2_validator_enforces_schema_only_menu_bindings_and_fixture_versions(self) -> None:
+        validator.validate_contract(self.shipped)
+        validator.validate_binding_set(self.shapes)
+        validator.validate_defaults_registry(self.defaults)
+
+        non_global = copy.deepcopy(self.shipped)
+        next(item for item in non_global["effective_map"] if item["action"] == "SystemMenu")["context"] = "overlay"
+        with self.assertRaises(validator.ContractError):
+            validator.validate_contract(non_global)
+
+        unruled_menu = copy.deepcopy(self.shipped)
+        next(item for item in unruled_menu["effective_map"] if item["action"] == "SystemMenu")["binding"] = {
+            "shape": "single_press",
+            "controls": ["l1"],
+        }
+        with self.assertRaises(validator.ContractError):
+            validator.validate_contract(unruled_menu)
+
+        for ruled_binding in validator.SYSTEM_MENU_BINDINGS:
+            reserved_for_app = copy.deepcopy(self.shipped)
+            application = next(
+                item for item in reserved_for_app["effective_map"]
+                if item["action"] == "Activate"
+            )
+            application["binding"] = copy.deepcopy(ruled_binding)
+            with self.subTest(reserved_for_app=ruled_binding), self.assertRaises(validator.ContractError):
+                validator.validate_contract(reserved_for_app)
+
+        unruled_alternative = copy.deepcopy(self.shapes)
+        unruled_alternative["system_menu_alternatives"][0]["binding"] = {
+            "shape": "single_press",
+            "controls": ["l1"],
+        }
+        with self.assertRaises(validator.ContractError):
+            validator.validate_binding_set(unruled_alternative)
+
+        unruled_default = copy.deepcopy(self.defaults)
+        unruled_default["system_menu_defaults"]["a133"]["shipped_default"] = {
+            "shape": "single_press",
+            "controls": ["l1"],
+        }
+        with self.assertRaises(validator.ContractError):
+            validator.validate_defaults_registry(unruled_default)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture_root = Path(temporary)
+            defaults = copy.deepcopy(self.defaults)
+            for device_id, entry in defaults["system_menu_defaults"].items():
+                fixture = json.loads((ROOT / entry["contract_fixture"]).read_text())
+                fixture["schema_version"] = 1
+                fixture["protected_actions"] = ["SafeReturn"]
+                protected = next(
+                    item for item in fixture["effective_map"]
+                    if item["action"] == "SystemMenu"
+                )
+                protected["action"] = "SafeReturn"
+                entry["descriptor"] = "synthetic:fixture-buttonless"
+                entry["contract_fixture"] = f"{device_id}.json"
+                (fixture_root / entry["contract_fixture"]).write_text(json.dumps(fixture))
+            with mock.patch.object(validator, "ROOT", fixture_root):
+                with self.assertRaises(validator.ContractError) as raised:
+                    validator.validate_defaults_registry(defaults)
+            self.assertIn("schema version", raised.exception.detail)
 
 
 if __name__ == "__main__":

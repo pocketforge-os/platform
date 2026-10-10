@@ -18,6 +18,15 @@ ACTIONS = {
     "Quick", "Search.open", "Search.submit", "Search.cancel", "SystemMenu",
 }
 LEGACY_ACTIONS = (ACTIONS - {"SystemMenu"}) | {"SafeReturn"}
+SYSTEM_MENU_BINDINGS = (
+    {"shape": "single_press", "controls": ["guide"]},
+    {"shape": "single_press", "controls": ["home"]},
+    {"shape": "chord", "controls": ["select", "start"]},
+    {"shape": "hold", "controls": ["guide"], "min_duration_ms": 1000},
+    {"shape": "double_press", "controls": ["select", "start"], "max_interval_ms": 700},
+    {"shape": "double_press", "controls": ["guide"], "max_interval_ms": 500},
+    {"shape": "hold", "controls": ["select", "l1", "r1"], "min_duration_ms": 1000},
+)
 
 
 class ContractError(ValueError):
@@ -71,6 +80,16 @@ def binding(value: Any, path: str) -> dict[str, Any]:
 
 def signature(value: dict[str, Any]) -> tuple[Any, ...]:
     return (value["shape"], tuple(sorted(value["controls"])), value.get("max_interval_ms"), value.get("min_duration_ms"))
+
+
+def is_system_menu_binding(value: dict[str, Any]) -> bool:
+    """Match the finite v2 binding set exactly as the reference schema does."""
+    return value in SYSTEM_MENU_BINDINGS
+
+
+def require_system_menu_binding(value: dict[str, Any], path: str) -> None:
+    if not is_system_menu_binding(value):
+        fail(path, "must be one of the ruled SystemMenu bindings")
 
 
 def validate_contract(document: Any, source: str = "contract") -> dict[str, Any]:
@@ -144,6 +163,15 @@ def validate_contract(document: Any, source: str = "contract") -> dict[str, Any]
                 f"{menu_action} collides with {other['action']} in context {menu['context']}",
                 reason,
             )
+    if version == 2:
+        for index, item in enumerate(parsed):
+            path = f"{source}.effective_map[{index}]"
+            if item["action"] == "SystemMenu":
+                if item["context"] != "global":
+                    fail(f"{path}.context", "SystemMenu must use the global context")
+                require_system_menu_binding(item["binding"], f"{path}.binding")
+            elif is_system_menu_binding(item["binding"]):
+                fail(f"{path}.binding", "ruled SystemMenu bindings are reserved from application actions")
     return root
 
 
@@ -165,7 +193,9 @@ def validate_binding_set(document: Any, source: str = "binding fixtures") -> dic
         if not isinstance(item["id"], str) or not item["id"] or item["id"] in ids:
             fail(f"{path}.id", "must be a unique non-empty string")
         ids.add(item["id"])
-        binding(item["binding"], f"{path}.binding")
+        parsed_binding = binding(item["binding"], f"{path}.binding")
+        if version == 2:
+            require_system_menu_binding(parsed_binding, f"{path}.binding")
     return root
 
 
@@ -246,9 +276,17 @@ def validate_defaults_registry(document: Any, source: str = "defaults registry")
             fail(f"{path}.contract_fixture", "must be a non-empty fixture reference")
         fixture = ROOT / item["contract_fixture"]
         contract = validate_contract(load(fixture), str(fixture))
+        if contract["schema_version"] != version:
+            fail(
+                f"{path}.contract_fixture",
+                f"contract schema version {contract['schema_version']} does not match registry version {version}",
+                "contract-version-mismatch",
+            )
         if contract["device_id"] != device_id:
             fail(f"{path}.contract_fixture", "device identity does not match registry key")
         default = binding(item["shipped_default"], f"{path}.shipped_default")
+        if version == 2:
+            require_system_menu_binding(default, f"{path}.shipped_default")
         descriptor = descriptor_controls(item["descriptor"], contract, f"{path}.descriptor")
         present = set(descriptor)
         absent = set(default["controls"]) - present
@@ -283,6 +321,9 @@ def validate_defaults_registry(document: Any, source: str = "defaults registry")
             fail(path, f"device ids must reference {defaults_key}")
         stored = binding(item["stored_binding"], f"{path}.stored_binding")
         expected = binding(item["expected_binding"], f"{path}.expected_binding")
+        if version == 2:
+            require_system_menu_binding(stored, f"{path}.stored_binding")
+            require_system_menu_binding(expected, f"{path}.expected_binding")
         if signature(stored) != signature(defaults[item["stored_device_id"]]["shipped_default"]):
             fail(f"{path}.stored_binding", "must match the stated stored device's shipped default")
         current_id = item["current_device_id"]
@@ -298,22 +339,35 @@ def migrate_v1(document: Any) -> dict[str, Any]:
         fail("migration.schema_version", "must equal 1")
     migrated = copy.deepcopy(document)
     migrated["schema_version"] = 2
+
+    def validate_result(validate: Any) -> None:
+        try:
+            validate(migrated, "migration result")
+        except ContractError as error:
+            fail(
+                error.path,
+                f"v1 document has no automatic v2 representation: {error.detail}",
+                "migration-unsupported",
+            )
+
     if "effective_map" in migrated:
         validate_contract(document, "migration source")
         migrated["protected_actions"] = ["SystemMenu"]
         for item in migrated["effective_map"]:
             if item["action"] == "SafeReturn":
                 item["action"] = "SystemMenu"
-        validate_contract(migrated, "migration result")
+        validate_result(validate_contract)
     elif "safe_return_alternatives" in migrated:
         validate_binding_set(document, "migration source")
         migrated["system_menu_alternatives"] = migrated.pop("safe_return_alternatives")
-        validate_binding_set(migrated, "migration result")
+        validate_result(validate_binding_set)
     elif "safe_return_defaults" in migrated:
         validate_defaults_registry(document, "migration source")
-        migrated["system_menu_defaults"] = migrated.pop("safe_return_defaults")
-        migrated["re_resolution_rule"]["invariant"] = "SystemMenu-and-Return-never-unreachable"
-        validate_defaults_registry(migrated, "migration result")
+        fail(
+            "migration.safe_return_defaults",
+            "defaults registries require coordinated migration of their referenced contract fixtures",
+            "migration-unsupported",
+        )
     else:
         fail("migration", "unknown v1 document shape")
     return migrated
