@@ -1,0 +1,52 @@
+# platform/devices/catalog.toml — the device catalog (tsp-h5ed.46.3; decisions D5, D17, D18).
+#
+# One row per RETAIL PRODUCT, named the way people know it (D17): marketing name + the maker's
+# code name, with the platform id (the devices/<dir> that owns profile.toml + capabilities.toml)
+# and the model package (device-models/<slug>) beside it. Build variants (a133-open-7x, ...) are
+# DERIVED from profile.toml [device].base, never listed here.
+#
+# maturity (D18) is DECLARED and bounded by evidence; `pf caps catalog` derives the rung from
+# what exists and errors when declared > derived:
+#   sim-ready  — platform_id has a capabilities.toml that validates AND the package exists
+#   model-only — the model package exists
+#   planned    — neither
+# Schema: schemas/device-catalog.schema.json. List: `pf caps catalog`.
+schema_version = 1
+
+[[devices]]
+id           = "trimui-smart-pro"
+manufacturer = "TrimUI"
+name         = "Smart Pro"
+code_name    = "TG5040"
+platform_id  = "a133"
+package      = "device-models/trimui-smart-pro"
+maturity     = "sim-ready"
+
+[[devices]]
+id           = "trimui-smart-pro-s"
+manufacturer = "TrimUI"
+name         = "Smart Pro S"
+code_name    = "TG5050"
+platform_id  = "a523"
+package      = "device-models/trimui-smart-pro-s"
+maturity     = "sim-ready"
+
+# Brick (also an Allwinner A133): owner HOLD on a descriptor (decision record section 8), so
+# no platform_id; the approved semantic model makes it model-only.
+[[devices]]
+id           = "trimui-brick"
+manufacturer = "TrimUI"
+name         = "Brick"
+code_name    = "TG3040"
+package      = "device-models/trimui-brick"
+maturity     = "model-only"
+
+# X55: the package today holds only the test-fixture handoff and a nominal visual reference;
+# the semantic model is tsp-98qq's. The derived rung is model-only (the package exists), but
+# it is declared planned until that model lands.
+[[devices]]
+id           = "powkiddy-x55"
+manufacturer = "Powkiddy"
+name         = "X55"
+package      = "device-models/powkiddy-x55"
+maturity     = "planned"

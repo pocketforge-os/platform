@@ -15,6 +15,7 @@
 #   regression/build/run.sh      pf build orchestration gates
 #   regression/profile/test_*.py profile goldens incl. test_profile.py (the #261 miss)
 #   regression/caps/test_caps.py capabilities descriptor self-tests
+#   regression/caps/test_caps_v2.py descriptor schema v2, clamshell fixture, device catalog
 #
 # Suites needing a device, labgrid or a real docker build are deliberately NOT
 # here; they belong to the pf-test / hil lanes.
@@ -72,6 +73,7 @@ done
 echo
 echo "### regression/caps ###"
 "$PY" -B "$HERE/caps/test_caps.py"
+"$PY" -B "$HERE/caps/test_caps_v2.py"
 
 echo
 echo "ALL OFFLINE REGRESSION SUITES PASSED"

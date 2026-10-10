@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pocketforge.os/schemas/device-catalog.schema.json",
+  "title": "PocketForge device catalog (devices/catalog.toml)",
+  "description": "One row per retail product (tsp-h5ed.46.3, decisions D5/D17/D18): marketing name + maker code name -> platform id (devices/<dir>) -> model package (device-models/<slug>), with a declared maturity rung that core/caps.py bounds by the rung derived from the artefacts present. Build variants are derived from profile.toml [device].base, never listed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "devices"],
+  "properties": {
+    "schema_version": { "enum": [1] },
+    "devices": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/device" } }
+  },
+  "$defs": {
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "manufacturer", "name", "maturity"],
+      "properties": {
+        "id":           { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "manufacturer": { "type": "string", "minLength": 1 },
+        "name":         { "type": "string", "minLength": 1 },
+        "code_name":    { "type": "string", "pattern": "^[A-Z0-9][A-Z0-9-]*$" },
+        "platform_id":  { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "package":      { "type": "string", "minLength": 1 },
+        "maturity":     { "enum": ["planned", "model-only", "sim-ready"] }
+      }
+    }
+  }
+}

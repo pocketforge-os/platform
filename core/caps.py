@@ -21,15 +21,23 @@ the reference `jsonschema` library validate it identically; the regression self-
 asserts that agreement when the library is present.
 
 Usage:
+  caps.py [--root <dir>] <command>  # --root: validate a fixture tree laid out like platform/
+                                    #   (devices/, skins/, ...) instead of this checkout
   caps.py list                      # device ids that have a capabilities.toml
-  caps.py validate <id|--all>       # schema + semantic validation; non-zero exit on error
-                                    #   (with --all also validates the CI gate matrix)
+  caps.py validate [<id>...|--all]  # schema + semantic validation; non-zero exit on error
+                                    #   (no id or --all: every descriptor + the CI gate matrix
+                                    #   + the device catalog)
   caps.py matrix list [--posture blocking|advisory|excluded] [--format tsv|ids]
   caps.py matrix validate           # validate ci-matrix.toml vs the devices/ tree
+  caps.py catalog [list|validate] [--format tsv|json]   # devices/catalog.toml + maturity rungs
   caps.py emit-sdldb --device <id>  # emit the SDL gamecontrollerdb mapping line for a device
   caps.py probe-diff --device <id> --probe <capture.json>   # SPIKE-0 asymmetric diff vs silicon
+
+Schema v2 (tsp-h5ed.46.3, decision D5/D6): `schema_version = 2` unlocks [physical], [model],
+[[joints]] + [[joints.postures]], [maturity] and per-screen id/node/panel facts/touch. Every v2
+rule's error carries a stable E_* name (see docs/CAPABILITIES-SCHEMA.md); v1 messages are as before.
 """
-import sys, os, re, json
+import sys, os, re, json, struct
 
 try:
     import tomllib  # py3.11+
@@ -47,6 +55,7 @@ except ModuleNotFoundError:  # pragma: no cover
         sys.exit(3)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO_ROOT = ROOT  # this checkout; ROOT moves with --root, REPO_ROOT never does
 DEVICES = os.path.join(ROOT, "devices")
 SCHEMA_PATH = os.path.join(ROOT, "schemas", "capabilities.schema.json")
 CAPS_FILE = "capabilities.toml"
@@ -73,6 +82,31 @@ MATRIX_FILE = "ci-matrix.toml"
 MATRIX_PATH = os.path.join(ROOT, MATRIX_FILE)
 POSTURES = ("blocking", "advisory", "excluded")
 DEFAULT_POSTURE = "advisory"  # a capabilities.toml device with no explicit entry auto-joins here
+
+# The device catalog (tsp-h5ed.46.3, decisions D5/D17/D18): one row per retail product mapping
+# marketing name + maker code name -> platform id (devices/<dir>) -> model package, with a
+# DECLARED maturity rung that may never exceed the rung DERIVED from the artefacts present.
+# It is a FILE under devices/, so every devices/ directory scan (here and in profile.py) skips it.
+CATALOG_FILE = "catalog.toml"
+CATALOG_SCHEMA_PATH = os.path.join(ROOT, "schemas", "device-catalog.schema.json")
+RUNGS = ("planned", "model-only", "sim-ready")  # ordered: a later rung implies the earlier ones
+
+
+def set_root(root):
+    """Re-point every tree path at `root` (a fixture laid out like platform/). Schemas fall back
+    to this checkout's copies when the fixture carries none."""
+    global ROOT, DEVICES, MATRIX_PATH, SCHEMA_PATH, CATALOG_SCHEMA_PATH
+    ROOT = os.path.abspath(root)
+    DEVICES = os.path.join(ROOT, "devices")
+    MATRIX_PATH = os.path.join(ROOT, MATRIX_FILE)
+    for name, default in (("capabilities.schema.json", "SCHEMA_PATH"),
+                          ("device-catalog.schema.json", "CATALOG_SCHEMA_PATH")):
+        own = os.path.join(ROOT, "schemas", name)
+        globals()[default] = own if os.path.isfile(own) else os.path.join(REPO_ROOT, "schemas", name)
+
+
+def _at_repo_root():
+    return os.path.realpath(ROOT) == os.path.realpath(REPO_ROOT)
 
 # ---------------------------------------------------------------------------
 # Canonical Linux input-event-codes we accept (gamepad/handheld-relevant subset).
@@ -101,6 +135,23 @@ FF_CODES = {
     "FF_DAMPER", "FF_INERTIA", "FF_RAMP",
 }
 ALL_INPUT_CODES = BTN_CODES | KEY_CODES | ABS_CODES
+# EV_SW codes a joint may emit as a threshold switch (schema v2 [[joints]].switches). Kept OUT of
+# ALL_INPUT_CODES: switch-type [[inputs]] rows wait for the synthesiser's EV_SW support (D8).
+SW_CODES = {
+    "SW_LID", "SW_TABLET_MODE", "SW_HEADPHONE_INSERT", "SW_MICROPHONE_INSERT", "SW_DOCK",
+    "SW_LINEOUT_INSERT", "SW_JACK_PHYSICAL_INSERT", "SW_KEYPAD_SLIDE", "SW_FRONT_PROXIMITY",
+    "SW_ROTATE_LOCK", "SW_MUTE_DEVICE", "SW_MACHINE_COVER",
+}
+
+# ---------------------------------------------------------------------------
+# Schema v2 (tsp-h5ed.46.3). schema_version absent = 1. These keys are only legal at v2, so a v1
+# descriptor (every one shipped before v2, and every collector-emitted candidate) is untouched.
+# ---------------------------------------------------------------------------
+SCHEMA_VERSION_MAX = 2
+V2_TOP_KEYS = ("physical", "model", "joints", "maturity")
+V2_SCREEN_KEYS = ("id", "node", "panel_px", "fourcc", "diagonal_in", "active_mm", "touch")
+V2_SENSOR_KINDS = ("hinge_angle",)
+JOINT_UNITS = {"hinge": "deg", "swivel": "deg", "slide": "mm"}  # documented; units follow kind
 
 
 # ---------------------------------------------------------------------------
@@ -189,6 +240,45 @@ def png_size(path):
     if len(head) < 24 or head[:8] != b"\x89PNG\r\n\x1a\n" or head[12:16] != b"IHDR":
         return None
     return int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big")
+
+
+# ---------------------------------------------------------------------------
+# glTF 2.0 binary (.glb) read (stdlib) — the node names a [model] binds to. Structural only: the
+# Khronos validator owns full glTF conformance (D4); this proves the file is a glb whose JSON
+# chunk parses and yields the node table.
+# ---------------------------------------------------------------------------
+def _glb_json(path):
+    """Return the parsed JSON chunk of a .glb, or an error string."""
+    try:
+        with open(path, "rb") as f:
+            blob = f.read()
+    except OSError:
+        return "file not found"
+    if len(blob) < 20 or blob[:4] != b"glTF":
+        return "not a glTF binary (bad magic)"
+    version, total = struct.unpack_from("<II", blob, 4)
+    if version != 2:
+        return f"glTF container version {version}, need 2"
+    if total != len(blob):
+        return f"header length {total} != file size {len(blob)} (truncated or padded)"
+    clen, ctype = struct.unpack_from("<II", blob, 12)
+    if ctype != 0x4E4F534A or 20 + clen > len(blob):
+        return "first chunk is not a complete JSON chunk"
+    try:
+        gl = json.loads(blob[20:20 + clen])
+    except ValueError as e:
+        return f"JSON chunk does not parse: {e}"
+    if not isinstance(gl, dict) or gl.get("asset", {}).get("version") != "2.0":
+        return "asset.version is not \"2.0\""
+    return gl
+
+
+def glb_node_names(path):
+    """Set of node names in a .glb, or an error string."""
+    gl = _glb_json(path)
+    if isinstance(gl, str):
+        return gl
+    return {n.get("name") for n in gl.get("nodes", []) if isinstance(n, dict) and n.get("name")}
 
 
 # ---------------------------------------------------------------------------
@@ -368,6 +458,297 @@ def semantic_errors(dev_id, data):
             sp = inp.get("skin_part")
             if sp and sp not in part_names:
                 errs.append(f"input '{inp.get('id','?')}': skin_part '{sp}' has no [skin.parts] entry")
+
+    # 6) schema v2 (tsp-h5ed.46.3): version gate, then the v2 rules.
+    ver = data.get("schema_version", 1)
+    if ver > SCHEMA_VERSION_MAX:
+        errs.append(f"E_SCHEMA_VERSION schema_version {ver} is newer than this validator "
+                    f"supports ({SCHEMA_VERSION_MAX})")
+    elif ver < 2:
+        for key in v2_keys_used(data):
+            errs.append(f"E_V2_AT_V1 {key} is a schema v2 key but schema_version is {ver} "
+                        f"(absent = 1): set schema_version = 2")
+    else:
+        e2, w2 = v2_semantic_errors(data)
+        errs += e2
+        warns += w2
+    return errs, warns
+
+
+def v2_keys_used(data):
+    """Every v2-only key/value present in a descriptor, as human-readable locations."""
+    used = [f"[{k}]" for k in V2_TOP_KEYS if k in data]
+    for i, s in enumerate(data.get("screens", [])):
+        used += [f"screens[{i}].{k}" for k in V2_SCREEN_KEYS if k in s]
+    for s in data.get("sensors", []):
+        if s.get("kind") in V2_SENSOR_KINDS:
+            used.append(f"sensors '{s.get('id', '?')}' kind={s.get('kind')}")
+    return used
+
+
+def screen_ids(data):
+    """screens[].id, defaulting to the role (legal only while there is one screen)."""
+    return [s.get("id") or s.get("role") for s in data.get("screens", [])]
+
+
+def model_sha_errors(data):
+    """The glb sha lives in skins/<id>/model-render.json (D4), never in [model]. Checked before the
+    schema so the author gets the named reason, not just 'unknown key'."""
+    model = data.get("model")
+    if not isinstance(model, dict):
+        return []
+    return [f"E_MODEL_SHA [model].{k}: the glb hash belongs in model-render.json (D4, owned by "
+            f"the skin drift gate), never in the descriptor" for k in model if "sha" in k.lower()]
+
+
+def derive_maturity(data):
+    """The highest rung a DESCRIPTOR's own content supports (D18):
+         sim-ready  — [model] present, every screen names its glTF node and every input its
+                      skin_part (the viewer can bind the whole device);
+         model-only — [model] present but some screen/input is not bound to the model;
+         planned    — no [model]: nothing pfvd can present."""
+    if not data.get("model"):
+        return "planned"
+    bound = (all(s.get("node") for s in data.get("screens", []))
+             and all(i.get("skin_part") for i in data.get("inputs", [])))
+    return "sim-ready" if bound else "model-only"
+
+
+def _tiling_errors(where, lo, hi, postures):
+    """Postures must tile [lo, hi] in document order: first lo == range lo, each lo == the
+    previous hi, last hi == range hi (lo inclusive, hi exclusive; the last hi inclusive)."""
+    if not postures:
+        return [f"E_POSTURE_TILING {where}: no [[joints.postures]]; a joint without `drive` must "
+                f"tile its range [{lo}, {hi}] with postures"]
+    out, expect = [], lo
+    for p in postures:
+        plo, phi = p.get("range", [None, None])
+        pw = f"{where} posture '{p.get('id', '?')}'"
+        if not plo < phi:
+            out.append(f"E_POSTURE_TILING {pw}: range [{plo}, {phi}] needs min < max")
+        if plo > expect:
+            out.append(f"E_POSTURE_TILING {pw}: gap [{expect}, {plo}) is covered by no posture")
+        elif plo < expect:
+            out.append(f"E_POSTURE_TILING {pw}: starts at {plo}, overlapping the previous posture "
+                       f"(which ends at {expect}); postures are ordered and non-overlapping")
+        expect = phi
+    if expect != hi:
+        out.append(f"E_POSTURE_TILING {where}: postures end at {expect} but the joint range ends "
+                   f"at {hi}")
+    return out
+
+
+def _cycles(edges):
+    """Ids on a cycle of a single-successor graph {id: successor id}."""
+    on_cycle = set()
+    for start in edges:
+        seen, cur = [], start
+        while cur in edges and cur not in seen:
+            seen.append(cur)
+            cur = edges[cur]
+        if cur in seen:
+            on_cycle.update(seen[seen.index(cur):])
+    return sorted(on_cycle)
+
+
+def v2_semantic_errors(data):
+    """Schema v2 rules (tsp-h5ed.46.3). Every error starts with its E_* rule name."""
+    errs, warns = [], []
+    primary_node = data.get("identity", {}).get("match", {}).get("evdev_name")
+    screens = data.get("screens", [])
+    inputs = data.get("inputs", [])
+    sids = screen_ids(data)
+    input_ids = {i.get("id") for i in inputs}
+
+    # Screens: today's consumers index screens[0] as THE screen, so the primary is first and
+    # unique; postures name screens, so ids are unique and explicit once there are two.
+    roles = [s.get("role") for s in screens]
+    if roles.count("primary") != 1:
+        errs.append(f"E_SCREEN_PRIMARY exactly one screen must be role=primary "
+                    f"(found {roles.count('primary')})")
+    elif roles[0] != "primary":
+        errs.append("E_SCREEN_PRIMARY the primary screen must be screens[0] (consumers index "
+                    "screens[0] as the primary)")
+    if len(screens) > 1:
+        missing = [i for i, s in enumerate(screens) if "id" not in s]
+        if missing:
+            errs.append(f"E_SCREEN_ID screens{missing} need an 'id' (required once a device has "
+                        f"more than one screen)")
+    dups = sorted({x for x in sids if x is not None and sids.count(x) > 1})
+    if dups:
+        errs.append(f"E_SCREEN_ID duplicate screen id(s): {', '.join(dups)}")
+    for s, sid in zip(screens, sids):
+        t = s.get("touch")
+        if not t:
+            continue
+        where = f"screen '{sid}' touch"
+        if primary_node is not None and t.get("source") == primary_node:
+            errs.append(f"E_SCREEN_TOUCH {where}: source '{primary_node}' is the primary gamepad "
+                        f"node; a touchscreen is its own evdev node")
+        if t.get("protocol") == "st" and "slots" in t:
+            errs.append(f"E_SCREEN_TOUCH {where}: 'slots' is only meaningful for protocol=mt-b")
+        axis_errs = []
+        for ax in ("x", "y", "pressure"):
+            if ax in t:
+                _axis_ok(ax, t[ax], where, axis_errs)
+        errs += [f"E_SCREEN_TOUCH {e}" for e in axis_errs]
+
+    # [physical]: body envelope (per-panel facts live on [[screens]]).
+    phys = data.get("physical")
+    if phys:
+        env = phys.get("envelope_mm", {})
+        bad = [k for k in ("w", "h", "d") if not env.get(k, 0) > 0]
+        if bad:
+            errs.append(f"E_PHYSICAL [physical].envelope_mm {', '.join(bad)} must be > 0 mm")
+        if "mass_g" in phys and not phys["mass_g"] > 0:
+            errs.append("E_PHYSICAL [physical].mass_g must be > 0 (omit it when unmeasured)")
+
+    # [model]: the glb exists and parses; under pf-semantic-v1 every bound name is a glb node.
+    model = data.get("model")
+    glb_nodes = None
+    if model:
+        glb = model.get("glb", "")
+        gl = _glb_json(os.path.join(ROOT, glb))
+        if isinstance(gl, str):
+            errs.append(f"E_MODEL_GLB [model].glb '{glb}': {gl}")
+        else:
+            names = [n.get("name") for n in gl.get("nodes", []) if isinstance(n, dict)]
+            glb_nodes = set(names)
+            twice = sorted({n for n in names if n and names.count(n) > 1})
+            if twice:
+                errs.append(f"E_MODEL_NODE [model].glb '{glb}': node name(s) {', '.join(twice)} "
+                            f"occur more than once (a binding must resolve to one node)")
+        src = model.get("source")
+        if src is not None and not os.path.isdir(os.path.join(ROOT, src)):
+            errs.append(f"E_MODEL_SOURCE [model].source '{src}' is not a model package directory")
+    if glb_nodes is not None:
+        wanted = ([(i.get("skin_part"), f"input '{i.get('id')}' skin_part") for i in inputs]
+                  + [(s.get("node"), f"screen '{sid}' node") for s, sid in zip(screens, sids)]
+                  + [(j.get("node"), f"joint '{j.get('id')}' node") for j in data.get("joints", [])])
+        for name, what in wanted:
+            if name and name not in glb_nodes:
+                errs.append(f"E_MODEL_NODE {what} '{name}' is not a node in [model].glb")
+
+    # [[joints]] pass 1: per-joint facts.
+    sensors = {s.get("id"): s for s in data.get("sensors", [])}
+    joints = data.get("joints", [])
+    by_id, node_owner = {}, {}
+    for j in joints:
+        jid = j.get("id", "?")
+        where = f"joint '{jid}'"
+        if jid in by_id:
+            errs.append(f"E_JOINT_DUPLICATE {where}: duplicate joint id")
+        else:
+            by_id[jid] = j
+        node = j.get("node")
+        if node in node_owner and node_owner[node] != jid:
+            errs.append(f"E_JOINT_DUPLICATE {where}: pivot node '{node}' is already joint "
+                        f"'{node_owner[node]}'s")
+        node_owner.setdefault(node, jid)
+        if model and node != f"pivot_{jid}":
+            errs.append(f"E_JOINT_NODE {where}: node '{node}' must be 'pivot_{jid}' under "
+                        f"[model].naming = pf-semantic-v1")
+        if all(a == 0 for a in j.get("axis", [])):
+            errs.append(f"E_JOINT_AXIS {where}: axis is the zero vector")
+        sname = j.get("sensor")
+        if sname is not None:
+            if sname not in sensors:
+                errs.append(f"E_JOINT_REF {where}: sensor '{sname}' is not a [[sensors]] id")
+            elif sensors[sname].get("kind") != "hinge_angle":
+                errs.append(f"E_JOINT_REF {where}: sensor '{sname}' is kind="
+                            f"{sensors[sname].get('kind')}, a joint sensor must be kind=hinge_angle")
+        lo, hi = j.get("range", [0, 0])
+        if not lo < hi:
+            errs.append(f"E_JOINT_RANGE {where}: range [{lo}, {hi}] needs min < max")
+            continue  # every check below is relative to the range
+        for key in ("rest", "default"):
+            if key in j and not lo <= j[key] <= hi:
+                errs.append(f"E_JOINT_RANGE {where}: {key} {j[key]} outside range [{lo}, {hi}]")
+        for d in j.get("detents", []):
+            if not lo <= d <= hi:
+                errs.append(f"E_JOINT_RANGE {where}: detent {d} outside range [{lo}, {hi}]")
+        for sw in j.get("switches", []):
+            sw_where = f"{where} switch {sw.get('code')}"
+            if sw.get("code") not in SW_CODES:
+                errs.append(f"E_JOINT_SWITCH {sw_where}: not a known EV_SW code "
+                            f"({', '.join(sorted(SW_CODES))})")
+            if primary_node is not None and sw.get("source") == primary_node:
+                errs.append(f"E_JOINT_SWITCH {sw_where}: source '{primary_node}' is the primary "
+                            f"gamepad node; name the switch's own evdev node")
+            alo, ahi = sw.get("active", [lo, hi])
+            if not (lo <= alo <= ahi <= hi):
+                errs.append(f"E_JOINT_SWITCH {sw_where}: active [{alo}, {ahi}] is not an "
+                            f"ordered sub-range of the joint range [{lo}, {hi}]")
+        postures = j.get("postures", [])
+        if "drive" in j:
+            if postures:
+                errs.append(f"E_JOINT_DRIVE {where}: a driven joint follows another joint and "
+                            f"has no postures of its own")
+        else:
+            errs += _tiling_errors(where, lo, hi, postures)
+        seen_p = set()
+        for p in postures:
+            pw = f"{where} posture '{p.get('id', '?')}'"
+            if p.get("id") in seen_p:
+                errs.append(f"E_POSTURE_DUPLICATE {pw}: duplicate posture id")
+            seen_p.add(p.get("id"))
+            for s in p.get("active_screens", []):
+                if s not in sids:
+                    errs.append(f"E_POSTURE_REF {pw}: active_screens '{s}' is not a screen id")
+            for i in p.get("reachable_inputs", []):
+                if i not in input_ids:
+                    errs.append(f"E_POSTURE_REF {pw}: reachable_inputs '{i}' is not an input id")
+            for s in p.get("screen_rotation", {}):
+                if s not in sids:
+                    errs.append(f"E_POSTURE_REF {pw}: screen_rotation key '{s}' is not a screen id")
+
+    # [[joints]] pass 2: references between joints (parent chains, drive coupling), acyclic.
+    parents, drivers = {}, {}
+    for j in joints:
+        jid = j.get("id", "?")
+        where = f"joint '{jid}'"
+        par = j.get("parent")
+        if par is not None:
+            if par == jid or par not in by_id:
+                errs.append(f"E_JOINT_REF {where}: parent '{par}' is not another joint id")
+            else:
+                parents[jid] = par
+        drv = j.get("drive")
+        if drv is None:
+            continue
+        src = drv.get("joint")
+        if src == jid or src not in by_id:
+            errs.append(f"E_JOINT_DRIVE {where}: drive.joint '{src}' is not another joint id")
+            continue
+        drivers[jid] = src
+        pts = drv.get("map", [])
+        xs = [p[0] for p in pts]
+        if any(b <= a for a, b in zip(xs, xs[1:])):
+            errs.append(f"E_JOINT_DRIVE {where}: drive.map inputs {xs} must strictly increase")
+        slo, shi = by_id[src].get("range", [0, 0])
+        lo, hi = j.get("range", [0, 0])
+        for x, y in pts:
+            if slo < shi and not slo <= x <= shi:
+                errs.append(f"E_JOINT_DRIVE {where}: drive.map input {x} outside joint '{src}' "
+                            f"range [{slo}, {shi}]")
+            if lo < hi and not lo <= y <= hi:
+                errs.append(f"E_JOINT_DRIVE {where}: drive.map output {y} outside this joint's "
+                            f"range [{lo}, {hi}]")
+    loop = _cycles(parents)
+    if loop:
+        errs.append(f"E_JOINT_REF joints {', '.join(loop)}: parent chain is a cycle")
+    loop = _cycles(drivers)
+    if loop:
+        errs.append(f"E_JOINT_DRIVE joints {', '.join(loop)}: drive coupling is a cycle")
+
+    # [maturity]: the declared rung may not exceed what the descriptor's content supports.
+    declared = data.get("maturity", {}).get("declared")
+    if declared in RUNGS:
+        derived = derive_maturity(data)
+        if RUNGS.index(declared) > RUNGS.index(derived):
+            errs.append(f"E_MATURITY_EXCEEDS [maturity] declared '{declared}' exceeds the derived "
+                        f"rung '{derived}' (sim-ready needs [model] plus a node for every screen "
+                        f"and a skin_part for every input)")
     return errs, warns
 
 
@@ -824,30 +1205,140 @@ def validate_one(dev_id, schema):
         data = _load(cpath)
     except Exception as e:
         return [f"{dev_id}: cannot parse {CAPS_FILE}: {e}"], []
-    errs = [f"{dev_id}: {e}" for e in schema_errors(data, schema)]
+    errs = [f"{dev_id}: {e}" for e in model_sha_errors(data) + schema_errors(data, schema)]
     if errs:  # schema must pass before semantic checks are meaningful
         return errs, []
     se, sw = semantic_errors(dev_id, data)
     return [f"{dev_id}: {e}" for e in se], [f"{dev_id}: {w}" for w in sw]
 
 
-def cmd_validate(argv):
+def _read_schema(path):
     try:
-        with open(SCHEMA_PATH) as f:
-            schema = json.load(f)
-    except OSError as e:
-        sys.stderr.write(f"FATAL: cannot read schema {SCHEMA_PATH}: {e}\n")
+        with open(path) as f:
+            return json.load(f)
+    except (OSError, ValueError) as e:
+        sys.stderr.write(f"FATAL: cannot read schema {path}: {e}\n")
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Device catalog (tsp-h5ed.46.3): devices/catalog.toml. Rung DERIVED per row from the artefacts:
+#   sim-ready  — platform_id has a capabilities.toml that validates AND the model package exists;
+#   model-only — the model package exists;
+#   planned    — neither.
+# A row's declared maturity may not exceed its derived rung.
+# ---------------------------------------------------------------------------
+def catalog_path():
+    return os.path.join(DEVICES, CATALOG_FILE)
+
+
+def catalog_rows(schema):
+    """Validate the catalog. Returns (rows, errors, warnings); each row gains 'derived'."""
+    path = catalog_path()
+    rel = os.path.relpath(path, ROOT)
+    try:
+        data = _load(path)
+    except FileNotFoundError:
+        return [], [f"catalog: {rel} is missing"], []
+    except Exception as e:  # noqa: BLE001 — any TOML error is a catalog error
+        return [], [f"catalog: cannot parse {rel}: {e}"], []
+    cschema = _read_schema(CATALOG_SCHEMA_PATH)
+    if cschema is None:
+        return [], [f"catalog: cannot read {CATALOG_SCHEMA_PATH}"], []
+    errs = [f"catalog: {e}" for e in schema_errors(data, cschema)]
+    if errs:
+        return [], errs, []
+    warns, rows, seen = [], [], set()
+    referenced = set()
+    for row in data.get("devices", []):
+        rid = row["id"]
+        where = f"catalog '{rid}'"
+        if rid in seen:
+            errs.append(f"{where}: E_CATALOG_DUPLICATE duplicate product id")
+        seen.add(rid)
+        plat, pkg = row.get("platform_id"), row.get("package")
+        has_desc = has_pkg = False
+        if plat is not None:
+            referenced.add(plat)
+            if not _has_caps(plat):
+                errs.append(f"{where}: E_CATALOG_REF platform_id '{plat}' has no "
+                            f"devices/{plat}/{CAPS_FILE}")
+            else:
+                prof = os.path.join(DEVICES, plat, "profile.toml")
+                base = _load(prof).get("device", {}).get("base") if os.path.isfile(prof) else None
+                if base:
+                    errs.append(f"{where}: E_CATALOG_REF platform_id '{plat}' is a build variant "
+                                f"of '{base}'; the catalog names base devices only")
+                derrs, _ = validate_one(plat, schema)
+                has_desc = not derrs
+                if derrs:
+                    warns.append(f"{where}: platform '{plat}' descriptor does not validate "
+                                 f"({len(derrs)} error(s)), so it cannot count as sim-ready")
+                else:
+                    ident = _load(os.path.join(DEVICES, plat, CAPS_FILE)).get("identity", {})
+                    if (ident.get("manufacturer"), ident.get("model")) != (row["manufacturer"], row["name"]):
+                        warns.append(f"{where}: manufacturer/name '{row['manufacturer']} "
+                                     f"{row['name']}' != descriptor identity '"
+                                     f"{ident.get('manufacturer')} {ident.get('model')}'")
+        if pkg is not None:
+            has_pkg = os.path.isdir(os.path.join(ROOT, pkg))
+            if not has_pkg:
+                errs.append(f"{where}: E_CATALOG_REF package '{pkg}' is not a directory")
+        derived = "sim-ready" if (has_desc and has_pkg) else ("model-only" if has_pkg else "planned")
+        if RUNGS.index(row["maturity"]) > RUNGS.index(derived):
+            errs.append(f"{where}: E_CATALOG_MATURITY declared '{row['maturity']}' exceeds the "
+                        f"derived rung '{derived}' (sim-ready = valid descriptor + model package; "
+                        f"model-only = model package)")
+        rows.append(dict(row, derived=derived))
+    for dev in list_caps_devices():
+        if dev not in referenced:
+            warns.append(f"catalog: devices/{dev}/{CAPS_FILE} is not the platform_id of any "
+                         f"catalog row")
+    return rows, errs, warns
+
+
+def cmd_catalog(argv):
+    sub = "list"
+    if argv and argv[0] in ("list", "validate"):
+        sub, argv = argv[0], argv[1:]
+    fmt = "tsv"
+    if argv[:1] == ["--format"] and len(argv) == 2 and argv[1] in ("tsv", "json"):
+        fmt = argv[1]
+    elif argv:
+        sys.stderr.write("catalog: usage: catalog [list|validate] [--format tsv|json]\n")
+        return 2
+    schema = _read_schema(SCHEMA_PATH)
+    if schema is None:
         return 3
-    validate_all = bool(argv) and argv[0] == "--all"
+    rows, errs, warns = catalog_rows(schema)
+    if sub == "list":
+        cols = ("id", "manufacturer", "name", "code_name", "platform_id", "maturity", "derived")
+        if fmt == "json":
+            print(json.dumps([{c: r.get(c) for c in cols} for r in rows], indent=2))
+        else:
+            print("\t".join(cols[:5] + ("declared", "derived")))
+            for r in rows:
+                print("\t".join(str(r.get(c) or "-") for c in cols))
+    for w in warns:
+        print(f"WARN  {w}")
+    for e in errs:
+        print(f"ERROR {e}")
+    if sub == "validate" and not errs:
+        print(f"OK    catalog: {len(rows)} product(s), declared rungs within derived")
+    return 1 if errs else 0
+
+
+def cmd_validate(argv):
+    schema = _read_schema(SCHEMA_PATH)
+    if schema is None:
+        return 3
+    validate_all = not argv or argv[0] == "--all"
     if validate_all:
         targets = list_caps_devices()
         if not targets:
             print("(no capabilities.toml descriptors found)")
     else:
         targets = argv
-        if not targets:
-            sys.stderr.write("validate: give a device id or --all\n")
-            return 2
     total_err = 0
     for d in targets:
         errs, warns = validate_one(d, schema)
@@ -860,23 +1351,52 @@ def cmd_validate(argv):
         total_err += len(errs)
     # --all also validates the CI gate matrix (infra-113 B4): a bad posture, an
     # unclassified device dir, or a gating posture without a descriptor is an error.
+    # A --root fixture tree is not a platform checkout: there a missing matrix/catalog is a SKIP.
     if validate_all:
-        merrs, mwarns = matrix_errors()
-        for w in mwarns:
-            print(f"WARN  {w}")
-        for e in merrs:
-            print(f"ERROR {e}")
-        if not merrs:
-            print("OK    ci-matrix: posture data valid")
-        total_err += len(merrs)
+        if not os.path.isfile(MATRIX_PATH) and not _at_repo_root():
+            print(f"SKIP  ci-matrix: no {MATRIX_FILE} under --root {ROOT} (fixture tree)")
+        else:
+            merrs, mwarns = matrix_errors()
+            for w in mwarns:
+                print(f"WARN  {w}")
+            for e in merrs:
+                print(f"ERROR {e}")
+            if not merrs:
+                print("OK    ci-matrix: posture data valid")
+            total_err += len(merrs)
+        if not os.path.isfile(catalog_path()) and not _at_repo_root():
+            print(f"SKIP  catalog: no devices/{CATALOG_FILE} under --root {ROOT} (fixture tree)")
+        else:
+            rows, cerrs, cwarns = catalog_rows(schema)
+            for w in cwarns:
+                print(f"WARN  {w}")
+            for e in cerrs:
+                print(f"ERROR {e}")
+            if not cerrs:
+                print(f"OK    catalog: {len(rows)} product(s), declared rungs within derived")
+            total_err += len(cerrs)
     return 1 if total_err else 0
 
 
 def main(argv):
+    if argv and argv[0].startswith("--root"):
+        if argv[0] == "--root" and len(argv) >= 2:
+            root, argv = argv[1], argv[2:]
+        elif argv[0].startswith("--root="):
+            root, argv = argv[0][len("--root="):], argv[1:]
+        else:
+            sys.stderr.write("caps: --root needs a directory\n")
+            return 2
+        if not os.path.isdir(os.path.join(root, "devices")):
+            sys.stderr.write(f"caps: --root {root} has no devices/ directory\n")
+            return 2
+        set_root(root)
     if not argv:
         sys.stderr.write(__doc__)
         return 2
     cmd = argv[0]
+    if cmd == "catalog":
+        return cmd_catalog(argv[1:])
     if cmd == "list":
         print("\n".join(list_caps_devices()))
         return 0

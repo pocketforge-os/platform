@@ -1,0 +1,10 @@
+# tests/caps-fixtures/clamshell/devices/synth-clamshell/profile.toml
+# Minimal sibling profile so the capabilities descriptor's device.id JOIN resolves. SYNTHETIC test
+# fixture (tsp-h5ed.46.3): never built, never staged, not under devices/.
+[device]
+id     = "synth-clamshell"
+name   = "Synthetic Clamshell Fixture"
+soc    = "none"
+arch   = "aarch64"
+family = "synthetic"
+status = "example"
