@@ -1289,7 +1289,7 @@ sha  = "0d483c38a1e67543022c51244dd2437cd71332d6"
 name = "cloud-init-tsp"  # canonical/cloud-init 26.2 plus PocketForge's strict local
 url  = "https://github.com/pocketforge-os/cloud-init-tsp.git"  # NoCloud seed policy.
 ref  = "pocketforge-main"
-sha  = "558269b993c74d87304355d5ef9546f3a10454b2"
+sha  = "a298e3711500549a467aedc5a72689b8c42e21ab"
 
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
