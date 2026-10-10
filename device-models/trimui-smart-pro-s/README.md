@@ -103,6 +103,8 @@ From the platform repository root:
 python3 -m py_compile \
   device-models/trimui-smart-pro-s/render.py \
   device-models/trimui-smart-pro-s/compare.py
+python3 device-models/trimui-smart-pro-s/render.py --check
+python3 device-models/trimui-smart-pro-s/test_render_determinism.py
 python3 device-models/trimui-smart-pro-s/render.py \
   --views out/tg5050-views
 python3 device-models/trimui-smart-pro-s/compare.py \
@@ -121,6 +123,17 @@ change owns invoking `--write`, reconciling the derived a523 rectangles, wiring
 `skins/generate-bezel.py`, and committing the runtime PNG/metadata outputs.
 Until that integration lands, use `--views` for this source model; the current
 descriptor still contains schematic-fallback rectangles by design.
+
+`--write`, `--write-views` and `--check` apply the TG5040 renderer's tie-jitter
+rule (OpenSCAD 2021.01 shades a few tie pixels differently per process; see
+`JITTER_MAX_PIXELS` in `render.py`): a re-render from the unedited `.scad` and
+`render.py` keeps a committed PNG it differs from in at most 128 pixels. Here a
+tie pixel in a red control frame can also move a derived rect by one edge pixel
+(measured once in 14 front renders, on `trig_r`), so a rect within
+`JITTER_RECT_PIXELS` (1) of the committed one keeps the committed rect and
+prints `tie_jitter=kept rects=<ids>`. `test_render_determinism.py` proves both
+with the measured tie pixels injected, and that a one-line `.scad` edit rewrites
+the PNG.
 
 ## Known limits
 
