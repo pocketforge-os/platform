@@ -2,18 +2,23 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://pocketforge.os/schemas/capabilities.schema.json",
   "title": "PocketForge device capability descriptor (capabilities.toml)",
-  "description": "Net-new per-variant sibling to devices/<id>/profile.toml, joined ONLY by device.id. Describes what a device can SENSE, ACTUATE, and LOOK LIKE. One descriptor, three consumers (capability broker, simulator, CI). descriptor = EXPECTATION; the live EVIOCGBIT/EVIOCGABS probe = GROUND TRUTH. Missing hardware = ROW OMISSION, never a fabricated row.",
+  "description": "Net-new per-variant sibling to devices/<id>/profile.toml, joined ONLY by device.id. Describes what a device can SENSE, ACTUATE, and LOOK LIKE. One descriptor, three consumers (capability broker, simulator, CI). descriptor = EXPECTATION; the live EVIOCGBIT/EVIOCGABS probe = GROUND TRUTH. Missing hardware = ROW OMISSION, never a fabricated row. Schema v2 (tsp-h5ed.46.3, D5): schema_version absent = 1; physical, model, joints, maturity, the per-screen id/node/panel_px/fourcc/diagonal_in/active_mm/touch keys and sensor kind hinge_angle are valid only at schema_version = 2 (enforced by core/caps.py, which also carries every cross-reference rule).",
   "type": "object",
   "additionalProperties": false,
   "required": ["identity", "screens", "inputs"],
   "properties": {
+    "schema_version": { "type": "integer", "minimum": 1 },
     "identity": { "$ref": "#/$defs/identity" },
     "screens":   { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/screen" } },
     "inputs":    { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/input" } },
     "sensors":   { "type": "array", "items": { "$ref": "#/$defs/sensor" } },
     "actuators": { "type": "array", "items": { "$ref": "#/$defs/actuator" } },
     "skin":      { "$ref": "#/$defs/skin" },
-    "accept_default": { "type": "string", "minLength": 1 }
+    "accept_default": { "type": "string", "minLength": 1 },
+    "physical":  { "$ref": "#/$defs/physical" },
+    "model":     { "$ref": "#/$defs/model" },
+    "joints":    { "type": "array", "items": { "$ref": "#/$defs/joint" } },
+    "maturity":  { "$ref": "#/$defs/maturity" }
   },
   "$defs": {
     "identity": {
@@ -21,7 +26,7 @@
       "additionalProperties": false,
       "required": ["id", "manufacturer", "model", "sdl_guid", "match"],
       "properties": {
-        "id":           { "type": "string", "pattern": "^[a-z0-9]+$" },
+        "id":           { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
         "manufacturer": { "type": "string", "minLength": 1 },
         "model":        { "type": "string", "minLength": 1 },
         "codename":     { "type": "string", "minLength": 1 },
@@ -43,11 +48,125 @@
       "additionalProperties": false,
       "required": ["role", "render_canvas", "present", "rotation"],
       "properties": {
+        "id":            { "type": "string", "pattern": "^[a-z0-9_]+$" },
         "role":          { "enum": ["primary", "secondary"] },
         "render_canvas": { "$ref": "#/$defs/wh" },
         "present":       { "enum": ["landscape", "portrait"] },
-        "rotation":      { "enum": ["none", "cw90", "cw180", "cw270"] },
-        "display_rect":  { "$ref": "#/$defs/rect" }
+        "rotation":      { "$ref": "#/$defs/rotation" },
+        "display_rect":  { "$ref": "#/$defs/rect" },
+        "node":          { "type": "string", "minLength": 1 },
+        "panel_px":      { "$ref": "#/$defs/wh" },
+        "fourcc":        { "type": "string", "pattern": "^[A-Za-z0-9_ ]{4}$" },
+        "diagonal_in":   { "type": "number", "minimum": 0 },
+        "active_mm":     { "$ref": "#/$defs/mm2" },
+        "touch":         { "$ref": "#/$defs/touch" }
+      }
+    },
+    "rotation": { "enum": ["none", "cw90", "cw180", "cw270"] },
+    "pair": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } },
+    "mm2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["w", "h"],
+      "properties": { "w": { "type": "number" }, "h": { "type": "number" } }
+    },
+    "mm3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["w", "h", "d"],
+      "properties": { "w": { "type": "number" }, "h": { "type": "number" }, "d": { "type": "number" } }
+    },
+    "touch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol", "source", "x", "y"],
+      "properties": {
+        "protocol": { "enum": ["mt-b", "st"] },
+        "slots":    { "type": "integer", "minimum": 1 },
+        "source":   { "type": "string", "minLength": 1 },
+        "x":        { "$ref": "#/$defs/axis" },
+        "y":        { "$ref": "#/$defs/axis" },
+        "pressure": { "$ref": "#/$defs/axis" }
+      }
+    },
+    "physical": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["envelope_mm"],
+      "properties": {
+        "envelope_mm": { "$ref": "#/$defs/mm3" },
+        "mass_g":      { "type": "number" },
+        "source":      { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["glb", "frame", "naming"],
+      "properties": {
+        "glb":    { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "frame":  { "enum": ["pf-mm-v1"] },
+        "naming": { "enum": ["pf-semantic-v1"] }
+      }
+    },
+    "maturity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["declared"],
+      "properties": { "declared": { "enum": ["planned", "model-only", "sim-ready"] } }
+    },
+    "joint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "node", "axis", "range"],
+      "properties": {
+        "id":       { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "kind":     { "enum": ["hinge", "swivel", "slide"] },
+        "node":     { "type": "string", "minLength": 1 },
+        "axis":     { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } },
+        "range":    { "$ref": "#/$defs/pair" },
+        "rest":     { "type": "number" },
+        "default":  { "type": "number" },
+        "detents":  { "type": "array", "items": { "type": "number" } },
+        "parent":   { "type": "string", "minLength": 1 },
+        "drive":    { "$ref": "#/$defs/drive" },
+        "sensor":   { "type": "string", "minLength": 1 },
+        "switches": { "type": "array", "items": { "$ref": "#/$defs/switch" } },
+        "postures": { "type": "array", "items": { "$ref": "#/$defs/posture" } }
+      }
+    },
+    "drive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["joint", "map"],
+      "properties": {
+        "joint": { "type": "string", "minLength": 1 },
+        "map":   { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/pair" } }
+      }
+    },
+    "switch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ev_type", "code", "source", "active"],
+      "properties": {
+        "ev_type":    { "enum": ["EV_SW"] },
+        "code":       { "type": "string", "minLength": 1 },
+        "source":     { "type": "string", "minLength": 1 },
+        "active":     { "$ref": "#/$defs/pair" },
+        "hysteresis": { "type": "number", "minimum": 0 }
+      }
+    },
+    "posture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "range"],
+      "properties": {
+        "id":               { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "range":            { "$ref": "#/$defs/pair" },
+        "active_screens":   { "type": "array", "items": { "type": "string" } },
+        "reachable_inputs": { "type": "array", "items": { "type": "string" } },
+        "screen_rotation":  { "type": "object", "additionalProperties": { "$ref": "#/$defs/rotation" } }
       }
     },
     "wh": {
@@ -110,7 +229,7 @@
       "required": ["id", "kind"],
       "properties": {
         "id":           { "type": "string", "pattern": "^[a-z0-9_]+$" },
-        "kind":         { "enum": ["accel", "gyro", "mag", "accel+gyro", "imu", "gnss", "gps"] },
+        "kind":         { "enum": ["accel", "gyro", "mag", "accel+gyro", "imu", "gnss", "gps", "hinge_angle"] },
         "iio_device":   { "type": "string", "minLength": 1 },
         "units":        { "type": "string", "minLength": 1 },
         "mount_matrix": { "$ref": "#/$defs/mat3" },

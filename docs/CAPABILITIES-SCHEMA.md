@@ -24,10 +24,12 @@ renders the skin from them; CI (E7/infra-106) asserts the contract from the same
   on a133 too. The descriptor is the authority for *physical, drawable* controls; the
   SPIKE-0 fidelity check is **asymmetric** (descriptor codes ⊆ probe codes; extra
   advertised-but-unwired codes are expected, not mismatches).
-- **Screen geometry is render INTENT, not the panel's pixel truth.** Panel dims live in the
-  kernel DTS and are NOT duplicated here. `rotation` is a logical ENUM
+- **Screen geometry is render INTENT, not the panel's pixel truth.** For the kernel, panel dims
+  live in the DTS; v1 descriptors do not duplicate them. `rotation` is a logical ENUM
   (`none`/`cw90`/`cw180`/`cw270`), never the per-SoC magic number (a133 `768`, a523 `0`).
-  The only cross-check against the build profile is the **`device.id` JOIN**.
+  The only cross-check against the build profile is the **`device.id` JOIN**. Schema v2 adds
+  OPTIONAL per-screen panel facts (`panel_px`, `fourcc`, `diagonal_in`, `active_mm`) for the
+  simulator's screen contract (decision D7); the DTS stays authoritative for the kernel.
 
 ## Button naming (position / label / code / action)
 
@@ -74,7 +76,8 @@ future) is a schema change, not a descriptor licence. `pf caps emit-sdldb` does 
 
 | table | key | required | notes |
 |---|---|---|---|
-| `[identity]` | `id` | ✅ | canonical id; MUST equal the directory name AND `profile.toml [device].id` (the join) |
+| (top-level) | `schema_version` | | integer; absent = 1. `2` unlocks the [schema v2](#schema-v2) keys |
+| `[identity]` | `id` | ✅ | canonical id `^[a-z0-9][a-z0-9-]*$`; MUST equal the directory name AND `profile.toml [device].id` (the join) |
 | | `manufacturer`, `model` | ✅ | e.g. `TrimUI` / `Smart Pro S` |
 | | `codename` | | Android-picker leaf (`5040`/`5050`) |
 | | `sdl_guid` | ✅ | 32 lowercase hex; the `gamecontrollerdb` key (see `pf caps emit-sdldb`, E1.4) |
@@ -93,7 +96,7 @@ future) is a schema change, not a descriptor licence. `pf caps emit-sdldb` does 
 | | `range` / `x` / `y` | | `{ min, max, flat?, fuzz?, resolution? }` absinfo; `trigger`→`range`, `stick`→`x`+`y` |
 | | `semantics` | | `analog`\|`binary` — what the physical actuator IS, DISTINCT from the wire format described by `kind`/`ev_type`/`code`. Only meaningful on `kind=trigger` (see "Actuator semantics vs wire format" below); other kinds have unambiguous semantics from `kind` itself and the validator rejects it there |
 | | `skin_part`, `ui` | | skin rect id (face buttons use positional `btn_south`...); UI hint (e.g. `slider_above`) |
-| `[[sensors]]` | `id`, `kind`, `iio_device` | ✅ | `kind` ∈ accel/gyro/mag/accel+gyro/imu; `iio_device` e.g. `qmi8658`. OMIT DT-but-unbound sensors until SPIKE-0 proves they bind |
+| `[[sensors]]` | `id`, `kind`, `iio_device` | ✅ | `kind` ∈ accel/gyro/mag/accel+gyro/imu (+ gnss/gps, no `iio_device`; + `hinge_angle` at v2, the value a joint feeds); `iio_device` e.g. `qmi8658`. OMIT DT-but-unbound sensors until SPIKE-0 proves they bind |
 | | `units`, `mount_matrix`, `ui` | | `mount_matrix` = 3×3 numbers; `ui` e.g. `tilt_bubble` |
 | `[[actuators]]` | `id`, `kind` | ✅ | `kind` ∈ `rumble`\|`led_array` |
 | | `ev_type`/`code`, `sysfs` | | rumble: `EV_FF`/`FF_RUMBLE` + `pwm-vibrator` |
@@ -110,6 +113,97 @@ compose the shared all-lit atlas from those passes, so control geometry, neighbo
 highlights, the raster atlas, and descriptor hitboxes cannot silently drift.
 See `device-models/README.md` for that reusable contract.
 
+## Schema v2
+
+Decision D5 (simulator epic tsp-h5ed.46), implemented in tsp-h5ed.46.3. `schema_version = 2`
+unlocks the keys below, ALL optional. They exist so the 3D simulator can bind a descriptor to a
+glTF model and articulate it (D6). A v1 descriptor (no `schema_version`, or `1`) validates exactly
+as before; a v2 key in a v1 descriptor is `E_V2_AT_V1`, and a version above 2 is
+`E_SCHEMA_VERSION`. Principle: **descriptor = presence, wiring, geometry; state = anything a
+slider or the guest changes** (joint angle, lid switch value, touch points).
+
+| table | key | required | notes |
+|---|---|---|---|
+| `[[screens]]` | `id` | when > 1 screen | `^[a-z0-9_]+$`; unique; a lone screen's id defaults to its `role`. Postures name screens by id |
+| | `node` | | glTF node of the screen's emissive quad (UV 0..1 over the active area) |
+| | `panel_px` | | `{ w, h }` native panel pixels (e.g. 720×1280 for the portrait-native a133 panel) |
+| | `fourcc` | | DRM fourcc of the scanout, 4 chars (e.g. `XR24`) |
+| | `diagonal_in`, `active_mm` | | panel diagonal (in) and active area `{ w, h }` (mm). dpi is DERIVED, never declared |
+| | `[screens.touch]` | | presence = touchscreen: `protocol` `mt-b`\|`st`, `slots` (mt-b only), `source` (its evdev node, never the primary gamepad node), `x`/`y`/`pressure` absinfo |
+| `[physical]` | `envelope_mm` | ✅ | body envelope `{ w, h, d }` in mm (>0), frame pf-mm-v1. Per-panel facts live on `[[screens]]` |
+| | `mass_g`, `source` | | mass (>0; omit when unmeasured); provenance strings per field |
+| `[model]` | `glb` | ✅ | root-relative path of the glTF 2.0 binary; must exist and parse. Like `source` and catalog `package`, it must resolve INSIDE the root: absolute paths, `..` escapes and symlinks pointing outside are refused (symlinks staying inside are followed) |
+| | `frame` | ✅ | `pf-mm-v1`: millimetres, X left→right, Y bottom→top, Z rear→front |
+| | `naming` | ✅ | `pf-semantic-v1`: every `inputs[].skin_part`, `screens[].node` and `joints[].node` names exactly one glb node; a joint's node is `pivot_<joint id>` |
+| | `source` | | model package directory (e.g. `device-models/trimui-smart-pro`) |
+| | (no sha) | | the glb's sha256 lives in `skins/<id>/model-render.json` (D4, owned by the drift gate); any `*sha*` key here is `E_MODEL_SHA` |
+| `[[joints]]` | `id` | ✅ | `^[a-z0-9_]+$`, unique |
+| | `kind` | ✅ | `hinge`\|`swivel` (values in degrees) \| `slide` (values in mm) |
+| | `node` | ✅ | the glTF pivot node; its children are the moving assembly |
+| | `axis` | ✅ | `[x, y, z]` in the model frame, non-zero: rotation axis (right-hand rule, positive value = positive rotation) or slide direction |
+| | `range` | ✅ | `[min, max]`, min < max |
+| | `rest` | | joint value the glb is authored at; default `range[0]` |
+| | `default`, `detents` | | start value and snap values, all inside `range` |
+| | `parent` | | joint whose moving assembly carries this pivot (chains); acyclic |
+| | `drive` | | `{ joint, map = [[in, out], ...] }`: this joint FOLLOWS another by a piecewise-linear map (inputs strictly increasing and inside the source range, outputs inside this range); a driven joint has no postures and no slider; acyclic |
+| | `sensor` | | id of a `[[sensors]]` row of kind `hinge_angle` that receives the value |
+| | `switches` | | `[{ ev_type = "EV_SW", code = "SW_LID", source, active = [lo, hi], hysteresis }]`: the switch reads 1 while the joint value is inside `active` (a sub-range of `range`); `source` is its evdev node, never the primary gamepad node |
+| `[[joints.postures]]` | `id`, `range` | ✅ | named sub-range of the joint (ids unique per joint) |
+| | `active_screens` | | screen ids lit in this posture; `[]` = all off; absent = all on |
+| | `reachable_inputs` | | input ids still pickable; absent = all |
+| | `screen_rotation` | | `{ <screen id> = none\|cw90\|cw180\|cw270 }`, relative to the screen's declared `rotation` |
+| `[maturity]` | `declared` | ✅ | `planned`\|`model-only`\|`sim-ready` (D18), bounded by the derived rung |
+
+**Posture semantics.** Postures are UI/simulator groupings over ONE joint value; hardware has
+no posture concept. In document order they must TILE the joint range exactly: the first starts
+at `range[0]`, each starts where the previous ends, the last ends at `range[1]`; each covers
+`[lo, hi)` and the last `[lo, hi]`. So every joint value falls in exactly one posture. Switch
+events are NOT posture side effects: they are thresholds on the joint value (`switches`), so the
+lid switch fires at the same angle however the user got there.
+
+**Maturity (descriptor).** The derived rung is the highest one the descriptor's own content
+supports: `sim-ready` = `[model]` present AND every screen has a `node` AND every input a
+`skin_part`; `model-only` = `[model]` present with some binding missing; `planned` = no
+`[model]`. `declared` above the derived rung is `E_MATURITY_EXCEEDS`.
+
+**Rule names.** Every v2 error starts with a stable name: `E_SCHEMA_VERSION`, `E_V2_AT_V1`,
+`E_SCREEN_PRIMARY` (exactly one primary and it is `screens[0]`: consumers index `screens[0]`),
+`E_SCREEN_ID`, `E_SCREEN_TOUCH`, `E_PHYSICAL`, `E_MODEL_SHA`, `E_MODEL_GLB`, `E_MODEL_SOURCE`,
+`E_MODEL_NODE`, `E_JOINT_DUPLICATE` (id or pivot node), `E_JOINT_NODE`, `E_JOINT_AXIS`,
+`E_JOINT_RANGE`, `E_JOINT_REF` (parent, sensor), `E_JOINT_SWITCH`, `E_JOINT_DRIVE`,
+`E_POSTURE_TILING`, `E_POSTURE_DUPLICATE`, `E_POSTURE_REF`, `E_MATURITY_EXCEEDS`.
+
+Not in v2 yet: `EV_SW`/`EV_REL` `[[inputs]]` rows (switch/wheel kinds). The simulator's input
+synthesiser rejects `EV_SW` today, so these wait for its v2 (D8). A lid switch is expressed on
+the joint instead.
+
+**Reference fixture.** `tests/caps-fixtures/clamshell/` is a SYNTHETIC two-screen clamshell
+(lid hinge 0–180°, postures `closed` [0,10) / `half` [10,150) / `open` [150,180], `SW_LID`
+active in [0,10], a touch bottom screen, 12 inputs), with a generated PNG skin and a tiny glb
+(`gen_fixture.py`, `--check` = drift gate). It lives outside `devices/`, so it is never in
+`ci-matrix.toml`, `pf build` or the catalog:
+`pf caps --root tests/caps-fixtures/clamshell validate`.
+
+## Device catalog (`devices/catalog.toml`)
+
+One `[[devices]]` row per retail product (D17), schema `schemas/device-catalog.schema.json`,
+`schema_version = 1`. Listed with `pf caps catalog [list|validate] [--format tsv|json]` and
+checked by `pf caps validate` (no id) / `--all`.
+
+| key | required | notes |
+|---|---|---|
+| `id` | ✅ | product slug `^[a-z0-9][a-z0-9-]*$`, unique (`E_CATALOG_DUPLICATE`) |
+| `manufacturer`, `name` | ✅ | marketing name (`TrimUI` / `Smart Pro`); WARN if it disagrees with the descriptor's `identity` |
+| `code_name` | | the maker's code name (`TG5040`, `TG5050`, `TG3040`) |
+| `platform_id` | | the `devices/<dir>` with the descriptor; must have a `capabilities.toml` and must not be a build variant (`[device].base`) (`E_CATALOG_REF`). Variants are derived, never listed |
+| `package` | | model package directory (`device-models/<slug>`); must exist inside the root (`E_CATALOG_REF`) |
+| `maturity` | ✅ | declared rung `planned`\|`model-only`\|`sim-ready` |
+
+Derived rung per row: `sim-ready` = `platform_id`'s descriptor validates AND the package exists;
+`model-only` = the package exists; `planned` = neither. `maturity` above the derived rung is
+`E_CATALOG_MATURITY`; below it is allowed (the X55 is declared `planned` while its package holds
+only the fixture reference model). Hardware verification is not a rung (D18).
+
 ## What `pf caps validate` checks
 1. **Schema** (structure, types, enums, patterns, `additionalProperties:false`).
 2. **`device.id` JOIN** — `identity.id` == directory == `profile.toml [device].id` (the sole build-profile cross-check; geometry stays in the DTS).
@@ -117,9 +211,14 @@ See `device-models/README.md` for that reusable contract.
 4. **Ranges** — `min ≤ max`, `flat ≤ span`.
 5. **Geometry coherence** — `rotation(render_canvas)` matches `present` (catches a forgotten rotation / pre-rotated app).
 6. **Skin bounds** — `body` is a real PNG; every part rect + `display_rect` fits the bezel; every `skin_part` reference resolves; lit overlays exist (warn).
+7. **Schema v2** (when `schema_version = 2`) — the [rules above](#schema-v2).
+8. **With no id or `--all`** — also the CI gate matrix and the device catalog. Under `--root`
+   (a fixture tree) a missing `ci-matrix.toml`/`catalog.toml` is a SKIP; in the repo it is an error.
 
-Self-test: `python3 regression/caps/test_caps.py` (device-free; asserts the positive path,
-a battery of negatives, and agreement with the reference `jsonschema` when installed).
+Self-tests: `python3 regression/caps/test_caps.py` (device-free; asserts the positive path,
+a battery of negatives, and agreement with the reference `jsonschema` when installed) and
+`python3 regression/caps/test_caps_v2.py` (the v2 rules and the catalog: every rule's hostile
+addition next to its positive control in one invocation). Both run in `regression/run-offline.sh`.
 
 See `devices/a133/capabilities.toml` (base set) and `devices/a523/capabilities.toml`
 (= a133 + pure data rows: home/L3/R3/imu/rumble) for the authored descriptors.
