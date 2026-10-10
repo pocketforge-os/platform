@@ -26,9 +26,19 @@ case "$1 $2" in
             fi
             shift
         done
+        [ "${PF_TEST_CREATE_FAIL:-0}" != 1 ] || exit 8
         ;;
-    "buildx build") [ "${PF_TEST_BUILD_FAIL:-0}" != 1 ] || exit 7 ;;
-    "buildx prune"|"buildx rm") exit 0 ;;
+    "buildx build")
+        if [ "${PF_TEST_BUILD_SIGNAL:-}" = TERM ]; then
+            kill -TERM "$PPID"
+        fi
+        [ "${PF_TEST_BUILD_FAIL:-0}" != 1 ] || exit 7
+        ;;
+    "buildx prune") [ "${PF_TEST_PRUNE_FAIL:-0}" != 1 ] || exit 9 ;;
+    "buildx rm")
+        [ "${PF_TEST_REMOVE_FAIL:-0}" != 1 ] || exit 10
+        [ ! -e "$PF_TEST_STATE/builder" ] || unlink "$PF_TEST_STATE/builder"
+        ;;
     *) exit 97 ;;
 esac
 SH
@@ -62,6 +72,36 @@ set -e
 [ "$rc" -eq 7 ]
 grep -qxF 'buildx prune --builder pf-ci --all --force --keep-storage 8gb' \
     "$T/state/docker.calls"
+
+run_cleanup_failure_case() {
+    local label="$1" expected_rc="$2" rc
+    shift 2
+    : > "$T/state/docker.calls"
+    [ ! -e "$T/state/builder" ] || unlink "$T/state/builder"
+    set +e
+    env -i PATH="$T/bin:/usr/bin:/bin" PF_TEST_STATE="$T/state" \
+        PF_CI_BUILDX_LOCK="$T/builder.lock" PF_CI_BUILDX_NAMESERVERS=10.0.0.53 \
+        RUNNER_TEMP="$T" "$@" \
+        "$ENTRY" build --load --tag pocketforge-sim:test fixture \
+        > "$T/$label.out" 2>&1
+    rc=$?
+    set -e
+    if [ "$rc" -ne "$expected_rc" ]; then
+        printf 'FAIL: %s returned %s, expected %s\n' "$label" "$rc" "$expected_rc" >&2
+        return 1
+    fi
+    grep -qxF 'buildx prune --builder pf-ci --all --force --keep-storage 8gb' \
+        "$T/state/docker.calls"
+    grep -qxF 'buildx rm --keep-state pf-ci' "$T/state/docker.calls"
+}
+
+# Every path after named-builder creation starts must attempt both bounding
+# operations. The original build/create/signal status wins over cleanup errors.
+run_cleanup_failure_case cancelled 143 PF_TEST_BUILD_SIGNAL=TERM PF_TEST_PRUNE_FAIL=1
+run_cleanup_failure_case create-failed 8 PF_TEST_CREATE_FAIL=1
+run_cleanup_failure_case build-and-prune-failed 7 PF_TEST_BUILD_FAIL=1 PF_TEST_PRUNE_FAIL=1
+run_cleanup_failure_case prune-failed 9 PF_TEST_PRUNE_FAIL=1
+run_cleanup_failure_case remove-failed 10 PF_TEST_REMOVE_FAIL=1
 
 : > "$T/state/docker.calls"
 exec 8> "$T/busy.lock"
