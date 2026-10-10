@@ -99,17 +99,13 @@ VIEW_CAMERAS = {
 
 # The clickable non-front views this device carries (see the base trimui-smart-pro
 # render.py for the full contract). The TG5050 exposes the four top-edge paddles PLUS
-# btn_home (its top-edge home button), POWER and the two volume-rocker halves from the
-# top. Rendered by --write-views into TOP_BODY/TOP_BODY_LIT +
-# model-render.json["views"][name]; front is untouched.
+# btn_home (its top-edge home button) from the top. Rendered by --write-views into
+# TOP_BODY/TOP_BODY_LIT + model-render.json["views"][name]; front is untouched.
 SKIN_VIEWS = {
     "top": {
         "camera": VIEW_CAMERAS["top"][0],
         "rotate": VIEW_CAMERAS["top"][1],
-        "controls": (
-            "btn_l1", "trig_l", "btn_r1", "trig_r", "btn_home",
-            "btn_power", "btn_vol_down", "btn_vol_up",
-        ),
+        "controls": ("btn_l1", "trig_l", "btn_r1", "trig_r", "btn_home"),
         "body": TOP_BODY,
         "body_lit": TOP_BODY_LIT,
     },
@@ -357,8 +353,8 @@ def split_rocker_overlap(
 
     VOL- and VOL+ are one moulded rocker clipped at its centre seam, so their
     one-at-a-time diffs (plus RECT_PADDING) meet or overlap at the seam. Split
-    the shared horizontal band at its midpoint, like the stacked shoulders. A
-    view without both halves is left alone.
+    the shared horizontal band at its midpoint, like the stacked shoulders.
+    Without both halves this is a no-op.
     """
     down = rectangles.get("btn_vol_down")
     up = rectangles.get("btn_vol_up")
@@ -593,7 +589,6 @@ def render_view_set(
         control_frames[control_id] = control
         rectangles[control_id] = diff_rect(neutral, control)
     split_view_paddle_overlaps(rectangles)
-    split_rocker_overlap(rectangles)
 
     overlaps = rectangle_overlaps(rectangles)
     if overlaps:

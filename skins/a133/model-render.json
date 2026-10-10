@@ -1,6 +1,6 @@
 {
   "atlas_composition": "pairwise-disjoint-one-control-renders",
-  "body_lit_sha256": "db9d3b54276fe36feef6f3ab2e9c2fd6b8156032734c8b6d2cbfc935b7087510",
+  "body_lit_sha256": "64c2c744be25e2215e73de0dcadaedae7c74e8a89221e5514823ba282261faf6",
   "body_sha256": "6ba84e7a1a7e379d62f2a6cca80ac770a7172b282e27f7e6db01acffa982e565",
   "camera": {
     "colorscheme": "Tomorrow",
@@ -137,7 +137,7 @@
     "w": 3200
   },
   "renderer": "device-models/trimui-smart-pro/render.py",
-  "renderer_sha256": "b4dd9ab07b087378eddce924ce3fbd29cd737f1b86becf1735ea4069c3eacc9d",
+  "renderer_sha256": "7c46e874ee504598a226e8db225dffe4df1e87fe643620db1a68df4c105c60ba",
   "schema_version": 3,
   "shoulder_crop_policy": "split-overlap-midpoint+4px-horizontal+front-control-trim",
   "source": "device-models/trimui-smart-pro/trimui-smart-pro.scad",
@@ -147,7 +147,7 @@
       "atlas_composition": "pairwise-disjoint-one-control-renders",
       "body": "skins/a133/body_top.png",
       "body_lit": "skins/a133/body_lit_top.png",
-      "body_lit_sha256": "27aeef5c43fe09b3412128fd4013f9212c6fcdead8f4ac3d25fc5493f9277d27",
+      "body_lit_sha256": "222a8be066a0bbb9af8e83a9a7f52b4969ed4accf482b3c0dcde3e46bb237cdd",
       "body_sha256": "47ae9e7b6f1c959ce6fbfab2d99a63a24b8e3559f96f6cc87a55bfdebd94e28c",
       "camera": {
         "colorscheme": "Tomorrow",
@@ -173,29 +173,11 @@
           "x": 60,
           "y": 310
         },
-        "btn_power": {
-          "h": 34,
-          "w": 85,
-          "x": 384,
-          "y": 266
-        },
         "btn_r1": {
           "h": 26,
           "w": 193,
           "x": 1227,
           "y": 310
-        },
-        "btn_vol_down": {
-          "h": 34,
-          "w": 104,
-          "x": 879,
-          "y": 266
-        },
-        "btn_vol_up": {
-          "h": 34,
-          "w": 103,
-          "x": 983,
-          "y": 266
         },
         "trig_l": {
           "h": 55,

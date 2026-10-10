@@ -530,7 +530,6 @@ class SystemKeyNodeTests(unittest.TestCase):
             self.assertEqual(apart, before, slug)
             render.split_rocker_overlap({"btn_l1": {"x": 0, "y": 0, "w": 9, "h": 9}})
             self.assertIn("btn_vol_up", render.CONTROL_IDS, slug)
-            self.assertIn("btn_vol_up", render.SKIN_VIEWS["top"]["controls"], slug)
 
 
 class ExporterTests(unittest.TestCase):
