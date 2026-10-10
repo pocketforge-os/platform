@@ -297,17 +297,18 @@ class ProfileTest(unittest.TestCase):
         # canonical open-7x kernel/UAPI identities and gpu-um#203/#205/#206 remain open-only.
         # The tsp-mc9m.41.1002.8.6 cloud-init completion pin moves only the universal
         # PF_CLOUD_INIT_SHA on every row; keys, lock state, and missing pins are unchanged.
+        # Its c4377732 security correction again moves only PF_CLOUD_INIT_SHA.
         expected = {
-            ("a133", "dev"): "eeec7efbf2acbb8985d1815c996015d2370bd72f1e23c3b5bb7e94bc30d2f38f",
-            ("a133", "release"): "bdad732bae227538dcc349681d773158b7bd3f79faeb32e19182b866f5c5e4c4",
-            ("a133-open-7x", "dev"): "b6e39fe991203d8bfa374f76df8534e8ac93410713f80978fab5c23773bbf350",
-            ("a133-open-7x", "release"): "b42cfe8c21d1d07cd4f7de292b17466190a3b752b7c6ef698a3f78c7943206ec",
-            ("a133-owned", "dev"): "f2aa484d5778b34a7dbbe4d227bc4c1d7b7cb5b42adb7539102c09203b92b9b7",
-            ("a133-owned", "release"): "08fc0f37b375c1e8a711dca6cf7f8a8c1b75a3367f7344748044c438dc9e25a4",
-            ("a523", "dev"): "3cba622d6282fb44dee81232720d7b0849f9136a83bdef23bb22fb698c45ae58",
-            ("a523", "release"): "b10f766e3fe06d4900c9bc3e878be0ac2b306c021cc15d6b2d4b7b3edb618af1",
-            ("sdm845", "dev"): "b130b839ba53a3c5d9b4e01dd94a3f1ffe87986c21f6061849f4d1be57eb5ce3",
-            ("sdm845", "release"): "d3f92faa1e3555f75f143fb2c6c774db39aaba1a0a93da713b4ce54a345197b6",
+            ("a133", "dev"): "8a7711d1574ada423e85fb78bc279aaacbe07788b3b7b04820675c3d6498f33b",
+            ("a133", "release"): "bb88adfbcb762904bf54c0cdae0abe7cc851080189648062bdee786c0eb0a16a",
+            ("a133-open-7x", "dev"): "9bc86fc62394913711487f43c55dabe3445a17789e9b72ff7ff24501d2588300",
+            ("a133-open-7x", "release"): "ad601eba6906b63783eb96af7ca27d449acd5af8406fb82312651d3047dff8ae",
+            ("a133-owned", "dev"): "c8b34544b44072e1d94aa689ef544b324f61afa0116c866b7b81e305f7812ecc",
+            ("a133-owned", "release"): "3d3cdd5ad34d638142b739529fb20e56e9d91f6822842935bed8f94fd221656e",
+            ("a523", "dev"): "a31b19185f4a88153f3a1cd97e8cdfe1a79645288669fe908bc521507c839933",
+            ("a523", "release"): "36e5d51893be583e5323a7d64dad90f1904784596320125cd5cf7022cb5580a1",
+            ("sdm845", "dev"): "e03c639aa9a42b39daba2d4ac1c806b8d04682976177d0adbff71f89053c3297",
+            ("sdm845", "release"): "c0cbe5a56949e91092cedc220ebf542c79e7c93d5cc393709d14645bec83f98d",
         }
         for key, digest in expected.items():
             dev_id, variant = key
