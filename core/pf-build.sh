@@ -134,6 +134,38 @@ pf_require_epoch() {
     printf '%s\n' "$epoch"
 }
 
+# pf_max_epoch <mirror-dir> [<repo> <sha>]... — resolve every non-empty pinned
+# source through the same fail-closed ladder and print the newest committer time.
+# Multi-source stages use this so their reproducible clock is a pure function of
+# all admitted source revisions rather than argument order or the image revision.
+pf_max_epoch() {
+    local mirror_dir="$1" repo sha epoch newest=""
+    shift
+    [ $(( $# % 2 )) -eq 0 ] || pf_die "pf_max_epoch requires repo/sha pairs"
+    while [ "$#" -gt 0 ]; do
+        repo="$1"
+        sha="$2"
+        shift 2
+        epoch="$(pf_require_epoch "$repo" "$sha" "$mirror_dir")"
+        [ -n "$epoch" ] || continue
+        [[ "$epoch" =~ ^[0-9]+$ ]] \
+            || pf_die "invalid epoch for $repo@$sha: $epoch"
+        if [ -z "$newest" ] || (( epoch > newest )); then
+            newest="$epoch"
+        fi
+    done
+    [ -z "$newest" ] || printf '%s\n' "$newest"
+}
+
+pf_validate_build_stage_target() {
+    local target="$1"
+    case "$target" in
+        export|component-test-fetch|component-test-kernel|component-test-gpu-km|component-test-gpu-um|component-test-bootchain|component-test-sdl|component-test-wpa|component-test-cloud-init|component-test-runtime|component-test-ffmpeg|component-test-sdl-static|component-test-hwprobe|component-test-poolsuite|component-test-recovery|component-test-launcher|component-test-gamescope) ;;
+        *) pf_die "PF_BUILD_STAGE_TARGET is not an admitted export/component-test target: $target" ;;
+    esac
+    printf '%s\n' "$target"
+}
+
 # pf_stage_sources <src_dir> <buildargs-text>
 # Materialize each source repo as a `git archive` of its platform.lock SHA under
 # <src_dir>/<logical>/ (the named build contexts the Dockerfile COPYs from). NEVER a clone
@@ -538,10 +570,58 @@ pf_os_image_dockerbuild() {
     # same component-reproducibility rationale as the kernel epoch. Empty for a device
     # with no source bootchain (the stage no-ops there — the only legitimate empty-epoch
     # case, which pf_require_epoch passes through).
-    local uboot_repo uboot_sha bc_sde=""
+    local uboot_repo uboot_sha tfa_repo tfa_sha bc_sde=""
     uboot_repo="$(printf '%s\n' "$ba" | sed -n 's/^PF_UBOOT_REPO=//p')"
     uboot_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_UBOOT_SHA=//p')"
-    bc_sde="$(pf_require_epoch "$uboot_repo" "$uboot_sha" "$mirror_dir")"
+    tfa_repo="$(printf '%s\n' "$ba" | sed -n 's/^PF_TFA_REPO=//p')"
+    tfa_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_TFA_SHA=//p')"
+    bc_sde="$(pf_max_epoch "$mirror_dir" "$uboot_repo" "$uboot_sha" "$tfa_repo" "$tfa_sha")"
+
+    # Every component producer gets a clock derived only from its own pinned
+    # source tuple. SOURCE_DATE_EPOCH remains the image-product clock and is
+    # consumed only by rootfs/assemble; it must not invalidate component stages
+    # when an image-only commit changes. Optional/profile-pruned producers yield
+    # an empty epoch and therefore no build arg.
+    local gpu_um_repo gpu_um_sha gpu_um_sde=""
+    local libsdl3_sha libsdl3_sde="" wpa_sha wpa_sde=""
+    local cloud_init_sha cloud_init_sde="" runtime_sha runtime_sde=""
+    local ffmpeg_uapi_sha ffmpeg_sde=""
+    local sim_sha sdl_static_sde="" hwprobe_sha hwprobe_sde=""
+    local poolsuite_sha poolsuite_sde=""
+    local recovery_repo recovery_sha recovery_sde=""
+    local launcher_repo launcher_sha launcher_sde=""
+    gpu_um_repo="$(printf '%s\n' "$ba" | sed -n 's/^PF_GPU_UM_REPO=//p')"
+    gpu_um_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_GPU_UM_SHA=//p')"
+    libsdl3_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_LIBSDL3_SHA=//p')"
+    wpa_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_WPA_SHA=//p')"
+    cloud_init_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_CLOUD_INIT_SHA=//p')"
+    runtime_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_RUNTIME_SHA=//p')"
+    ffmpeg_uapi_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_FFMPEG_UAPI_SHA=//p')"
+    sim_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_SIM_SHA=//p')"
+    hwprobe_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_HWPROBE_SHA=//p')"
+    poolsuite_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_POOLSUITE_SHA=//p')"
+    recovery_repo="$(printf '%s\n' "$ba" | sed -n 's/^PF_RECOVERY_REPO=//p')"
+    recovery_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_RECOVERY_SHA=//p')"
+    launcher_repo="$(printf '%s\n' "$ba" | sed -n 's/^PF_LAUNCHER_REPO=//p')"
+    launcher_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_LAUNCHER_SHA=//p')"
+
+    gpu_um_sde="$(pf_require_epoch "$gpu_um_repo" "$gpu_um_sha" "$mirror_dir")"
+    libsdl3_sde="$(pf_require_epoch libsdl3-sunxifb "$libsdl3_sha" "$mirror_dir")"
+    wpa_sde="$(pf_require_epoch wpa-supplicant-tsp "$wpa_sha" "$mirror_dir")"
+    cloud_init_sde="$(pf_require_epoch cloud-init-tsp "$cloud_init_sha" "$mirror_dir")"
+    runtime_sde="$(pf_require_epoch runtime "$runtime_sha" "$mirror_dir")"
+    ffmpeg_sde="$(pf_require_epoch "$kernel_repo" "$ffmpeg_uapi_sha" "$mirror_dir")"
+    if [ "$VARIANT" = dev ]; then
+        sdl_static_sde="$(pf_max_epoch "$mirror_dir" \
+            sim "$sim_sha" libsdl3-sunxifb "$libsdl3_sha")"
+        hwprobe_sde="$(pf_max_epoch "$mirror_dir" \
+            pf-hwprobe "$hwprobe_sha" runtime "$runtime_sha" \
+            sim "$sim_sha" libsdl3-sunxifb "$libsdl3_sha")"
+        poolsuite_sde="$(pf_require_epoch poolsuite "$poolsuite_sha" "$mirror_dir")"
+    fi
+    recovery_sde="$(pf_require_epoch "$recovery_repo" "$recovery_sha" "$mirror_dir")"
+    launcher_sde="$(pf_max_epoch "$mirror_dir" \
+        "$launcher_repo" "$launcher_sha" runtime "$runtime_sha")"
 
     # The rootfs stage does a privileged debootstrap (real chroot/mount) and the assemble stage
     # builds the disk image — both need SYS_ADMIN, which BuildKit grants ONLY under
@@ -550,19 +630,36 @@ pf_os_image_dockerbuild() {
     # docker-container buildx builder created with the entitlement. Driver choice does not change
     # output bytes. See the tsp-buildkit-insecure-mmdebstrap memory.
     local builder="${PF_BUILDX_BUILDER:-pf-insecure}"
+    # Normal builds always select export. Ephemeral CI may select one source-free
+    # component-test-* scratch boundary to compare producer bytes without paying
+    # for rootfs/assemble. Keep the allowlist exact: this is a test aperture, not
+    # a general arbitrary-Dockerfile-stage escape hatch.
+    local build_stage_target="${PF_BUILD_STAGE_TARGET:-export}"
+    build_stage_target="$(pf_validate_build_stage_target "$build_stage_target")"
 
     local -a cmd=( docker buildx build
         --builder "$builder"
         --allow security.insecure
         --file "$dockerfile"
-        --target export
+        --target "$build_stage_target"
         --build-arg "PF_CONTAINER=$container"
         --build-arg "APT_SNAPSHOT_DATE=$snap"
         --build-arg "PF_VARIANT=$VARIANT"
         --build-arg "PF_HWPROBE_STAGE=$VARIANT" )
     [ -n "$sde" ]    && cmd+=( --build-arg "SOURCE_DATE_EPOCH=$sde" )
     [ -n "$k_sde" ]  && cmd+=( --build-arg "PF_KERNEL_SOURCE_DATE_EPOCH=$k_sde" )
+    [ -n "$gpu_um_sde" ] && cmd+=( --build-arg "PF_GPU_UM_SOURCE_DATE_EPOCH=$gpu_um_sde" )
     [ -n "$bc_sde" ] && cmd+=( --build-arg "PF_BOOTCHAIN_SOURCE_DATE_EPOCH=$bc_sde" )
+    [ -n "$libsdl3_sde" ] && cmd+=( --build-arg "PF_LIBSDL3_SOURCE_DATE_EPOCH=$libsdl3_sde" )
+    [ -n "$wpa_sde" ] && cmd+=( --build-arg "PF_WPA_SOURCE_DATE_EPOCH=$wpa_sde" )
+    [ -n "$cloud_init_sde" ] && cmd+=( --build-arg "PF_CLOUD_INIT_SOURCE_DATE_EPOCH=$cloud_init_sde" )
+    [ -n "$runtime_sde" ] && cmd+=( --build-arg "PF_RUNTIME_SOURCE_DATE_EPOCH=$runtime_sde" )
+    [ -n "$ffmpeg_sde" ] && cmd+=( --build-arg "PF_FFMPEG_SOURCE_DATE_EPOCH=$ffmpeg_sde" )
+    [ -n "$sdl_static_sde" ] && cmd+=( --build-arg "PF_SDL_STATIC_SOURCE_DATE_EPOCH=$sdl_static_sde" )
+    [ -n "$hwprobe_sde" ] && cmd+=( --build-arg "PF_HWPROBE_SOURCE_DATE_EPOCH=$hwprobe_sde" )
+    [ -n "$poolsuite_sde" ] && cmd+=( --build-arg "PF_POOLSUITE_SOURCE_DATE_EPOCH=$poolsuite_sde" )
+    [ -n "$recovery_sde" ] && cmd+=( --build-arg "PF_RECOVERY_SOURCE_DATE_EPOCH=$recovery_sde" )
+    [ -n "$launcher_sde" ] && cmd+=( --build-arg "PF_LAUNCHER_SOURCE_DATE_EPOCH=$launcher_sde" )
     # Optional transparent apt cache proxy (e.g. the NAS apt-cacher-ng at http://10.0.32.86:3142).
     # Fetch transport only — apt verifies every .deb vs the signed snapshot index, so it never
     # changes output bytes (R1 / G-reproducible safe). Opt-in via the PF_APT_PROXY env; a CI host
