@@ -165,6 +165,40 @@ class ShellInputContractTest(unittest.TestCase):
             with self.subTest(schema_collision=action), self.assertRaises(jsonschema.ValidationError):
                 checker.validate(collision)
 
+    def test_system_menu_provider_v1_includes_shown_and_is_additive(self) -> None:
+        fixture = json.loads((ROOT / "fixtures/system-menu-provider-v1.json").read_text())
+        validator.validate_provider_protocol_fixture(fixture)
+        self.assertIn("shown", {message["type"] for message in fixture["messages"]})
+
+        additive = copy.deepcopy(fixture)
+        shown = next(message for message in additive["messages"] if message["type"] == "shown")
+        shown["future_optional"] = {"app_id": "reserved-but-not-implemented"}
+        validator.validate_provider_protocol_fixture(additive)
+
+        missing_shown = copy.deepcopy(fixture)
+        missing_shown["messages"] = [
+            message for message in missing_shown["messages"] if message["type"] != "shown"
+        ]
+        with self.assertRaises(validator.ContractError):
+            validator.validate_provider_protocol_fixture(missing_shown)
+
+        wrong_major = copy.deepcopy(fixture)
+        next(message for message in wrong_major["messages"] if message["type"] == "shown")["version"] = 2
+        with self.assertRaises(validator.ContractError):
+            validator.validate_provider_protocol_fixture(wrong_major)
+
+        try:
+            import jsonschema
+        except ImportError:
+            self.skipTest("optional jsonschema package unavailable")
+        schema = json.loads((ROOT.parent / "schemas/system-menu-provider-v1.schema.json").read_text())
+        checker = jsonschema.Draft202012Validator(schema)
+        checker.validate(additive)
+        with self.assertRaises(jsonschema.ValidationError):
+            checker.validate(missing_shown)
+        with self.assertRaises(jsonschema.ValidationError):
+            checker.validate(wrong_major)
+
     def test_frozen_v1_documents_and_supported_migrations(self) -> None:
         contract = copy.deepcopy(self.shipped)
         contract["schema_version"] = 1

@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pocketforge.org/schemas/system-menu-provider-v1.schema.json",
+  "title": "PocketForge system-menu provider protocol v1 message set",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol_version", "messages"],
+  "properties": {
+    "protocol_version": { "const": 1 },
+    "messages": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": { "$ref": "#/$defs/frame" },
+      "allOf": [
+        { "contains": { "$ref": "#/$defs/register" }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "$ref": "#/$defs/registered" }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "$ref": "#/$defs/systemMenu" }, "minContains": 1, "maxContains": 1 },
+        {
+          "contains": {
+            "allOf": [
+              { "$ref": "#/$defs/ack" },
+              { "properties": { "action": { "const": "system_menu" } } }
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        { "contains": { "$ref": "#/$defs/shown" }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "$ref": "#/$defs/return" }, "minContains": 1, "maxContains": 1 },
+        {
+          "contains": {
+            "allOf": [
+              { "$ref": "#/$defs/ack" },
+              { "properties": { "action": { "const": "return" } } }
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "frame": {
+      "oneOf": [
+        { "$ref": "#/$defs/register" },
+        { "$ref": "#/$defs/registered" },
+        { "$ref": "#/$defs/systemMenu" },
+        { "$ref": "#/$defs/ack" },
+        { "$ref": "#/$defs/shown" },
+        { "$ref": "#/$defs/return" }
+      ]
+    },
+    "register": {
+      "type": "object",
+      "required": ["version", "type"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "register" }
+      }
+    },
+    "registered": {
+      "type": "object",
+      "required": ["version", "type"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "registered" }
+      }
+    },
+    "systemMenu": {
+      "type": "object",
+      "required": ["version", "type"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "system_menu" }
+      }
+    },
+    "ack": {
+      "type": "object",
+      "required": ["version", "type", "action"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "ack" },
+        "action": { "enum": ["system_menu", "return"] }
+      }
+    },
+    "shown": {
+      "type": "object",
+      "required": ["version", "type"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "shown" }
+      }
+    },
+    "return": {
+      "type": "object",
+      "required": ["version", "type"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "return" }
+      }
+    }
+  }
+}

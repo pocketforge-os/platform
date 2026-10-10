@@ -27,6 +27,15 @@ SYSTEM_MENU_BINDINGS = (
     {"shape": "double_press", "controls": ["guide"], "max_interval_ms": 500},
     {"shape": "hold", "controls": ["select", "l1", "r1"], "min_duration_ms": 1000},
 )
+PROVIDER_MESSAGE_SIGNATURES = {
+    ("register", None),
+    ("registered", None),
+    ("system_menu", None),
+    ("ack", "system_menu"),
+    ("shown", None),
+    ("return", None),
+    ("ack", "return"),
+}
 
 
 class ContractError(ValueError):
@@ -76,6 +85,42 @@ def binding(value: Any, path: str) -> dict[str, Any]:
     if extras:
         fail(path, f"field(s) invalid for {shape}: {', '.join(sorted(extras))}")
     return item
+
+
+def validate_provider_message(value: Any, path: str) -> tuple[str, str | None]:
+    if not isinstance(value, dict):
+        fail(path, "must be an object")
+    if "version" not in value or "type" not in value:
+        fail(path, "must contain version and type")
+    if type(value["version"]) is not int or value["version"] != 1:
+        fail(f"{path}.version", "must equal 1")
+    message_type = value["type"]
+    if not isinstance(message_type, str):
+        fail(f"{path}.type", "must be a string")
+    if message_type == "ack":
+        action = value.get("action")
+        if action not in {"system_menu", "return"}:
+            fail(f"{path}.action", "ack must identify system_menu or return")
+        return message_type, action
+    if message_type not in {"register", "registered", "system_menu", "shown", "return"}:
+        fail(f"{path}.type", "unknown provider protocol message")
+    return message_type, None
+
+
+def validate_provider_protocol_fixture(value: Any, source: str = "provider protocol") -> dict[str, Any]:
+    fixture = obj(value, source, {"protocol_version", "messages"})
+    if type(fixture["protocol_version"]) is not int or fixture["protocol_version"] != 1:
+        fail(f"{source}.protocol_version", "must equal 1")
+    messages = fixture["messages"]
+    if not isinstance(messages, list):
+        fail(f"{source}.messages", "must be an array")
+    signatures = [
+        validate_provider_message(message, f"{source}.messages[{index}]")
+        for index, message in enumerate(messages)
+    ]
+    if len(signatures) != len(PROVIDER_MESSAGE_SIGNATURES) or set(signatures) != PROVIDER_MESSAGE_SIGNATURES:
+        fail(f"{source}.messages", "must contain each v1 message signature exactly once")
+    return fixture
 
 
 def signature(value: dict[str, Any]) -> tuple[Any, ...]:
@@ -387,7 +432,9 @@ def main() -> int:
     paths = args.paths or sorted((ROOT / "fixtures").glob("*.json"))
     for path in paths:
         document = load(path)
-        if "system_menu_defaults" in document or "safe_return_defaults" in document:
+        if "protocol_version" in document and "messages" in document:
+            validate_provider_protocol_fixture(document, str(path))
+        elif "system_menu_defaults" in document or "safe_return_defaults" in document:
             validate_defaults_registry(document, str(path))
         elif "effective_map" in document:
             validate_contract(document, str(path))

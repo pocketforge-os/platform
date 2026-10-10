@@ -28,6 +28,25 @@ uses that same RPC and state machine, so there is one return implementation. Thi
 keeps return reachable before the provider ships and while it is crashed or hung.
 `open keyboard` is a declared future item only; this contract invents no others.
 
+### Provider protocol v1
+
+`schemas/system-menu-provider-v1.schema.json` and
+`fixtures/system-menu-provider-v1.json` define the versioned provider message
+set. In addition to registration, `system_menu`, acknowledgements, and `return`,
+the provider can send `shown` after the menu frame has been committed. The broker
+accepts and logs `shown`; v1 does not enforce a deadline or health policy for it.
+
+Version 1 requires only the fields shown in the fixture and receivers ignore
+unknown optional fields. Adding optional fields, including a future owner-approved
+`{app_id, gen, rev, items}` snapshot, is additive. Changing an existing field's
+meaning or making a new field mandatory requires a new major version.
+
+The current acknowledgement deadline remains 250 ms: it is long enough for
+local scheduling jitter and short enough to keep fallback escape responsive.
+The proposed 500 ms `shown` deadline, 1 s open-menu health watch, and 2 s
+router-owned Menu hold are reserved vocabulary/policy only; they are not
+owner-approved or enforced by this contract change.
+
 ## v1 compatibility and migration
 
 Version 1 remains frozen at
