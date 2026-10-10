@@ -37,6 +37,23 @@ DIFF_THRESHOLD = 20
 RECT_PADDING = 0
 RENDER_SETTLE_SECONDS = 0.15
 
+# Tie jitter. Copied from trimui-smart-pro/render.py (tsp-h5ed.46.29) by tsp-h5ed.46.32
+# rather than shared: that render.py's hash is recorded in the committed a133 skin.
+# OpenSCAD 2021.01 does not draw identical geometry from one process to the next: a
+# few pixels on edges where two faces tie take one face's shade or the other's (0-30
+# pixels per a133/a523 skin canvas). None was measured at the Brick's cameras (6
+# semantic sets and 6 view sets, 174 frames, byte-identical), but the renderer is the
+# same. A re-render into an output directory whose semantic-model.json records an
+# UNEDITED .scad AND render.py, whose derived crops/rects equal the recorded ones and
+# whose PNG differs from the recorded PNG in at most JITTER_MAX_PIXELS pixels keeps
+# the recorded bytes. Editing either input always writes fresh renders.
+JITTER_MAX_PIXELS = 128
+# A tie pixel inside a highlighted control's red frame can cross DIFF_THRESHOLD at the
+# control's edge (measured on the a523's trig_r: one row). With unedited inputs and
+# the recorded crops, a derived rect whose every edge is within JITTER_RECT_PIXELS of
+# the recorded rect takes the recorded rect (see ``canonical_rects``).
+JITTER_RECT_PIXELS = 1
+
 APP_CAMERA = "36.4,55.375,350,36.4,55.375,10"
 APP_ROTATE = 0
 
@@ -271,6 +288,100 @@ def save_png(image: Image.Image, path: Path) -> None:
     image.save(path, format="PNG", optimize=False, compress_level=9)
 
 
+def tie_jitter_pixels(committed: Path, image: Image.Image) -> int | None:
+    """Pixels where ``image`` differs from the committed PNG in any channel; None
+    when there is no committed PNG or the sizes differ."""
+    if not committed.is_file():
+        return None
+    with Image.open(committed) as source:
+        previous = source.convert("RGB")
+    if previous.size != image.size:
+        return None
+    red, green, blue = ImageChops.difference(previous, image.convert("RGB")).split()
+    changed = ImageChops.lighter(ImageChops.lighter(red, green), blue)
+    return changed.point(lambda value: 255 if value else 0).histogram()[255]
+
+
+def inputs_unchanged(committed: dict | None) -> bool:
+    """The committed metadata was rendered from this .scad by this render.py."""
+    return (
+        committed is not None
+        and committed.get("source_sha256") == sha256(MODEL)
+        and committed.get("renderer_sha256") == sha256(RENDERER)
+    )
+
+
+def keeps_committed(committed: Path, image: Image.Image, same: bool) -> bool:
+    """True when ``image`` is a tie-jitter re-render of the committed PNG and ``same``
+    (see ``same_derivation``) holds."""
+    if not same:
+        return False
+    count = tie_jitter_pixels(committed, image)
+    return count is not None and count <= JITTER_MAX_PIXELS
+
+
+def same_derivation(
+    committed: dict | None,
+    inputs_same: bool,
+    derived: dict,
+    keys: tuple[str, ...],
+) -> bool:
+    """The committed render came from the same inputs (``inputs_unchanged``) and
+    derived the same geometry."""
+    return (
+        inputs_same
+        and committed is not None
+        and all(committed.get(key) == derived.get(key) for key in keys)
+    )
+
+
+def save_canonical_png(image: Image.Image, path: Path, same: bool) -> None:
+    """Write ``image`` unless it only tie-jitters against the committed ``path``."""
+    if not keeps_committed(path, image, same):
+        save_png(image, path)
+        return
+    count = tie_jitter_pixels(path, image)
+    if count:
+        # The output directory need not be under ROOT (unlike the a133 skin).
+        shown = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
+        print(f"tie_jitter=kept path={shown} pixels={count}")
+
+
+def rect_edges(rectangle: dict[str, int]) -> tuple[int, int, int, int]:
+    return (
+        rectangle["x"],
+        rectangle["y"],
+        rectangle["x"] + rectangle["w"],
+        rectangle["y"] + rectangle["h"],
+    )
+
+
+def canonical_rects(
+    fresh: dict[str, dict[str, int]],
+    committed: dict | None,
+    same: bool,
+) -> dict[str, dict[str, int]]:
+    """The committed rects when ``same`` (unedited inputs and the committed crop), the
+    ids match and every fresh edge is within JITTER_RECT_PIXELS of the committed one;
+    otherwise ``fresh``."""
+    if (not same or not isinstance(committed, dict) or set(committed) != set(fresh)
+            or not all(isinstance(rect, dict) for rect in committed.values())):
+        return fresh
+    for name, rectangle in fresh.items():
+        moved = zip(rect_edges(rectangle), rect_edges(committed[name]))
+        if max(abs(new - old) for new, old in moved) > JITTER_RECT_PIXELS:
+            return fresh
+    kept = sorted(name for name in fresh if fresh[name] != committed[name])
+    if kept:
+        print(f"tie_jitter=kept rects={','.join(kept)}")
+    return {name: dict(committed[name]) for name in fresh}
+
+
+SEMANTIC_DERIVATION_KEYS = (
+    "canvas", "controls", "control_views", "display_rect", "views"
+)
+
+
 def render_fitted(
     work: Path,
     *,
@@ -318,12 +429,16 @@ def inset_rect(rectangle: dict[str, int], amount: int) -> dict[str, int]:
     }
 
 
-def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
+def render_skin_set(
+    work: Path, committed: dict | None = None
+) -> tuple[Image.Image, Image.Image, dict]:
     """Build the model-stage semantic review atlas.
 
     The function name is retained for the repository validator.  This atlas is
     evidence, not a committed runtime skin: controls are assigned to the view
-    where the physical input is actually visible.
+    where the physical input is actually visible.  ``committed`` is a previous
+    semantic-model.json, whose rects a tie-jittered derivation keeps
+    (``canonical_rects``).
     """
     work.mkdir(parents=True, exist_ok=True)
     neutral_atlas: Image.Image | None = None
@@ -332,6 +447,7 @@ def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
     control_views: dict[str, str] = {}
     display_rect: dict[str, int] | None = None
     camera_metadata: dict[str, dict] = {}
+    highlights: dict[str, tuple[Image.Image, int, int]] = {}
 
     for view_name, spec in SEMANTIC_VIEWS.items():
         tile_x, tile_y, tile_w, tile_h = spec["tile"]
@@ -399,25 +515,37 @@ def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
                 "btn_north", "btn_east", "btn_south", "btn_west"
             }:
                 local_rect = inset_rect(local_rect, 1)
-            rectangle = offset_rect(local_rect, tile_x, tile_y)
-            rectangles[control_id] = rectangle
+            rectangles[control_id] = offset_rect(local_rect, tile_x, tile_y)
             control_views[control_id] = view_name
-            local_box = (
-                local_rect["x"],
-                local_rect["y"],
-                local_rect["x"] + local_rect["w"],
-                local_rect["y"] + local_rect["h"],
-            )
-            destination = (
-                rectangle["x"],
-                rectangle["y"],
-                rectangle["x"] + rectangle["w"],
-                rectangle["y"] + rectangle["h"],
-            )
-            lit_atlas.paste(highlighted.crop(local_box), destination)
+            highlights[control_id] = (highlighted, tile_x, tile_y)
 
     if neutral_atlas is None or lit_atlas is None or display_rect is None:
         raise RuntimeError("semantic atlas did not render")
+    if committed is not None:
+        same = (inputs_unchanged(committed)
+                and committed.get("views") == camera_metadata)
+        rectangles = canonical_rects(rectangles, committed.get("controls"), same)
+        display_rect = canonical_rects(
+            {"display_rect": display_rect},
+            {"display_rect": committed.get("display_rect")},
+            same,
+        )["display_rect"]
+    # Compose the lit atlas from the (possibly recorded) rects.
+    for control_id, (highlighted, tile_x, tile_y) in highlights.items():
+        rectangle = rectangles[control_id]
+        destination = (
+            rectangle["x"],
+            rectangle["y"],
+            rectangle["x"] + rectangle["w"],
+            rectangle["y"] + rectangle["h"],
+        )
+        local_box = (
+            destination[0] - tile_x,
+            destination[1] - tile_y,
+            destination[2] - tile_x,
+            destination[3] - tile_y,
+        )
+        lit_atlas.paste(highlighted.crop(local_box), destination)
     if set(rectangles) != set(CONTROL_IDS):
         raise RuntimeError(
             "semantic view map differs from CONTROL_IDS: "
@@ -472,11 +600,24 @@ def render_views(output: Path) -> dict[str, str]:
 
 
 def write_semantic_output(output: Path) -> dict:
+    """Write the semantic atlas into ``output``. A previous semantic-model.json there
+    is the committed render the tie-jitter rule compares against."""
     output.mkdir(parents=True, exist_ok=True)
+    recorded = output / "semantic-model.json"
+    committed = (
+        json.loads(recorded.read_text(encoding="utf-8"))
+        if recorded.is_file() else None
+    )
     with tempfile.TemporaryDirectory(prefix="brick-semantic-") as directory:
-        neutral, lit, metadata = render_skin_set(Path(directory))
-        save_png(neutral, output / "semantic-neutral.png")
-        save_png(lit, output / "semantic-lit.png")
+        neutral, lit, metadata = render_skin_set(Path(directory), committed)
+        same = same_derivation(
+            committed,
+            inputs_unchanged(committed),
+            metadata,
+            SEMANTIC_DERIVATION_KEYS,
+        )
+        save_canonical_png(neutral, output / "semantic-neutral.png", same)
+        save_canonical_png(lit, output / "semantic-lit.png", same)
     metadata["neutral_sha256"] = sha256(output / "semantic-neutral.png")
     metadata["lit_sha256"] = sha256(output / "semantic-lit.png")
     (output / "semantic-model.json").write_text(
@@ -489,17 +630,15 @@ def write_semantic_output(output: Path) -> dict:
 def deterministic_check() -> None:
     with tempfile.TemporaryDirectory(prefix="brick-render-check-") as directory:
         root = Path(directory)
-        first = root / "first"
-        second = root / "second"
-        first.mkdir()
-        second.mkdir()
-        first_meta = write_semantic_output(first)
-        second_meta = write_semantic_output(second)
-        for name in ("semantic-neutral.png", "semantic-lit.png"):
-            if (first / name).read_bytes() != (second / name).read_bytes():
+        semantic = root / "semantic"
+        names = ("semantic-neutral.png", "semantic-lit.png", "semantic-model.json")
+        write_semantic_output(semantic)
+        first = {name: (semantic / name).read_bytes() for name in names}
+        # The second render goes over the first, so tie jitter keeps its bytes.
+        write_semantic_output(semantic)
+        for name in names:
+            if (semantic / name).read_bytes() != first[name]:
                 raise RuntimeError(f"non-deterministic semantic render: {name}")
-        if first_meta != second_meta:
-            raise RuntimeError("non-deterministic semantic metadata")
 
         views_a = root / "views-a"
         views_b = root / "views-b"

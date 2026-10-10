@@ -126,6 +126,7 @@ python3 device-models/trimui-brick/render.py \
 python3 device-models/trimui-brick/render.py \
   --semantic-output /tmp/trimui-brick-semantic
 python3 device-models/trimui-brick/render.py --check
+python3 device-models/trimui-brick/test_render_determinism.py
 python3 device-models/trimui-brick/compare.py \
   --photos /home/matt/Downloads \
   --views /tmp/trimui-brick-views \
@@ -140,6 +141,16 @@ Rendering requires OpenSCAD 2021.01 or newer, Pillow, Liberation Sans, and
 DejaVu Sans. The fixed orthographic cameras and output transforms live in
 `render.py`; comparison output and generated evidence stay outside the
 repository.
+
+`--semantic-output` into a directory that already holds a `semantic-model.json`
+from the unedited `.scad` and `render.py` applies the TG5040/TG5050 renderers'
+tie-jitter rule: a PNG differing in at most 128 pixels keeps the recorded bytes,
+and a rect within one edge pixel of the recorded one keeps the recorded rect
+(see `JITTER_MAX_PIXELS` and `JITTER_RECT_PIXELS`). `--check` renders the atlas
+twice into one directory under that rule; its `--views` half stays byte-exact.
+No tie was measured at the Brick's cameras (174 frames byte-identical).
+`test_render_determinism.py` injects one, and proves that a one-line `.scad`
+edit rewrites the atlas.
 
 The front silhouette IoU emitted by `compare.py` is a regression aid. Phone
 lens distortion, graph-paper perspective, shadows, and thresholding make it

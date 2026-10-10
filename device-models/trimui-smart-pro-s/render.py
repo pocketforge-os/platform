@@ -60,6 +60,25 @@ DIFF_THRESHOLD = 24
 RECT_PADDING = 1
 SHOULDER_HORIZONTAL_SAFETY = 4
 
+# Tie jitter. Copied from trimui-smart-pro/render.py (tsp-h5ed.46.29) by tsp-h5ed.46.32
+# rather than shared: that render.py's hash is recorded in the committed a133 skin.
+# OpenSCAD 2021.01 does not draw identical geometry from one process to the next: a
+# few pixels on edges where two faces tie take one face's shade or the other's.
+# Measured on this camera set (14 front and 6 top renders): one or two raw pixels per
+# frame from the same eight sites, 0-26 differing pixels per canvas, crop equal every
+# time. A re-render from an UNEDITED .scad AND render.py (both recorded hashes match)
+# whose derived camera/crop/rects equal the committed ones and whose PNG differs from
+# the committed PNG in at most JITTER_MAX_PIXELS pixels keeps the committed bytes.
+# Editing either input always writes fresh renders; a different OpenSCAD, driver or
+# font set differs in hundreds of pixels and is written.
+JITTER_MAX_PIXELS = 128
+# A tie pixel inside a highlighted control's red frame can cross DIFF_THRESHOLD at the
+# control's edge: 1 front render in 14 shaded raw (1162, 959) of the trig_r frame
+# (212,18,18) instead of (126,11,11) and grew trig_r by one row. With unedited inputs
+# and the committed crop, a derived rect whose every edge is within JITTER_RECT_PIXELS
+# of the committed rect takes the committed rect (see ``canonical_rects``).
+JITTER_RECT_PIXELS = 1
+
 # The six-number camera is eye XYZ, target XYZ. OpenSCAD chooses an inverted
 # up vector for this top-biased view, so the raw image is rotated 180 degrees
 # before the shared crop/fit transform. That rotation is part of the committed
@@ -429,7 +448,11 @@ def rectangle_overlaps(
     return overlaps
 
 
-def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
+def render_skin_set(
+    work: Path, committed: dict | None = None
+) -> tuple[Image.Image, Image.Image, dict]:
+    """Render the front skin. ``committed`` is the committed model-render.json, whose
+    rects a tie-jittered derivation keeps (``canonical_rects``)."""
     raw_neutral = work / "neutral-raw.png"
     raw_screen = work / "screen-raw.png"
     run_openscad(raw_neutral, camera=APP_CAMERA)
@@ -465,6 +488,15 @@ def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
     split_shoulder_overlaps(rectangles)
     trim_shoulder_bumpers_from_front_controls(rectangles)
     split_rocker_overlap(rectangles)
+    if committed is not None:
+        same = (inputs_unchanged(committed)
+                and committed.get("camera", {}).get("crop") == list(crop))
+        rectangles = canonical_rects(rectangles, committed.get("controls"), same)
+        display_rect = canonical_rects(
+            {"display_rect": display_rect},
+            {"display_rect": committed.get("display_rect")},
+            same,
+        )["display_rect"]
 
     overlaps = rectangle_overlaps(rectangles)
     if overlaps:
@@ -557,14 +589,20 @@ def split_view_paddle_overlaps(
 
 
 def render_view_set(
-    work: Path, name: str, view: dict
+    work: Path,
+    name: str,
+    view: dict,
+    committed: dict | None = None,
+    inputs_same: bool = False,
 ) -> tuple[Image.Image, Image.Image, dict]:
     """Render one additional clickable view (e.g. ``top``) into a neutral/lit atlas.
 
     Additive sibling of ``render_skin_set``: same one-control-at-a-time disjoint-atlas
     composition and the SAME helpers (run_openscad/normalized_raw/fit_transform/
     diff_rect), but driven by the view's own camera + control subset and carrying NO
-    screen marker / display_rect. The front render path is untouched.
+    screen marker / display_rect. The front render path is untouched. ``committed`` is
+    the committed views block for ``name`` and ``inputs_same`` is ``inputs_unchanged``
+    of the committed metadata (see ``canonical_rects``).
     """
     camera = view["camera"]
     rotate = view["rotate"]
@@ -589,6 +627,9 @@ def render_view_set(
         control_frames[control_id] = control
         rectangles[control_id] = diff_rect(neutral, control)
     split_view_paddle_overlaps(rectangles)
+    if committed is not None:
+        same = inputs_same and committed.get("camera", {}).get("crop") == list(crop)
+        rectangles = canonical_rects(rectangles, committed.get("controls"), same)
 
     overlaps = rectangle_overlaps(rectangles)
     if overlaps:
@@ -629,6 +670,103 @@ def render_view_set(
     return neutral, lit, metadata
 
 
+def tie_jitter_pixels(committed: Path, image: Image.Image) -> int | None:
+    """Pixels where ``image`` differs from the committed PNG in any channel; None
+    when there is no committed PNG or the sizes differ."""
+    if not committed.is_file():
+        return None
+    with Image.open(committed) as source:
+        previous = source.convert("RGB")
+    if previous.size != image.size:
+        return None
+    red, green, blue = ImageChops.difference(previous, image.convert("RGB")).split()
+    changed = ImageChops.lighter(ImageChops.lighter(red, green), blue)
+    return changed.point(lambda value: 255 if value else 0).histogram()[255]
+
+
+def inputs_unchanged(committed: dict | None) -> bool:
+    """The committed metadata was rendered from this .scad by this render.py."""
+    return (
+        committed is not None
+        and committed.get("source_sha256") == sha256(MODEL)
+        and committed.get("renderer_sha256") == sha256(RENDERER)
+    )
+
+
+def keeps_committed(committed: Path, image: Image.Image, same: bool) -> bool:
+    """True when ``image`` is a tie-jitter re-render of the committed PNG and ``same``
+    (see ``same_derivation``) holds."""
+    if not same:
+        return False
+    count = tie_jitter_pixels(committed, image)
+    return count is not None and count <= JITTER_MAX_PIXELS
+
+
+def same_derivation(
+    committed: dict | None,
+    inputs_same: bool,
+    derived: dict,
+    keys: tuple[str, ...],
+) -> bool:
+    """The committed render came from the same inputs (``inputs_unchanged``) and
+    derived the same geometry."""
+    return (
+        inputs_same
+        and committed is not None
+        and all(committed.get(key) == derived.get(key) for key in keys)
+    )
+
+
+def save_canonical_png(image: Image.Image, path: Path, same: bool) -> None:
+    """Write ``image`` unless it only tie-jitters against the committed ``path``."""
+    if not keeps_committed(path, image, same):
+        save_png(image, path)
+        return
+    count = tie_jitter_pixels(path, image)
+    if count:
+        print(f"tie_jitter=kept path={path.relative_to(ROOT)} pixels={count}")
+
+
+def rect_edges(rectangle: dict[str, int]) -> tuple[int, int, int, int]:
+    return (
+        rectangle["x"],
+        rectangle["y"],
+        rectangle["x"] + rectangle["w"],
+        rectangle["y"] + rectangle["h"],
+    )
+
+
+def canonical_rects(
+    fresh: dict[str, dict[str, int]],
+    committed: dict | None,
+    same: bool,
+) -> dict[str, dict[str, int]]:
+    """The committed rects when ``same`` (unedited inputs and the committed crop), the
+    ids match and every fresh edge is within JITTER_RECT_PIXELS of the committed one;
+    otherwise ``fresh``."""
+    if (not same or not isinstance(committed, dict) or set(committed) != set(fresh)
+            or not all(isinstance(rect, dict) for rect in committed.values())):
+        return fresh
+    for name, rectangle in fresh.items():
+        moved = zip(rect_edges(rectangle), rect_edges(committed[name]))
+        if max(abs(new - old) for new, old in moved) > JITTER_RECT_PIXELS:
+            return fresh
+    kept = sorted(name for name in fresh if fresh[name] != committed[name])
+    if kept:
+        print(f"tie_jitter=kept rects={','.join(kept)}")
+    return {name: dict(committed[name]) for name in fresh}
+
+
+FRONT_DERIVATION_KEYS = ("camera", "canvas", "controls", "display_rect")
+VIEW_DERIVATION_KEYS = ("camera", "canvas", "controls")
+
+
+def _read_metadata() -> dict | None:
+    if not METADATA.is_file():
+        return None
+    return json.loads(METADATA.read_text(encoding="utf-8"))
+
+
 def _load_committed_metadata() -> dict:
     if not METADATA.is_file():
         raise RuntimeError(
@@ -641,6 +779,7 @@ def write_views() -> dict[str, dict]:
     """Render every SKIN_VIEWS entry and merge them under model-render.json['views'],
     writing ONLY the view PNGs + the 'views' block — the front top-level stays as-is."""
     metadata = _load_committed_metadata()
+    inputs_same = inputs_unchanged(metadata)
     # Adding view code edits this render.py, so the recorded renderer hash drifts.
     # Refresh the shared source/renderer hashes (the .scad is untouched; the front
     # render path is textually unchanged, so the committed front art still stands).
@@ -650,9 +789,14 @@ def write_views() -> dict[str, dict]:
     with tempfile.TemporaryDirectory(prefix="tsp-view-render-") as directory:
         work = Path(directory)
         for name, view in SKIN_VIEWS.items():
-            neutral, lit, view_meta = render_view_set(work, name, view)
-            save_png(neutral, view["body"])
-            save_png(lit, view["body_lit"])
+            neutral, lit, view_meta = render_view_set(
+                work, name, view, views.get(name), inputs_same
+            )
+            same = same_derivation(
+                views.get(name), inputs_same, view_meta, VIEW_DERIVATION_KEYS
+            )
+            save_canonical_png(neutral, view["body"], same)
+            save_canonical_png(lit, view["body_lit"], same)
             view_meta["body_sha256"] = sha256(view["body"])
             view_meta["body_lit_sha256"] = sha256(view["body_lit"])
             views[name] = view_meta
@@ -680,19 +824,27 @@ def check_views() -> None:
     failures: list[str] = []
     with tempfile.TemporaryDirectory(prefix="tsp-view-check-") as directory:
         work = Path(directory)
+        inputs_same = inputs_unchanged(committed)
         for name, view in SKIN_VIEWS.items():
-            neutral, lit, view_meta = render_view_set(work, name, view)
+            committed_view = committed.get("views", {}).get(name)
+            neutral, lit, view_meta = render_view_set(
+                work, name, view, committed_view, inputs_same
+            )
             generated_body = work / f"{name}-body.png"
             generated_lit = work / f"{name}-body_lit.png"
             save_png(neutral, generated_body)
             save_png(lit, generated_lit)
-            for committed_path, generated in (
-                (view["body"], generated_body),
-                (view["body_lit"], generated_lit),
+            same = same_derivation(
+                committed_view, inputs_same, view_meta, VIEW_DERIVATION_KEYS
+            )
+            for committed_path, image, generated in (
+                (view["body"], neutral, generated_body),
+                (view["body_lit"], lit, generated_lit),
             ):
                 if not committed_path.is_file():
                     failures.append(f"{name}: missing committed asset {committed_path}")
-                elif committed_path.read_bytes() != generated.read_bytes():
+                elif (committed_path.read_bytes() != generated.read_bytes()
+                        and not keeps_committed(committed_path, image, same)):
                     failures.append(
                         f"{name}: stale generated asset {committed_path.relative_to(ROOT)}"
                     )
@@ -718,9 +870,17 @@ def save_png(image: Image.Image, path: Path) -> None:
 
 
 def write_outputs(neutral: Image.Image, lit: Image.Image, metadata: dict) -> None:
-    save_png(neutral, BODY)
-    save_png(lit, BODY_LIT)
+    committed = _read_metadata()
+    inputs_same = inputs_unchanged(committed)
+    same = same_derivation(committed, inputs_same, metadata, FRONT_DERIVATION_KEYS)
+    save_canonical_png(neutral, BODY, same)
+    save_canonical_png(lit, BODY_LIT, same)
     metadata = dict(metadata)
+    # The 'views' block is --write-views' output. It survives a front rewrite only
+    # while the .scad and render.py are unedited, so --write-views (which reads the
+    # hashes this rewrite refreshes) can tell it came from the same inputs.
+    if inputs_same and "views" in committed:
+        metadata["views"] = committed["views"]
     metadata["body_sha256"] = sha256(BODY)
     metadata["body_lit_sha256"] = sha256(BODY_LIT)
     METADATA.write_text(
@@ -737,13 +897,22 @@ def check_outputs(neutral: Image.Image, lit: Image.Image, metadata: dict) -> Non
         save_png(neutral, generated_body)
         save_png(lit, generated_lit)
         failures = []
-        for committed, generated in (
-            (BODY, generated_body),
-            (BODY_LIT, generated_lit),
+        previous = _read_metadata()
+        same = same_derivation(
+            previous, inputs_unchanged(previous), metadata, FRONT_DERIVATION_KEYS
+        )
+        for committed, image, generated in (
+            (BODY, neutral, generated_body),
+            (BODY_LIT, lit, generated_lit),
         ):
             if not committed.is_file():
                 failures.append(f"missing committed asset: {committed}")
-            elif committed.read_bytes() != generated.read_bytes():
+            elif committed.read_bytes() == generated.read_bytes():
+                continue
+            elif keeps_committed(committed, image, same):
+                # Tie jitter only: the committed bytes are the canonical render.
+                shutil.copyfile(committed, generated)
+            else:
                 failures.append(
                     f"stale generated asset: {committed.relative_to(ROOT)}"
                 )
@@ -897,7 +1066,7 @@ def main(argv: list[str]) -> int:
         return 0
 
     with tempfile.TemporaryDirectory(prefix="tsp-skin-render-") as directory:
-        neutral, lit, metadata = render_skin_set(Path(directory))
+        neutral, lit, metadata = render_skin_set(Path(directory), _read_metadata())
         if args.write:
             write_outputs(neutral, lit, metadata)
             print(
