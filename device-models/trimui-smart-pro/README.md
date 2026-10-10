@@ -101,6 +101,7 @@ From the platform repository root:
 ```bash
 python3 device-models/trimui-smart-pro/render.py --write
 python3 device-models/trimui-smart-pro/render.py --check
+python3 device-models/trimui-smart-pro/test_render_determinism.py
 python3 device-models/trimui-smart-pro/render.py --views out/tg5040-views
 python3 device-models/trimui-smart-pro/compare.py \
   --photos /path/to/owner/photos \
@@ -119,6 +120,11 @@ painting the D-pad or a face button.  The command records the camera, source and
 renderer hashes, output hashes, atlas policy, and derived rectangles in
 `skins/a133/model-render.json`.  `--check` rerenders from source and fails if a
 PNG, capability rectangle, atlas pixel, or non-overlap invariant has drifted.
+Both keep a committed PNG that a re-render from the unedited `.scad` and
+`render.py` only tie-jitters against (OpenSCAD 2021.01 shades a few tie pixels differently per
+process; see `JITTER_MAX_PIXELS` in `render.py`), and
+`test_render_determinism.py` proves it: `--write-views` twice is byte-stable, and
+a one-line `.scad` edit rewrites the PNG.
 The comparison output is review evidence only and remains under ignored `out/`.
 
 `--check` is the **full-fidelity local companion** to the CI skin-drift gate

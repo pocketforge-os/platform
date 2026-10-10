@@ -127,13 +127,18 @@ regen=pass slug=trimui-smart-pro skin=a133 changed=0 (outputs already current)
 ```
 
 The glb and its views are deterministic for a given `.scad`, OpenSCAD and
-font set. The 2D skin renders are not always byte-stable: on one host three
-consecutive runs over an unedited `trimui-smart-pro` changed
-`body_top.png`, `body_lit_top.png` and `model-render.json`, then restored the
-committed bytes, then reported `changed=0`. When the `.scad` is unedited and
-a run reports changes, inspect `git diff` and commit only what follows from
-your edit (`render.py --check` has the same host-jitter caveat, see the drift
-gate section).
+font set. OpenSCAD 2021.01's PNG export is not quite: from one process to the
+next, a few pixels on edges where two faces tie take one face's shade or the
+other's (0 to 30 of a skin PNG's 947,200 pixels, on hardware GL and on Mesa's
+software `llvmpipe` alike). `trimui-smart-pro/render.py` therefore keeps the
+committed PNG when the `.scad` and `render.py` both still hash to what
+`model-render.json` recorded, the derived camera, crop and rects are unchanged,
+and the fresh render differs in at most 128 pixels (`JITTER_MAX_PIXELS`). It
+prints `tie_jitter=kept path=<png> pixels=<n>`, and `regen.sh trimui-smart-pro`
+on an unedited checkout reports `changed=0`; `render.py --check` applies the
+same rule. Editing the `.scad` or `render.py` always writes fresh renders. A render from another OpenSCAD, GL driver or font set differs in
+hundreds of pixels and is written; inspect `git diff` then. The TG5050's
+`trimui-smart-pro-s/render.py` does not have this rule yet.
 
 Every file derived from a `.scad`, and the gate that refuses it stale (both
 jobs live in [`.github/workflows/skin-drift.yml`](../.github/workflows/skin-drift.yml)):
