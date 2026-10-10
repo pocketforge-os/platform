@@ -516,13 +516,16 @@ def model_sha_errors(data):
 def derive_maturity(data):
     """The highest rung a DESCRIPTOR's own content supports (D18):
          sim-ready  — [model] present, every screen names its glTF node and every input its
-                      skin_part (the viewer can bind the whole device);
+                      skin_part (the viewer can bind the whole device), except class = "system"
+                      inputs, which the simulator reaches through its toolbar and control plane
+                      rather than the 3D model (tsp-h5ed.46.9);
          model-only — [model] present but some screen/input is not bound to the model;
          planned    — no [model]: nothing pfvd can present."""
     if not data.get("model"):
         return "planned"
     bound = (all(s.get("node") for s in data.get("screens", []))
-             and all(i.get("skin_part") for i in data.get("inputs", [])))
+             and all(i.get("skin_part") for i in data.get("inputs", [])
+                     if i.get("class") != "system"))
     return "sim-ready" if bound else "model-only"
 
 
@@ -767,7 +770,7 @@ def v2_semantic_errors(data):
         if RUNGS.index(declared) > RUNGS.index(derived):
             errs.append(f"E_MATURITY_EXCEEDS [maturity] declared '{declared}' exceeds the derived "
                         f"rung '{derived}' (sim-ready needs [model] plus a node for every screen "
-                        f"and a skin_part for every input)")
+                        f"and a skin_part for every non-system input)")
     return errs, warns
 
 

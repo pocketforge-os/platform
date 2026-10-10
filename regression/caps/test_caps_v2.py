@@ -2,7 +2,7 @@
 """regression/caps/test_caps_v2.py — descriptor schema v2 + device catalog self-test (tsp-h5ed.46.3).
 
 Device-free, stdlib only. Covers what test_caps.py does not:
-  - the shipped v1 descriptors (a133/a523) still validate with the v2-aware validator;
+  - the shipped descriptors (a133/a523) are v2, validate, and declare + derive sim-ready (tsp-h5ed.46.9);
   - the synthetic clamshell fixture (tests/caps-fixtures/clamshell) validates clean via `--root`,
     and its generated artefacts have not drifted from gen_fixture.py;
   - every v2 validation rule is shown to FAIL on a hostile addition and to PASS on the fixture
@@ -155,6 +155,8 @@ drive = { joint = "a", map = [[0.0, 0.0], [10.0, 10.0]] }
 NO_MODEL = [('[model]\nglb    = "skins/synth-clamshell/model.glb"\nframe  = "pf-mm-v1"\n'
              'naming = "pf-semantic-v1"\n', ""),
             ('[maturity]\ndeclared = "sim-ready"', "")]
+SYSTEM_UNBOUND = [('source = "gpio-keys"\nskin_part = "btn_vol_up"\n', 'source = "gpio-keys"\n'),
+                  ('source = "gpio-keys"\nskin_part = "btn_vol_down"\n', 'source = "gpio-keys"\n')]
 
 CASES = [
     # ---- positive controls (beyond the untouched fixture) ----
@@ -234,6 +236,11 @@ CASES = [
     # ---- maturity ----
     ("neg-maturity-no-model", NO_MODEL[:1], {"E_MATURITY_EXCEEDS"}, None),
     ("neg-maturity-unbound-screen", [('node          = "screen_bottom"\n', "")], {"E_MATURITY_EXCEEDS"}, None),
+    # class = "system" inputs are reached through the simulator toolbar / control plane, not the 3D
+    # model (tsp-h5ed.46.9), so their missing skin_part keeps sim-ready; a non-system one does not.
+    ("pos-maturity-system-unbound", SYSTEM_UNBOUND, POS, None),
+    ("neg-maturity-unbound-input", SYSTEM_UNBOUND + [('skin_part = "btn_guide"\n', "")],
+     {"E_MATURITY_EXCEEDS"}, None),
     # ---- screens ----
     ("neg-screen-two-primaries", [('role          = "secondary"', 'role          = "primary"')],
      {"E_SCREEN_PRIMARY"}, None),
@@ -417,13 +424,15 @@ def catalog_cases(tmp):
 
 
 def main():
-    # --- 1. shipped v1 descriptors unchanged + still valid under the v2-aware validator ---
+    # --- 1. shipped descriptors: v2 with [model]/[physical], declared and derived sim-ready ---
     rc, out, err = run("validate", "a133", "a523")
     check("validate a133 a523: exit 0", rc == 0, out + err)
     for d in ("a133", "a523"):
         data = caps._load(os.path.join(ROOT, "devices", d, "capabilities.toml"))
-        check(f"{d}: still a v1 descriptor (no schema_version, no v2 tables)",
-              "schema_version" not in data and not any(k in data for k in getattr(caps, "V2_TOP_KEYS", ("physical", "model", "joints", "maturity"))))
+        check(f"{d}: v2 descriptor declaring sim-ready with [model] + [physical] (tsp-h5ed.46.9)",
+              data.get("schema_version") == 2 and "model" in data and "physical" in data
+              and data.get("maturity", {}).get("declared") == "sim-ready")
+        check(f"{d}: derived rung is sim-ready", caps.derive_maturity(data) == "sim-ready")
     rc, out, err = run("validate")
     check("bare validate (all descriptors + ci-matrix + catalog): exit 0", rc == 0, out + err)
     check("bare validate covers a133, a523, ci-matrix and the catalog",
