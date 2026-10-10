@@ -31,13 +31,13 @@ ROOT="$(cd "$(dirname "$0")/../.." >/dev/null 2>&1 && pwd)"
 
 # Extract the shipped functions verbatim (top-level defs terminated by a bare `}`).
 extract() { sed -n "/^$1()/,/^}/p" "$ROOT/core/pf-build.sh"; }
-eval "$(extract pf_find_git_source; extract pf_ensure_commit; extract pf_commit_epoch; extract pf_require_epoch)"
-for f in pf_find_git_source pf_ensure_commit pf_commit_epoch pf_require_epoch; do
+eval "$(extract pf_find_git_source; extract pf_ensure_commit; extract pf_commit_epoch; extract pf_require_epoch; extract pf_max_epoch; extract pf_validate_build_stage_target)"
+for f in pf_find_git_source pf_ensure_commit pf_commit_epoch pf_require_epoch pf_max_epoch pf_validate_build_stage_target; do
     declare -F "$f" >/dev/null || { echo "FAIL: could not extract $f from core/pf-build.sh"; exit 1; }
 done
 
-TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
+TMP="$(mktemp -d "${RUNNER_TEMP:-/tmp}/pf-epoch-test.XXXXXX")"
+trap 'find "$TMP" -mindepth 1 -delete; rmdir "$TMP"' EXIT
 REPO="pf-epoch-testrepo"          # name that cannot collide with a real \$HOME source
 MIRRORS="$TMP/mirrors"
 UPSTREAM="$TMP/upstream"
@@ -102,7 +102,14 @@ for spec in "|sha-irrelevant" "none|$SHA_A" "$REPO|"; do
 done
 echo "ok   - empty/none repo and empty sha yield empty epoch, exit 0"
 
-echo "== 5. structural pin: call sites + shared fetch ladder =="
+echo "== 5. multi-source stages use the newest pinned input epoch =="
+out="$(pf_max_epoch "$MIRRORS" "$REPO" "$SHA_A" "$REPO" "$SHA_B")"
+[ "$out" = "$EPOCH_B" ] || {
+    echo "FAIL: max epoch = '$out', want newest pinned input epoch $EPOCH_B"; exit 1
+}
+echo "ok   - max epoch follows the newest commit ($EPOCH_B), never argument order"
+
+echo "== 6. structural pin: named component args + shared fetch ladder =="
 grep -Eq 'sde="\$\(pf_require_epoch ' "$ROOT/core/pf-build.sh" \
     || { echo "FAIL: epoch call sites no longer go through pf_require_epoch"; exit 1; }
 if grep -Eq '[a-z_]*sde="\$\(pf_commit_epoch ' "$ROOT/core/pf-build.sh"; then
@@ -111,6 +118,35 @@ fi
 # pf_stage_sources must use the same pf_ensure_commit ladder (single fetch ladder, no drift).
 sed -n '/^pf_stage_sources()/,/^}/p' "$ROOT/core/pf-build.sh" | grep -q 'pf_ensure_commit ' \
     || { echo "FAIL: pf_stage_sources no longer shares the pf_ensure_commit fetch ladder"; exit 1; }
-echo "ok   - pf_require_epoch at the call sites; pf_ensure_commit shared by staging"
+for arg in \
+    PF_KERNEL_SOURCE_DATE_EPOCH PF_GPU_UM_SOURCE_DATE_EPOCH \
+    PF_BOOTCHAIN_SOURCE_DATE_EPOCH PF_LIBSDL3_SOURCE_DATE_EPOCH \
+    PF_WPA_SOURCE_DATE_EPOCH PF_CLOUD_INIT_SOURCE_DATE_EPOCH \
+    PF_RUNTIME_SOURCE_DATE_EPOCH PF_FFMPEG_SOURCE_DATE_EPOCH \
+    PF_SDL_STATIC_SOURCE_DATE_EPOCH PF_HWPROBE_SOURCE_DATE_EPOCH \
+    PF_POOLSUITE_SOURCE_DATE_EPOCH PF_RECOVERY_SOURCE_DATE_EPOCH \
+    PF_LAUNCHER_SOURCE_DATE_EPOCH; do
+    grep -Fq -- "--build-arg \"${arg}=\$" "$ROOT/core/pf-build.sh" \
+        || { echo "FAIL: missing named component build arg $arg"; exit 1; }
+done
+grep -Fq 'local build_stage_target="${PF_BUILD_STAGE_TARGET:-export}"' "$ROOT/core/pf-build.sh" \
+    || { echo "FAIL: missing opt-in component-test target selection"; exit 1; }
+grep -Fq -- '--target "$build_stage_target"' "$ROOT/core/pf-build.sh" \
+    || { echo "FAIL: docker build does not use the validated component-test target"; exit 1; }
+for target in export component-test-fetch component-test-kernel component-test-gamescope; do
+    [ "$(pf_validate_build_stage_target "$target")" = "$target" ] \
+        || { echo "FAIL: admitted target rejected: $target"; exit 1; }
+done
+set +e
+( pf_validate_build_stage_target kernel ) >"$TMP/target.out" 2>"$TMP/target.err"
+rc=$?
+set -e
+if [ "$rc" -eq 0 ] || [ -s "$TMP/target.out" ]; then
+    echo "FAIL: arbitrary non-test target was admitted"
+    exit 1
+fi
+grep -Fq 'PF_BUILD_STAGE_TARGET is not an admitted export/component-test target: kernel' "$TMP/target.err" \
+    || { echo "FAIL: arbitrary target refusal is not named"; exit 1; }
+echo "ok   - named component epochs are mandatory call outputs; pf_ensure_commit shared by staging"
 
 echo "EPOCH STALE-MIRROR GATE OK"
