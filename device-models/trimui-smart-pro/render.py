@@ -65,11 +65,12 @@ SHOULDER_HORIZONTAL_SAFETY = 4
 # shade or the other's. Measured on this camera set: 0-30 differing pixels per canvas
 # (one raw pixel per top frame), on Mesa radeonsi AND on single-threaded llvmpipe,
 # with ASLR off, with --preview=throwntogether, without --viewall and without text,
-# so neither render.py nor the GL driver can pin it. A re-render of an UNEDITED .scad
-# (same source_sha256) whose derived camera/crop/rects equal the committed ones and
-# whose PNG differs from the committed PNG in at most JITTER_MAX_PIXELS pixels keeps
-# the committed bytes. A .scad edit always writes fresh renders; a different renderer
-# (another OpenSCAD, driver or font set) differs in hundreds of pixels and is written.
+# so neither render.py nor the GL driver can pin it. A re-render from an UNEDITED .scad
+# AND render.py (both recorded hashes match) whose derived camera/crop/rects equal the
+# committed ones and whose PNG differs from the committed PNG in at most
+# JITTER_MAX_PIXELS pixels keeps the committed bytes. Editing either input always
+# writes fresh renders; a different OpenSCAD, driver or font set differs in hundreds
+# of pixels and is written.
 JITTER_MAX_PIXELS = 128
 
 # The six-number camera is eye XYZ, target XYZ. OpenSCAD chooses an inverted
@@ -655,6 +656,15 @@ def tie_jitter_pixels(committed: Path, image: Image.Image) -> int | None:
     return changed.point(lambda value: 255 if value else 0).histogram()[255]
 
 
+def inputs_unchanged(committed: dict | None) -> bool:
+    """The committed metadata was rendered from this .scad by this render.py."""
+    return (
+        committed is not None
+        and committed.get("source_sha256") == sha256(MODEL)
+        and committed.get("renderer_sha256") == sha256(RENDERER)
+    )
+
+
 def keeps_committed(committed: Path, image: Image.Image, same: bool) -> bool:
     """True when ``image`` is a tie-jitter re-render of the committed PNG and ``same``
     (see ``same_derivation``) holds."""
@@ -666,14 +676,15 @@ def keeps_committed(committed: Path, image: Image.Image, same: bool) -> bool:
 
 def same_derivation(
     committed: dict | None,
-    committed_source_sha256: str | None,
+    inputs_same: bool,
     derived: dict,
     keys: tuple[str, ...],
 ) -> bool:
-    """The committed render came from this .scad and derived the same geometry."""
+    """The committed render came from the same inputs (``inputs_unchanged``) and
+    derived the same geometry."""
     return (
-        committed is not None
-        and committed_source_sha256 == sha256(MODEL)
+        inputs_same
+        and committed is not None
         and all(committed.get(key) == derived.get(key) for key in keys)
     )
 
@@ -710,7 +721,7 @@ def write_views() -> dict[str, dict]:
     """Render every SKIN_VIEWS entry and merge them under model-render.json['views'],
     writing ONLY the view PNGs + the 'views' block — the front top-level stays as-is."""
     metadata = _load_committed_metadata()
-    committed_source = metadata.get("source_sha256")
+    inputs_same = inputs_unchanged(metadata)
     # Adding view code edits this render.py, so the recorded renderer hash drifts.
     # Refresh the shared source/renderer hashes (the .scad is untouched; the front
     # render path is textually unchanged, so the committed front art still stands).
@@ -722,7 +733,7 @@ def write_views() -> dict[str, dict]:
         for name, view in SKIN_VIEWS.items():
             neutral, lit, view_meta = render_view_set(work, name, view)
             same = same_derivation(
-                views.get(name), committed_source, view_meta, VIEW_DERIVATION_KEYS
+                views.get(name), inputs_same, view_meta, VIEW_DERIVATION_KEYS
             )
             save_canonical_png(neutral, view["body"], same)
             save_canonical_png(lit, view["body_lit"], same)
@@ -761,7 +772,7 @@ def check_views() -> None:
             save_png(lit, generated_lit)
             same = same_derivation(
                 committed.get("views", {}).get(name),
-                committed.get("source_sha256"),
+                inputs_unchanged(committed),
                 view_meta,
                 VIEW_DERIVATION_KEYS,
             )
@@ -799,16 +810,15 @@ def save_png(image: Image.Image, path: Path) -> None:
 
 def write_outputs(neutral: Image.Image, lit: Image.Image, metadata: dict) -> None:
     committed = _read_metadata()
-    committed_source = committed.get("source_sha256") if committed else None
-    same = same_derivation(
-        committed, committed_source, metadata, FRONT_DERIVATION_KEYS
-    )
+    inputs_same = inputs_unchanged(committed)
+    same = same_derivation(committed, inputs_same, metadata, FRONT_DERIVATION_KEYS)
     save_canonical_png(neutral, BODY, same)
     save_canonical_png(lit, BODY_LIT, same)
     metadata = dict(metadata)
     # The 'views' block is --write-views' output. It survives a front rewrite only
-    # while the .scad is unedited, so --write-views can tell it came from this source.
-    if committed and committed_source == metadata["source_sha256"] and "views" in committed:
+    # while the .scad and render.py are unedited, so --write-views (which reads the
+    # hashes this rewrite refreshes) can tell it came from the same inputs.
+    if inputs_same and "views" in committed:
         metadata["views"] = committed["views"]
     metadata["body_sha256"] = sha256(BODY)
     metadata["body_lit_sha256"] = sha256(BODY_LIT)
@@ -828,10 +838,7 @@ def check_outputs(neutral: Image.Image, lit: Image.Image, metadata: dict) -> Non
         failures = []
         previous = _read_metadata()
         same = same_derivation(
-            previous,
-            previous.get("source_sha256") if previous else None,
-            metadata,
-            FRONT_DERIVATION_KEYS,
+            previous, inputs_unchanged(previous), metadata, FRONT_DERIVATION_KEYS
         )
         for committed, image, generated in (
             (BODY, neutral, generated_body),

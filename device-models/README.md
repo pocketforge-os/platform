@@ -131,12 +131,12 @@ font set. OpenSCAD 2021.01's PNG export is not quite: from one process to the
 next, a few pixels on edges where two faces tie take one face's shade or the
 other's (0 to 30 of a skin PNG's 947,200 pixels, on hardware GL and on Mesa's
 software `llvmpipe` alike). `trimui-smart-pro/render.py` therefore keeps the
-committed PNG when the `.scad` is unedited, the derived camera, crop and rects
-are unchanged, and the fresh render differs in at most 128 pixels
-(`JITTER_MAX_PIXELS`). It prints `tie_jitter=kept path=<png> pixels=<n>`, and
-`regen.sh trimui-smart-pro` on an unedited checkout reports `changed=0`;
-`render.py --check` applies the same rule. A `.scad` edit always writes fresh
-renders. A render from another OpenSCAD, GL driver or font set differs in
+committed PNG when the `.scad` and `render.py` both still hash to what
+`model-render.json` recorded, the derived camera, crop and rects are unchanged,
+and the fresh render differs in at most 128 pixels (`JITTER_MAX_PIXELS`). It
+prints `tie_jitter=kept path=<png> pixels=<n>`, and `regen.sh trimui-smart-pro`
+on an unedited checkout reports `changed=0`; `render.py --check` applies the
+same rule. Editing the `.scad` or `render.py` always writes fresh renders. A render from another OpenSCAD, GL driver or font set differs in
 hundreds of pixels and is written; inspect `git diff` then. The TG5050's
 `trimui-smart-pro-s/render.py` does not have this rule yet.
 

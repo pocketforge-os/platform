@@ -120,8 +120,8 @@ painting the D-pad or a face button.  The command records the camera, source and
 renderer hashes, output hashes, atlas policy, and derived rectangles in
 `skins/a133/model-render.json`.  `--check` rerenders from source and fails if a
 PNG, capability rectangle, atlas pixel, or non-overlap invariant has drifted.
-Both keep a committed PNG that a re-render of the unedited `.scad` only
-tie-jitters against (OpenSCAD 2021.01 shades a few tie pixels differently per
+Both keep a committed PNG that a re-render from the unedited `.scad` and
+`render.py` only tie-jitters against (OpenSCAD 2021.01 shades a few tie pixels differently per
 process; see `JITTER_MAX_PIXELS` in `render.py`), and
 `test_render_determinism.py` proves it: `--write-views` twice is byte-stable, and
 a one-line `.scad` edit rewrites the PNG.

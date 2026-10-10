@@ -69,8 +69,8 @@ if [ -f "$render_meta" ]; then
   echo "== 1/4 device-models/$slug/render.py --write"
   OPENSCAD="$openscad" "$PY" "device-models/$slug/render.py" --write
   if [ "$has_views" = 1 ]; then
-    # --write keeps model-render.json's "views" block only while the .scad is
-    # unedited; re-render the views either way.
+    # --write keeps model-render.json's "views" block only while the .scad and
+    # render.py are unedited; re-render the views either way.
     echo "== 1/4 device-models/$slug/render.py --write-views"
     OPENSCAD="$openscad" "$PY" "device-models/$slug/render.py" --write-views
   fi
