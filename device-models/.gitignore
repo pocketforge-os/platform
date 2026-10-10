@@ -1,0 +1,2 @@
+# OpenSCAD STL cache for export_gltf.py (keyed by .scad bytes + defines + version)
+.cache/

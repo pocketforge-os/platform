@@ -28,7 +28,15 @@ For each discovered device it asserts:
   rects (edit one side, forget the other -> caught) -- these are what the sim GUI
   and ``check-skin`` consume, so a divergence is exactly the silent break D9 exists
   to stop;
-* the projected screen ``display_rect`` matches on both sides.
+* the projected screen ``display_rect`` matches on both sides;
+* the exported 3D model (tsp-h5ed.46 D4, ``skins/<id>/model-glb.json`` written
+  by ``export_gltf.py --write``): every rendered skin has one; its recorded
+  .scad / exporter / glb hashes match the committed files; the glb meets the
+  structural contract; its control nodes equal the .scad ``CONTROL_IDS`` and the
+  descriptor ``[skin.parts]`` in both directions; its screen quad node and
+  ``extras.panel_rotation_deg`` match the descriptor ``[[screens]]``. A
+  model-only export (no descriptor, e.g. the Brick) is discovered the same way
+  and checked against its .scad.
 
 COVERAGE / HONESTY (infra-113 D9). Every guarantee here is a strict SUBSET of
 ``render.py --check``: that command recomputes the recorded hashes and rects from a
@@ -55,6 +63,9 @@ import tomllib
 ROOT = Path(__file__).resolve().parents[1]
 SKINS = ROOT / "skins"
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import export_gltf  # noqa: E402  (stdlib-only glb reader + contract)
+
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -68,11 +79,11 @@ def norm_rect(rect: dict) -> dict[str, int]:
     return {key: int(value) for key, value in rect.items()}
 
 
-def check_skin(metadata_path: Path) -> list[str]:
+def check_skin(metadata_path: Path, root: Path = ROOT) -> list[str]:
     """Return a list of human-readable drift failures for one rendered skin."""
     skin_dir = metadata_path.parent
     device = skin_dir.name
-    rel_meta = metadata_path.relative_to(ROOT)
+    rel_meta = metadata_path.relative_to(root)
     failures: list[str] = []
 
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
@@ -95,7 +106,7 @@ def check_skin(metadata_path: Path) -> list[str]:
         if not rel:
             failures.append(f"{device}: {rel_meta} is missing the {label} path")
             continue
-        path = ROOT / rel
+        path = root / rel
         if not path.is_file():
             failures.append(f"{device}: missing committed {label} file {rel}")
             continue
@@ -109,7 +120,7 @@ def check_skin(metadata_path: Path) -> list[str]:
             )
 
     # 2/3. Descriptor rects equal the model-derived rects.
-    descriptor_path = ROOT / "devices" / device / "capabilities.toml"
+    descriptor_path = root / "devices" / device / "capabilities.toml"
     if not descriptor_path.is_file():
         failures.append(
             f"{device}: missing descriptor devices/{device}/capabilities.toml"
@@ -185,7 +196,7 @@ def check_skin(metadata_path: Path) -> list[str]:
                     f"{device}/{view_name}: metadata missing the {label} path"
                 )
                 continue
-            path = ROOT / rel
+            path = root / rel
             if not path.is_file():
                 failures.append(
                     f"{device}/{view_name}: missing committed {label} file {rel}"
@@ -224,6 +235,129 @@ def check_skin(metadata_path: Path) -> list[str]:
     return failures
 
 
+def check_glb(metadata_path: Path, root: Path = ROOT) -> list[str]:
+    """Drift failures for one exported 3D model (skins/<id>/model-glb.json).
+
+    The glb is the fourth artefact of the chain (tsp-h5ed.46 D4): the recorded
+    .scad / exporter / glb hashes must match the committed files, and the glb's
+    control nodes must equal the .scad CONTROL_IDS and the descriptor
+    [skin.parts] in both directions, with the descriptor's screen quad node and
+    panel rotation. A model-only device (no descriptor yet, e.g. the Brick) is
+    checked against its .scad alone; once devices/<id>/capabilities.toml
+    exists the export must bind it.
+    """
+    device = metadata_path.parent.name
+    label = f"{device}/glb"
+    failures: list[str] = []
+    meta = json.loads(metadata_path.read_text(encoding="utf-8"))
+    if meta.get("device") != device:
+        failures.append(
+            f"{label}: {export_gltf.METADATA_NAME}.device={meta.get('device')!r} "
+            f"does not match its skin directory skins/{device}/"
+        )
+
+    for field, key, label_name in (
+        ("glb_sha256", "glb", "glb"),
+        ("source_sha256", "source", "source"),
+        ("exporter_sha256", "exporter", "exporter"),
+    ):
+        rel = meta.get(key)
+        if not rel:
+            failures.append(f"{label}: metadata is missing the {label_name} path")
+            continue
+        path = root / rel
+        if not path.is_file():
+            failures.append(f"{label}: missing committed {label_name} file {rel}")
+            continue
+        actual = sha256(path)
+        if meta.get(field) != actual:
+            failures.append(
+                f"{label}: {field} drift for {rel}: metadata={meta.get(field)} "
+                f"committed={actual} (re-export with export_gltf.py --write)"
+            )
+    if failures:
+        return failures
+
+    try:
+        summary = export_gltf.summarize(
+            *export_gltf.read_glb((root / meta["glb"]).read_bytes())
+        )
+    except export_gltf.GlbError as error:
+        return [f"{label}: {error}"]
+    failures.extend(export_gltf.contract_failures(summary, label))
+    if summary.names != meta.get("nodes"):
+        failures.append(
+            f"{label}: glb nodes {summary.names} != metadata nodes {meta.get('nodes')}"
+        )
+
+    glb_controls = set(summary.controls)
+
+    def compare(reference: set[str], what: str) -> None:
+        extra = sorted(glb_controls - reference)
+        missing = sorted(reference - glb_controls)
+        if extra:
+            failures.append(f"{label}: glb control nodes not in {what}: {extra}")
+        if missing:
+            failures.append(f"{label}: {what} ids with no glb control node: {missing}")
+
+    try:
+        compare(set(export_gltf.scad_control_ids(root / meta["source"])),
+                f"{meta['source']} CONTROL_IDS")
+    except export_gltf.ExportError as error:
+        failures.append(f"{label}: {error}")
+
+    expected_descriptor = f"devices/{device}/capabilities.toml"
+    has_descriptor = (root / expected_descriptor).is_file()
+    bound = meta.get("descriptor")
+    if bound != (expected_descriptor if has_descriptor else None):
+        failures.append(
+            f"{label}: metadata descriptor={bound!r} but {expected_descriptor} "
+            f"{'exists' if has_descriptor else 'does not exist'} "
+            "(re-export so the glb binds the descriptor)"
+        )
+    if has_descriptor:
+        with (root / expected_descriptor).open("rb") as stream:
+            descriptor = tomllib.load(stream)
+        compare(set(descriptor.get("skin", {}).get("parts", {})),
+                f"{expected_descriptor} [skin.parts]")
+        try:
+            expected_screens = export_gltf.descriptor_screens(descriptor)
+        except export_gltf.ExportError as error:
+            failures.append(f"{label}: {error}")
+            expected_screens = []
+    else:
+        expected_screens = meta.get("screens", [])
+    expected_nodes = {s["node"]: s["panel_rotation_deg"] for s in expected_screens}
+    if set(expected_nodes) != set(summary.screens):
+        failures.append(
+            f"{label}: screen nodes glb={sorted(summary.screens)} "
+            f"expected={sorted(expected_nodes)}"
+        )
+    for node in sorted(set(expected_nodes) & set(summary.screens)):
+        actual = summary.screens[node]["panel_rotation_deg"]
+        if actual != expected_nodes[node]:
+            failures.append(
+                f"{label}: {node} extras.panel_rotation_deg={actual} "
+                f"expected={expected_nodes[node]}"
+            )
+    return failures
+
+
+def glb_coverage_failures(root: Path = ROOT) -> list[str]:
+    """Every rendered skin also has an exported glb (they move in lockstep)."""
+    skins = root / "skins"
+    failures = []
+    if not sorted(skins.glob(f"*/{export_gltf.METADATA_NAME}")):
+        failures.append(f"no skins/*/{export_gltf.METADATA_NAME} found")
+    for render_meta in sorted(skins.glob("*/model-render.json")):
+        if not (render_meta.parent / export_gltf.METADATA_NAME).is_file():
+            failures.append(
+                f"skins/{render_meta.parent.name}: rendered skin has no "
+                f"{export_gltf.METADATA_NAME} (export its model.glb)"
+            )
+    return failures
+
+
 def main(argv: list[str]) -> int:
     metadata_paths = sorted(SKINS.glob("*/model-render.json"))
     if not metadata_paths:
@@ -237,6 +371,10 @@ def main(argv: list[str]) -> int:
     all_failures: list[str] = []
     for metadata_path in metadata_paths:
         all_failures.extend(check_skin(metadata_path))
+    glb_paths = sorted(SKINS.glob(f"*/{export_gltf.METADATA_NAME}"))
+    all_failures.extend(glb_coverage_failures(ROOT))
+    for glb_path in glb_paths:
+        all_failures.extend(check_glb(glb_path))
 
     if all_failures:
         print("skin_drift=fail", file=sys.stderr)
@@ -245,7 +383,11 @@ def main(argv: list[str]) -> int:
         return 1
 
     devices = ",".join(p.parent.name for p in metadata_paths)
-    print(f"skin_drift=pass models={len(metadata_paths)} devices={devices}")
+    glb_devices = ",".join(p.parent.name for p in glb_paths)
+    print(
+        f"skin_drift=pass models={len(metadata_paths)} devices={devices} "
+        f"glbs={len(glb_paths)} glb_devices={glb_devices}"
+    )
     return 0
 
 
