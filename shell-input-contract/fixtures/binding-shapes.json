@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "system_menu_alternatives": [
     {"id":"select-start-chord","binding":{"shape":"chord","controls":["select","start"]}},
     {"id":"hold-guide-1s","binding":{"shape":"hold","controls":["guide"],"min_duration_ms":1000}},

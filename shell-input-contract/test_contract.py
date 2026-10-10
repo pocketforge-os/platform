@@ -23,6 +23,7 @@ class ShellInputContractTest(unittest.TestCase):
 
     def test_shipped_trimui_truth_and_defaults(self) -> None:
         validator.validate_contract(self.shipped)
+        self.assertEqual(2, self.shipped["schema_version"])
         controls = {item["position"]: item for item in self.shipped["physical_controls"]}
         self.assertEqual("A", controls["east"]["printed_label"])
         self.assertEqual("B", controls["south"]["printed_label"])
@@ -44,6 +45,17 @@ class ShellInputContractTest(unittest.TestCase):
         for path in sorted((ROOT / "fixtures/invalid").glob("*.json")):
             with self.subTest(fixture=path.name):
                 instruction = json.loads(path.read_text())
+                if "system_menu_copy_actions" in instruction:
+                    for action in instruction["system_menu_copy_actions"]:
+                        with self.subTest(action=action):
+                            changed = copy.deepcopy(self.shipped)
+                            menu = next(item for item in changed["effective_map"] if item["action"] == "SystemMenu")
+                            other = next(item for item in changed["effective_map"] if item["action"] == action)
+                            menu["binding"] = copy.deepcopy(other["binding"])
+                            with self.assertRaises(validator.ContractError) as raised:
+                                validator.validate_contract(changed, path.name)
+                            self.assertEqual(instruction["expected_reason"], raised.exception.reason)
+                    continue
                 if instruction.get("target") == "defaults-registry":
                     changed = copy.deepcopy(self.defaults)
                     entry = changed["system_menu_defaults"][instruction["device_id"]]
@@ -60,6 +72,12 @@ class ShellInputContractTest(unittest.TestCase):
                         item for item in changed["effective_map"]
                         if item["action"] != instruction["remove_action"]
                     ]
+                elif "duplicate_action" in instruction:
+                    duplicate = next(
+                        item for item in changed["effective_map"]
+                        if item["action"] == instruction["duplicate_action"]
+                    )
+                    changed["effective_map"].append(copy.deepcopy(duplicate))
                 elif "remove_physical_controls" in instruction:
                     removed = set(instruction["remove_physical_controls"])
                     changed["physical_controls"] = [
@@ -119,13 +137,61 @@ class ShellInputContractTest(unittest.TestCase):
             import jsonschema
         except ImportError:
             self.skipTest("optional jsonschema package unavailable")
-        schema = json.loads((ROOT.parent / "schemas/shell-input-contract-v1.schema.json").read_text())
+        schema = json.loads((ROOT.parent / "schemas/shell-input-contract-v2.schema.json").read_text())
         checker = jsonschema.Draft202012Validator(schema)
         checker.validate(self.shipped)
         checker.validate(self.shapes)
         checker.validate(self.defaults)
         for name in ("trimui-smart-pro-s.json", "fixture-buttonless.json"):
             checker.validate(json.loads((ROOT / "fixtures" / name).read_text()))
+
+        missing = copy.deepcopy(self.shipped)
+        missing["effective_map"] = [item for item in missing["effective_map"] if item["action"] != "SystemMenu"]
+        duplicate = copy.deepcopy(self.shipped)
+        duplicate["effective_map"].append(copy.deepcopy(duplicate["effective_map"][-1]))
+        with self.assertRaises(jsonschema.ValidationError):
+            checker.validate(missing)
+        with self.assertRaises(jsonschema.ValidationError):
+            checker.validate(duplicate)
+        for action in validator.ACTIONS - {"SystemMenu"}:
+            collision = copy.deepcopy(self.shipped)
+            menu = next(item for item in collision["effective_map"] if item["action"] == "SystemMenu")
+            other = next(item for item in collision["effective_map"] if item["action"] == action)
+            menu["binding"] = copy.deepcopy(other["binding"])
+            with self.subTest(schema_collision=action), self.assertRaises(jsonschema.ValidationError):
+                checker.validate(collision)
+
+    def test_v1_documents_remain_valid_and_migrate_to_v2(self) -> None:
+        contract = copy.deepcopy(self.shipped)
+        contract["schema_version"] = 1
+        contract["protected_actions"] = ["SafeReturn"]
+        next(item for item in contract["effective_map"] if item["action"] == "SystemMenu")["action"] = "SafeReturn"
+
+        shapes = copy.deepcopy(self.shapes)
+        shapes["schema_version"] = 1
+        shapes["safe_return_alternatives"] = shapes.pop("system_menu_alternatives")
+
+        defaults = copy.deepcopy(self.defaults)
+        defaults["schema_version"] = 1
+        defaults["safe_return_defaults"] = defaults.pop("system_menu_defaults")
+        defaults["re_resolution_rule"]["invariant"] = "SafeReturn-never-unreachable"
+
+        v1_schema = json.loads((ROOT.parent / "schemas/shell-input-contract-v1.schema.json").read_text())
+        try:
+            import jsonschema
+        except ImportError:
+            jsonschema = None
+        if jsonschema is not None:
+            checker = jsonschema.Draft202012Validator(v1_schema)
+            for document in (contract, shapes, defaults):
+                checker.validate(document)
+
+        validator.validate_contract(contract)
+        validator.validate_binding_set(shapes)
+        validator.validate_defaults_registry(defaults)
+        self.assertEqual(self.shipped, validator.migrate_v1(contract))
+        self.assertEqual(self.shapes, validator.migrate_v1(shapes))
+        self.assertEqual(self.defaults, validator.migrate_v1(defaults))
 
 
 if __name__ == "__main__":

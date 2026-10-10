@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pocketforge.org/schemas/shell-input-contract-v2.schema.json",
+  "title": "PocketForge shell input contract v2",
+  "oneOf": [
+    { "$ref": "#/$defs/contract" },
+    { "$ref": "#/$defs/bindingFixtureSet" },
+    { "$ref": "#/$defs/defaultsRegistry" }
+  ],
+  "$defs": {
+    "position": {
+      "enum": ["east", "south", "west", "north", "start", "select", "guide", "home", "l1", "r1", "l2", "r2"]
+    },
+    "action": {
+      "enum": ["Activate", "Back", "Move.up", "Move.down", "Move.left", "Move.right", "Quick", "Search.open", "Search.submit", "Search.cancel", "SystemMenu"]
+    },
+    "nonSystemAction": {
+      "enum": ["Activate", "Back", "Move.up", "Move.down", "Move.left", "Move.right", "Quick", "Search.open", "Search.submit", "Search.cancel"]
+    },
+    "binding": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["shape", "controls"],
+          "properties": {
+            "shape": { "const": "single_press" },
+            "controls": { "type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/position" } }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["shape", "controls"],
+          "properties": {
+            "shape": { "const": "chord" },
+            "controls": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/$defs/position" } }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["shape", "controls", "max_interval_ms"],
+          "properties": {
+            "shape": { "const": "double_press" },
+            "controls": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/position" } },
+            "max_interval_ms": { "type": "integer", "minimum": 100, "maximum": 2000 }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["shape", "controls", "min_duration_ms"],
+          "properties": {
+            "shape": { "const": "hold" },
+            "controls": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/position" } },
+            "min_duration_ms": { "type": "integer", "minimum": 250, "maximum": 5000 }
+          }
+        }
+      ]
+    },
+    "systemMenuBinding": {
+      "oneOf": [
+        { "const": {"shape":"single_press","controls":["guide"]} },
+        { "const": {"shape":"single_press","controls":["home"]} },
+        { "const": {"shape":"chord","controls":["select","start"]} },
+        { "const": {"shape":"hold","controls":["guide"],"min_duration_ms":1000} },
+        { "const": {"shape":"double_press","controls":["select","start"],"max_interval_ms":700} },
+        { "const": {"shape":"double_press","controls":["guide"],"max_interval_ms":500} },
+        { "const": {"shape":"hold","controls":["select","l1","r1"],"min_duration_ms":1000} }
+      ]
+    },
+    "applicationBinding": {
+      "allOf": [
+        { "$ref": "#/$defs/binding" },
+        { "not": { "$ref": "#/$defs/systemMenuBinding" } }
+      ]
+    },
+    "control": {
+      "type": "object", "additionalProperties": false,
+      "required": ["position", "fallback_glyph"],
+      "properties": {
+        "position": { "$ref": "#/$defs/position" },
+        "printed_label": { "type": "string", "minLength": 1 },
+        "input_code": { "type": "string", "pattern": "^(BTN|KEY)_[A-Z0-9_]+$" },
+        "fallback_glyph": {
+          "type": "object", "additionalProperties": false,
+          "required": ["source", "id"],
+          "properties": {
+            "source": { "const": "pocketforge" },
+            "id": { "type": "string", "pattern": "^pf-[a-z0-9-]+$" }
+          }
+        }
+      }
+    },
+    "mapping": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["context", "action", "binding"],
+          "properties": {
+            "context": { "const": "global" },
+            "action": { "const": "SystemMenu" },
+            "binding": { "$ref": "#/$defs/systemMenuBinding" }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["context", "action", "binding"],
+          "properties": {
+            "context": { "type": "string", "minLength": 1 },
+            "action": { "$ref": "#/$defs/nonSystemAction" },
+            "binding": { "$ref": "#/$defs/applicationBinding" }
+          }
+        }
+      ]
+    },
+    "contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "device_id", "protected_actions", "physical_controls", "effective_map"],
+      "properties": {
+        "schema_version": { "const": 2 },
+        "device_id": { "type": "string", "minLength": 1 },
+        "protected_actions": { "const": ["SystemMenu"] },
+        "physical_controls": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/control" } },
+        "effective_map": {
+          "type": "array", "minItems": 3,
+          "items": { "$ref": "#/$defs/mapping" },
+          "contains": {
+            "type": "object",
+            "required": ["action"],
+            "properties": { "action": { "const": "SystemMenu" } }
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      }
+    },
+    "bindingFixtureSet": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "system_menu_alternatives"],
+      "properties": {
+        "schema_version": { "const": 2 },
+        "system_menu_alternatives": {
+          "type": "array", "minItems": 5, "maxItems": 5,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "binding"],
+            "properties": { "id": { "type": "string", "minLength": 1 }, "binding": { "$ref": "#/$defs/systemMenuBinding" } }
+          }
+        }
+      }
+    },
+    "defaultsRegistry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "system_menu_defaults", "re_resolution_rule", "re_resolution_fixtures"],
+      "properties": {
+        "schema_version": { "const": 2 },
+        "system_menu_defaults": {
+          "type": "object", "additionalProperties": false,
+          "required": ["a523", "a133", "fixture-buttonless"],
+          "properties": {
+            "a523": { "$ref": "#/$defs/deviceDefault" },
+            "a133": { "$ref": "#/$defs/deviceDefault" },
+            "fixture-buttonless": { "$ref": "#/$defs/deviceDefault" }
+          }
+        },
+        "re_resolution_rule": {
+          "type": "object", "additionalProperties": false,
+          "required": ["identity_keyed", "absent_control_behavior", "notice", "invariant"],
+          "properties": {
+            "identity_keyed": { "const": true },
+            "absent_control_behavior": { "const": "use-current-device-shipped-default" },
+            "notice": { "const": "one-time-honest" },
+            "invariant": { "const": "SystemMenu-and-Return-never-unreachable" }
+          }
+        },
+        "re_resolution_fixtures": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": { "$ref": "#/$defs/reResolutionFixture" }
+        }
+      }
+    },
+    "deviceDefault": {
+      "type": "object", "additionalProperties": false,
+      "required": ["descriptor", "contract_fixture", "shipped_default"],
+      "properties": {
+        "descriptor": { "type": "string", "minLength": 1 },
+        "contract_fixture": { "type": "string", "minLength": 1 },
+        "shipped_default": { "$ref": "#/$defs/systemMenuBinding" }
+      }
+    },
+    "reResolutionFixture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "stored_device_id", "current_device_id", "stored_binding", "expected_binding", "expected_notice"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "stored_device_id": { "type": "string", "minLength": 1 },
+        "current_device_id": { "type": "string", "minLength": 1 },
+        "stored_binding": { "$ref": "#/$defs/systemMenuBinding" },
+        "expected_binding": { "$ref": "#/$defs/systemMenuBinding" },
+        "expected_notice": { "const": true }
+      }
+    }
+  }
+}

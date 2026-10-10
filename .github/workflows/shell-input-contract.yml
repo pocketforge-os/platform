@@ -6,12 +6,14 @@ on:
     paths:
       - 'shell-input-contract/**'
       - 'schemas/shell-input-contract-v1.schema.json'
+      - 'schemas/shell-input-contract-v2.schema.json'
       - '.github/workflows/shell-input-contract.yml'
   push:
     branches: [main]
     paths:
       - 'shell-input-contract/**'
       - 'schemas/shell-input-contract-v1.schema.json'
+      - 'schemas/shell-input-contract-v2.schema.json'
       - '.github/workflows/shell-input-contract.yml'
 
 permissions:

@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "device_id": "a523",
   "protected_actions": ["SystemMenu"],
   "physical_controls": [
