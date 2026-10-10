@@ -108,6 +108,18 @@ def set_root(root):
 def _at_repo_root():
     return os.path.realpath(ROOT) == os.path.realpath(REPO_ROOT)
 
+
+def _in_root(rel):
+    """Resolve a descriptor/catalog artefact path (root-relative) to a canonical path INSIDE the
+    root, or None. Absolute paths and paths that leave the root (`..`, or a symlink pointing
+    outside it) are refused, so `--root` never validates an artefact from the host checkout;
+    symlinks that stay inside the root are followed."""
+    if os.path.isabs(rel):
+        return None
+    root = os.path.realpath(ROOT)
+    path = os.path.realpath(os.path.join(root, rel))
+    return path if os.path.commonpath([root, path]) == root else None
+
 # ---------------------------------------------------------------------------
 # Canonical Linux input-event-codes we accept (gamepad/handheld-relevant subset).
 # An author may extend these as new hardware lands; an UNKNOWN code is a typo until
@@ -608,7 +620,8 @@ def v2_semantic_errors(data):
     glb_nodes = None
     if model:
         glb = model.get("glb", "")
-        gl = _glb_json(os.path.join(ROOT, glb))
+        glb_path = _in_root(glb)
+        gl = "absolute or escapes the platform root" if glb_path is None else _glb_json(glb_path)
         if isinstance(gl, str):
             errs.append(f"E_MODEL_GLB [model].glb '{glb}': {gl}")
         else:
@@ -619,8 +632,14 @@ def v2_semantic_errors(data):
                 errs.append(f"E_MODEL_NODE [model].glb '{glb}': node name(s) {', '.join(twice)} "
                             f"occur more than once (a binding must resolve to one node)")
         src = model.get("source")
-        if src is not None and not os.path.isdir(os.path.join(ROOT, src)):
-            errs.append(f"E_MODEL_SOURCE [model].source '{src}' is not a model package directory")
+        if src is not None:
+            src_path = _in_root(src)
+            if src_path is None:
+                errs.append(f"E_MODEL_SOURCE [model].source '{src}' is absolute or escapes the "
+                            f"platform root")
+            elif not os.path.isdir(src_path):
+                errs.append(f"E_MODEL_SOURCE [model].source '{src}' is not a model package "
+                            f"directory")
     if glb_nodes is not None:
         wanted = ([(i.get("skin_part"), f"input '{i.get('id')}' skin_part") for i in inputs]
                   + [(s.get("node"), f"screen '{sid}' node") for s, sid in zip(screens, sids)]
@@ -1281,8 +1300,12 @@ def catalog_rows(schema):
                                      f"{row['name']}' != descriptor identity '"
                                      f"{ident.get('manufacturer')} {ident.get('model')}'")
         if pkg is not None:
-            has_pkg = os.path.isdir(os.path.join(ROOT, pkg))
-            if not has_pkg:
+            pkg_path = _in_root(pkg)
+            has_pkg = pkg_path is not None and os.path.isdir(pkg_path)
+            if pkg_path is None:
+                errs.append(f"{where}: E_CATALOG_REF package '{pkg}' is absolute or escapes the "
+                            f"platform root")
+            elif not has_pkg:
                 errs.append(f"{where}: E_CATALOG_REF package '{pkg}' is not a directory")
         derived = "sim-ready" if (has_desc and has_pkg) else ("model-only" if has_pkg else "planned")
         if RUNGS.index(row["maturity"]) > RUNGS.index(derived):

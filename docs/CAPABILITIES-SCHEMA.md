@@ -132,7 +132,7 @@ slider or the guest changes** (joint angle, lid switch value, touch points).
 | | `[screens.touch]` | | presence = touchscreen: `protocol` `mt-b`\|`st`, `slots` (mt-b only), `source` (its evdev node, never the primary gamepad node), `x`/`y`/`pressure` absinfo |
 | `[physical]` | `envelope_mm` | ✅ | body envelope `{ w, h, d }` in mm (>0), frame pf-mm-v1. Per-panel facts live on `[[screens]]` |
 | | `mass_g`, `source` | | mass (>0; omit when unmeasured); provenance strings per field |
-| `[model]` | `glb` | ✅ | root-relative path of the glTF 2.0 binary; must exist and parse |
+| `[model]` | `glb` | ✅ | root-relative path of the glTF 2.0 binary; must exist and parse. Like `source` and catalog `package`, it must resolve INSIDE the root: absolute paths, `..` escapes and symlinks pointing outside are refused (symlinks staying inside are followed) |
 | | `frame` | ✅ | `pf-mm-v1`: millimetres, X left→right, Y bottom→top, Z rear→front |
 | | `naming` | ✅ | `pf-semantic-v1`: every `inputs[].skin_part`, `screens[].node` and `joints[].node` names exactly one glb node; a joint's node is `pivot_<joint id>` |
 | | `source` | | model package directory (e.g. `device-models/trimui-smart-pro`) |
@@ -196,7 +196,7 @@ checked by `pf caps validate` (no id) / `--all`.
 | `manufacturer`, `name` | ✅ | marketing name (`TrimUI` / `Smart Pro`); WARN if it disagrees with the descriptor's `identity` |
 | `code_name` | | the maker's code name (`TG5040`, `TG5050`, `TG3040`) |
 | `platform_id` | | the `devices/<dir>` with the descriptor; must have a `capabilities.toml` and must not be a build variant (`[device].base`) (`E_CATALOG_REF`). Variants are derived, never listed |
-| `package` | | model package directory (`device-models/<slug>`); must exist (`E_CATALOG_REF`) |
+| `package` | | model package directory (`device-models/<slug>`); must exist inside the root (`E_CATALOG_REF`) |
 | `maturity` | ✅ | declared rung `planned`\|`model-only`\|`sim-ready` |
 
 Derived rung per row: `sim-ready` = `platform_id`'s descriptor validates AND the package exists;

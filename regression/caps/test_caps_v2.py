@@ -86,6 +86,9 @@ def by_device(stdout):
 # expected = set() means "a SCHEMA error, untagged"; then `needle` must appear in an error line.
 # ---------------------------------------------------------------------------
 POS = set()          # sentinel: expected to validate OK
+GLB_LINE = 'glb    = "skins/synth-clamshell/model.glb"'
+REAL_GLB = os.path.join(FIXTURE, "skins", "synth-clamshell", "model.glb")   # exists, outside --root
+REAL_PKG = os.path.join(ROOT, "device-models", "trimui-smart-pro")           # exists, outside --root
 DUP_JOINT = """
 [[joints]]
 id    = "lid"
@@ -212,6 +215,18 @@ CASES = [
      {"E_MODEL_GLB"}, None),
     ("neg-model-glb-truncated", [('glb    = "skins/synth-clamshell/model.glb"', 'glb    = "skins/synth-clamshell/truncated.glb"')],
      {"E_MODEL_GLB"}, None),
+    # Root confinement: every artefact path resolves INSIDE --root. Each escape below points at a
+    # file/dir that EXISTS (the real fixture glb, a copy beside the root, a repo package), so only
+    # the confinement rule can reject it.
+    ("neg-model-glb-absolute", [(GLB_LINE, 'glb    = "' + REAL_GLB + '"')], {"E_MODEL_GLB"}, None),
+    ("neg-model-glb-dotdot", [(GLB_LINE, 'glb    = "../outside/model.glb"')], {"E_MODEL_GLB"}, None),
+    ("neg-model-glb-symlink-escape", [(GLB_LINE, 'glb    = "skins/synth-clamshell/escape.glb"')],
+     {"E_MODEL_GLB"}, None),
+    ("pos-model-glb-symlink-inside", [(GLB_LINE, 'glb    = "skins/synth-clamshell/inside.glb"')], POS, None),
+    ("neg-model-source-absolute", [('frame  = "pf-mm-v1"', 'frame  = "pf-mm-v1"\nsource = "' + REAL_PKG + '"')],
+     {"E_MODEL_SOURCE"}, None),
+    ("neg-model-source-dotdot", [('frame  = "pf-mm-v1"', 'frame  = "pf-mm-v1"\nsource = "../outside"')],
+     {"E_MODEL_SOURCE"}, None),
     ("neg-model-node-missing", [('skin_part = "btn_guide"', 'skin_part = "btn_home"'),
                                 ("btn_guide    = {", "btn_home     = {")], {"E_MODEL_NODE"}, None),
     ("neg-model-source-missing", [('frame  = "pf-mm-v1"', 'frame  = "pf-mm-v1"\nsource = "device-models/ghost"')],
@@ -266,6 +281,11 @@ def descriptor_cases(tmp):
         head = f.read(100)  # header + part of the JSON chunk: a partial file must never pass
     with open(os.path.join(glb_dir, "truncated.glb"), "wb") as f:
         f.write(head)
+    outside = os.path.join(os.path.dirname(tmp), "outside")       # beside the root, not in it
+    os.makedirs(outside)
+    shutil.copyfile(os.path.join(glb_dir, "model.glb"), os.path.join(outside, "model.glb"))
+    os.symlink(os.path.join(outside, "model.glb"), os.path.join(glb_dir, "escape.glb"))
+    os.symlink("model.glb", os.path.join(glb_dir, "inside.glb"))
     caps_txt = read(os.path.join(FIXTURE_DEV, "capabilities.toml"))
     prof_txt = read(os.path.join(FIXTURE_DEV, "profile.toml"))
     for case_id, muts, _, _ in CASES:
@@ -334,6 +354,18 @@ name = "Bad Package"
 package = "device-models/ghost"
 maturity = "planned"
 [[devices]]
+id = "bad-package-abs"
+manufacturer = "PocketForge"
+name = "Absolute Package"
+package = "{REAL_PKG}"
+maturity = "planned"
+[[devices]]
+id = "bad-package-dotdot"
+manufacturer = "PocketForge"
+name = "Escaping Package"
+package = "../outside-pkg"
+maturity = "planned"
+[[devices]]
 id = "bad-rung"
 manufacturer = "PocketForge"
 name = "Bad Rung"
@@ -344,6 +376,7 @@ maturity = "sim-ready"
 
 def catalog_cases(tmp):
     shutil.copytree(os.path.join(FIXTURE, "skins"), os.path.join(tmp, "skins"))
+    os.makedirs(os.path.join(os.path.dirname(tmp), "outside-pkg"))   # beside the root, not in it
     shutil.copytree(FIXTURE_DEV, os.path.join(tmp, "devices", "synth-clamshell"))
     os.makedirs(os.path.join(tmp, "device-models", "synth-pkg"))
     cat = os.path.join(tmp, "devices", "catalog.toml")
@@ -358,7 +391,7 @@ def catalog_cases(tmp):
                                                          ("synth-planned", "planned", "planned")],
           out)
     with open(cat, "a") as f:
-        f.write(CATALOG_BAD)
+        f.write(CATALOG_BAD.replace("{REAL_PKG}", REAL_PKG))
     rc, out, err = run("catalog", "validate", root=tmp)
     errs = [l for l in out.splitlines() if l.startswith("ERROR")]
     check("catalog (hostile rows): one invocation exits 1", rc == 1, out + err)
@@ -367,6 +400,10 @@ def catalog_cases(tmp):
     check("catalog: duplicate id -> E_CATALOG_DUPLICATE", has("synth-planned", "E_CATALOG_DUPLICATE"), out)
     check("catalog: platform_id with no descriptor -> E_CATALOG_REF", has("bad-platform", "E_CATALOG_REF"), out)
     check("catalog: package dir missing -> E_CATALOG_REF", has("bad-package", "E_CATALOG_REF"), out)
+    check("catalog: absolute package path (exists, outside --root) -> E_CATALOG_REF",
+          has("bad-package-abs", "E_CATALOG_REF"), out)
+    check("catalog: ../ package path (exists, outside --root) -> E_CATALOG_REF",
+          has("bad-package-dotdot", "E_CATALOG_REF"), out)
     check("catalog: declared sim-ready > derived model-only -> E_CATALOG_MATURITY",
           has("bad-rung", "E_CATALOG_MATURITY"), out)
     check("catalog: good rows stay clean next to hostile ones (same invocation)",
