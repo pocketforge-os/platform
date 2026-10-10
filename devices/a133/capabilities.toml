@@ -231,6 +231,10 @@ skin_part = "trig_r"
 # headset — so "volume" is ambiguous at the evdev layer; this row is the CHASSIS rocker on event0.
 # Whether the shim also merges the headset-remote node is a broker/collection decision (tracked with
 # the multi-source work), deliberately NOT frozen here.
+# skin_part (tsp-h5ed.46.21): each rocker half is its own model part, btn_vol_down / btn_vol_up,
+# so the sim can press VOL± on the body as well as from its toolbar. The top-edge POWER key is a
+# model part too (btn_power), bound to no input: this descriptor has no power [[inputs]] row, and
+# adding one is a separate descriptor change (it would enter the sim input plan).
 [[inputs]]
 id = "vol_up"
 kind = "button"
@@ -238,6 +242,7 @@ ev_type = "EV_KEY"
 code = "KEY_VOLUMEUP"
 class = "system"
 source = "sunxi-keyboard"
+skin_part = "btn_vol_up"
 [[inputs]]
 id = "vol_down"
 kind = "button"
@@ -245,6 +250,7 @@ ev_type = "EV_KEY"
 code = "KEY_VOLUMEDOWN"
 class = "system"
 source = "sunxi-keyboard"
+skin_part = "btn_vol_down"
 
 # ---- ACTUATORS ----
 # 23 addressable RGB LEDs (sunxi_led0..22 ×rgb) = the analog-stick rings + edge (probe §14).
@@ -278,6 +284,9 @@ btn_west   = { x = 1215, y = 190, w = 56,  h = 55 }
 btn_select = { x = 1174, y = 528, w = 55,  h = 52 }
 btn_guide  = { x = 207,  y = 527, w = 55,  h = 53 }
 btn_start  = { x = 1244, y = 527, w = 54,  h = 53 }
+btn_power    = { x = 392,  y = 29,  w = 83,  h = 11 }
+btn_vol_down = { x = 876,  y = 29,  w = 102, h = 11 }
+btn_vol_up   = { x = 978,  y = 29,  w = 100, h = 11 }
 btn_l1     = { x = 75,   y = 94,  w = 189, h = 53 }
 btn_r1     = { x = 1216, y = 94,  w = 189, h = 40 }
 trig_l     = { x = 67,   y = 25,  w = 196, h = 69 }

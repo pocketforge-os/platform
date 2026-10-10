@@ -10,6 +10,9 @@
     "btn_select",
     "btn_guide",
     "btn_start",
+    "btn_power",
+    "btn_vol_down",
+    "btn_vol_up",
     "btn_l1",
     "btn_r1",
     "trig_l",
@@ -20,7 +23,7 @@
   "exporter": "device-models/export_gltf.py",
   "exporter_sha256": "2eebfb653f1dc72e67df213c7d8074f574bbe40a8e356cb75a26b6ee472de6a9",
   "glb": "skins/a133/model.glb",
-  "glb_sha256": "74bb65025e5ced4eb52c0c2a29c27e0851cb8b400fa2cef3e487c6cd2ff681d5",
+  "glb_sha256": "6908dc6385bc8a85081401b3768e4034c722770dc440b65c6ebb6a9cf9f10c74",
   "model": "trimui-smart-pro",
   "nodes": [
     "body",
@@ -34,6 +37,9 @@
     "btn_select",
     "btn_guide",
     "btn_start",
+    "btn_power",
+    "btn_vol_down",
+    "btn_vol_up",
     "btn_l1",
     "btn_r1",
     "trig_l",
@@ -50,19 +56,19 @@
     }
   ],
   "source": "device-models/trimui-smart-pro/trimui-smart-pro.scad",
-  "source_sha256": "75f9455ab6d2fe799630cf3a0da52964ec5013da7cfa72e6c1dc634e2f6104e4",
+  "source_sha256": "b2eaf19ae7eb0da3b5896a04c5eff556f75146c1af5323eef5251aad563d6a42",
   "triangle_budget": 150000,
-  "triangles": 67053,
+  "triangles": 67077,
   "views": {
     "files": {
-      "back": "6d4152ed7091dab69d3cd7de65c98bd977dc1e3cb191741fea867a717fe6cf0d",
+      "back": "b41be66f367b195d49ad1785ba8b1ec15382e5cd2cc8b6ed816b87b007de56a7",
       "bottom": "ebb6fbe63b817c1714f869ba9964c4829890281bdd728ee882d2dd5839b51527",
-      "front": "b76bbe15152d9fab0a9a3fbc8b7e0ecb486268db5d0bf543de9f693d1d22d32d",
-      "left": "4e18fc0f6bca4e118354f0be92cfac1e9365f67431fd499cdc06c7df75fc5582",
-      "right": "dc883d0bf6af5baee403185dcd06845611cdd8ae0b5c7b25749517e6e940941b",
-      "top": "10111a2d5149d452d23f15a1db3309ffbceddf5eaef23546a8673bcd815ffa94"
+      "front": "f9bdd4482502d7ea24d8d3cf66a533f0d38fb0ee3067d1fc85935fc3fc46b52d",
+      "left": "fc7fe16a0ebe32903f45071308e53585e8a25f54791f759211c015050b39915b",
+      "right": "30b5c87b2e3d3238a7109bba623158f1990b60c63ddf606adeb7fb66548c0835",
+      "top": "613d9f824ef5cc03bb12d86f7ba4ad0c4e5991dab24b24437f051f9d4a1e05ed"
     },
-    "glb_sha256": "74bb65025e5ced4eb52c0c2a29c27e0851cb8b400fa2cef3e487c6cd2ff681d5",
+    "glb_sha256": "6908dc6385bc8a85081401b3768e4034c722770dc440b65c6ebb6a9cf9f10c74",
     "renderer": "device-models/render_glb_views.py",
     "renderer_sha256": "41cb951ac33b509085efd30c957da2bb696558ca692536c44a798b872e87069a"
   }

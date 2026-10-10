@@ -11,6 +11,9 @@
     "btn_guide",
     "btn_start",
     "btn_home",
+    "btn_power",
+    "btn_vol_down",
+    "btn_vol_up",
     "btn_l1",
     "btn_r1",
     "trig_l",
@@ -21,7 +24,7 @@
   "exporter": "device-models/export_gltf.py",
   "exporter_sha256": "2eebfb653f1dc72e67df213c7d8074f574bbe40a8e356cb75a26b6ee472de6a9",
   "glb": "skins/a523/model.glb",
-  "glb_sha256": "430a00a2b29c7ebaa39e50ae2d4de58c70c466b870c15a603ae6091dced7e29e",
+  "glb_sha256": "1407ba914315977870d296a5fc077589a581395282c387c7f8c7d4f071d9b5a5",
   "model": "trimui-smart-pro-s",
   "nodes": [
     "body",
@@ -36,6 +39,9 @@
     "btn_guide",
     "btn_start",
     "btn_home",
+    "btn_power",
+    "btn_vol_down",
+    "btn_vol_up",
     "btn_l1",
     "btn_r1",
     "trig_l",
@@ -52,19 +58,19 @@
     }
   ],
   "source": "device-models/trimui-smart-pro-s/trimui-smart-pro-s.scad",
-  "source_sha256": "0d5c8153639537d5e70941492ad2cc930f5fb1c93f3694e9a160f5770693224d",
+  "source_sha256": "7071b54d53a73bf86ec1b78f5a2863f8a562488d6546eb4ec5aef9c9dff0821e",
   "triangle_budget": 150000,
-  "triangles": 81056,
+  "triangles": 81072,
   "views": {
     "files": {
-      "back": "383e274ad63a09975a415ee40fe52217e201d0fddd2283490639e05487fee46c",
+      "back": "2fa43f4a073215c5a9fc642644b1ad4d48d1271cbb77664e5585ec2b82629c90",
       "bottom": "a23ff8afdeddd7c4b463fb5118ffa1530c0a30d20bbe3e78c630c71d8d9621af",
-      "front": "75d8b602eb18a82d891d27a6244721bafa657cf953052dfac5cb98077e921ffe",
-      "left": "b91c21f3bde6fdc4e60cb4ff9e794e6c4392ccff186a6f6ad744811e86c52d59",
-      "right": "a913ec8d18cfaff75ed2cdc262bd7074de7f126b46b8698bdb0f20eb62c73a09",
-      "top": "84dbc5e0c202ef156f9263907571ffe25481365b35fd75d67d4f94079a2a1584"
+      "front": "e17acbb6b0b076afcdf5f4eb38962c3550fb4e73ded05cc3c858e13a4932f8d2",
+      "left": "88e5770193e61277d3fd38d0437d0b59fe500da8aa130298390aeb3481edbd41",
+      "right": "a1fd4831ee63e8520e3e8053aeede78421eee8c33371b2b3cf3086481045b7c7",
+      "top": "5dfa6002c054481296984a536a6a261e0d3a59d556cae9fa31abdcaa9ed8b10c"
     },
-    "glb_sha256": "430a00a2b29c7ebaa39e50ae2d4de58c70c466b870c15a603ae6091dced7e29e",
+    "glb_sha256": "1407ba914315977870d296a5fc077589a581395282c387c7f8c7d4f071d9b5a5",
     "renderer": "device-models/render_glb_views.py",
     "renderer_sha256": "41cb951ac33b509085efd30c957da2bb696558ca692536c44a798b872e87069a"
   }

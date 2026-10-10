@@ -79,6 +79,9 @@ CONTROL_IDS = (
     "btn_guide",
     "btn_start",
     "btn_home",
+    "btn_power",
+    "btn_vol_down",
+    "btn_vol_up",
     "btn_l1",
     "btn_r1",
     "trig_l",
@@ -343,6 +346,31 @@ def split_shoulder_overlaps(
         rectangle["w"] = right - rectangle["x"]
 
 
+def split_rocker_overlap(
+    rectangles: dict[str, dict[str, int]],
+) -> None:
+    """Give the two volume-rocker halves disjoint crop columns.
+
+    VOL- and VOL+ are one moulded rocker clipped at its centre seam, so their
+    one-at-a-time diffs (plus RECT_PADDING) meet or overlap at the seam. Split
+    the shared horizontal band at its midpoint, like the stacked shoulders.
+    Without both halves this is a no-op.
+    """
+    down = rectangles.get("btn_vol_down")
+    up = rectangles.get("btn_vol_up")
+    if down is None or up is None:
+        return
+    overlap_left = max(down["x"], up["x"])
+    overlap_right = min(down["x"] + down["w"], up["x"] + up["w"])
+    if overlap_right <= overlap_left:
+        return
+    split = round((overlap_left + overlap_right) / 2)
+    down["w"] = split - down["x"]
+    up_right = up["x"] + up["w"]
+    up["x"] = split
+    up["w"] = up_right - split
+
+
 def overlap_box(
     first: dict[str, int],
     second: dict[str, int],
@@ -436,6 +464,7 @@ def render_skin_set(work: Path) -> tuple[Image.Image, Image.Image, dict]:
         rectangles[control_id] = diff_rect(neutral, control)
     split_shoulder_overlaps(rectangles)
     trim_shoulder_bumpers_from_front_controls(rectangles)
+    split_rocker_overlap(rectangles)
 
     overlaps = rectangle_overlaps(rectangles)
     if overlaps:
@@ -883,7 +912,8 @@ def main(argv: list[str]) -> int:
             if SKIN_VIEWS:
                 check_views()
             print(
-                f"skin_check=pass assets=2 controls=15 views={len(SKIN_VIEWS)}"
+                f"skin_check=pass assets=2 controls={len(CONTROL_IDS)} "
+                f"views={len(SKIN_VIEWS)}"
             )
     return 0
 

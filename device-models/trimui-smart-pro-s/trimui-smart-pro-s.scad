@@ -117,6 +117,8 @@ home_centre_x = 0.39 * device_width;
 host_centre_x = 0.50 * device_width;
 volume_minus_centre_x = 0.63 * device_width;
 volume_plus_centre_x = 0.69 * device_width;
+rocker_centre_x = (volume_minus_centre_x + volume_plus_centre_x) / 2;
+rocker_width = volume_plus_centre_x - volume_minus_centre_x + 11.0;
 edge_feature_z = local_shell_depth / 2;
 edge_label_z = edge_feature_z + 3.25;
 
@@ -142,6 +144,9 @@ CONTROL_IDS = [
     "btn_guide",
     "btn_start",
     "btn_home",
+    "btn_power",
+    "btn_vol_down",
+    "btn_vol_up",
     "btn_l1",
     "btn_r1",
     "trig_l",
@@ -279,6 +284,19 @@ module xz_pill(point, size, thickness) {
         rotate([90, 0, 0])
             linear_extrude(height = thickness, center = true)
                 pill_2d(size.x, size.y);
+}
+
+// The low-X (upper = false) or high-X half of xz_pill, cut at point.x. The
+// cut is 2D so each half stays one coloured solid in the preview renderer.
+module xz_half_pill(point, size, thickness, upper) {
+    translate([point.x, point.y, point.z])
+        rotate([90, 0, 0])
+            linear_extrude(height = thickness, center = true)
+                intersection() {
+                    pill_2d(size.x, size.y);
+                    translate([upper ? 0 : -size.x, -size.y])
+                        square([size.x, 2 * size.y]);
+                }
 }
 
 module xz_rounded_rect(point, size, thickness, radius) {
@@ -540,14 +558,8 @@ module front_legends() {
 module top_edge_details() {
     top_y = device_height - 0.15;
 
-    // POWER is a raised, lighter key in a dark shallow bezel.
-    color(control_edge_color)
-        xz_pill([power_centre_x, top_y, edge_feature_z],
-                [11.0, 4.25], 0.58);
-    color([0.255, 0.265, 0.272, 1.0])
-        xz_pill([power_centre_x, top_y + 0.12, edge_feature_z],
-                [9.35, 3.25], 0.64);
-
+    // POWER and the volume rocker are semantic controls (btn_power,
+    // btn_vol_down, btn_vol_up); only the rocker's moulded seam stays here.
     // HOST USB-C: visible metal rim, black cavity, and centre tongue.  Each
     // layer is deliberately stepped towards +Y so the top camera cannot hide
     // the tongue behind the recess (the previous solid-black capsule).
@@ -561,16 +573,6 @@ module top_edge_details() {
         xz_pill([host_centre_x, top_y + 0.19, edge_feature_z],
                 [6.65, 0.78], 0.70);
 
-    // One continuous two-half volume rocker: pill outside ends and a narrow,
-    // straight centre seam, matching the photographed moulded part.
-    rocker_centre_x = (volume_minus_centre_x + volume_plus_centre_x) / 2;
-    rocker_width = volume_plus_centre_x - volume_minus_centre_x + 11.0;
-    color(control_edge_color)
-        xz_pill([rocker_centre_x, top_y, edge_feature_z],
-                [rocker_width + 1.0, 4.25], 0.58);
-    color([0.235, 0.245, 0.252, 1.0])
-        xz_pill([rocker_centre_x, top_y + 0.12, edge_feature_z],
-                [rocker_width, 3.25], 0.64);
     color(control_edge_color)
         xz_rounded_rect([rocker_centre_x, top_y + 0.22, edge_feature_z],
                         [0.42, 3.10], 0.68, 0.08);
@@ -587,12 +589,6 @@ module top_edge_details() {
         edge_label([host_centre_x, device_height + 0.16, edge_label_z],
                    "HOST", 0.95, "top", 0.10, silkscreen_color,
                    "center", "center", silkscreen_font, 0, 0.035);
-        edge_label([volume_minus_centre_x, device_height + 0.43,
-                    edge_feature_z],
-                   "-", 1.20, "top", 0.10, control_edge_color);
-        edge_label([volume_plus_centre_x, device_height + 0.43,
-                    edge_feature_z],
-                   "+", 1.20, "top", 0.10, control_edge_color);
     }
 }
 
@@ -752,6 +748,41 @@ module system_button(id, point, symbol) {
     }
 }
 
+module power_button_control() {
+    id = "btn_power";
+    top_y = device_height - 0.15;
+
+    // POWER is a raised, lighter key in a dark shallow bezel. Both pieces are
+    // semantic so the highlight pass lights the complete top-edge key.
+    color(active_dark_color(id))
+        xz_pill([power_centre_x, top_y, edge_feature_z],
+                [11.0, 4.25], 0.58);
+    color(active_color(id, [0.255, 0.265, 0.272, 1.0]))
+        xz_pill([power_centre_x, top_y + 0.12, edge_feature_z],
+                [9.35, 3.25], 0.64);
+}
+
+module volume_rocker_half(id) {
+    top_y = device_height - 0.15;
+    is_up = id == "btn_vol_up";
+
+    // One continuous two-half volume rocker: pill outside ends and a narrow,
+    // straight centre seam (shell detail), matching the photographed moulded
+    // part. Each half is the unchanged pill clipped at the seam, so VOL- and
+    // VOL+ light and press independently without moving any geometry.
+    color(active_dark_color(id))
+        xz_half_pill([rocker_centre_x, top_y, edge_feature_z],
+                     [rocker_width + 1.0, 4.25], 0.58, is_up);
+    color(active_color(id, [0.235, 0.245, 0.252, 1.0]))
+        xz_half_pill([rocker_centre_x, top_y + 0.12, edge_feature_z],
+                     [rocker_width, 3.25], 0.64, is_up);
+    if (SHOW_MICRO_DETAILS)
+        edge_label([is_up ? volume_plus_centre_x : volume_minus_centre_x,
+                    device_height + 0.43, edge_feature_z],
+                   is_up ? "+" : "-", 1.20, "top", 0.10,
+                   active_dark_color(id));
+}
+
 module home_button_control() {
     id = "btn_home";
     top_y = device_height - 0.15;
@@ -901,6 +932,10 @@ module named_control(id) {
         system_button(id, start_centre, "start");
     } else if (id == "btn_home") {
         home_button_control();
+    } else if (id == "btn_power") {
+        power_button_control();
+    } else if (id == "btn_vol_down" || id == "btn_vol_up") {
+        volume_rocker_half(id);
     } else if (id == "btn_l1") {
         shoulder_control("left", "bumper");
     } else if (id == "btn_r1") {
