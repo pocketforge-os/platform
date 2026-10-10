@@ -6,24 +6,41 @@
 Writes ``skins/<id>/views/{front,back,left,right,top,bottom}.png`` next to the
 glb. The views are rendered from the glb itself (not the .scad), so they show
 exactly what the simulator will load: node placement, normals, materials and
-the screen quad. They are for the owner's visual review; nothing consumes them.
+the screen quad. They are what the owner reviews, so they move in lockstep
+with the glb: after writing them this records, in ``skins/<id>/model-glb.json``,
+a ``views`` block ``{glb_sha256, renderer, renderer_sha256, files: {<view>:
+sha256}}``, and
+``check-skin-drift.py`` fails when a committed view or the glb no longer
+matches it (a renderer edit without a re-render included).
+``device-models/regen.sh <slug>`` runs this after the export.
 
 A small software z-buffer rasteriser (numpy + Pillow, local only; CI never
 runs this): per-vertex normals interpolated per pixel, a key light plus
 headlight and ambient, 2x supersampling. Every PNG must stay under 300 KB.
+The recording half (``record_views``) is standard library only, so the
+hermetic tests exercise it without numpy.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import sys
 
-import numpy as np
-from PIL import Image
+try:
+    import numpy as np
+    from PIL import Image
+except ImportError as error:  # record_views needs neither; rendering does
+    np = Image = None
+    RENDER_IMPORT_ERROR = error
+else:
+    RENDER_IMPORT_ERROR = None
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import export_gltf  # noqa: E402
+
+RENDERER_REL = "device-models/render_glb_views.py"
 
 MAX_BYTES = 300 * 1024
 LONG_EDGE = 1100
@@ -153,16 +170,42 @@ def save_under_limit(image: Image.Image, path: Path) -> int:
                              Image.LANCZOS)
 
 
+def record_views(glb: Path) -> dict:
+    """Record the glb, this renderer and the six committed view PNGs in
+    model-glb.json["views"]. The glb sits at <root>/skins/<id>/model.glb."""
+    meta_path = glb.parent / export_gltf.METADATA_NAME
+    if not meta_path.is_file():
+        raise SystemExit(f"{glb}: no {meta_path.name} beside it (export with export_gltf.py --write)")
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    root = glb.resolve().parents[2]
+    meta["views"] = {
+        "glb_sha256": export_gltf.sha256_file(glb),
+        "renderer": RENDERER_REL,
+        "renderer_sha256": export_gltf.sha256_file(root / RENDERER_REL),
+        "files": {
+            name: export_gltf.sha256_file(glb.parent / "views" / f"{name}.png")
+            for name in VIEWS
+        },
+    }
+    meta_path.write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return meta["views"]
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("glb", nargs="+", type=Path)
     args = parser.parse_args(argv)
+    if RENDER_IMPORT_ERROR is not None:
+        raise SystemExit(f"render_glb_views.py needs numpy and Pillow: {RENDER_IMPORT_ERROR}")
     for glb in args.glb:
         tris, nrms, cols = load_triangles(glb)
         for name, (direction, up) in VIEWS.items():
             out = glb.parent / "views" / f"{name}.png"
             size = save_under_limit(render(tris, nrms, cols, direction, up), out)
             print(f"wrote {out} bytes={size}")
+        views = record_views(glb)
+        print(f"recorded {glb.parent / export_gltf.METADATA_NAME} views "
+              f"glb_sha256={views['glb_sha256']}")
     return 0
 
 

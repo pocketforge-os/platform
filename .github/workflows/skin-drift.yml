@@ -127,6 +127,12 @@ jobs:
   # exporter and glb hashes; glb nodes == .scad CONTROL_IDS == descriptor [skin.parts]) runs in
   # the consistency leg above, inside check-skin-drift.py. Standard library only; same runner,
   # fork guard and no-marketplace-actions rationale as the consistency leg.
+  # VIEWS LOCKSTEP (tsp-h5ed.46.22): skins/<id>/views/*.png are the six owner-review renders of
+  # the glb (render_glb_views.py, local only). `check-skin-drift.py --views-only` proves each
+  # committed PNG still hashes to the model-glb.json "views" block and that the block names the
+  # committed glb (views older than the glb fail "regenerate with render_glb_views.py"); this
+  # job's regression suite exercises a stale view, a hand-edited PNG and a re-exported glb
+  # without new views next to their positive controls.
   glb:
     name: skin-drift-glb
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
@@ -160,3 +166,4 @@ jobs:
             "$PY" device-models/test_export_gltf.py
           "$PY" device-models/gltf_validate.py --validator "$validator"
           "$PY" device-models/export_gltf.py --check
+          "$PY" device-models/check-skin-drift.py --views-only

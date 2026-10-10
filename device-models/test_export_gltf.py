@@ -38,6 +38,7 @@ def load_drift_module():
 
 
 drift = load_drift_module()
+import render_glb_views  # noqa: E402  (numpy/Pillow only needed to render)
 
 
 def temp_root(testcase: unittest.TestCase, prefix: str) -> Path:
@@ -301,6 +302,137 @@ class DriftGateTests(unittest.TestCase):
         self.assertTrue(any("descriptor" in f for f in failures), failures)
 
 
+def write_fake_views(repo: FakeRepo, tag: str = "v1") -> None:
+    """Stand-in view PNGs (the rasteriser needs numpy) recorded by the real
+    render_glb_views.record_views, so the gate sees exactly what a render writes."""
+    renderer = repo.root / "device-models" / "render_glb_views.py"
+    if not renderer.is_file():
+        shutil.copyfile(HERE / "render_glb_views.py", renderer)
+    views = repo.root / "skins" / "fake" / "views"
+    views.mkdir(exist_ok=True)
+    for name in drift.VIEW_NAMES:
+        (views / f"{name}.png").write_bytes(f"{tag}:{name}".encode())
+    render_glb_views.record_views(repo.glb)
+
+
+class ViewsLockstepTests(unittest.TestCase):
+    """skins/<id>/views/*.png move in lockstep with the glb they were rendered from."""
+
+    def failures(self, repo: FakeRepo) -> list[str]:
+        return drift.check_views(repo.meta, root=repo.root)
+
+    def fresh(self) -> FakeRepo:
+        repo = FakeRepo(self)
+        repo.export()
+        write_fake_views(repo)
+        self.assertEqual(self.failures(repo), [], "positive control")
+        self.assertEqual(drift.check_glb(repo.meta, root=repo.root), [], "positive control")
+        return repo
+
+    def assert_regenerate(self, failures: list[str], needle: str) -> None:
+        self.assertTrue(
+            any(needle in f and "regenerate with render_glb_views.py" in f for f in failures),
+            failures,
+        )
+
+    def test_reexported_glb_without_new_views_fails(self):
+        repo = self.fresh()
+        stale_views = json.loads(repo.meta.read_text(encoding="utf-8"))["views"]
+        parts = fake_parts()
+        parts["body"] = box(0, 0, 0, 61, 30, 10)
+        repo.export(parts)  # a new glb; the exporter rewrites model-glb.json
+        self.assertEqual(drift.check_glb(repo.meta, root=repo.root), [], "glb itself is fine")
+        self.assert_regenerate(self.failures(repo), "no views block")
+        # Views block carried over by hand: still older than the glb.
+        meta = json.loads(repo.meta.read_text(encoding="utf-8"))
+        meta["views"] = stale_views
+        repo.meta.write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n")
+        self.assert_regenerate(self.failures(repo), "older than the glb")
+        write_fake_views(repo, "v2")
+        self.assertEqual(self.failures(repo), [], "positive control after regen")
+
+    def test_renderer_edit_without_rerender_fails(self):
+        repo = self.fresh()
+        renderer = repo.root / "device-models" / "render_glb_views.py"
+        renderer.write_text(renderer.read_text(encoding="utf-8") + "# new camera\n",
+                            encoding="utf-8")
+        self.assert_regenerate(self.failures(repo), "renderer_sha256")
+        write_fake_views(repo, "v2")
+        self.assertEqual(self.failures(repo), [], "positive control after regen")
+        meta = json.loads(repo.meta.read_text(encoding="utf-8"))
+        del meta["views"]["renderer"]
+        repo.meta.write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n")
+        self.assert_regenerate(self.failures(repo), "renderer")
+
+    def test_hand_edited_png_fails(self):
+        repo = self.fresh()
+        front = repo.root / "skins" / "fake" / "views" / "front.png"
+        front.write_bytes(front.read_bytes() + b"\x00")
+        self.assert_regenerate(self.failures(repo), "views/front.png")
+
+    def test_missing_and_unrecorded_png_fail(self):
+        repo = self.fresh()
+        views = repo.root / "skins" / "fake" / "views"
+        (views / "iso.png").write_bytes(b"extra")
+        self.assert_regenerate(self.failures(repo), "iso")
+        (views / "iso.png").unlink()
+        self.assertEqual(self.failures(repo), [], "positive control")
+        (views / "top.png").unlink()
+        self.assert_regenerate(self.failures(repo), "views/top.png")
+
+    def test_recorded_view_set_must_be_the_six(self):
+        repo = self.fresh()
+        meta = json.loads(repo.meta.read_text(encoding="utf-8"))
+        del meta["views"]["files"]["bottom"]
+        repo.meta.write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n")
+        self.assert_regenerate(self.failures(repo), "bottom")
+
+    def test_main_views_only_runs_the_lockstep(self):
+        repo = self.fresh()
+        self.assertEqual(drift.views_main(repo.root), 0, "positive control")
+        (repo.root / "skins" / "fake" / "views" / "left.png").write_bytes(b"stale")
+        self.assertEqual(drift.views_main(repo.root), 1)
+
+    def test_committed_views_are_recorded(self):
+        """The repository itself: every exported glb has gated views."""
+        metas = sorted((HERE.parent / "skins").glob(f"*/{export_gltf.METADATA_NAME}"))
+        self.assertTrue(metas)
+        for meta in metas:
+            self.assertEqual(drift.check_views(meta), [], meta)
+
+
+class RegenScriptTests(unittest.TestCase):
+    """device-models/regen.sh refuses before touching anything."""
+
+    def run_regen(self, openscad: str, *args: str):
+        import subprocess
+
+        env = dict(os.environ, OPENSCAD=openscad)
+        return subprocess.run(
+            ["bash", str(HERE / "regen.sh"), *args],
+            capture_output=True, text=True, env=env, check=False,
+        )
+
+    def test_refuses_without_openscad_and_unknown_slug(self):
+        missing = self.run_regen("/nonexistent/openscad", "trimui-smart-pro")
+        self.assertEqual(missing.returncode, 2, missing.stderr)
+        self.assertIn("openscad not found", missing.stderr)
+        stub_dir = temp_root(self, "pf-regen-stub-")
+        stub = stub_dir / "openscad"
+        stub.write_text("#!/bin/sh\necho 'OpenSCAD version 2021.01'\n")
+        stub.chmod(0o755)
+        # Positive control: with an openscad present the openscad refusal does
+        # not fire; the next guard (slug) does.
+        unknown = self.run_regen(str(stub), "no-such-model")
+        self.assertEqual(unknown.returncode, 2, unknown.stderr)
+        self.assertNotIn("openscad not found", unknown.stderr)
+        self.assertIn("unknown model slug", unknown.stderr)
+        self.assertIn("trimui-smart-pro", unknown.stderr)
+        usage = self.run_regen(str(stub))
+        self.assertEqual(usage.returncode, 2, usage.stderr)
+        self.assertIn("usage", usage.stderr)
+
+
 class ExporterTests(unittest.TestCase):
     def test_refuses_part_name_mismatch(self):
         repo = FakeRepo(self)
@@ -338,6 +470,20 @@ class ExporterTests(unittest.TestCase):
         first = export_gltf.build_document(resolved, fake_parts(), openscad_version="t")
         second = export_gltf.build_document(resolved, fake_parts(), openscad_version="t")
         self.assertEqual(first, second)
+
+    def test_canonical_triangle_order(self):
+        """OpenSCAD 2021.01 emits the same triangles in a different order on every
+        run; the canonical order makes the exported bytes independent of it."""
+        tris = box(0, 0, 0, 1, 2, 3)
+        shuffled = [t[1:] + t[:1] if i % 2 else t for i, t in enumerate(reversed(tris))]
+        self.assertNotEqual(shuffled, tris)
+        canonical = export_gltf.canonical_triangles(tris)
+        self.assertEqual(export_gltf.canonical_triangles(shuffled), canonical)
+        # Rotation keeps the winding: a flipped triangle stays distinct.
+        flipped = [(tris[0][0], tris[0][2], tris[0][1])] + tris[1:]
+        self.assertNotEqual(export_gltf.canonical_triangles(flipped), canonical)
+        self.assertEqual(sorted(tuple(sorted(t)) for t in canonical),
+                         sorted(tuple(sorted(t)) for t in tris))
 
     def test_normals_unit_and_degenerates_dropped(self):
         tris = box(0, 0, 0, 1, 1, 1) + [((0, 0, 0), (1, 0, 0), (2, 0, 0))]

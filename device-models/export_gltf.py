@@ -39,8 +39,9 @@ GLB CONTRACT (pf-semantic-v1)
   base colours from the .scad palette tokens.
 * At most TRIANGLE_BUDGET triangles per device.
 
-The writer is deterministic (sorted JSON, no timestamps), so the same STL input
-always yields the same bytes. OpenSCAD output is cached under
+The writer is deterministic (sorted JSON, no timestamps, STL triangles put in
+a canonical order because OpenSCAD's order varies run to run), so the same
+.scad always yields the same bytes. OpenSCAD output is cached under
 ``device-models/.cache/`` keyed by the .scad bytes, the defines and the
 OpenSCAD version, so exporter-only changes re-export in seconds.
 """
@@ -738,6 +739,19 @@ def parse_stl(data: bytes) -> list[tuple]:
     return [tuple(points[i:i + 3]) for i in range(0, len(points), 3)]
 
 
+def canonical_triangles(triangles) -> list[tuple]:
+    """Sort triangles, each rotated to start at its smallest vertex (winding kept).
+
+    OpenSCAD 2021.01 writes the same triangles in a different order on every
+    run, so without this a re-export of an unchanged .scad changes the glb bytes.
+    """
+    rotated = []
+    for tri in triangles:
+        first = min(range(3), key=lambda index: tri[index])
+        rotated.append(tuple(tri[first:]) + tuple(tri[:first]))
+    return sorted(rotated)
+
+
 def openscad_part(root: Path, openscad: str, version: str, scad: Path,
                   defines: dict[str, str]) -> list[tuple]:
     key = hashlib.sha256()
@@ -762,7 +776,7 @@ def openscad_part(root: Path, openscad: str, version: str, scad: Path,
             os.replace(out, cached)
         finally:
             out.unlink(missing_ok=True)
-    return parse_stl(cached.read_bytes())
+    return canonical_triangles(parse_stl(cached.read_bytes()))
 
 
 def openscad_parts(resolved: Resolved, openscad: str, version: str) -> dict:
