@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "safe_return_alternatives": [
+  "system_menu_alternatives": [
     {"id":"select-start-chord","binding":{"shape":"chord","controls":["select","start"]}},
     {"id":"hold-guide-1s","binding":{"shape":"hold","controls":["guide"],"min_duration_ms":1000}},
     {"id":"select-start-double-press-confirm","binding":{"shape":"double_press","controls":["select","start"],"max_interval_ms":700}},

@@ -29,7 +29,7 @@ class ShellInputContractTest(unittest.TestCase):
         mapping = {item["action"]: item["binding"] for item in self.shipped["effective_map"]}
         self.assertEqual(["east"], mapping["Activate"]["controls"])
         self.assertEqual(["south"], mapping["Back"]["controls"])
-        self.assertEqual({"shape": "single_press", "controls": ["guide"]}, mapping["SafeReturn"])
+        self.assertEqual({"shape": "single_press", "controls": ["guide"]}, mapping["SystemMenu"])
 
     def test_unlabeled_controls_have_source_owned_fallbacks(self) -> None:
         controls = {item["position"]: item for item in self.shipped["physical_controls"]}
@@ -46,7 +46,7 @@ class ShellInputContractTest(unittest.TestCase):
                 instruction = json.loads(path.read_text())
                 if instruction.get("target") == "defaults-registry":
                     changed = copy.deepcopy(self.defaults)
-                    entry = changed["safe_return_defaults"][instruction["device_id"]]
+                    entry = changed["system_menu_defaults"][instruction["device_id"]]
                     if "replace_contract_fixture" in instruction:
                         entry["contract_fixture"] = instruction["replace_contract_fixture"]
                     else:
@@ -69,9 +69,9 @@ class ShellInputContractTest(unittest.TestCase):
                 elif "invalid_fallback_glyph_id" in instruction:
                     changed["physical_controls"][0]["fallback_glyph"]["id"] = instruction["invalid_fallback_glyph_id"]
                 elif instruction.get("target") != "defaults-registry":
-                    safe = next(item for item in changed["effective_map"] if item["action"] == "SafeReturn")
-                    face = next(item for item in changed["effective_map"] if item["action"] == instruction["safe_return_copy_action"])
-                    if not instruction.get("preserve_safe_return_context", False):
+                    safe = next(item for item in changed["effective_map"] if item["action"] == "SystemMenu")
+                    face = next(item for item in changed["effective_map"] if item["action"] == instruction["system_menu_copy_action"])
+                    if not instruction.get("preserve_system_menu_context", False):
                         safe["context"] = face["context"]
                     safe["binding"] = copy.deepcopy(face["binding"])
                 with self.assertRaises(validator.ContractError) as raised:
@@ -86,13 +86,13 @@ class ShellInputContractTest(unittest.TestCase):
         decoded = json.loads(encoded)
         validator.validate_binding_set(decoded)
         self.assertEqual(self.shapes, decoded)
-        self.assertEqual({"chord", "hold", "double_press"}, {item["binding"]["shape"] for item in decoded["safe_return_alternatives"]})
-        default = next(item for item in self.shipped["effective_map"] if item["action"] == "SafeReturn")
+        self.assertEqual({"chord", "hold", "double_press"}, {item["binding"]["shape"] for item in decoded["system_menu_alternatives"]})
+        default = next(item for item in self.shipped["effective_map"] if item["action"] == "SystemMenu")
         self.assertEqual("single_press", default["binding"]["shape"])
 
     def test_per_device_shipped_defaults(self) -> None:
         validator.validate_defaults_registry(self.defaults)
-        defaults = self.defaults["safe_return_defaults"]
+        defaults = self.defaults["system_menu_defaults"]
         self.assertEqual({"shape": "single_press", "controls": ["home"]}, defaults["a523"]["shipped_default"])
         self.assertEqual({"shape": "single_press", "controls": ["guide"]}, defaults["a133"]["shipped_default"])
         self.assertEqual({"shape": "chord", "controls": ["select", "start"]}, defaults["fixture-buttonless"]["shipped_default"])

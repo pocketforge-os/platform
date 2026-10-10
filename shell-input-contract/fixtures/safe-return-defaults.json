@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "safe_return_defaults": {
+  "system_menu_defaults": {
     "a523": {
       "descriptor": "devices/a523/capabilities.toml",
       "contract_fixture": "fixtures/trimui-smart-pro-s.json",
@@ -21,7 +21,7 @@
     "identity_keyed": true,
     "absent_control_behavior": "use-current-device-shipped-default",
     "notice": "one-time-honest",
-    "invariant": "SafeReturn-never-unreachable"
+    "invariant": "SystemMenu-and-Return-never-unreachable"
   },
   "re_resolution_fixtures": [
     {

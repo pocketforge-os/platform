@@ -12,7 +12,7 @@
       "enum": ["east", "south", "west", "north", "start", "select", "guide", "home", "l1", "r1", "l2", "r2"]
     },
     "action": {
-      "enum": ["Activate", "Back", "Move.up", "Move.down", "Move.left", "Move.right", "Quick", "Search.open", "Search.submit", "Search.cancel", "SafeReturn"]
+      "enum": ["Activate", "Back", "Move.up", "Move.down", "Move.left", "Move.right", "Quick", "Search.open", "Search.submit", "Search.cancel", "SystemMenu"]
     },
     "binding": {
       "oneOf": [
@@ -84,17 +84,17 @@
       "properties": {
         "schema_version": { "const": 1 },
         "device_id": { "type": "string", "minLength": 1 },
-        "protected_actions": { "const": ["SafeReturn"] },
+        "protected_actions": { "const": ["SystemMenu"] },
         "physical_controls": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/control" } },
         "effective_map": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/mapping" } }
       }
     },
     "bindingFixtureSet": {
       "type": "object", "additionalProperties": false,
-      "required": ["schema_version", "safe_return_alternatives"],
+      "required": ["schema_version", "system_menu_alternatives"],
       "properties": {
         "schema_version": { "const": 1 },
-        "safe_return_alternatives": {
+        "system_menu_alternatives": {
           "type": "array", "minItems": 5, "maxItems": 5,
           "items": {
             "type": "object", "additionalProperties": false,
@@ -106,10 +106,10 @@
     },
     "defaultsRegistry": {
       "type": "object", "additionalProperties": false,
-      "required": ["schema_version", "safe_return_defaults", "re_resolution_rule", "re_resolution_fixtures"],
+      "required": ["schema_version", "system_menu_defaults", "re_resolution_rule", "re_resolution_fixtures"],
       "properties": {
         "schema_version": { "const": 1 },
-        "safe_return_defaults": {
+        "system_menu_defaults": {
           "type": "object", "additionalProperties": false,
           "required": ["a523", "a133", "fixture-buttonless"],
           "properties": {
@@ -125,7 +125,7 @@
             "identity_keyed": { "const": true },
             "absent_control_behavior": { "const": "use-current-device-shipped-default" },
             "notice": { "const": "one-time-honest" },
-            "invariant": { "const": "SafeReturn-never-unreachable" }
+            "invariant": { "const": "SystemMenu-and-Return-never-unreachable" }
           }
         },
         "re_resolution_fixtures": {
