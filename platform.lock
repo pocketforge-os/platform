@@ -574,7 +574,7 @@ ref  = "main"          # tsp-mc9m.41.995.43.2 Build 6: image#210/#211/#212/#213
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "0c80e4d56ca5cec7dd6bb50e2c19acaac30eb249"
+sha  = "67e45ed0d246e9e05eb20b89a1d4304a4b20f1c2"
 
 [[repos]]
 name = "gamescope"
