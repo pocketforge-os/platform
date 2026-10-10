@@ -18,7 +18,8 @@ flock -n 9 || {
 
 # shellcheck disable=SC2317 # EXIT/signal trap targets are invoked indirectly by Bash.
 cleanup() {
-    local original_rc=$? final_rc prune_rc=0 remove_rc=0
+    local original_rc=$? final_rc prune_rc=0 remove_rc=0 fallback_remove_rc=0
+    local cleanup_rc=0 cleanup_mode=retained
     local cleanup_builder="$BUILDER_CLEANUP_NEEDED"
     trap - EXIT INT TERM
     BUILDER_CLEANUP_NEEDED=0
@@ -28,22 +29,29 @@ cleanup() {
         docker buildx prune --builder "$BUILDER" --all --force \
             --keep-storage "$KEEP" >/dev/null
         prune_rc=$?
-        docker buildx rm --keep-state "$BUILDER" >/dev/null
-        remove_rc=$?
-        if [ "$prune_rc" -eq 0 ] && [ "$remove_rc" -eq 0 ]; then
-            printf 'pf_ci_buildx=bounded builder=%s keep_storage=%s\n' "$BUILDER" "$KEEP"
+        if [ "$prune_rc" -eq 0 ]; then
+            docker buildx rm --keep-state "$BUILDER" >/dev/null
+            remove_rc=$?
+        fi
+        if [ "$prune_rc" -ne 0 ] || [ "$remove_rc" -ne 0 ]; then
+            cleanup_mode=state-deleted
+            docker buildx rm --force "$BUILDER" >/dev/null
+            fallback_remove_rc=$?
+            cleanup_rc="$fallback_remove_rc"
+        fi
+        if [ "$cleanup_rc" -eq 0 ]; then
+            printf 'pf_ci_buildx=bounded builder=%s keep_storage=%s mode=%s\n' \
+                "$BUILDER" "$KEEP" "$cleanup_mode"
         else
-            printf 'pf_ci_buildx=cleanup_failed builder=%s prune_rc=%s remove_rc=%s\n' \
-                "$BUILDER" "$prune_rc" "$remove_rc" >&2
+            printf 'pf_ci_buildx=cleanup_failed builder=%s prune_rc=%s remove_rc=%s fallback_remove_rc=%s\n' \
+                "$BUILDER" "$prune_rc" "$remove_rc" "$fallback_remove_rc" >&2
         fi
     fi
     [ -z "$CONFIG" ] || rm -f -- "$CONFIG"
 
     final_rc="$original_rc"
-    if [ "$final_rc" -eq 0 ] && [ "$prune_rc" -ne 0 ]; then
-        final_rc="$prune_rc"
-    elif [ "$final_rc" -eq 0 ] && [ "$remove_rc" -ne 0 ]; then
-        final_rc="$remove_rc"
+    if [ "$final_rc" -eq 0 ] && [ "$cleanup_rc" -ne 0 ]; then
+        final_rc="$cleanup_rc"
     fi
     exit "$final_rc"
 }

@@ -36,7 +36,11 @@ case "$1 $2" in
         ;;
     "buildx prune") [ "${PF_TEST_PRUNE_FAIL:-0}" != 1 ] || exit 9 ;;
     "buildx rm")
-        [ "${PF_TEST_REMOVE_FAIL:-0}" != 1 ] || exit 10
+        if [ "${3:-}" = --force ]; then
+            [ "${PF_TEST_FORCE_REMOVE_FAIL:-0}" != 1 ] || exit 11
+        else
+            [ "${PF_TEST_REMOVE_FAIL:-0}" != 1 ] || exit 10
+        fi
         [ ! -e "$PF_TEST_STATE/builder" ] || unlink "$PF_TEST_STATE/builder"
         ;;
     *) exit 97 ;;
@@ -74,8 +78,8 @@ grep -qxF 'buildx prune --builder pf-ci --all --force --keep-storage 8gb' \
     "$T/state/docker.calls"
 
 run_cleanup_failure_case() {
-    local label="$1" expected_rc="$2" rc
-    shift 2
+    local label="$1" expected_rc="$2" expected_builder="$3" rc
+    shift 3
     : > "$T/state/docker.calls"
     [ ! -e "$T/state/builder" ] || unlink "$T/state/builder"
     set +e
@@ -92,16 +96,33 @@ run_cleanup_failure_case() {
     fi
     grep -qxF 'buildx prune --builder pf-ci --all --force --keep-storage 8gb' \
         "$T/state/docker.calls"
-    grep -qxF 'buildx rm --keep-state pf-ci' "$T/state/docker.calls"
+    if [ "$expected_builder" = absent ]; then
+        test ! -e "$T/state/builder"
+    else
+        test -e "$T/state/builder"
+    fi
+    case "$label" in
+        cancelled|build-and-prune-failed|prune-failed|fallback-failed)
+            grep -qxF 'buildx rm --force pf-ci' "$T/state/docker.calls"
+            ;;
+        remove-failed)
+            grep -qxF 'buildx rm --keep-state pf-ci' "$T/state/docker.calls"
+            grep -qxF 'buildx rm --force pf-ci' "$T/state/docker.calls"
+            ;;
+        create-failed)
+            grep -qxF 'buildx rm --keep-state pf-ci' "$T/state/docker.calls"
+            ;;
+    esac
 }
 
 # Every path after named-builder creation starts must attempt both bounding
 # operations. The original build/create/signal status wins over cleanup errors.
-run_cleanup_failure_case cancelled 143 PF_TEST_BUILD_SIGNAL=TERM PF_TEST_PRUNE_FAIL=1
-run_cleanup_failure_case create-failed 8 PF_TEST_CREATE_FAIL=1
-run_cleanup_failure_case build-and-prune-failed 7 PF_TEST_BUILD_FAIL=1 PF_TEST_PRUNE_FAIL=1
-run_cleanup_failure_case prune-failed 9 PF_TEST_PRUNE_FAIL=1
-run_cleanup_failure_case remove-failed 10 PF_TEST_REMOVE_FAIL=1
+run_cleanup_failure_case cancelled 143 absent PF_TEST_BUILD_SIGNAL=TERM PF_TEST_PRUNE_FAIL=1
+run_cleanup_failure_case create-failed 8 absent PF_TEST_CREATE_FAIL=1
+run_cleanup_failure_case build-and-prune-failed 7 absent PF_TEST_BUILD_FAIL=1 PF_TEST_PRUNE_FAIL=1
+run_cleanup_failure_case prune-failed 0 absent PF_TEST_PRUNE_FAIL=1
+run_cleanup_failure_case remove-failed 0 absent PF_TEST_REMOVE_FAIL=1
+run_cleanup_failure_case fallback-failed 11 present PF_TEST_PRUNE_FAIL=1 PF_TEST_FORCE_REMOVE_FAIL=1
 
 : > "$T/state/docker.calls"
 exec 8> "$T/busy.lock"
