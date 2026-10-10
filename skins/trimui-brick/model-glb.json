@@ -70,6 +70,8 @@
       "right": "b25f12caf5f5644337f4c5609b35692a7170c2fe455b62fef78ea670dab2e7b9",
       "top": "8e898bbc6d30381b31969cdefa82aac09b0a086bd5b1a80591b6d39ff0289abd"
     },
-    "glb_sha256": "d8606bade338f559024cb2bb802cb8340db3ea4398da423804efd71128113811"
+    "glb_sha256": "d8606bade338f559024cb2bb802cb8340db3ea4398da423804efd71128113811",
+    "renderer": "device-models/render_glb_views.py",
+    "renderer_sha256": "41cb951ac33b509085efd30c957da2bb696558ca692536c44a798b872e87069a"
   }
 }

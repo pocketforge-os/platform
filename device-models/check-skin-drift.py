@@ -37,6 +37,16 @@ For each discovered device it asserts:
   ``extras.panel_rotation_deg`` match the descriptor ``[[screens]]``. A
   model-only export (no descriptor, e.g. the Brick) is discovered the same way
   and checked against its .scad.
+* the six review views (``skins/<id>/views/{front,back,left,right,top,bottom}.png``,
+  rendered from the glb by ``render_glb_views.py``): ``model-glb.json`` carries a
+  ``views`` block ``{glb_sha256, renderer, renderer_sha256, files: {<view>:
+  sha256}}`` written by that renderer. The committed PNGs must hash to it,
+  exactly the six views and no other PNG may be present, ``glb_sha256`` must
+  equal the committed glb (a re-exported glb without re-rendered views ->
+  caught) and ``renderer_sha256`` the committed renderer (a camera or shading
+  edit without a re-render -> caught). The exporter rewrites ``model-glb.json``
+  without a ``views`` block, so a re-export alone fails until the views are
+  re-rendered. ``--views-only`` runs just this check (CI job ``skin-drift-glb``).
 
 COVERAGE / HONESTY (infra-113 D9). Every guarantee here is a strict SUBSET of
 ``render.py --check``: that command recomputes the recorded hashes and rects from a
@@ -352,7 +362,7 @@ def check_views(metadata_path: Path, root: Path = ROOT) -> list[str]:
 
     The views are what the owner reviews, so they must show the committed glb:
     the ``views`` block render_glb_views.py records in model-glb.json names the
-    glb it rendered and the sha256 of each PNG it wrote.
+    glb it rendered, its own sha256 and the sha256 of each PNG it wrote.
     """
     skin_dir = metadata_path.parent
     device = skin_dir.name
@@ -374,6 +384,17 @@ def check_views(metadata_path: Path, root: Path = ROOT) -> list[str]:
                 f"{label}: views rendered from glb {views.get('glb_sha256')} but "
                 f"{glb_rel} is {actual}: views older than the glb ({VIEWS_HINT})"
             )
+
+    renderer_rel = views.get("renderer")
+    renderer = root / renderer_rel if renderer_rel else None
+    if renderer is None or not renderer.is_file():
+        failures.append(f"{label}: missing committed renderer {renderer_rel!r} ({VIEWS_HINT})")
+    elif views.get("renderer_sha256") != sha256(renderer):
+        failures.append(
+            f"{label}: renderer_sha256 drift for {renderer_rel}: "
+            f"metadata={views.get('renderer_sha256')} committed={sha256(renderer)} "
+            f"({VIEWS_HINT})"
+        )
 
     files = views.get("files")
     files = files if isinstance(files, dict) else {}

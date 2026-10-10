@@ -8,9 +8,11 @@ glb. The views are rendered from the glb itself (not the .scad), so they show
 exactly what the simulator will load: node placement, normals, materials and
 the screen quad. They are what the owner reviews, so they move in lockstep
 with the glb: after writing them this records, in ``skins/<id>/model-glb.json``,
-a ``views`` block ``{glb_sha256, files: {<view>: sha256}}``, and
+a ``views`` block ``{glb_sha256, renderer, renderer_sha256, files: {<view>:
+sha256}}``, and
 ``check-skin-drift.py`` fails when a committed view or the glb no longer
-matches it. ``device-models/regen.sh <slug>`` runs this after the export.
+matches it (a renderer edit without a re-render included).
+``device-models/regen.sh <slug>`` runs this after the export.
 
 A small software z-buffer rasteriser (numpy + Pillow, local only; CI never
 runs this): per-vertex normals interpolated per pixel, a key light plus
@@ -37,6 +39,8 @@ else:
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import export_gltf  # noqa: E402
+
+RENDERER_REL = "device-models/render_glb_views.py"
 
 MAX_BYTES = 300 * 1024
 LONG_EDGE = 1100
@@ -167,13 +171,17 @@ def save_under_limit(image: Image.Image, path: Path) -> int:
 
 
 def record_views(glb: Path) -> dict:
-    """Record the glb and the six committed view PNGs in model-glb.json["views"]."""
+    """Record the glb, this renderer and the six committed view PNGs in
+    model-glb.json["views"]. The glb sits at <root>/skins/<id>/model.glb."""
     meta_path = glb.parent / export_gltf.METADATA_NAME
     if not meta_path.is_file():
         raise SystemExit(f"{glb}: no {meta_path.name} beside it (export with export_gltf.py --write)")
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    root = glb.resolve().parents[2]
     meta["views"] = {
         "glb_sha256": export_gltf.sha256_file(glb),
+        "renderer": RENDERER_REL,
+        "renderer_sha256": export_gltf.sha256_file(root / RENDERER_REL),
         "files": {
             name: export_gltf.sha256_file(glb.parent / "views" / f"{name}.png")
             for name in VIEWS

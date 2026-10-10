@@ -64,6 +64,8 @@
       "right": "a913ec8d18cfaff75ed2cdc262bd7074de7f126b46b8698bdb0f20eb62c73a09",
       "top": "84dbc5e0c202ef156f9263907571ffe25481365b35fd75d67d4f94079a2a1584"
     },
-    "glb_sha256": "430a00a2b29c7ebaa39e50ae2d4de58c70c466b870c15a603ae6091dced7e29e"
+    "glb_sha256": "430a00a2b29c7ebaa39e50ae2d4de58c70c466b870c15a603ae6091dced7e29e",
+    "renderer": "device-models/render_glb_views.py",
+    "renderer_sha256": "41cb951ac33b509085efd30c957da2bb696558ca692536c44a798b872e87069a"
   }
 }

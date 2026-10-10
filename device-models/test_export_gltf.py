@@ -305,6 +305,9 @@ class DriftGateTests(unittest.TestCase):
 def write_fake_views(repo: FakeRepo, tag: str = "v1") -> None:
     """Stand-in view PNGs (the rasteriser needs numpy) recorded by the real
     render_glb_views.record_views, so the gate sees exactly what a render writes."""
+    renderer = repo.root / "device-models" / "render_glb_views.py"
+    if not renderer.is_file():
+        shutil.copyfile(HERE / "render_glb_views.py", renderer)
     views = repo.root / "skins" / "fake" / "views"
     views.mkdir(exist_ok=True)
     for name in drift.VIEW_NAMES:
@@ -347,6 +350,19 @@ class ViewsLockstepTests(unittest.TestCase):
         self.assert_regenerate(self.failures(repo), "older than the glb")
         write_fake_views(repo, "v2")
         self.assertEqual(self.failures(repo), [], "positive control after regen")
+
+    def test_renderer_edit_without_rerender_fails(self):
+        repo = self.fresh()
+        renderer = repo.root / "device-models" / "render_glb_views.py"
+        renderer.write_text(renderer.read_text(encoding="utf-8") + "# new camera\n",
+                            encoding="utf-8")
+        self.assert_regenerate(self.failures(repo), "renderer_sha256")
+        write_fake_views(repo, "v2")
+        self.assertEqual(self.failures(repo), [], "positive control after regen")
+        meta = json.loads(repo.meta.read_text(encoding="utf-8"))
+        del meta["views"]["renderer"]
+        repo.meta.write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n")
+        self.assert_regenerate(self.failures(repo), "renderer")
 
     def test_hand_edited_png_fails(self):
         repo = self.fresh()

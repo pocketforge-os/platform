@@ -62,7 +62,7 @@ jobs live in [`.github/workflows/skin-drift.yml`](../.github/workflows/skin-drif
 | `skins/<id>/body_<view>.png`, `body_lit_<view>.png` | `render.py --write-views` | `model-render.json["views"]` | `check-skin-drift.py` (`skin-drift`) |
 | `skins/<id>/model-render.json` control rects, `display_rect` | `render.py --write` | `.scad` and `render.py` sha256 in the same file | `check-skin-drift.py` (`skin-drift`): equal to `devices/<id>/capabilities.toml` `[skin.parts]`, `[skin.views.*.parts]`, `display_rect` |
 | `skins/<id>/model.glb` | `export_gltf.py --write` | `model-glb.json` `glb_sha256`, `source_sha256`, `exporter_sha256`, `nodes` | `check-skin-drift.py` (`skin-drift`): nodes == `CONTROL_IDS` == `[skin.parts]`; `export_gltf.py --check` and the Khronos validator (`skin-drift-glb`) |
-| `skins/<id>/views/{front,back,left,right,top,bottom}.png` | `render_glb_views.py` | `model-glb.json["views"]` (`glb_sha256`, `files`) | `check-skin-drift.py` (`skin-drift`) and `check-skin-drift.py --views-only` (`skin-drift-glb`) |
+| `skins/<id>/views/{front,back,left,right,top,bottom}.png` | `render_glb_views.py` | `model-glb.json["views"]` (`glb_sha256`, `renderer_sha256`, `files`) | `check-skin-drift.py` (`skin-drift`) and `check-skin-drift.py --views-only` (`skin-drift-glb`) |
 
 `render.py --check` (full OpenSCAD re-render) stays a local companion, see the
 drift-gate section below.
