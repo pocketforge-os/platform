@@ -455,6 +455,20 @@ class ExporterTests(unittest.TestCase):
         second = export_gltf.build_document(resolved, fake_parts(), openscad_version="t")
         self.assertEqual(first, second)
 
+    def test_canonical_triangle_order(self):
+        """OpenSCAD 2021.01 emits the same triangles in a different order on every
+        run; the canonical order makes the exported bytes independent of it."""
+        tris = box(0, 0, 0, 1, 2, 3)
+        shuffled = [t[1:] + t[:1] if i % 2 else t for i, t in enumerate(reversed(tris))]
+        self.assertNotEqual(shuffled, tris)
+        canonical = export_gltf.canonical_triangles(tris)
+        self.assertEqual(export_gltf.canonical_triangles(shuffled), canonical)
+        # Rotation keeps the winding: a flipped triangle stays distinct.
+        flipped = [(tris[0][0], tris[0][2], tris[0][1])] + tris[1:]
+        self.assertNotEqual(export_gltf.canonical_triangles(flipped), canonical)
+        self.assertEqual(sorted(tuple(sorted(t)) for t in canonical),
+                         sorted(tuple(sorted(t)) for t in tris))
+
     def test_normals_unit_and_degenerates_dropped(self):
         tris = box(0, 0, 0, 1, 1, 1) + [((0, 0, 0), (1, 0, 0), (2, 0, 0))]
         mesh = export_gltf.smooth_mesh(tris, origin=(0.0, 0.0, 0.0))

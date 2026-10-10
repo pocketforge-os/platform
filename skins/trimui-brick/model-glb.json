@@ -22,9 +22,9 @@
   "descriptor": null,
   "device": "trimui-brick",
   "exporter": "device-models/export_gltf.py",
-  "exporter_sha256": "0c3a493c37decdbc6c9380087296d7d9df004761d60e55b732d41fcae7cefaea",
+  "exporter_sha256": "2eebfb653f1dc72e67df213c7d8074f574bbe40a8e356cb75a26b6ee472de6a9",
   "glb": "skins/trimui-brick/model.glb",
-  "glb_sha256": "149e8a7b553de5074be0e18e99101565daf0603c6c11c98da63777b64c8fdb5b",
+  "glb_sha256": "d8606bade338f559024cb2bb802cb8340db3ea4398da423804efd71128113811",
   "model": "trimui-brick",
   "nodes": [
     "body",
@@ -70,6 +70,6 @@
       "right": "b25f12caf5f5644337f4c5609b35692a7170c2fe455b62fef78ea670dab2e7b9",
       "top": "8e898bbc6d30381b31969cdefa82aac09b0a086bd5b1a80591b6d39ff0289abd"
     },
-    "glb_sha256": "149e8a7b553de5074be0e18e99101565daf0603c6c11c98da63777b64c8fdb5b"
+    "glb_sha256": "d8606bade338f559024cb2bb802cb8340db3ea4398da423804efd71128113811"
   }
 }

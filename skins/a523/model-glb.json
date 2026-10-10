@@ -19,9 +19,9 @@
   "descriptor": "devices/a523/capabilities.toml",
   "device": "a523",
   "exporter": "device-models/export_gltf.py",
-  "exporter_sha256": "0c3a493c37decdbc6c9380087296d7d9df004761d60e55b732d41fcae7cefaea",
+  "exporter_sha256": "2eebfb653f1dc72e67df213c7d8074f574bbe40a8e356cb75a26b6ee472de6a9",
   "glb": "skins/a523/model.glb",
-  "glb_sha256": "8265fad51cc5c6138a9bf84fb6dba0a49ea6cfe5f18c9755eac6f29f5a5ed918",
+  "glb_sha256": "430a00a2b29c7ebaa39e50ae2d4de58c70c466b870c15a603ae6091dced7e29e",
   "model": "trimui-smart-pro-s",
   "nodes": [
     "body",
@@ -64,6 +64,6 @@
       "right": "a913ec8d18cfaff75ed2cdc262bd7074de7f126b46b8698bdb0f20eb62c73a09",
       "top": "84dbc5e0c202ef156f9263907571ffe25481365b35fd75d67d4f94079a2a1584"
     },
-    "glb_sha256": "8265fad51cc5c6138a9bf84fb6dba0a49ea6cfe5f18c9755eac6f29f5a5ed918"
+    "glb_sha256": "430a00a2b29c7ebaa39e50ae2d4de58c70c466b870c15a603ae6091dced7e29e"
   }
 }
