@@ -35,6 +35,48 @@ envelope and exposes all eighteen visible physical controls across front, rear
 shoulder-shelf, and side review views; descriptor and runtime-skin integration
 remain a separate post-approval task.
 
+## After editing a `.scad`: `regen.sh`
+
+**After editing a `.scad`, run `device-models/regen.sh <slug>` and commit
+everything it changed; CI refuses a stale derivative.**
+
+```bash
+device-models/regen.sh trimui-smart-pro     # or trimui-smart-pro-s, trimui-brick
+```
+
+It runs, in order, `<slug>/render.py --write` (plus `--write-views` when the
+skin has extra clickable views; skipped for a model-only package such as the
+Brick), `export_gltf.py --model <slug> --write`,
+`render_glb_views.py skins/<id>/model.glb`, then `check-skin-drift.py` and
+`export_gltf.py --check`, and prints every file it changed. It refuses to start
+without OpenSCAD (`OPENSCAD=<path>` overrides) or without numpy and Pillow. The
+outputs are deterministic on the host, so a second run reports `changed=0` and
+leaves `git status` clean.
+
+Every file derived from a `.scad`, and the gate that refuses it stale (both
+jobs live in [`.github/workflows/skin-drift.yml`](../.github/workflows/skin-drift.yml)):
+
+| Derived file | Written by | Recorded in | Gate (CI job) |
+|---|---|---|---|
+| `skins/<id>/body.png`, `body_lit.png` | `render.py --write` | `model-render.json` `body_sha256`, `body_lit_sha256` | `check-skin-drift.py` (`skin-drift`) |
+| `skins/<id>/body_<view>.png`, `body_lit_<view>.png` | `render.py --write-views` | `model-render.json["views"]` | `check-skin-drift.py` (`skin-drift`) |
+| `skins/<id>/model-render.json` control rects, `display_rect` | `render.py --write` | `.scad` and `render.py` sha256 in the same file | `check-skin-drift.py` (`skin-drift`): equal to `devices/<id>/capabilities.toml` `[skin.parts]`, `[skin.views.*.parts]`, `display_rect` |
+| `skins/<id>/model.glb` | `export_gltf.py --write` | `model-glb.json` `glb_sha256`, `source_sha256`, `exporter_sha256`, `nodes` | `check-skin-drift.py` (`skin-drift`): nodes == `CONTROL_IDS` == `[skin.parts]`; `export_gltf.py --check` and the Khronos validator (`skin-drift-glb`) |
+| `skins/<id>/views/{front,back,left,right,top,bottom}.png` | `render_glb_views.py` | `model-glb.json["views"]` (`glb_sha256`, `files`) | `check-skin-drift.py` (`skin-drift`) and `check-skin-drift.py --views-only` (`skin-drift-glb`) |
+
+`render.py --check` (full OpenSCAD re-render) stays a local companion, see the
+drift-gate section below.
+
+**Downstream.** pfvd consumes `skins/<id>/model.glb` through its `platform.pin`
+and its package report checks `model-glb.json` against the glb, so a model fix
+reaches pfvd through a `platform.pin` bump (a one-line PR). The pfvd Model
+review artifact is refreshed by the coordinator from the committed
+`skins/<id>/views/*.png`. No doc embeds the renders as images: the handbook's
+[Model a handheld](https://pocketforge-os.github.io/handbook/hardware/model-handheld/)
+chapter and sim `docs/ADD-A-DEVICE.md` refer to them by path. The copy of the
+a133 descriptor in pocketforge-automation's fixtures is a deliberate test
+snapshot and is not regenerated.
+
 ## Start a new model
 
 Follow the PocketForge admin chapter
@@ -287,9 +329,11 @@ screen quad's extent), caches the STLs under `device-models/.cache/` (ignored),
 and writes `skins/<id>/model.glb` plus `skins/<id>/model-glb.json` (glb, source
 and exporter sha256, OpenSCAD version, node list, screens, triangle count). It
 refuses a model whose `CONTROL_IDS` differ from the descriptor `[skin.parts]`.
-The bytes are deterministic for a given STL input; the shell's silkscreen uses
-the same fonts as `render.py`, so re-export on the host that exported last (or
-expect a new sha and commit it).
+The bytes are deterministic for a given `.scad`: OpenSCAD 2021.01 writes the
+same triangles in a different order on every run, so the exporter sorts them
+first. The shell's silkscreen uses the same fonts as `render.py`, so a host
+with different fonts can still produce a new sha; re-export on the host that
+exported last.
 
 The glb contract (full text in the `export_gltf.py` docstring): one scene root
 `body`; one child node per control id with its pivot at the footprint centre /
@@ -309,8 +353,9 @@ mismatch, invalid glb, sha/rotation/UV/budget drift). The consistency job's
 `model-glb.json`; the recorded `.scad`/exporter/glb hashes match; glb control
 nodes == `.scad` `CONTROL_IDS` == descriptor `[skin.parts]`, both directions;
 screen node and rotation match the descriptor. Editing a `.scad` therefore
-needs `render.py --write` **and** `export_gltf.py --write`.
+needs every regeneration step below; `regen.sh` runs them.
 
 `skins/<id>/views/{front,back,left,right,top,bottom}.png` are orthographic
-renders of the committed glb (not the `.scad`) for the owner's visual review;
-nothing consumes them and the gate does not hash them.
+renders of the committed glb (not the `.scad`) for the owner's visual review.
+`render_glb_views.py` records them in `model-glb.json["views"]` and the gate
+hashes them (next section).
