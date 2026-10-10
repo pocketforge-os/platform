@@ -71,10 +71,12 @@ In this repository the steps are:
      - a133: btn_east rect drift: descriptor={'x': 1300, 'y': 190, 'w': 57, 'h': 55} model-render.json={'h': 55, 'w': 57, 'x': 1326, 'y': 190}
    ```
 
-   Copy the rects (and `display_rect`) that `render.py --write` recorded in
-   `skins/<id>/model-render.json` (it also prints them as `derived_rects=`)
-   into `[skin.parts]`, then run `regen.sh` again; `render.py` never edits the
-   descriptor.
+   Copy what `render.py --write` recorded in `skins/<id>/model-render.json`
+   into the descriptor: the control rects (printed as `derived_rects=`) into
+   `[skin.parts]`, and `display_rect` (printed as `display_rect=`) into the
+   primary screen's `display_rect` (`screens[0]`); for a skin with extra
+   views, each `view_rects[<view>]=` into `[skin.views.<view>.parts]`. Then
+   run `regen.sh` again; `render.py` never edits the descriptor.
 6. **List** it: a `devices/catalog.toml` row (with `platform_id` when it has
    a descriptor) and, when it has a descriptor, a `ci-matrix.toml` posture
    (or none: a new descriptor auto-joins as advisory).
