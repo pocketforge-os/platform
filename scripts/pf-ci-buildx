@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# Bounded named BuildKit entry point for platform's pf-builder-vm CI image.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BUILDER=pf-ci
+KEEP=8gb
+LOCK="${PF_CI_BUILDX_LOCK:-${RUNNER_TEMP:-/tmp}/pf-ci-buildx.lock}"
+CONFIG_SOURCE="$ROOT/buildkit/pf-ci-buildkitd.toml"
+CONFIG=
+
+exec 9> "$LOCK"
+flock -n 9 || {
+    printf 'pf_ci_buildx=refused reason=builder_busy builder=%s\n' "$BUILDER" >&2
+    exit 2
+}
+
+# shellcheck disable=SC2317 # EXIT trap target is invoked indirectly by Bash.
+cleanup_config() {
+    [ -z "$CONFIG" ] || rm -f -- "$CONFIG"
+}
+trap cleanup_config EXIT
+
+prepare_config() {
+    local configured="${PF_CI_BUILDX_NAMESERVERS:-}" ns
+    local -a nameservers=()
+    if [ -n "$configured" ]; then
+        read -r -a nameservers <<< "$configured"
+    else
+        mapfile -t nameservers < <(
+            awk '$1 == "nameserver" && $2 !~ /^(127\.|::1$)/ { print $2 }' \
+                /run/systemd/resolve/resolv.conf /etc/resolv.conf 2>/dev/null \
+                | awk '!seen[$0]++'
+        )
+    fi
+    [ "${#nameservers[@]}" -gt 0 ] || {
+        printf 'pf_ci_buildx=refused reason=no_upstream_dns\n' >&2
+        exit 2
+    }
+    for ns in "${nameservers[@]}"; do
+        [[ "$ns" =~ ^[0-9a-fA-F.:]+$ ]] || {
+            printf 'pf_ci_buildx=refused reason=upstream_dns_invalid value=%s\n' "$ns" >&2
+            exit 2
+        }
+    done
+    CONFIG="$(mktemp "${RUNNER_TEMP:-/tmp}/pf-ci-buildkitd.XXXXXX.toml")"
+    cp -- "$CONFIG_SOURCE" "$CONFIG"
+    {
+        printf '\n# pf-ci job resolver (slot upstream DNS)\n[dns]\n  nameservers = ['
+        printf '"%s",' "${nameservers[@]}"
+        printf ']\n'
+    } >> "$CONFIG"
+}
+
+[ "${1:-}" = build ] || {
+    printf 'usage: pf-ci-buildx build BUILDX_ARGS...\n' >&2
+    exit 2
+}
+shift
+[ "$#" -gt 0 ] || {
+    printf 'pf_ci_buildx=refused reason=build_arguments_missing\n' >&2
+    exit 2
+}
+prepare_config
+if docker buildx inspect "$BUILDER" >/dev/null 2>&1; then
+    docker buildx rm --keep-state "$BUILDER" >/dev/null
+fi
+docker buildx create --name "$BUILDER" --driver docker-container \
+    --driver-opt network=host --config "$CONFIG" --bootstrap >/dev/null
+set +e
+docker buildx build --builder "$BUILDER" \
+    --label org.pocketforge.cache-owner=pf-build-ci "$@"
+rc=$?
+set -e
+docker buildx prune --builder "$BUILDER" --all --force --keep-storage "$KEEP" >/dev/null
+docker buildx rm --keep-state "$BUILDER" >/dev/null
+printf 'pf_ci_buildx=bounded builder=%s keep_storage=%s\n' "$BUILDER" "$KEEP"
+exit "$rc"
