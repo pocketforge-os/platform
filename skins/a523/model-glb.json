@@ -1,0 +1,58 @@
+{
+  "controls": [
+    "dpad",
+    "stick_l",
+    "stick_r",
+    "btn_north",
+    "btn_east",
+    "btn_south",
+    "btn_west",
+    "btn_select",
+    "btn_guide",
+    "btn_start",
+    "btn_home",
+    "btn_l1",
+    "btn_r1",
+    "trig_l",
+    "trig_r"
+  ],
+  "descriptor": "devices/a523/capabilities.toml",
+  "device": "a523",
+  "exporter": "device-models/export_gltf.py",
+  "exporter_sha256": "0c3a493c37decdbc6c9380087296d7d9df004761d60e55b732d41fcae7cefaea",
+  "glb": "skins/a523/model.glb",
+  "glb_sha256": "8265fad51cc5c6138a9bf84fb6dba0a49ea6cfe5f18c9755eac6f29f5a5ed918",
+  "model": "trimui-smart-pro-s",
+  "nodes": [
+    "body",
+    "dpad",
+    "stick_l",
+    "stick_r",
+    "btn_north",
+    "btn_east",
+    "btn_south",
+    "btn_west",
+    "btn_select",
+    "btn_guide",
+    "btn_start",
+    "btn_home",
+    "btn_l1",
+    "btn_r1",
+    "trig_l",
+    "trig_r",
+    "screen_main"
+  ],
+  "openscad": "2021.01",
+  "schema_version": 1,
+  "screens": [
+    {
+      "node": "screen_main",
+      "panel_rotation_deg": 90,
+      "screen_id": "primary"
+    }
+  ],
+  "source": "device-models/trimui-smart-pro-s/trimui-smart-pro-s.scad",
+  "source_sha256": "0d5c8153639537d5e70941492ad2cc930f5fb1c93f3694e9a160f5770693224d",
+  "triangle_budget": 150000,
+  "triangles": 81056
+}

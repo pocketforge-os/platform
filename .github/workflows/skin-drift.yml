@@ -112,3 +112,51 @@ jobs:
           fi
           echo "using $PY ($("$PY" -V 2>&1)) on runner $RUNNER_NAME"
           "$PY" device-models/check-skin-drift.py
+
+  # 3D MODEL LEG (tsp-h5ed.46.2, decision D4). The committed skins/<id>/model.glb files are the
+  # simulator's device models, exported LOCALLY from the .scad by device-models/export_gltf.py
+  # --write (OpenSCAD is never needed here, same rule as the PNG skins). This leg proves on every
+  # relevant PR that each committed glb (a) is valid glTF 2.0 per the Khronos glTF-Validator,
+  # pinned by sha256 (tarball AND extracted binary) and fetched, not vendored (6.7 MB binary);
+  # (b) still hashes to its skins/<id>/model-glb.json and meets the structural contract (body
+  # root, one node per control id, screen quad with UV 0..1 and panel_rotation_deg, <= 150k
+  # triangles, counts printed) via `export_gltf.py --check`; and (c) the hermetic exporter /
+  # drift / validator regression suite passes, including the negative controls (hostile extra
+  # node, missing node, invalid glb rejected by the validator). PF_REQUIRE_GLTF_VALIDATOR=1 turns
+  # the suite's local "validator absent" skip into a failure. The cross-file lockstep (.scad,
+  # exporter and glb hashes; glb nodes == .scad CONTROL_IDS == descriptor [skin.parts]) runs in
+  # the consistency leg above, inside check-skin-drift.py. Standard library only; same runner,
+  # fork guard and no-marketplace-actions rationale as the consistency leg.
+  glb:
+    name: skin-drift-glb
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, pf-pr-review]
+    steps:
+      - name: checkout the PR ref + glTF validator, --check and regression suite
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          wd="$(mktemp -d "$RUNNER_TEMP/platform-skin-glb-$GITHUB_RUN_ID.XXXXXX")"
+          tools="$(mktemp -d "$RUNNER_TEMP/platform-gltf-validator.XXXXXX")"
+          trap 'find "$wd" "$tools" -mindepth 1 -delete; rmdir "$wd" "$tools"' EXIT
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$wd"
+          cd "$wd"
+          git fetch --quiet origin "$GITHUB_SHA"
+          git checkout --quiet --detach "$GITHUB_SHA"
+          PY=""
+          for c in python3.12 python3.11 python3; do
+            if command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys;raise SystemExit(0 if sys.version_info>=(3,11) else 1)'; then
+              PY="$c"; break
+            fi
+          done
+          if [ -z "$PY" ]; then
+            echo "FATAL: no Python 3.11+ (tomllib) on this runner: $(python3 -V 2>&1 || echo none)" >&2
+            exit 3
+          fi
+          echo "using $PY ($("$PY" -V 2>&1)) on runner $RUNNER_NAME"
+          validator="$("$PY" device-models/gltf_validate.py --fetch "$tools" --print-path)"
+          GLTF_VALIDATOR="$validator" PF_REQUIRE_GLTF_VALIDATOR=1 \
+            "$PY" device-models/test_export_gltf.py
+          "$PY" device-models/gltf_validate.py --validator "$validator"
+          "$PY" device-models/export_gltf.py --check

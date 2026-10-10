@@ -261,3 +261,56 @@ is a front-face feature).
   (tsp-vevy); the drift gate proves self-consistency without OpenSCAD, so a view
   rendered on any host is drift-green. A view's silkscreen may want a canonical
   re-render before a final owner visual-OK, but that is a mechanical follow-up.
+
+## 3D model export — `export_gltf.py` → `skins/<id>/model.glb` (tsp-h5ed.46 D4)
+
+The simulator loads each device as a glTF 2.0 binary exported from the same
+`.scad`. The `.scad` stays the source of truth; the glb is committed beside the
+skin so the app never needs OpenSCAD.
+
+```bash
+python3 device-models/export_gltf.py --model trimui-smart-pro --write   # local, needs openscad
+python3 device-models/export_gltf.py --all --write
+python3 device-models/export_gltf.py --check                            # CI, stdlib only
+python3 device-models/render_glb_views.py skins/a133/model.glb          # six review PNGs
+```
+
+| Model package | Skin dir | Descriptor |
+|---|---|---|
+| `trimui-smart-pro` | `skins/a133/` | `devices/a133/capabilities.toml` |
+| `trimui-smart-pro-s` | `skins/a523/` | `devices/a523/capabilities.toml` |
+| `trimui-brick` | `skins/trimui-brick/` | none (descriptor on hold; model-only) |
+
+`--write` runs OpenSCAD once per part (`PART=shell` → `body`,
+`PART=control CONTROL_ID=<id>` → one node per control, `PART=screen` → the
+screen quad's extent), caches the STLs under `device-models/.cache/` (ignored),
+and writes `skins/<id>/model.glb` plus `skins/<id>/model-glb.json` (glb, source
+and exporter sha256, OpenSCAD version, node list, screens, triangle count). It
+refuses a model whose `CONTROL_IDS` differ from the descriptor `[skin.parts]`.
+The bytes are deterministic for a given STL input; the shell's silkscreen uses
+the same fonts as `render.py`, so re-export on the host that exported last (or
+expect a new sha and commit it).
+
+The glb contract (full text in the `export_gltf.py` docstring): one scene root
+`body`; one child node per control id with its pivot at the footprint centre /
+lowest Z; a `screen_main` quad (the descriptor `screens[].node`) with UV 0..1
+and `extras.panel_rotation_deg` from the descriptor `rotation`; reserved names
+`body`, `screen_*`, `pivot_*` (a future moving assembly hangs under an empty
+`pivot_<joint id>` node, D4/D6); pf-mm-v1 axes in metres; smooth normals with a
+30° crease; one material per part class from the `.scad` palette (OpenSCAD
+2021.01 STL has no colour, so bodies are monochrome); at most 150,000
+triangles.
+
+CI (`skin-drift.yml`, job `skin-drift-glb`, no OpenSCAD): the Khronos
+glTF-Validator pinned by sha256 (`gltf_validate.py --fetch`), `export_gltf.py
+--check`, and `test_export_gltf.py` (hostile extra/missing node, name
+mismatch, invalid glb, sha/rotation/UV/budget drift). The consistency job's
+`check-skin-drift.py` adds the lockstep: every rendered skin has a
+`model-glb.json`; the recorded `.scad`/exporter/glb hashes match; glb control
+nodes == `.scad` `CONTROL_IDS` == descriptor `[skin.parts]`, both directions;
+screen node and rotation match the descriptor. Editing a `.scad` therefore
+needs `render.py --write` **and** `export_gltf.py --write`.
+
+`skins/<id>/views/{front,back,left,right,top,bottom}.png` are orthographic
+renders of the committed glb (not the `.scad`) for the owner's visual review;
+nothing consumes them and the gate does not hash them.
