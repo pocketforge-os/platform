@@ -1,11 +1,13 @@
 # Semantic device models
 
 This directory is the source-owned 3D device library used by PocketForge UI
-surfaces.  A model is authored in millimetres, names its physical controls with
-the same semantic ids as `devices/<id>/capabilities.toml`, and produces the
-neutral/lit skin pair consumed by `pf-hwprobe` and the sim, the glTF model
-(`skins/<id>/model.glb`) the 3D virtual device pfvd loads, and six
-orthographic review views of that glb.
+surfaces.  A model is authored in millimetres and names its physical controls
+with semantic ids. Every model produces the glTF model (`skins/<id>/model.glb`)
+the 3D virtual device pfvd loads and six orthographic review views of that
+glb. A model with a descriptor uses the same ids as
+`devices/<id>/capabilities.toml` and also produces the neutral/lit skin pair
+consumed by `pf-hwprobe` and the sim; a model-only package (the Brick) has
+neither yet.
 
 Each model directory should contain:
 
@@ -53,21 +55,41 @@ In this repository the steps are:
 3. **Register** the package with the exporter: one `MODELS` row in
    [`export_gltf.py`](export_gltf.py) (slug, skin id, descriptor or `None`
    for a model-only package). `regen.sh` refuses an unregistered slug.
-4. **Describe** it: `devices/<id>/capabilities.toml`, schema v2 for pfvd
-   (`[model]`, screen `node`, `[physical]`, `[maturity]`, optional
-   `[[joints]]`), keys in [`docs/CAPABILITIES-SCHEMA.md`](../docs/CAPABILITIES-SCHEMA.md).
-   Its `[skin.parts]` keys must equal `CONTROL_IDS` before the first export.
+4. **Describe** it (descriptor-backed packages only):
+   `devices/<id>/capabilities.toml`, schema v2 for pfvd (`[model]`, screen
+   `node`, `[physical]`, `[maturity]`, optional `[[joints]]`), keys in
+   [`docs/CAPABILITIES-SCHEMA.md`](../docs/CAPABILITIES-SCHEMA.md). Its
+   `[skin.parts]` keys must equal `CONTROL_IDS` before the first export
+   (`export_gltf.py --write` refuses a mismatch); the rect values come next.
 5. **Regenerate** every derivative: `device-models/regen.sh <slug>` (next
-   section), then copy the rects `render.py --write` derived into
-   `[skin.parts]`.
-6. **List** it: a `devices/catalog.toml` row and, when it has a descriptor, a
-   `ci-matrix.toml` posture (or none: a new descriptor auto-joins as
-   advisory).
+   section). On a new descriptor-backed package the first run stops at its
+   last step, the drift gate, because the descriptor's rects are not the
+   rendered ones yet:
+
+   ```text
+   skin_drift=fail
+     - a133: btn_east rect drift: descriptor={'x': 1300, 'y': 190, 'w': 57, 'h': 55} model-render.json={'h': 55, 'w': 57, 'x': 1326, 'y': 190}
+   ```
+
+   Copy the rects (and `display_rect`) that `render.py --write` recorded in
+   `skins/<id>/model-render.json` (it also prints them as `derived_rects=`)
+   into `[skin.parts]`, then run `regen.sh` again; `render.py` never edits the
+   descriptor.
+6. **List** it: a `devices/catalog.toml` row (with `platform_id` when it has
+   a descriptor) and, when it has a descriptor, a `ci-matrix.toml` posture
+   (or none: a new descriptor auto-joins as advisory).
 7. **Check** it: `python3 core/caps.py validate` (descriptors, matrix,
    catalog), `python3 device-models/check-skin-drift.py`, and pfvd's package
    report, `pfvd-cli device report --device <catalog id> --platform .`,
    whose derived rung (`planned`, `model-only`, `sim-ready`) is the most the
    descriptor and the catalog row may declare.
+
+A **model-only** package (the Brick: `MODELS` row with descriptor `None`, no
+`platform_id` in its catalog row) skips step 4 and the rect copy: `regen.sh`
+skips `render.py` when the skin has no `model-render.json`, exports the glb
+with the screen quad's rotation at 0, renders the six views and runs the
+gates, which check its glb and views; there is no 2D skin, descriptor or
+posture row. Its rung is `model-only`.
 
 ## After editing a `.scad`: `regen.sh`
 
@@ -438,16 +460,27 @@ full re-render (`render.py --check`) and `regen.sh` stay local.
 | `sim-descriptor-gate.yml` · `sim-suite` | the pinned sim image with this PR's descriptors, running the headless control, sensor and skin suites per matrix row | same (same-repository PRs only) |
 | `regression-suites.yml` · `pf-regression-suites` | `regression/run-offline.sh`, which includes `regression/caps/test_caps.py` (every shipped descriptor validates) and `test_caps_v2.py` (schema v2 rules, the catalog's declared ≤ derived rungs, `gen_fixture.py --check` for the clamshell fixture) | every PR |
 
-Run the same checks locally from the repository root:
+Run the same checks locally from the repository root. The glb job's
+validator is the pinned Khronos binary; without `GLTF_VALIDATOR` set,
+`test_export_gltf.py` skips its validator test (`OK (skipped=1)`), so fetch
+it the way CI does:
 
 ```bash
 python3 device-models/check-skin-drift.py
+tools="$(mktemp -d)"
+validator="$(python3 device-models/gltf_validate.py --fetch "$tools" --print-path)"
+GLTF_VALIDATOR="$validator" PF_REQUIRE_GLTF_VALIDATOR=1 python3 device-models/test_export_gltf.py
+python3 device-models/gltf_validate.py --validator "$validator"
 python3 device-models/export_gltf.py --check
-python3 device-models/test_export_gltf.py
+python3 device-models/check-skin-drift.py --views-only
 python3 device-models/validate_fixture_contracts.py
 python3 core/caps.py validate
 python3 regression/caps/test_caps_v2.py
 ```
+
+The fixture-contract job's snapshot reproduction is in
+[Deterministic downstream snapshot](#deterministic-downstream-snapshot);
+`regression/run-offline.sh` and the sim suite run the rest.
 
 pfvd's package report (`pfvd-cli device report`) is not a platform CI job:
 pfvd's own CI runs it against the platform commit in its `platform.pin`.
