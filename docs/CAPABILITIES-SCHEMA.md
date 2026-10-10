@@ -136,7 +136,7 @@ slider or the guest changes** (joint angle, lid switch value, touch points).
 | | `frame` | ✅ | `pf-mm-v1`: millimetres, X left→right, Y bottom→top, Z rear→front |
 | | `naming` | ✅ | `pf-semantic-v1`: every `inputs[].skin_part`, `screens[].node` and `joints[].node` names exactly one glb node; a joint's node is `pivot_<joint id>` |
 | | `source` | | model package directory (e.g. `device-models/trimui-smart-pro`) |
-| | (no sha) | | the glb's sha256 lives in `skins/<id>/model-render.json` (D4, owned by the drift gate); any `*sha*` key here is `E_MODEL_SHA` |
+| | (no sha) | | the glb's sha256 lives in `skins/<id>/model-glb.json` (written by `export_gltf.py`, owned by the drift gate; the `E_MODEL_SHA` message still names `model-render.json`); any `*sha*` key here is `E_MODEL_SHA` |
 | `[[joints]]` | `id` | ✅ | `^[a-z0-9_]+$`, unique |
 | | `kind` | ✅ | `hinge`\|`swivel` (values in degrees) \| `slide` (values in mm) |
 | | `node` | ✅ | the glTF pivot node; its children are the moving assembly |

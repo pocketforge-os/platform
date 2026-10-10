@@ -2,8 +2,10 @@
 
 This directory is the source-owned 3D device library used by PocketForge UI
 surfaces.  A model is authored in millimetres, names its physical controls with
-the same semantic ids as `devices/<id>/capabilities.toml`, and can produce both
-human-review views and the neutral/lit skin pair consumed by `pf-hwprobe`.
+the same semantic ids as `devices/<id>/capabilities.toml`, and produces the
+neutral/lit skin pair consumed by `pf-hwprobe` and the sim, the glTF model
+(`skins/<id>/model.glb`) the 3D virtual device pfvd loads, and six
+orthographic review views of that glb.
 
 Each model directory should contain:
 
@@ -36,6 +38,37 @@ envelope and exposes all eighteen visible physical controls across front, rear
 shoulder-shelf, and side review views; descriptor and runtime-skin integration
 remain a separate post-approval task.
 
+## From measurements to a device, in order
+
+The cold-start walkthrough, with every command's output, is sim's
+[`docs/ADD-A-DEVICE.md`](https://github.com/pocketforge-os/sim/blob/main/docs/ADD-A-DEVICE.md).
+In this repository the steps are:
+
+1. **Measure** the unit and record provenance (handbook:
+   [Model a handheld](https://pocketforge-os.github.io/handbook/hardware/model-handheld/)).
+2. **Model** it: `device-models/<slug>/<slug>.scad` with `CONTROL_IDS`, the
+   `PART`/`CONTROL_ID`/`HIGHLIGHT` selectors and the palette tokens the
+   exporter reads (`shell_rear_color`, `control_color`, `glass_color`), plus
+   `render.py`, `compare.py` and a README (see the list above).
+3. **Register** the package with the exporter: one `MODELS` row in
+   [`export_gltf.py`](export_gltf.py) (slug, skin id, descriptor or `None`
+   for a model-only package). `regen.sh` refuses an unregistered slug.
+4. **Describe** it: `devices/<id>/capabilities.toml`, schema v2 for pfvd
+   (`[model]`, screen `node`, `[physical]`, `[maturity]`, optional
+   `[[joints]]`), keys in [`docs/CAPABILITIES-SCHEMA.md`](../docs/CAPABILITIES-SCHEMA.md).
+   Its `[skin.parts]` keys must equal `CONTROL_IDS` before the first export.
+5. **Regenerate** every derivative: `device-models/regen.sh <slug>` (next
+   section), then copy the rects `render.py --write` derived into
+   `[skin.parts]`.
+6. **List** it: a `devices/catalog.toml` row and, when it has a descriptor, a
+   `ci-matrix.toml` posture (or none: a new descriptor auto-joins as
+   advisory).
+7. **Check** it: `python3 core/caps.py validate` (descriptors, matrix,
+   catalog), `python3 device-models/check-skin-drift.py`, and pfvd's package
+   report, `pfvd-cli device report --device <catalog id> --platform .`,
+   whose derived rung (`planned`, `model-only`, `sim-ready`) is the most the
+   descriptor and the catalog row may declare.
+
 ## After editing a `.scad`: `regen.sh`
 
 **After editing a `.scad`, run `device-models/regen.sh <slug>` and commit
@@ -50,9 +83,33 @@ skin has extra clickable views; skipped for a model-only package such as the
 Brick), `export_gltf.py --model <slug> --write`,
 `render_glb_views.py skins/<id>/model.glb`, then `check-skin-drift.py` and
 `export_gltf.py --check`, and prints every file it changed. It refuses to start
-without OpenSCAD (`OPENSCAD=<path>` overrides) or without numpy and Pillow. The
-outputs are deterministic on the host, so a second run reports `changed=0` and
-leaves `git status` clean.
+without OpenSCAD (`OPENSCAD=<path>` overrides) or without numpy and Pillow, and
+refuses a slug that is not in `export_gltf.MODELS`:
+
+```text
+regen.sh: refusing: unknown model slug 'synth-clamshell' (known: trimui-brick trimui-smart-pro trimui-smart-pro-s)
+```
+
+A run ends with the gates and the list of changed files:
+
+```text
+== 4/4 gates: check-skin-drift.py, export_gltf.py --check
+skin_drift=pass models=2 devices=a133,a523 glbs=3 glb_devices=a133,a523,trimui-brick views=6
+glb device=a133 triangles=67077 budget=150000
+glb device=a523 triangles=81072 budget=150000
+glb device=trimui-brick triangles=82626 budget=150000
+glb_check=pass models=3
+regen=pass slug=trimui-smart-pro skin=a133 changed=0 (outputs already current)
+```
+
+The glb and its views are deterministic for a given `.scad`, OpenSCAD and
+font set. The 2D skin renders are not always byte-stable: on one host three
+consecutive runs over an unedited `trimui-smart-pro` changed
+`body_top.png`, `body_lit_top.png` and `model-render.json`, then restored the
+committed bytes, then reported `changed=0`. When the `.scad` is unedited and
+a run reports changes, inspect `git diff` and commit only what follows from
+your edit (`render.py --check` has the same host-jitter caveat, see the drift
+gate section).
 
 Every file derived from a `.scad`, and the gate that refuses it stale (both
 jobs live in [`.github/workflows/skin-drift.yml`](../.github/workflows/skin-drift.yml)):
@@ -330,6 +387,12 @@ screen quad's extent), caches the STLs under `device-models/.cache/` (ignored),
 and writes `skins/<id>/model.glb` plus `skins/<id>/model-glb.json` (glb, source
 and exporter sha256, OpenSCAD version, node list, screens, triangle count). It
 refuses a model whose `CONTROL_IDS` differ from the descriptor `[skin.parts]`.
+Two limits today: the `PART=screen` probe is single-panel, so a descriptor
+with more than one `[[screens]]` is refused, and no `pivot_<joint>` nodes are
+written yet. The synthetic two-screen clamshell under
+`tests/caps-fixtures/clamshell/` therefore has its glb written by its own
+`gen_fixture.py` in the exporter's conventions (metres, `asset.extras`), and
+`gen_fixture.py --check` is its drift gate.
 The bytes are deterministic for a given `.scad`: OpenSCAD 2021.01 writes the
 same triangles in a different order on every run, so the exporter sorts them
 first. The shell's silkscreen uses the same fonts as `render.py`, so a host
@@ -360,3 +423,31 @@ needs every regeneration step below; `regen.sh` runs them.
 renders of the committed glb (not the `.scad`) for the owner's visual review.
 `render_glb_views.py` records them in `model-glb.json["views"]` and the gate
 hashes them (next section).
+
+## What CI validates
+
+Every job below is render-free except `sim-suite`; none runs OpenSCAD, so the
+full re-render (`render.py --check`) and `regen.sh` stay local.
+
+| Workflow · job | Runs | On a PR touching |
+|---|---|---|
+| `skin-drift.yml` · `skin-drift` | `check-skin-drift.py`: `.scad`/`render.py`/PNG hashes in `model-render.json`, rects == `[skin.parts]`, `display_rect`, every view atlas, the glb lockstep (`model-glb.json` hashes; glb nodes == `CONTROL_IDS` == `[skin.parts]`; screen node and rotation) and the six glb views | `device-models/**`, `skins/**`, `devices/**` |
+| `skin-drift.yml` · `skin-drift-glb` | `test_export_gltf.py`, the Khronos glTF-Validator pinned by sha256 (`gltf_validate.py`, 0 errors and 0 warnings), `export_gltf.py --check` (glb hashes, structure, triangle budget), `check-skin-drift.py --views-only` | same |
+| `fixture-contract.yml` · `fixture-contract` | `validate_fixture_contracts.py`, `test_fixture_contracts.py`, `test_fixture_snapshot.py`, the snapshot exported twice, verified and byte-compared, and the PR-vs-base revision/qualification rules | `device-models/**`, `schemas/device-fixture-contract.schema.json` |
+| `sim-descriptor-gate.yml` · `descriptor-matrix` | `core/caps.py matrix validate` and the matrix rows (blocking, advisory) for the next job | `devices/**`, `skins/**`, `device-models/**`, `schemas/**` |
+| `sim-descriptor-gate.yml` · `sim-suite` | the pinned sim image with this PR's descriptors, running the headless control, sensor and skin suites per matrix row | same (same-repository PRs only) |
+| `regression-suites.yml` · `pf-regression-suites` | `regression/run-offline.sh`, which includes `regression/caps/test_caps.py` (every shipped descriptor validates) and `test_caps_v2.py` (schema v2 rules, the catalog's declared ≤ derived rungs, `gen_fixture.py --check` for the clamshell fixture) | every PR |
+
+Run the same checks locally from the repository root:
+
+```bash
+python3 device-models/check-skin-drift.py
+python3 device-models/export_gltf.py --check
+python3 device-models/test_export_gltf.py
+python3 device-models/validate_fixture_contracts.py
+python3 core/caps.py validate
+python3 regression/caps/test_caps_v2.py
+```
+
+pfvd's package report (`pfvd-cli device report`) is not a platform CI job:
+pfvd's own CI runs it against the platform commit in its `platform.pin`.
