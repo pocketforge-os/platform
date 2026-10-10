@@ -60,5 +60,16 @@
   "source": "device-models/trimui-brick/trimui-brick.scad",
   "source_sha256": "44b9090ceab20446cd98cdbd4c8d9b4aa271414fd333ee16714ad1002bf00f0e",
   "triangle_budget": 150000,
-  "triangles": 82626
+  "triangles": 82626,
+  "views": {
+    "files": {
+      "back": "843bdafd399a733b0456db38131e55a4c0aeb7c3aa0425f9e2a11f87c7ca94d2",
+      "bottom": "067ee12cade356d9b6c98b0c78fae7e0db263b9c16dd8fbc618338c708bc3351",
+      "front": "569181a4fbdce5bff3f39f3b6bdeaa0bb5128caaa4e15cdc3bb305d4f7a2fde8",
+      "left": "14e844f7f3bb02da396555d8180a84f1a6a0aac91bce9026a7e157a1299f30ab",
+      "right": "b25f12caf5f5644337f4c5609b35692a7170c2fe455b62fef78ea670dab2e7b9",
+      "top": "8e898bbc6d30381b31969cdefa82aac09b0a086bd5b1a80591b6d39ff0289abd"
+    },
+    "glb_sha256": "149e8a7b553de5074be0e18e99101565daf0603c6c11c98da63777b64c8fdb5b"
+  }
 }

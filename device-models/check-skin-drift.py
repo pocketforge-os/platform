@@ -67,6 +67,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import export_gltf  # noqa: E402  (stdlib-only glb reader + contract)
 
 
+VIEW_NAMES = ("front", "back", "left", "right", "top", "bottom")
+VIEWS_HINT = "regenerate with render_glb_views.py"
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -343,6 +347,78 @@ def check_glb(metadata_path: Path, root: Path = ROOT) -> list[str]:
     return failures
 
 
+def check_views(metadata_path: Path, root: Path = ROOT) -> list[str]:
+    """Drift failures for one glb's six review views (skins/<id>/views/*.png).
+
+    The views are what the owner reviews, so they must show the committed glb:
+    the ``views`` block render_glb_views.py records in model-glb.json names the
+    glb it rendered and the sha256 of each PNG it wrote.
+    """
+    skin_dir = metadata_path.parent
+    device = skin_dir.name
+    label = f"{device}/views"
+    meta = json.loads(metadata_path.read_text(encoding="utf-8"))
+    views = meta.get("views")
+    if not isinstance(views, dict):
+        return [f"{label}: {export_gltf.METADATA_NAME} has no views block ({VIEWS_HINT})"]
+    failures: list[str] = []
+
+    glb_rel = meta.get("glb")
+    glb = root / glb_rel if glb_rel else None
+    if glb is None or not glb.is_file():
+        failures.append(f"{label}: missing committed glb {glb_rel!r}")
+    else:
+        actual = sha256(glb)
+        if views.get("glb_sha256") != actual:
+            failures.append(
+                f"{label}: views rendered from glb {views.get('glb_sha256')} but "
+                f"{glb_rel} is {actual}: views older than the glb ({VIEWS_HINT})"
+            )
+
+    files = views.get("files")
+    files = files if isinstance(files, dict) else {}
+    if set(files) != set(VIEW_NAMES):
+        failures.append(
+            f"{label}: recorded views {sorted(files)} != {sorted(VIEW_NAMES)} ({VIEWS_HINT})"
+        )
+    view_dir = skin_dir / "views"
+    present = {path.stem for path in view_dir.glob("*.png")} if view_dir.is_dir() else set()
+    unrecorded = sorted(present - set(files))
+    if unrecorded:
+        failures.append(
+            f"{label}: unrecorded PNGs in skins/{device}/views/: {unrecorded} ({VIEWS_HINT})"
+        )
+    for name in sorted(files):
+        rel = f"skins/{device}/views/{name}.png"
+        path = root / rel
+        if not path.is_file():
+            failures.append(f"{label}: missing committed view {rel} ({VIEWS_HINT})")
+            continue
+        actual = sha256(path)
+        if files[name] != actual:
+            failures.append(
+                f"{label}: sha256 drift for {rel}: metadata={files[name]} "
+                f"committed={actual} ({VIEWS_HINT})"
+            )
+    return failures
+
+
+def views_main(root: Path = ROOT) -> int:
+    """--views-only: the views lockstep alone, for the skin-drift-glb job."""
+    metas = sorted((root / "skins").glob(f"*/{export_gltf.METADATA_NAME}"))
+    failures = [] if metas else [f"no skins/*/{export_gltf.METADATA_NAME} found"]
+    for meta in metas:
+        failures.extend(check_views(meta, root))
+    if failures:
+        print("views_drift=fail", file=sys.stderr)
+        for failure in failures:
+            print(f"  - {failure}", file=sys.stderr)
+        return 1
+    devices = ",".join(meta.parent.name for meta in metas)
+    print(f"views_drift=pass glbs={len(metas)} devices={devices} views={len(VIEW_NAMES)}")
+    return 0
+
+
 def glb_coverage_failures(root: Path = ROOT) -> list[str]:
     """Every rendered skin also has an exported glb (they move in lockstep)."""
     skins = root / "skins"
@@ -359,6 +435,11 @@ def glb_coverage_failures(root: Path = ROOT) -> list[str]:
 
 
 def main(argv: list[str]) -> int:
+    if argv == ["--views-only"]:
+        return views_main(ROOT)
+    if argv:
+        print("usage: check-skin-drift.py [--views-only]", file=sys.stderr)
+        return 2
     metadata_paths = sorted(SKINS.glob("*/model-render.json"))
     if not metadata_paths:
         print(
@@ -375,6 +456,7 @@ def main(argv: list[str]) -> int:
     all_failures.extend(glb_coverage_failures(ROOT))
     for glb_path in glb_paths:
         all_failures.extend(check_glb(glb_path))
+        all_failures.extend(check_views(glb_path))
 
     if all_failures:
         print("skin_drift=fail", file=sys.stderr)
@@ -386,7 +468,7 @@ def main(argv: list[str]) -> int:
     glb_devices = ",".join(p.parent.name for p in glb_paths)
     print(
         f"skin_drift=pass models={len(metadata_paths)} devices={devices} "
-        f"glbs={len(glb_paths)} glb_devices={glb_devices}"
+        f"glbs={len(glb_paths)} glb_devices={glb_devices} views={len(VIEW_NAMES)}"
     )
     return 0
 

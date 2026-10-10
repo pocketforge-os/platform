@@ -20,7 +20,7 @@
   "exporter": "device-models/export_gltf.py",
   "exporter_sha256": "0c3a493c37decdbc6c9380087296d7d9df004761d60e55b732d41fcae7cefaea",
   "glb": "skins/a133/model.glb",
-  "glb_sha256": "c3d1a40e3024722f8da4c96b98671479522769bfbb78b695240630e35f0259f6",
+  "glb_sha256": "7084baa3478a7ad3ba09a99b2958de2b59b63e69859a7a6fb1a0b4320b860e26",
   "model": "trimui-smart-pro",
   "nodes": [
     "body",
@@ -52,5 +52,16 @@
   "source": "device-models/trimui-smart-pro/trimui-smart-pro.scad",
   "source_sha256": "75f9455ab6d2fe799630cf3a0da52964ec5013da7cfa72e6c1dc634e2f6104e4",
   "triangle_budget": 150000,
-  "triangles": 67053
+  "triangles": 67053,
+  "views": {
+    "files": {
+      "back": "6d4152ed7091dab69d3cd7de65c98bd977dc1e3cb191741fea867a717fe6cf0d",
+      "bottom": "ebb6fbe63b817c1714f869ba9964c4829890281bdd728ee882d2dd5839b51527",
+      "front": "b76bbe15152d9fab0a9a3fbc8b7e0ecb486268db5d0bf543de9f693d1d22d32d",
+      "left": "4e18fc0f6bca4e118354f0be92cfac1e9365f67431fd499cdc06c7df75fc5582",
+      "right": "dc883d0bf6af5baee403185dcd06845611cdd8ae0b5c7b25749517e6e940941b",
+      "top": "10111a2d5149d452d23f15a1db3309ffbceddf5eaef23546a8673bcd815ffa94"
+    },
+    "glb_sha256": "7084baa3478a7ad3ba09a99b2958de2b59b63e69859a7a6fb1a0b4320b860e26"
+  }
 }
