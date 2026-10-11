@@ -154,16 +154,20 @@ def scratch_root(work: Path) -> Path:
     model = root / render.MODEL.relative_to(render.ROOT)
     model.parent.mkdir(parents=True)
     shutil.copyfile(render.MODEL, model)
+    # --write records the renderer path relative to ROOT; the copy hashes the same.
+    shutil.copyfile(render.RENDERER, root / render.RENDERER.relative_to(render.ROOT))
     return root
 
 
 def point_render_at(root: Path) -> dict:
     """Redirect render.py's module paths into ``root``; return the originals."""
     saved = {name: getattr(render, name)
-             for name in ("ROOT", "MODEL", "METADATA", "BODY", "BODY_LIT", "SKIN_VIEWS")}
+             for name in ("ROOT", "MODEL", "RENDERER", "METADATA", "BODY", "BODY_LIT",
+                          "SKIN_VIEWS")}
     skin = root / render.SKIN_DIR.relative_to(render.ROOT)
     render.ROOT = root
     render.MODEL = root / saved["MODEL"].relative_to(saved["ROOT"])
+    render.RENDERER = root / saved["RENDERER"].relative_to(saved["ROOT"])
     render.METADATA = skin / saved["METADATA"].name
     render.BODY = skin / saved["BODY"].name
     render.BODY_LIT = skin / saved["BODY_LIT"].name
