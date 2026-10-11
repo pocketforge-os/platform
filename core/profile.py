@@ -582,6 +582,12 @@ def validate(dev_id, lock):
                 f"{dev_id}: [gamescope].required_patch_ids must be unique stable patch IDs")
         if not isinstance(gamescope.get("diagnostics"), bool):
             errs.append(f"{dev_id}: [gamescope].diagnostics must be boolean")
+        locked_gamescope = lock.get("repos", {}).get(gamescope.get("repo", ""), {})
+        if (locked_gamescope.get("dependency_manifest_sha256")
+                != gamescope.get("dependency_manifest_sha256")):
+            errs.append(
+                f"{dev_id}: [gamescope].dependency_manifest_sha256 must match "
+                "the pinned repository declaration in platform.lock")
 
     # GPU stack selection is explicit.  Legacy profiles remain the closed/DDK
     # model, open profiles must completely describe both halves of the ABI, and

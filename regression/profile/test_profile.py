@@ -138,6 +138,16 @@ class ProfileTest(unittest.TestCase):
                     errors,
                 )
 
+    def test_gamescope_manifest_digest_matches_pinned_lock_declaration(self):
+        lock = copy.deepcopy(profile.load_lock())
+        lock["repos"]["gamescope"]["dependency_manifest_sha256"] = "0" * 64
+        errors, _ = profile.validate("a133-open-7x-gpu", lock)
+        self.assertIn(
+            "a133-open-7x-gpu: [gamescope].dependency_manifest_sha256 must match "
+            "the pinned repository declaration in platform.lock",
+            errors,
+        )
+
     def test_app_runtime_support_is_exactly_a133_open_for_both_variants(self):
         app_keys = set(APP_BUILD_ARGS)
         observed_open = set()

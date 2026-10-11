@@ -12,7 +12,7 @@ grep -Fxq 'PF_GAMESCOPE_REPO=gamescope' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_SHA=eaca59d90a22431238bb084fce4d399036851d92' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_UPSTREAM_BASE=bb2ddfc8b1091d6c4d0133b1ea9dcd2494b69ab9' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_PATCH_SERIES_SHA256=bb6cfe0bad0d62ad774a0d1e5e4d6faff3efc379728c435ad6ce8cc0fc302ec4' <<<"${selected_args}"
-grep -Fxq 'PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256=08222e97c66d1bc737d9ef0483e23476bd4b127ca19136e70dd0e843f3af51cf' <<<"${selected_args}"
+grep -Fxq 'PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256=5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_SOURCE_TREE_SHA256=c4c21e8dc03651872d1ce0419646e26a1c3d09eb0d555851d6276681e5e59d51' <<<"${selected_args}"
 
 for device in a133 a133-open a523 a133-open-7x-gpu-noradio a133-open-7x-gpu-spl-trace; do
