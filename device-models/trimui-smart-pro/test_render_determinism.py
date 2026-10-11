@@ -26,7 +26,7 @@ invocation:
      changes body_top.png, so (2) cannot pass by never writing;
   4. hermetic (no OpenSCAD; tsp-h5ed.46.34), per file render.py hashes and then
      uses: the committed PNG kept by --write, the committed PNG compared by
-     --check, model-render.json (--write, --write-views) and the .scad. Positive:
+     --check, model-render.json (--write, --write-views, --check) and the .scad. Positive:
      the honest file is read once and used. Negative: the file is replaced right
      after render.py read it (the render._after_read test hook) or the .scad is
      edited during the render, and render.py refuses, naming the file.
@@ -353,6 +353,38 @@ def pinned_read_cases(work: Path) -> None:
         replaced = render.METADATA.read_bytes()
         check("--write-views refused: the replacement is left and no PNG written",
               replaced != originals[render.METADATA] and unchanged(files[2:]))
+        restore()
+
+        # model-render.json: --check passes only while the path names the file it read.
+        def passes(action) -> tuple[bool, str]:
+            try:
+                action()
+            except RuntimeError as error:
+                return False, str(error)
+            return True, ""
+
+        committed_images = []
+        for path in (render.BODY, render.BODY_LIT):
+            with Image.open(path) as source:
+                committed_images.append(source.convert("RGB"))
+
+        def check_front(previous) -> None:
+            render.check_outputs(*committed_images, dict(derived), previous)
+
+        ok, error = passes(lambda: check_front(render._read_metadata()))
+        check("--check, honest model-render.json: the front check passes", ok, error)
+        with replaced_after_read(render.METADATA):
+            previous = render._read_metadata()
+        refuses("--check, model-render.json replaced after the read: the front check refuses",
+                render.METADATA, lambda: check_front(previous))
+        restore()
+        with stubbed_view_render(committed["views"]):
+            ok, error = passes(lambda: render.check_views(render._read_metadata()))
+            check("--check, honest model-render.json: the view check passes", ok, error)
+            with replaced_after_read(render.METADATA):
+                previous = render._read_metadata()
+            refuses("--check, model-render.json replaced after the read: the view check refuses",
+                    render.METADATA, lambda: render.check_views(previous))
         restore()
 
         # The .scad: hashed before the render, re-hashed before anything is written.

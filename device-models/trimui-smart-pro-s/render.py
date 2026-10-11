@@ -910,10 +910,11 @@ def descriptor_view_rects(name: str) -> dict[str, dict[str, int]]:
     }
 
 
-def check_views(committed: dict) -> None:
+def check_views(previous: tuple[dict, tuple[int, int, int]]) -> None:
     """Re-render every view and prove the committed view PNGs + descriptor
     [skin.views.<name>.parts] still match (the view half of --check; host-local).
-    ``committed`` is the model-render.json --check read."""
+    ``previous`` is ``_read_metadata()``, read before the front render."""
+    committed, identity = previous
     failures: list[str] = []
     inputs = input_hashes()
     with tempfile.TemporaryDirectory(prefix="tsp-view-check-") as directory:
@@ -955,6 +956,7 @@ def check_views(committed: dict) -> None:
                         f"{name}: {cid}: descriptor={declared[cid]} derived={derived[cid]}"
                     )
     ensure_inputs(inputs)
+    ensure_pinned(METADATA, identity)
     if failures:
         raise RuntimeError("\n".join(failures))
 
@@ -991,9 +993,13 @@ def write_outputs(
 
 
 def check_outputs(
-    neutral: Image.Image, lit: Image.Image, metadata: dict, previous: dict | None
+    neutral: Image.Image,
+    lit: Image.Image,
+    metadata: dict,
+    previous: tuple[dict | None, tuple[int, int, int] | None],
 ) -> None:
-    """``previous`` is the model-render.json read before the render."""
+    """``previous`` is ``_read_metadata()``, read before the render."""
+    previous, identity = previous
     with tempfile.TemporaryDirectory(prefix="tsp-skin-check-") as directory:
         root = Path(directory)
         generated_body = root / "body.png"
@@ -1098,6 +1104,7 @@ def check_outputs(
                     f"stale render metadata: {METADATA.relative_to(ROOT)}"
                 )
 
+        ensure_pinned(METADATA, identity)
         if failures:
             raise RuntimeError("\n".join(failures))
 
@@ -1179,9 +1186,9 @@ def main(argv: list[str]) -> int:
             print("display_rect=" + json.dumps(metadata["display_rect"], sort_keys=True))
             print("derived_rects=" + json.dumps(metadata["controls"], sort_keys=True))
         else:
-            check_outputs(neutral, lit, metadata, previous[0])
+            check_outputs(neutral, lit, metadata, previous)
             if SKIN_VIEWS:
-                check_views(previous[0])
+                check_views(previous)
             print(
                 f"skin_check=pass assets=2 controls={len(CONTROL_IDS)} "
                 f"views={len(SKIN_VIEWS)}"
