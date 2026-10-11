@@ -321,17 +321,18 @@ class ProfileTest(unittest.TestCase):
         # universal PF_CLOUD_INIT_SHA; image, runtime, and launcher stay pinned.
         # Image#235 then advances only the universal PF_IMAGE_SHA so platform
         # descriptor v3 reaches every image-build profile.
+        # Image#236's GNU build-id producer merge likewise advances only PF_IMAGE_SHA.
         expected = {
-            ("a133", "dev"): "2726d064f0fcd3bd4e6630962bfca63dfd343a0c9383fe8e70be21184e9f858f",
-            ("a133", "release"): "45fe66c7d3ac79f1698c0f803d13a54eb8e79fd26e0ea33e92248e433ba03d73",
-            ("a133-open-7x", "dev"): "9e3cab3a0d6c31b87a07ae383cc38df8760a4c682ced81e56202f4062a120a9c",
-            ("a133-open-7x", "release"): "1fb6ff8a1cb6f2a8012d31c971499341aae49825ceebf1676b98dae4d56f68f8",
-            ("a133-owned", "dev"): "5405efffafb5132cf9e405ac4ec8b7314e0e470eef4d89774bb844b4a552cbb0",
-            ("a133-owned", "release"): "223c75ff88d3853819b0cb64eecfcf13e0317768bce36879582b5f79985d7c07",
-            ("a523", "dev"): "23f74c871e0abd73bfbcfe0cd5c79d72e9795a4da37cb2063264af660c255f5f",
-            ("a523", "release"): "22cdef3c89d0da2d566cb86b353c0faf5b928c49f2795aa99bf565146ad661a6",
-            ("sdm845", "dev"): "0506d9cc9ff8f3473db5fd23fac9057c785bc850bde83da4b31f99d9b6452090",
-            ("sdm845", "release"): "0b66ec33539cdc1fae9e50a922d68d52947a2591396884d84dae181ae4564d05",
+            ("a133", "dev"): "ca208ed476febece87c6d2c57580e572b168cb4de06c87da1be62229de4c0947",
+            ("a133", "release"): "5383f0674a231ec730512df1d67f48dd9a39fe4f1b94dde67a9169a7e8f8492a",
+            ("a133-open-7x", "dev"): "0b43dc870577603b000315d420d1e81ec335f04e04c2fc7483ef452456258f92",
+            ("a133-open-7x", "release"): "3df061cbb44e3ee05a542dd74e6696770323085d5afabbeb56bf787e74c9a32a",
+            ("a133-owned", "dev"): "5df56347867f63f47805608c9089378d95bc6cefab6e3749c4127ac443d77a7a",
+            ("a133-owned", "release"): "42869801a3756836f3a644830cb960e40ab5841f31e30549da4ad495b12c015c",
+            ("a523", "dev"): "8a67513b86f2ba65f6de62cf487b310adf6c0935fa96c74260f2e5756ae58854",
+            ("a523", "release"): "3be27b5b5832ff9f82527feacf2ad196c14ecc129b48ae0dc05420dad55cbd91",
+            ("sdm845", "dev"): "5e34528b4c9532960092a58d45dae108697988bfda92698b77faa8684f5438fe",
+            ("sdm845", "release"): "5e3194e0c7ae5abf7ec3d3cf5e4d5bf03ada3cece0e17ea8980c9a334d12bfff",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -584,7 +585,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "e2c29ab8a84f57ae500f4ad6c6aea86ac0bbe01f",
-                "PF_IMAGE_SHA": "c4ab729ebe18a7ebf6805452d639204d24c08cb2",
+                "PF_IMAGE_SHA": "35b5ff085d87e20cac35679d99d27deae4f749d7",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
