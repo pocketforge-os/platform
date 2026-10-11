@@ -455,6 +455,9 @@ class ProfileTest(unittest.TestCase):
                 self.assertTrue(got and any(field in e for e in got), got)
         # Negative controls: version and vocabulary discipline.
         self.assertTrue(any("schema_version" in e for e in errs(dict(v1, schema_version=3))))
+        # JSON-Schema equality is type-aware: `true` is not 1 (Python's == disagrees), so a
+        # boolean schema_version must not satisfy enum [1, 2] nor select the v1 const branch.
+        self.assertTrue(any("schema_version" in e for e in errs(dict(v1, schema_version=True))))
         self.assertTrue(any("gles_max" in e for e in errs(dict(v2, gles_max="9.9"))))
         self.assertTrue(any("vulkan_max" in e for e in errs(dict(v2, vulkan_max="0.9"))))
         self.assertTrue(any("inputs" in e for e in errs(dict(v2, inputs=["buttons", "turbo"]))))

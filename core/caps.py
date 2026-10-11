@@ -192,6 +192,14 @@ def _resolve_ref(root, ref):
     return node
 
 
+def _jeq(a, b):
+    # JSON-Schema equality is TYPE-AWARE: Python says True == 1, JSON says true != 1.
+    # Numbers still compare across int/float (1 == 1.0), as the draft requires.
+    if isinstance(a, bool) != isinstance(b, bool):
+        return False
+    return a == b
+
+
 def _jschema(inst, schema, root, path, errs):
     if schema is False:
         errs.append(f"{path or '<root>'}: not allowed here (false schema)")
@@ -203,9 +211,9 @@ def _jschema(inst, schema, root, path, errs):
     if t is not None and not _typ_ok(inst, t):
         errs.append(f"{path or '<root>'}: expected {t}, got {type(inst).__name__}")
         return  # type wrong -> downstream checks are noise
-    if "const" in schema and inst != schema["const"]:
+    if "const" in schema and not _jeq(inst, schema["const"]):
         errs.append(f"{path}: {inst!r} != const {schema['const']!r}")
-    if "enum" in schema and inst not in schema["enum"]:
+    if "enum" in schema and not any(_jeq(inst, e) for e in schema["enum"]):
         errs.append(f"{path}: {inst!r} not in {schema['enum']}")
     if isinstance(inst, str):
         if "pattern" in schema and not re.search(schema["pattern"], inst):
