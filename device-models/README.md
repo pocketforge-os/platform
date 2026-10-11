@@ -140,14 +140,16 @@ same rule. Editing the `.scad` or `render.py` always writes fresh renders. A ren
 hundreds of pixels and is written; inspect `git diff` then. The TG5050's
 `trimui-smart-pro-s/render.py` and the Brick's `trimui-brick/render.py` carry
 copies of the same rule (each renderer's hash is recorded in its own skin, so
-the rule is copied rather than shared). They add one case measured on the TG5050:
-a tie pixel in a red control frame can move a derived rect by one edge pixel,
-and with unedited inputs a rect within one pixel of the committed rect keeps the
-committed rect (`JITTER_RECT_PIXELS`, `tie_jitter=kept rects=<ids>`). The
-TG5040's `trimui-smart-pro/render.py` does not carry the rect rule: on
-2026-10-10, 15 unedited front renders and 6 top renders moved no derived rect,
-crop or `display_rect`, although three raw tie sites flipped, some inside a red
-control frame. The Brick
+the rule is copied rather than shared). All three renderers also carry a rect
+rule measured on the TG5050: a tie pixel in a red control frame can move a
+derived rect by one edge pixel, and with unedited inputs a rect within one pixel
+of the committed rect keeps the committed rect (`JITTER_RECT_PIXELS`,
+`tie_jitter=kept rects=<ids>`). On the TG5040, on 2026-10-10, 15 unedited front
+renders and 6 top renders moved no derived rect, crop or `display_rect`,
+although three raw tie sites flipped, some inside a red control frame; its
+`render.py` carries the rect rule for those sites. Each renderer reads a
+committed PNG and its metadata once, and refuses, naming the file, when that
+file, the `.scad` or `render.py` changes during the run; re-run then. The Brick
 is model-only, so `regen.sh trimui-brick` never runs its `render.py`; the rule
 covers its `--semantic-output` directory and `--check`. Each model has a local
 `test_render_determinism.py` that injects the tie pixels.

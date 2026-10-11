@@ -5,12 +5,26 @@ The source-model task deliberately does not write runtime skins.  Its semantic
 atlas is a four-view review sheet: front controls, the rear shoulder shelf,
 left-side volume keys, and right-side function/power keys.  A later integration
 task can turn the owner-approved source into device-specific runtime views.
+
+Each file it hashes and then uses is read once (tsp-h5ed.46.34): the .scad and
+render.py are hashed before the first OpenSCAD call, those hashes are recorded and
+compared, and both are re-hashed before anything is written (``ensure_inputs``);
+a recorded PNG and semantic-model.json are read through one open file, and the keep
+decision and the recorded hash use those same bytes (``read_pinned``), after the
+path is re-checked to still name the file that was read (``ensure_pinned``). A
+mismatch refuses, naming the file; re-run. Residual window (accidents, not
+adversaries): OpenSCAD opens the .scad by path, so an edit undone between the two
+hashes is not seen; a rewrite in place to the same size keeps (st_dev, st_ino,
+st_size); a file replaced after its last check is recorded with the hash of the
+bytes that were compared, so the record no longer matches it; and the running
+render.py is the one Python imported before the first hash.
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 from itertools import combinations
 import json
 import os
@@ -124,6 +138,50 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def shown(path: Path) -> Path:
+    return path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
+
+
+def _after_read(path: Path) -> None:
+    """Test hook: runs right after ``read_pinned`` read ``path``, before any use."""
+
+
+def read_pinned(path: Path) -> tuple[bytes, tuple[int, int, int]] | None:
+    """``path``'s bytes and the (st_dev, st_ino, st_size) of the file they came from,
+    through one open file; None when ``path`` is not a file."""
+    if not path.is_file():
+        return None
+    with path.open("rb") as stream:
+        data = stream.read()
+        status = os.fstat(stream.fileno())
+    _after_read(path)
+    return data, (status.st_dev, status.st_ino, status.st_size)
+
+
+def ensure_pinned(path: Path, identity: tuple[int, int, int] | None) -> None:
+    """Refuse when ``path`` no longer names the file ``read_pinned`` read (None:
+    there was none)."""
+    try:
+        status = path.stat()
+        current = (status.st_dev, status.st_ino, status.st_size)
+    except FileNotFoundError:
+        current = None
+    if current != identity:
+        raise RuntimeError(f"{shown(path)} changed while render.py was using it; re-run")
+
+
+def input_hashes() -> dict[str, str]:
+    """The .scad and render.py hashes, taken before a render reads the .scad."""
+    return {"source_sha256": sha256(MODEL), "renderer_sha256": sha256(RENDERER)}
+
+
+def ensure_inputs(inputs: dict) -> None:
+    """Refuse when the .scad or render.py no longer hashes to ``inputs``."""
+    for key, path in (("source_sha256", MODEL), ("renderer_sha256", RENDERER)):
+        if sha256(path) != inputs.get(key):
+            raise RuntimeError(f"{shown(path)} changed during the render; re-run")
 
 
 def run_openscad(
@@ -288,12 +346,12 @@ def save_png(image: Image.Image, path: Path) -> None:
     image.save(path, format="PNG", optimize=False, compress_level=9)
 
 
-def tie_jitter_pixels(committed: Path, image: Image.Image) -> int | None:
-    """Pixels where ``image`` differs from the committed PNG in any channel; None
-    when there is no committed PNG or the sizes differ."""
-    if not committed.is_file():
+def tie_jitter_pixels(committed: bytes | None, image: Image.Image) -> int | None:
+    """Pixels where ``image`` differs from the committed PNG (its bytes) in any
+    channel; None when there is no committed PNG or the sizes differ."""
+    if committed is None:
         return None
-    with Image.open(committed) as source:
+    with Image.open(io.BytesIO(committed)) as source:
         previous = source.convert("RGB")
     if previous.size != image.size:
         return None
@@ -302,18 +360,21 @@ def tie_jitter_pixels(committed: Path, image: Image.Image) -> int | None:
     return changed.point(lambda value: 255 if value else 0).histogram()[255]
 
 
-def inputs_unchanged(committed: dict | None) -> bool:
-    """The committed metadata was rendered from this .scad by this render.py."""
+def inputs_unchanged(committed: dict | None, inputs: dict | None = None) -> bool:
+    """The committed metadata was rendered from this .scad by this render.py
+    (``inputs``, from ``input_hashes``; hashed now when None)."""
+    if committed is None:
+        return False
+    inputs = input_hashes() if inputs is None else inputs
     return (
-        committed is not None
-        and committed.get("source_sha256") == sha256(MODEL)
-        and committed.get("renderer_sha256") == sha256(RENDERER)
+        committed.get("source_sha256") == inputs["source_sha256"]
+        and committed.get("renderer_sha256") == inputs["renderer_sha256"]
     )
 
 
-def keeps_committed(committed: Path, image: Image.Image, same: bool) -> bool:
-    """True when ``image`` is a tie-jitter re-render of the committed PNG and ``same``
-    (see ``same_derivation``) holds."""
+def keeps_committed(committed: bytes | None, image: Image.Image, same: bool) -> bool:
+    """True when ``image`` is a tie-jitter re-render of the committed PNG (its bytes)
+    and ``same`` (see ``same_derivation``) holds."""
     if not same:
         return False
     count = tie_jitter_pixels(committed, image)
@@ -335,16 +396,21 @@ def same_derivation(
     )
 
 
-def save_canonical_png(image: Image.Image, path: Path, same: bool) -> None:
-    """Write ``image`` unless it only tie-jitters against the committed ``path``."""
-    if not keeps_committed(path, image, same):
+def save_canonical_png(image: Image.Image, path: Path, same: bool) -> str:
+    """Write ``image`` unless it only tie-jitters against the committed ``path``;
+    return the sha256 of the bytes ``path`` holds. The committed PNG is read once:
+    the kept bytes are the ones compared and hashed."""
+    pinned = read_pinned(path) if same else None
+    if pinned is None or not keeps_committed(pinned[0], image, same):
         save_png(image, path)
-        return
-    count = tie_jitter_pixels(path, image)
+        return sha256(path)
+    committed, identity = pinned
+    count = tie_jitter_pixels(committed, image)
+    ensure_pinned(path, identity)
     if count:
         # The output directory need not be under ROOT (unlike the a133 skin).
-        shown = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
-        print(f"tie_jitter=kept path={shown} pixels={count}")
+        print(f"tie_jitter=kept path={shown(path)} pixels={count}")
+    return hashlib.sha256(committed).hexdigest()
 
 
 def rect_edges(rectangle: dict[str, int]) -> tuple[int, int, int, int]:
@@ -440,6 +506,7 @@ def render_skin_set(
     semantic-model.json, whose rects a tie-jittered derivation keeps
     (``canonical_rects``).
     """
+    inputs = input_hashes()
     work.mkdir(parents=True, exist_ok=True)
     neutral_atlas: Image.Image | None = None
     lit_atlas: Image.Image | None = None
@@ -521,8 +588,9 @@ def render_skin_set(
 
     if neutral_atlas is None or lit_atlas is None or display_rect is None:
         raise RuntimeError("semantic atlas did not render")
+    ensure_inputs(inputs)
     if committed is not None:
-        same = (inputs_unchanged(committed)
+        same = (inputs_unchanged(committed, inputs)
                 and committed.get("views") == camera_metadata)
         rectangles = canonical_rects(rectangles, committed.get("controls"), same)
         display_rect = canonical_rects(
@@ -567,9 +635,9 @@ def render_skin_set(
         "stage": "source-model-review",
         "runtime_integration": "deferred-until-owner-approval",
         "source": str(MODEL.relative_to(ROOT)),
-        "source_sha256": sha256(MODEL),
+        "source_sha256": inputs["source_sha256"],
         "renderer": str(RENDERER.relative_to(ROOT)),
-        "renderer_sha256": sha256(RENDERER),
+        "renderer_sha256": inputs["renderer_sha256"],
         "canvas": {"w": SEMANTIC_CANVAS[0], "h": SEMANTIC_CANVAS[1]},
         "raw_canvas": {"w": RAW_SIZE[0], "h": RAW_SIZE[1]},
         "display_rect": display_rect,
@@ -604,22 +672,24 @@ def write_semantic_output(output: Path) -> dict:
     is the committed render the tie-jitter rule compares against."""
     output.mkdir(parents=True, exist_ok=True)
     recorded = output / "semantic-model.json"
-    committed = (
-        json.loads(recorded.read_text(encoding="utf-8"))
-        if recorded.is_file() else None
-    )
+    pinned = read_pinned(recorded)
+    committed = None if pinned is None else json.loads(pinned[0].decode("utf-8"))
     with tempfile.TemporaryDirectory(prefix="brick-semantic-") as directory:
         neutral, lit, metadata = render_skin_set(Path(directory), committed)
         same = same_derivation(
             committed,
-            inputs_unchanged(committed),
+            inputs_unchanged(committed, metadata),
             metadata,
             SEMANTIC_DERIVATION_KEYS,
         )
-        save_canonical_png(neutral, output / "semantic-neutral.png", same)
-        save_canonical_png(lit, output / "semantic-lit.png", same)
-    metadata["neutral_sha256"] = sha256(output / "semantic-neutral.png")
-    metadata["lit_sha256"] = sha256(output / "semantic-lit.png")
+        ensure_inputs(metadata)
+        ensure_pinned(recorded, None if pinned is None else pinned[1])
+        metadata["neutral_sha256"] = save_canonical_png(
+            neutral, output / "semantic-neutral.png", same
+        )
+        metadata["lit_sha256"] = save_canonical_png(
+            lit, output / "semantic-lit.png", same
+        )
     (output / "semantic-model.json").write_text(
         json.dumps(metadata, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
