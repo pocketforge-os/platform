@@ -142,9 +142,11 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.996.14 Build 8 unblock: image#236 (merge 35b5ff08) makes every owned ELF
-                       # producer emit GNU build IDs and classifies vendor-manifest PowerVR
-                       # firmware through the closed-vendor directory rule. Prior image#235
+ref  = "main"          # tsp-mc9m.41.996.15 Build 8 linear Gamescope: image#237 (merge a7dfb107),
+                       # on top of image#236 (merge 35b5ff08), rebinds the Gamescope PVR cache
+                       # producer to the tree-identical linear head 298881e3. Image#236 makes
+                       # every owned ELF producer emit GNU build IDs and classifies vendor-manifest
+                       # PowerVR firmware through the closed-vendor directory rule. Prior image#235
                        # (merge c4ab729e) accepts platform descriptor v3's unchanged v2 device
                        # facts, on top of image#233 (merge
                        # dc7992e0), which refreshes the launcher/runtime co-pin guard to
@@ -605,7 +607,7 @@ ref  = "main"          # tsp-mc9m.41.996.14 Build 8 unblock: image#236 (merge 35
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "35b5ff085d87e20cac35679d99d27deae4f749d7"
+sha  = "a7dfb1071b3424a4e4d7e2614649e410bbc308fd"
 
 [[repos]]
 name = "gamescope"
