@@ -1,0 +1,5 @@
+{
+  "expected_reason": "non-canonical",
+  "description": "v = 1 encoded in two bytes",
+  "cbor_hex": "a161761801"
+}

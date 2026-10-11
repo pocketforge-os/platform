@@ -1,0 +1,25 @@
+{
+  "report": {
+    "v": 1,
+    "kind": "component",
+    "how": "start-timeout",
+    "day": "2026-10-10",
+    "build": "3fa9c2e17b04",
+    "model": "trimui-smart-pro",
+    "app": {
+      "id": "os.pocketforge.shell",
+      "ver": "0.9",
+      "origin": "image"
+    },
+    "uptime": "10-60m",
+    "session": ">1h",
+    "mem": {
+      "pressure": false,
+      "oom": false
+    },
+    "frames": [],
+    "del": "5d1a9c7e3b2f4a6081c0e9d7b5a3f1e2c4d6b8a0f2e4c6a8b0d2f4e6a8c0e2f4"
+  },
+  "bytes": 236,
+  "cbor_hex": "ac61760163617070a3626964746f732e706f636b6574666f7267652e7368656c6c6376657263302e39666f726967696e65696d616765636461796a323032362d31302d31306364656c58205d1a9c7e3b2f4a6081c0e9d7b5a3f1e2c4d6b8a0f2e4c6a8b0d2f4e6a8c0e2f463686f776d73746172742d74696d656f7574636d656da2636f6f6df4687072657373757265f4646b696e6469636f6d706f6e656e74656275696c646c336661396332653137623034656d6f64656c707472696d75692d736d6172742d70726f666672616d65738066757074696d656631302d36306d6773657373696f6e633e3168"
+}

@@ -1,0 +1,91 @@
+; Problem report v1 (tsp-ihne1.37). RFC 8610 CDDL for the shape.
+; README.md is normative for what CDDL cannot say: deterministic encoding,
+; the 4096-byte bound, calendar dates, app id labels, cross-field rules and
+; the refusal order. Every map is closed: a key not listed here is refused.
+
+problem-report = crash-report / hang-report / oom-report / component-report / kernel-report
+
+crash-report = {
+  common,
+  kind: "crash",
+  how: signal,
+  app: app,
+  user-fields,
+  ? panic_at: panic-location,      ; only with app.origin "image" and how "SIGABRT"
+}
+
+hang-report = {
+  common,
+  kind: "hang",
+  how: "no-reply-menu" / "stop-timeout",
+  app: app,
+  user-fields,
+  samples: [* 2 sample-count],     ; sum == len(frames)
+}
+
+oom-report = {
+  common,
+  kind: "oom",
+  how: "oom-kill",
+  app: app,
+  user-fields,                     ; mem.oom == true
+}
+
+component-report = {
+  common,
+  kind: "component",
+  how: signal / "start-timeout" / "stop-timeout" / "no-reply-menu",
+  app: image-app,
+  user-fields,
+  ? panic_at: panic-location,      ; only with how "SIGABRT"
+}
+
+kernel-report = {
+  common,
+  kind: "kernel",
+  how: "oops" / "panic" / "watchdog",
+  kframes: [* 32 kframe],
+}
+
+common = (
+  v: 1,
+  day: tstr .regexp "[0-9]{4}-[0-9]{2}-[0-9]{2}",   ; a real UTC date, 2020..2099
+  build: tstr .regexp "[0-9a-f]{12}",               ; build= of /etc/pocketforge-build-id
+  model: tstr .regexp "[a-z0-9][a-z0-9-]{0,31}",    ; device id
+  uptime: bucket,
+  del: bstr .size 32,                               ; SHA-256 of the deletion token
+)
+
+user-fields = (
+  session: bucket,
+  mem: { pressure: bool, oom: bool },
+  frames: [* 48 frame],
+)
+
+signal = "SIGSEGV" / "SIGABRT" / "SIGBUS" / "SIGILL" / "SIGFPE" /
+         "SIGTRAP" / "SIGSYS" / "SIGQUIT" / "SIGXCPU" / "SIGXFSZ"
+
+bucket = "<1m" / "1-10m" / "10-60m" / ">1h"
+
+app = catalog-app / image-app / sideloaded-app
+catalog-app = { id: app-id, ver: app-ver, origin: "catalog" }
+image-app = { id: app-id, ? ver: app-ver, origin: "image" }
+sideloaded-app = { origin: "sideloaded" }           ; no id, no version
+
+app-id = tstr .size (3..200)        ; pf-app-manifest validate_app_id labels
+app-ver = tstr .regexp "(0|[1-9][0-9]{0,8})(\\.(0|[1-9][0-9]{0,8})){0,3}"   ; at most 32 bytes
+
+frame = known-frame / unknown-frame
+known-frame = [build-id: bstr .size (8..32), offset: uint .le 281474976710655]
+unknown-frame = [null, null]        ; module not in a signed manifest; the UI renders "?"
+
+sample-count = 1..48
+
+kframe = [
+  sym: tstr .regexp "[A-Za-z0-9_]{1,48}",
+  off: uint .le 4294967295,
+  size: uint .le 4294967295,
+  module: tstr .regexp "[A-Za-z0-9_]{1,24}" / null,
+]
+
+panic-location = tstr .regexp "crates/[A-Za-z0-9_/.-]+\\.rs:[0-9]+:[0-9]+"   ; at most 128 bytes
