@@ -6,7 +6,7 @@ BUILD="$ROOT/core/pf-build.sh"
 
 args="$(python3 "$ROOT/core/profile.py" buildargs a133-open-7x-gpu dev)"
 cloud_sha="$(sed -n 's/^PF_CLOUD_INIT_SHA=//p' <<< "$args")"
-[ "$cloud_sha" = "43d184bfa1a55d6d120b1191b7e0fb32b7d42a3c" ] || {
+[ "$cloud_sha" = "a85ca5bd72ddf1d5f567f97ae96ebdeb928cd379" ] || {
     printf 'FAIL: PF_CLOUD_INIT_SHA did not resolve the cloud-init-tsp lock pin (got %s)\n' \
         "${cloud_sha:-missing}" >&2
     exit 1

@@ -504,6 +504,24 @@ template = 'assert launcher_guard == ["{value}"]'
 reason = "test expectation for the declared production mirror"
 
 [[references]]
+id = "runtime-w2c-prefsd-test-constant"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "tests/verify-w2c-prefsd-wiring.py"
+parser = "template"
+template = 'RUNTIME_SHA = "{value}"'
+reason = "prefsd deployment test expectation for the declared production mirror"
+
+[[references]]
+id = "launcher-w2c-prefsd-test-constant"
+platform_field = "repos.launcher.sha"
+consumer_repo = "image"
+consumer_path = "tests/verify-w2c-prefsd-wiring.py"
+parser = "template"
+template = 'LAUNCHER_SHA = "{value}"'
+reason = "prefsd deployment test expectation for the declared production mirror"
+
+[[references]]
 id = "gamescope-package-path-test-source-pin"
 platform_field = "repos.gamescope.sha"
 consumer_repo = "image"
