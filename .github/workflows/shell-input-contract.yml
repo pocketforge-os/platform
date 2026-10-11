@@ -7,6 +7,8 @@ on:
       - 'shell-input-contract/**'
       - 'schemas/shell-input-contract-v1.schema.json'
       - 'schemas/shell-input-contract-v2.schema.json'
+      - 'schemas/shell-input-contract-v3.schema.json'
+      - 'devices/*/capabilities.toml'
       - '.github/workflows/shell-input-contract.yml'
   push:
     branches: [main]
@@ -14,6 +16,8 @@ on:
       - 'shell-input-contract/**'
       - 'schemas/shell-input-contract-v1.schema.json'
       - 'schemas/shell-input-contract-v2.schema.json'
+      - 'schemas/shell-input-contract-v3.schema.json'
+      - 'devices/*/capabilities.toml'
       - '.github/workflows/shell-input-contract.yml'
 
 permissions:
