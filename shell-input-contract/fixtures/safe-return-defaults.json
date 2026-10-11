@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "system_menu_defaults": {
     "a523": {
       "descriptor": "devices/a523/capabilities.toml",
@@ -11,9 +11,14 @@
       "contract_fixture": "fixtures/trimui-smart-pro.json",
       "shipped_default": {"shape":"single_press","controls":["guide"]}
     },
-    "fixture-buttonless": {
-      "descriptor": "synthetic:fixture-buttonless",
-      "contract_fixture": "fixtures/fixture-buttonless.json",
+    "fixture-no-stick": {
+      "descriptor": "synthetic:fixture-no-stick",
+      "contract_fixture": "fixtures/fixture-no-stick.json",
+      "shipped_default": {"shape":"chord","controls":["select","start"]}
+    },
+    "fixture-minimal": {
+      "descriptor": "synthetic:fixture-minimal",
+      "contract_fixture": "fixtures/fixture-minimal.json",
       "shipped_default": {"shape":"chord","controls":["select","start"]}
     }
   },
@@ -33,9 +38,9 @@
       "expected_notice": true
     },
     {
-      "id": "guide-on-buttonless",
+      "id": "guide-on-minimal",
       "stored_device_id": "a133",
-      "current_device_id": "fixture-buttonless",
+      "current_device_id": "fixture-minimal",
       "stored_binding": {"shape":"single_press","controls":["guide"]},
       "expected_binding": {"shape":"chord","controls":["select","start"]},
       "expected_notice": true

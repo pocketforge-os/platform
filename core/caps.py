@@ -158,11 +158,17 @@ SW_CODES = {
 # ---------------------------------------------------------------------------
 # Schema v2 (tsp-h5ed.46.3). schema_version absent = 1. These keys are only legal at v2, so a v1
 # descriptor (every one shipped before v2, and every collector-emitted candidate) is untouched.
+# Schema v3 (tsp-ihne1.3) adds [input_profile]; v1/v2 descriptors stay untouched the same way.
 # ---------------------------------------------------------------------------
-SCHEMA_VERSION_MAX = 2
+SCHEMA_VERSION_MAX = 3
 V2_TOP_KEYS = ("physical", "model", "joints", "maturity", "memory", "graphics")
 V2_SCREEN_KEYS = ("id", "node", "panel_px", "fourcc", "diagonal_in", "active_mm", "touch")
 V2_SENSOR_KINDS = ("hinge_angle",)
+V3_TOP_KEYS = ("input_profile",)
+DEVICE_CLASSES = ("two_stick", "no_stick", "minimal")
+# Shoulder/trigger codes a device_class='minimal' chassis may not expose (every-menu-spec
+# #keyboard: minimal = face buttons + Start/Select, no shoulders or triggers).
+SHOULDER_CODES = {"BTN_TL", "BTN_TR", "BTN_TL2", "BTN_TR2"}
 JOINT_UNITS = {"hinge": "deg", "swivel": "deg", "slide": "mm"}  # documented; units follow kind
 
 
@@ -503,19 +509,28 @@ def semantic_errors(dev_id, data):
             if sp and sp not in part_names:
                 errs.append(f"input '{inp.get('id','?')}': skin_part '{sp}' has no [skin.parts] entry")
 
-    # 6) schema v2 (tsp-h5ed.46.3): version gate, then the v2 rules.
+    # 6) schema version gates (v2: tsp-h5ed.46.3, v3: tsp-ihne1.3), then each version's rules.
     ver = data.get("schema_version", 1)
     if ver > SCHEMA_VERSION_MAX:
         errs.append(f"E_SCHEMA_VERSION schema_version {ver} is newer than this validator "
                     f"supports ({SCHEMA_VERSION_MAX})")
-    elif ver < 2:
-        for key in v2_keys_used(data):
-            errs.append(f"E_V2_AT_V1 {key} is a schema v2 key but schema_version is {ver} "
-                        f"(absent = 1): set schema_version = 2")
     else:
-        e2, w2 = v2_semantic_errors(data)
-        errs += e2
-        warns += w2
+        if ver < 2:
+            for key in v2_keys_used(data):
+                errs.append(f"E_V2_AT_V1 {key} is a schema v2 key but schema_version is {ver} "
+                            f"(absent = 1): set schema_version = 2")
+        else:
+            e2, w2 = v2_semantic_errors(data)
+            errs += e2
+            warns += w2
+        if ver < 3:
+            for key in v3_keys_used(data):
+                errs.append(f"E_V3_KEY {key} is a schema v3 key but schema_version is {ver}: "
+                            f"set schema_version = 3")
+        else:
+            e3, w3 = v3_semantic_errors(data)
+            errs += e3
+            warns += w3
     return errs, warns
 
 
@@ -528,6 +543,11 @@ def v2_keys_used(data):
         if s.get("kind") in V2_SENSOR_KINDS:
             used.append(f"sensors '{s.get('id', '?')}' kind={s.get('kind')}")
     return used
+
+
+def v3_keys_used(data):
+    """Every v3-only key present in a descriptor, as human-readable locations."""
+    return [f"[{k}]" for k in V3_TOP_KEYS if k in data]
 
 
 def screen_ids(data):
@@ -820,6 +840,64 @@ def v2_semantic_errors(data):
             errs.append(f"E_MATURITY_EXCEEDS [maturity] declared '{declared}' exceeds the derived "
                         f"rung '{derived}' (sim-ready needs [model] plus a node for every screen "
                         f"and a skin_part for every non-system input)")
+    return errs, warns
+
+
+def v3_semantic_errors(data):
+    """Schema v3 rules (tsp-ihne1.3). [input_profile] coherence: the table shape is owned by
+    the JSON schema; what is checked here are the facts that only the WHOLE descriptor can
+    show — device_class against the derived presence facts of the [[inputs]] rows, and
+    reserved_controls against real, non-system input ids. Every error starts with its E_* name."""
+    errs, warns = [], []
+    profile = data.get("input_profile")
+    if not isinstance(profile, dict):
+        return errs, warns  # the JSON schema owns the missing/malformed table message
+    rows = [row for row in data.get("inputs", []) if isinstance(row, dict)]
+    by_id = {row.get("id"): row for row in rows}
+    kinds = [row.get("kind", "button") for row in rows]
+    sticks = kinds.count("stick")
+    cls = profile.get("device_class")
+
+    # device_class against the retail control inventory (bindings key on the product, not
+    # the chip: the Brick shares the A133 but has no sticks — #keyboard).
+    if cls == "two_stick" and sticks < 2:
+        errs.append(f"E_INPUT_PROFILE device_class 'two_stick' needs two kind='stick' [[inputs]] "
+                    f"rows (found {sticks})")
+    if cls in ("no_stick", "minimal") and sticks:
+        errs.append(f"E_INPUT_PROFILE device_class '{cls}' forbids kind='stick' [[inputs]] rows "
+                    f"(found {sticks})")
+    if cls == "minimal":
+        banned = sorted(
+            {row.get("id", "?") for row in rows
+             if row.get("kind") == "trigger"
+             or any(c in SHOULDER_CODES for c in str(row.get("code", "")).split(","))})
+        if banned:
+            errs.append("E_INPUT_PROFILE device_class 'minimal' forbids shoulders and triggers "
+                        f"(found [[inputs]] rows: {', '.join(banned)})")
+    if cls in DEVICE_CLASSES and kinds.count("hat") < 1:
+        errs.append("E_INPUT_PROFILE every device_class needs a D-pad: a kind='hat' [[inputs]] "
+                    "row (suggestions, cursor and pointer-mode rows key on it)")
+    # stick clicks are optional extras that only make sense with sticks (#keyboard).
+    if "stick-click" in kinds and sticks < 1:
+        errs.append("E_INPUT_PROFILE kind='stick-click' [[inputs]] rows require at least one "
+                    "kind='stick' row")
+
+    # reserved_controls: real gamepad controls the system keeps (the Menu control(s)); the
+    # router consumes them before routing and no action may bind to them.
+    reserved = profile.get("reserved_controls")
+    if not isinstance(reserved, list):
+        reserved = [] if reserved is None else [reserved]
+    seen = set()
+    for rid in reserved:
+        if rid in seen:
+            errs.append(f"E_INPUT_PROFILE reserved_controls: '{rid}' appears more than once")
+        seen.add(rid)
+        row = by_id.get(rid)
+        if row is None:
+            errs.append(f"E_INPUT_PROFILE reserved_controls: '{rid}' is not an [[inputs]] id")
+        elif row.get("class") == "system":
+            errs.append(f"E_INPUT_PROFILE reserved_controls: '{rid}' is class='system' (already "
+                        f"withheld from apps; reserve gamepad controls only)")
     return errs, warns
 
 

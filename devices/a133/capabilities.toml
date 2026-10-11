@@ -14,11 +14,26 @@
 # codes ⊆ the probe's advertised codes; extra advertised codes are expected, not mismatches).
 
 # Schema v2 (tsp-h5ed.46.9): adds [maturity], [physical], [model] and per-screen node/panel facts.
-schema_version = 2
+# Schema v3 (tsp-ihne1.3): adds [input_profile] — the device-class binding facts the input
+# router and the shell input contract key on (bindings follow the retail product, not the chip).
+schema_version = 3
 
-# Default "confirm" face button (Xbox/PS = south, Switch-region = east). A HINT only;
-# full confirm/cancel/action mapping is the broker/SDK layer's job (E2), not this file.
-accept_default = "south"
+# Default "confirm" face button. X18 (every-menu-spec §1): the shell contract ships
+# Activate on `east` because this chassis is Nintendo-arranged (the printed A button is the
+# east position), so the hint names the printed Accept button, not the Xbox/PS position.
+# A HINT only; full confirm/cancel/action mapping is the broker/SDK layer's job (E2).
+accept_default = "east"
+
+# Device input profile (schema v3, tsp-ihne1.3). device_class picks the shipped device-class
+# binding table (shell-input-contract/fixtures/device-class-defaults.json; every-menu-spec
+# §4.1/§4.3.1): two_stick = Smart Pro / Smart Pro S / X55-class. reserved_controls are the
+# gamepad controls the system keeps for itself (the Menu control — the router consumes it
+# before routing and no action may ever bind to it). Presence facts (D-pad, sticks, stick
+# clicks, panel size) are DERIVED from the [[inputs]]/[[screens]] rows; caps.py fails a
+# device_class that contradicts them.
+[input_profile]
+device_class      = "two_stick"
+reserved_controls = ["guide"]
 
 [identity]
 id           = "a133"

@@ -1,0 +1,1 @@
+{"set_binding":{"context":"osk","action":"Commit","binding":{"shape":"hold","controls":["guide"],"min_duration_ms":5000}},"expected_reason":"menu-reserved-control"}
