@@ -142,13 +142,13 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.996.10 Build 8: image#220 (merge 67aaa529) ships the
-                       # preference-authority boundary: apps cannot reach prefsd.sock,
-                       # Settings/shell receive the dedicated writer group, and app reads use
-                       # the broker. It requires runtime 4b71a503 and launcher d46dbb48 below.
-                       # This merge also contains image#221's System Menu lane (merge 8db6aee6),
-                       # so Build 8 carries both changes in one image generation.
-                       # Previous pin (b7901079b12c71d179a5c6b58a46dc757246a900):
+ref  = "main"          # tsp-mc9m.41.996.13 Build 8: image#233 (merge dc7992e0) refreshes the
+                       # launcher/runtime co-pin guard to launcher#156/runtime#119, carries the
+                       # gamescope#10 producer witness, and requires cloud-init-tsp#13. These
+                       # four guarded inputs move atomically below. Previous pin
+                       # (67aaa529df41501b5f5cec515106a713b9d3af73): image#220's preference-
+                       # authority boundary plus image#221's System Menu lane.
+                       # Earlier pin (b7901079b12c71d179a5c6b58a46dc757246a900):
                        # tsp-mc9m.41.1017 Build 7: image#223 advances the
                        # Build-7 source witnesses: the steamlink FFmpeg 59 kernel-UAPI mirror
                        # to de8ca3df and the Gamescope PVR producer pin to the linear
@@ -597,7 +597,7 @@ ref  = "main"          # tsp-mc9m.41.996.10 Build 8: image#220 (merge 67aaa529) 
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "67aaa529df41501b5f5cec515106a713b9d3af73"
+sha  = "dc7992e0bb5ec70af1ff3f45f21cd5afc20b52e3"
 
 [[repos]]
 name = "gamescope"
@@ -1341,22 +1341,20 @@ sha  = "0d483c38a1e67543022c51244dd2437cd71332d6"
 [[repos]]
 name = "cloud-init-tsp"  # canonical/cloud-init 26.2 plus PocketForge's strict local
 url  = "https://github.com/pocketforge-os/cloud-init-tsp.git"  # NoCloud seed policy.
-ref  = "pocketforge-main"  # tsp-mc9m.41.1017 Build 7: cloud-init-tsp#11 (merge 43d184bf:
-                           # 0148765b grows the rootfs on first boot, b8ec6cc3 declares the
-                           # growpart runtime dependency). Verified ancestor of
-                           # origin/pocketforge-main. Previous pin
-                           # (c437773207e61551a0d4a8ebfdc12d1f95f6ce8f): Stage-A strict
-                           # NoCloud seed policy baseline.
-sha  = "43d184bfa1a55d6d120b1191b7e0fb32b7d42a3c"
+ref  = "pocketforge-main"  # tsp-mc9m.41.996.13 Build 8: cloud-init-tsp#13 (merge a85ca5bd)
+                           # is the cloud-init half of image#233's exact co-pin guard. Previous
+                           # pin (43d184bfa1a55d6d120b1191b7e0fb32b7d42a3c): cloud-init-tsp#11
+                           # rootfs growth and growpart runtime dependency.
+sha  = "a85ca5bd72ddf1d5f567f97ae96ebdeb928cd379"
 
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
-ref  = "main"                 # tsp-mc9m.41.996.10 Build 8: runtime#109 (merge 4b71a503) adds
-                              # prefsd's default-deny per-key writer policy, authenticates writers
-                              # with the dedicated group plus SO_PEERCRED/pidfd/cgroup checks, and
-                              # exposes preference reads through the broker. Required by image#220.
-                              # Previous pin (5738f3d5e108b52186b129a5db1c62a878278b19):
+ref  = "main"                 # tsp-mc9m.41.996.13 Build 8: runtime#119 (merge b289235d) is the
+                              # runtime half of image#233's exact runtime/launcher co-pin guard.
+                              # Previous pin (4b71a503909090219c3a01c1718e9e772e0d488b):
+                              # runtime#109 preference authority generation for image#220.
+                              # Earlier pin (5738f3d5e108b52186b129a5db1c62a878278b19):
                               # tsp-mc9m.41.995.30.4: runtime#106 reviewed head
                               # 5738f3d5e108b52186b129a5db1c62a878278b19 (merged as
                               # df2079e8509a09587994f226b1b0e6d32a244442) is the exact
@@ -1421,16 +1419,17 @@ ref  = "main"                 # tsp-mc9m.41.996.10 Build 8: runtime#109 (merge 4
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "4b71a503909090219c3a01c1718e9e772e0d488b"
+sha  = "b289235d8cbdc8d542e551b8139d22b6abf31ec1"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
 url  = "https://github.com/pocketforge-os/launcher.git"   # top-coord RULING B). The image's `launcher`
-ref  = "main"                 # tsp-mc9m.41.996.10 Build 8: launcher#155 (merge d46dbb48)
-                              # refreshes the vendored runtime crates to runtime#109's preference
-                              # authority generation. It is the launcher half of image#220's exact
-                              # runtime/launcher guard pair and must move atomically with that image.
-                              # Previous pin (73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5):
+ref  = "main"                 # tsp-mc9m.41.996.13 Build 8: launcher#156 (merge 8209c392) refreshes
+                              # the vendored runtime crates to runtime#119. It is the launcher half
+                              # of image#233's exact runtime/launcher guard pair and moves atomically
+                              # with that image. Previous pin
+                              # (d46dbb48e610e10cc4d01562fedcdf7cdfae0f7d): launcher#155/image#220.
+                              # Earlier pin (73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5):
                               # tsp-mc9m.41.995.30.4: launcher#153 reviewed head
                               # 73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5 (merged as
                               # 03c6c54b0c0ab4360090b2e9e6deff284f95836d) regenerates its
@@ -1501,7 +1500,7 @@ ref  = "main"                 # tsp-mc9m.41.996.10 Build 8: launcher#155 (merge 
                               # keeping their images byte-identical. Not-per-device (literal-name lookup like
                               # libsdl3/wpa/runtime). SHA = the exact commit the launcher stage drift-checks
                               # (PF_LAUNCHER_SHA); an ancestor of launcher/main @ seed time.
-sha  = "d46dbb48e610e10cc4d01562fedcdf7cdfae0f7d"
+sha  = "8209c392ea19abfe6377d7254cb063eed43c491b"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
