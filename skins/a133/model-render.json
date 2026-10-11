@@ -137,7 +137,7 @@
     "w": 3200
   },
   "renderer": "device-models/trimui-smart-pro/render.py",
-  "renderer_sha256": "8e7d1146e52b515eaa0743ead7ec539a3e1492bdc59220b3ebf4a99b241e0760",
+  "renderer_sha256": "6c99f73bc32794a495dbb0940a550033e9d57cc3a99170d739632228912f1aa4",
   "schema_version": 3,
   "shoulder_crop_policy": "split-overlap-midpoint+4px-horizontal+front-control-trim",
   "source": "device-models/trimui-smart-pro/trimui-smart-pro.scad",
