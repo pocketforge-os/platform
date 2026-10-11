@@ -69,7 +69,7 @@ required_patch_ids = [
   "3d05e5c48abb6d782febb27c16089bacc22669d8"
 ]
 patch_series_sha256 = "bb6cfe0bad0d62ad774a0d1e5e4d6faff3efc379728c435ad6ce8cc0fc302ec4"
-dependency_manifest_sha256 = "08222e97c66d1bc737d9ef0483e23476bd4b127ca19136e70dd0e843f3af51cf"
+dependency_manifest_sha256 = "5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6"
 source_tree_sha256 = "c4c21e8dc03651872d1ce0419646e26a1c3d09eb0d555851d6276681e5e59d51"
 license_sha256 = "907dd845489cd09c25f18b6819f476805285e2adcad8c099e3506260023e9e5f"
 diagnostics = false

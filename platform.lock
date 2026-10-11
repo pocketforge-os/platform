@@ -629,6 +629,7 @@ ref  = "pocketforge"   # tsp-op5a.440.15/.16 Build 8: gamescope#10 merged as eac
                         # 4232739e75c95113871e260967e8b4ff995ea897): branch-only integration
                         # candidate.
 sha  = "eaca59d90a22431238bb084fce4d399036851d92"
+dependency_manifest_sha256 = "5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.

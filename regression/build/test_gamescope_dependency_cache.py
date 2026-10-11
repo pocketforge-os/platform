@@ -77,7 +77,8 @@ class DependencyCacheTest(unittest.TestCase):
             "[[repos]]\n"
             "name = \"gamescope\"\n"
             "url = \"https://github.com/pocketforge-os/gamescope.git\"\n"
-            f"sha = \"{self.head}\"\n",
+            f"sha = \"{self.head}\"\n"
+            f"dependency_manifest_sha256 = \"{self.manifest_sha}\"\n",
             encoding="utf-8")
 
     def tearDown(self) -> None:
@@ -216,7 +217,8 @@ class DependencyCacheTest(unittest.TestCase):
                 "[[repos]]\n"
                 "name = \"gamescope\"\n"
                 "url = \"https://github.com/pocketforge-os/gamescope.git\"\n"
-                f"sha = \"{selected_head}\"\n",
+                f"sha = \"{selected_head}\"\n"
+                f"dependency_manifest_sha256 = \"{manifest_sha or self.manifest_sha}\"\n",
                 encoding="utf-8")
         return SimpleNamespace(
             gamescope_git_dir=gamescope or self.gamescope,
@@ -335,12 +337,26 @@ class DependencyCacheTest(unittest.TestCase):
             "[[repos]]\n"
             "name = \"gamescope\"\n"
             "url = \"https://github.com/pocketforge-os/gamescope.git\"\n"
-            f"sha = \"{'0' * 40}\"\n",
+            f"sha = \"{'0' * 40}\"\n"
+            f"dependency_manifest_sha256 = \"{self.manifest_sha}\"\n",
             encoding="utf-8")
         result = self.produce(
             "wrong-lock", platform_lock=wrong_lock, check=False)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("platform.lock Gamescope pin mismatch", result.stderr)
+
+        stale_manifest_lock = self.root / "stale-manifest-platform.lock"
+        stale_manifest_lock.write_text(
+            "[[repos]]\n"
+            "name = \"gamescope\"\n"
+            "url = \"https://github.com/pocketforge-os/gamescope.git\"\n"
+            f"sha = \"{self.head}\"\n"
+            f"dependency_manifest_sha256 = \"{'0' * 64}\"\n",
+            encoding="utf-8")
+        result = self.produce(
+            "stale-manifest-lock", platform_lock=stale_manifest_lock, check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("platform.lock Gamescope manifest digest mismatch", result.stderr)
 
     def test_each_final_publication_boundary_rolls_back_and_retries(self) -> None:
         cases = (
