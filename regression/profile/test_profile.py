@@ -323,17 +323,18 @@ class ProfileTest(unittest.TestCase):
         # descriptor v3 reaches every image-build profile.
         # Image#236's GNU build-id producer merge likewise advances only PF_IMAGE_SHA.
         # Image#237's linear Gamescope cache rebind again advances only PF_IMAGE_SHA.
+        # Image#238's hwprobe static-link repair again advances only PF_IMAGE_SHA.
         expected = {
-            ("a133", "dev"): "25e4021493cd2445f93e0355f3898ad7457d6029dcb47a201672e7840291f18c",
-            ("a133", "release"): "449db6abe1656e03d76652cbff185c81be466151fa25c78a96a87d070400ef2f",
-            ("a133-open-7x", "dev"): "ac0e8214f7674da9d244320fbec6b54a684fc13f74ee89ae678c49400231c206",
-            ("a133-open-7x", "release"): "f1eb179ecab1e52ce548d0760f20375ca7fd7be345b5c62326f7bda0178bf9b3",
-            ("a133-owned", "dev"): "0ef9eb7e83bd459cacdee665771b906c867df9917e6c027bf5da32f42371ff0e",
-            ("a133-owned", "release"): "7e006f03b784b80aa3f673bdf95d4579dd53999aadbd2671126701728f89ed50",
-            ("a523", "dev"): "b05f99139a2f7fe91158a06b68c50a1dfa40f8ffa313a0a00b5c768cbe6205a9",
-            ("a523", "release"): "adc45a90390b745cb26520aba38e1c8bb2b62eca5b1c3fb798f0d924bb037192",
-            ("sdm845", "dev"): "afe1e37d6f6c4ce7a859e252cda2f341bf3f28a57dcb7a976d5be89e523480b6",
-            ("sdm845", "release"): "1325694af53b86c773217969544ae5b915c0efd0503d03b5249985995b913255",
+            ("a133", "dev"): "973d09bcf86b49a91a37c7b70a6ee912e6933e646396bd6545184b0240abd781",
+            ("a133", "release"): "3a9a258c3de3f441e16347ed32049b2882d09754113c927ff7b18bf32dd953ce",
+            ("a133-open-7x", "dev"): "91f83e1d746fb8fd2f0734925d18f3600b2c512cb75ffbfae1e8947aed7cc1cb",
+            ("a133-open-7x", "release"): "b367fa2a009b2054e255b3af58afc5bd0d7c9f6de5c54c475dadcb8120eaf666",
+            ("a133-owned", "dev"): "84fcbc3e2f0475335d7c5ca8b51f5a3cb4150f2efa0b3df925fed755a9b42306",
+            ("a133-owned", "release"): "d848242118a452130ebd697742ecc1a0a5e99ba135039785469146ab2d5371c3",
+            ("a523", "dev"): "4700eacebf08054fcb21e5f00b3cd04fd2864eb708447e32f4ef493a0b61cd7d",
+            ("a523", "release"): "9649b318c14507e94311ccd9e4e48871ea6ec685cec1d15612f1275382242997",
+            ("sdm845", "dev"): "b8c692ddcf49e8c70cfb3c78e3006238bd8250eb4bfe7e7e95024c54de9bd06d",
+            ("sdm845", "release"): "b249535de1b8de30c5434df93e43d02c7a624875e15c5d7dc266a3d06dcb2c6c",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -586,7 +587,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "e2c29ab8a84f57ae500f4ad6c6aea86ac0bbe01f",
-                "PF_IMAGE_SHA": "a7dfb1071b3424a4e4d7e2614649e410bbc308fd",
+                "PF_IMAGE_SHA": "8abace1178ca64df8e6db4b3854dd1f479d45f19",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
