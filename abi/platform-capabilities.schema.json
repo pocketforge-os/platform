@@ -43,6 +43,9 @@
           "leds",
           "location",
           "magnetometer",
+          "menu",
+          "options",
+          "pointer",
           "rumble",
           "settings",
           "vibration"
