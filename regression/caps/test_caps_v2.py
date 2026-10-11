@@ -497,8 +497,8 @@ def main():
     check("a133: PROVISIONAL gles_max comment names GLES conformance tsp-mc9m.41.924.24.21",
           "tsp-mc9m.41.924.24.21" in a133_text)
     a523 = caps._load(os.path.join(ROOT, "devices", "a523", "capabilities.toml"))
-    check("a523: [memory] physical_mib=1024 only; app_budget_mib omitted (fail-closed)",
-          a523.get("memory") == {"physical_mib": 1024}, str(a523.get("memory")))
+    check("a523: [memory] physical_mib=962 (measured MemTotal floor) only; app_budget_mib omitted (fail-closed)",
+          a523.get("memory") == {"physical_mib": 962}, str(a523.get("memory")))
     check("a523: no [graphics] section (GLES unverified on Mali; omission, not fabrication)",
           "graphics" not in a523)
     rc, out, err = run("validate")

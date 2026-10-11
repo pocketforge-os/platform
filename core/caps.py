@@ -168,7 +168,10 @@ JOINT_UNITS = {"hinge": "deg", "swivel": "deg", "slide": "mm"}  # documented; un
 
 # ---------------------------------------------------------------------------
 # Minimal JSON-Schema engine (Draft-2020-12 SUBSET: exactly the keywords the
-# shipped schema uses). Returns a list of human-readable error strings.
+# shipped schemas use — the descriptor schema and the ABI contract schema in
+# abi/platform-capabilities.schema.json, which needs const/allOf/if/then and
+# boolean-false subschemas for its per-schema_version discipline).
+# Returns a list of human-readable error strings.
 # ---------------------------------------------------------------------------
 def _typ_ok(inst, t):
     if t == "object":  return isinstance(inst, dict)
@@ -190,6 +193,9 @@ def _resolve_ref(root, ref):
 
 
 def _jschema(inst, schema, root, path, errs):
+    if schema is False:
+        errs.append(f"{path or '<root>'}: not allowed here (false schema)")
+        return
     if "$ref" in schema:
         _jschema(inst, _resolve_ref(root, schema["$ref"]), root, path, errs)
         return
@@ -197,6 +203,8 @@ def _jschema(inst, schema, root, path, errs):
     if t is not None and not _typ_ok(inst, t):
         errs.append(f"{path or '<root>'}: expected {t}, got {type(inst).__name__}")
         return  # type wrong -> downstream checks are noise
+    if "const" in schema and inst != schema["const"]:
+        errs.append(f"{path}: {inst!r} != const {schema['const']!r}")
     if "enum" in schema and inst not in schema["enum"]:
         errs.append(f"{path}: {inst!r} not in {schema['enum']}")
     if isinstance(inst, str):
@@ -232,6 +240,22 @@ def _jschema(inst, schema, root, path, errs):
         if items is not None:
             for i, el in enumerate(inst):
                 _jschema(el, items, root, f"{path}[{i}]", errs)
+        if schema.get("uniqueItems"):
+            seen = set()
+            for el in inst:
+                key = json.dumps(el, sort_keys=True)
+                if key in seen:
+                    errs.append(f"{path}: duplicate item (uniqueItems)")
+                    break
+                seen.add(key)
+    for sub in schema.get("allOf", []):
+        _jschema(inst, sub, root, path, errs)
+    if "if" in schema:
+        probe = []
+        _jschema(inst, schema["if"], root, path, probe)
+        branch = "then" if not probe else "else"
+        if branch in schema:
+            _jschema(inst, schema[branch], root, path, errs)
 
 
 def schema_errors(data, schema):

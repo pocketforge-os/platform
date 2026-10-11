@@ -40,8 +40,9 @@ envelope_mm = { w = 188.35, h = 79.77, d = 17.0 }   # device-models/trimui-smart
 # no [graphics] section (GLES unverified on this Mali) — apps declaring those facts fail closed
 # with requirement_unverifiable. Omission, not fabrication.
 [memory]
-physical_mib = 1024   # nominal DRAM, dramsize=1024 (trimui-smartpro-s-a523-platform-report.md);
-                      # no measured MemTotal recorded yet — replace when a capture lands
+physical_mib = 962    # measured MemTotal floor: 986,008 kB on TrimUI Smart Pro S / a523
+                      # (mission-control logs/pros-probe-20260619T192246.log §MEMORY,
+                      # kernel 5.15.147) = 962.9 MiB, floored
 
 [model]
 glb    = "skins/a523/model.glb"

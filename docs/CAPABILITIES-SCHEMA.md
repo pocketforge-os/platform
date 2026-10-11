@@ -153,7 +153,7 @@ slider or the guest changes** (joint angle, lid switch value, touch points).
 | | `reachable_inputs` | | input ids still pickable; absent = all |
 | | `screen_rotation` | | `{ <screen id> = none\|cw90\|cw180\|cw270 }`, relative to the screen's declared `rotation` |
 | `[maturity]` | `declared` | ✅ | `planned`\|`model-only`\|`sim-ready` (D18), bounded by the derived rung |
-| `[memory]` | `physical_mib` | ✅ | measured MemTotal floor in MiB (tsp-fxlsw Task 2). The image renderer maps it to the platform contract's `physical_memory_mib` |
+| `[memory]` | `physical_mib` | ✅ | measured MemTotal floor in MiB (tsp-fxlsw Task 2; never a nominal dram size — omit `[memory]` when no capture exists). Maps to the contract's `physical_memory_mib`, which never gates apps: the runtime's memory check reads only `app_budget_mib` (pf-app-manifest `check_requirements`) |
 | | `app_budget_mib` | | what an app may assume is available (≤ `physical_mib`, else `E_MEMORY`); maps to `app_memory_budget_mib`. Omit when unmeasured: apps declaring a memory requirement then fail closed (`requirement_unverifiable`) |
 | `[graphics]` | `gles_max`, `vulkan_max` | | highest supported version, from the contract vocabularies (`2.0`–`3.2` GLES, `1.0`–`1.4` Vulkan); map to `gles_max`/`vulkan_max`. An empty `[graphics]` table is `E_GRAPHICS` — omit the section instead (omission, not fabrication). Contract `inputs`/`display` facts are DERIVED from `[[inputs]]`/`[[screens]]`, never re-declared |
 
