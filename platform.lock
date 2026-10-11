@@ -607,11 +607,15 @@ sha  = "c4ab729ebe18a7ebf6805452d639204d24c08cb2"
 [[repos]]
 name = "gamescope"
 url  = "https://github.com/pocketforge-os/gamescope.git"
-ref  = "pocketforge"   # tsp-op5a.440.15/.16 Build 8: gamescope#10 merged as eaca59d9,
-                        # adding wlroots text-input-v3 v2 and cursor-shape-v1 v2 support plus
-                        # Gamescope-owned v2 globals and focused v1/v2 protocol coverage. The
-                        # exact sha below is the sole build input; never resolve this ref at
-                        # build time. Previous ref/sha (tsp-mc9m.41.1017.1,
+ref  = "pocketforge-linear" # tsp-mc9m.41.996.15 Build 8: gamescope#11 and #10 replayed as
+                        # nine non-merge commits onto the last admitted linear head c30e8cee.
+                        # The linear head and eaca59d9 have the identical tree
+                        # a65c549d78e383ab27495f06bb337dc82f59ef41; the dependency manifest
+                        # is byte-identical at 5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6.
+                        # `pocketforge` remains the immutable
+                        # merge-history archive; gpu-14 switches the default only after this pin
+                        # merges. The exact sha below is the sole build input; never resolve this
+                        # ref at build time. Previous ref/sha (tsp-mc9m.41.1017.1,
                         # c30e8ceec43b137c206a445f49853b9fcdc58e71): tsp-mc9m.41.1017
                         # Build 7 (gpu-14 ruling 2, linear admitted-series head): c30e8cee is
                         # 4232739e plus 20 linear cherry-picks (no content edits, zero merges)
@@ -630,7 +634,7 @@ ref  = "pocketforge"   # tsp-op5a.440.15/.16 Build 8: gamescope#10 merged as eac
                         # (tsp-op5a.440.1.1,
                         # 4232739e75c95113871e260967e8b4ff995ea897): branch-only integration
                         # candidate.
-sha  = "eaca59d90a22431238bb084fce4d399036851d92"
+sha  = "298881e3dff1ade108d57a257e8bf59bf8c6436f"
 dependency_manifest_sha256 = "5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6"
 
 [[repos]]
