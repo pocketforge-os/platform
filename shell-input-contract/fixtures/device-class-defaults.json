@@ -1,0 +1,125 @@
+{
+  "schema_version": 3,
+  "device_class_defaults": {
+    "two_stick": {
+      "osk": {
+        "Type": {"shape":"single_press","controls":["east"]},
+        "Close": {"shape":"single_press","controls":["south"]},
+        "Backspace": {"shape":"single_press","controls":["west"]},
+        "Space": {"shape":"single_press","controls":["north"]},
+        "Shift": {"shape":"hold","controls":["l2"],"min_duration_ms":250},
+        "Symbols": {"shape":"single_press","controls":["r2"]},
+        "CursorLeft": {"shape":"single_press","controls":["l1"]},
+        "CursorRight": {"shape":"single_press","controls":["r1"]},
+        "Commit": {"shape":"single_press","controls":["start"]},
+        "NextLayout": {"shape":"single_press","controls":["select"]},
+        "EditPad": {"shape":"on_screen"},
+        "SuggestPick": {"shape":"stick_axis","controls":["rstick"],"axis":"horizontal"},
+        "SuggestList": {"shape":"stick_direction","controls":["rstick"],"direction":"down"}
+      },
+      "osk.edit": {
+        "WordLeft": {"shape":"single_press","controls":["l1"]},
+        "WordRight": {"shape":"single_press","controls":["r1"]},
+        "Select": {"shape":"hold","controls":["l2"],"min_duration_ms":250},
+        "SelectAll": {"shape":"single_press","controls":["select"]},
+        "Copy": {"shape":"single_press","controls":["east"]},
+        "Cut": {"shape":"single_press","controls":["west"]},
+        "Paste": {"shape":"single_press","controls":["north"]},
+        "Back": {"shape":"single_press","controls":["south"]},
+        "Done": {"shape":"single_press","controls":["start"]}
+      },
+      "pointer": {
+        "LeftClick": {"shape":"single_press","controls":["east"]},
+        "RightClick": {"shape":"single_press","controls":["north"]},
+        "MiddleClick": {"shape":"single_press","controls":["west"]},
+        "Escape": {"shape":"single_press","controls":["south"]},
+        "Back": {"shape":"single_press","controls":["l1"]},
+        "Forward": {"shape":"single_press","controls":["r1"]},
+        "Slow": {"shape":"hold","controls":["l2"],"min_duration_ms":250},
+        "ScrollMode": null,
+        "Enter": {"shape":"single_press","controls":["start"]},
+        "Tab": {"shape":"single_press","controls":["select"]}
+      }
+    },
+    "no_stick": {
+      "osk": {
+        "Type": {"shape":"single_press","controls":["east"]},
+        "Close": {"shape":"single_press","controls":["south"]},
+        "Backspace": {"shape":"single_press","controls":["west"]},
+        "Space": {"shape":"single_press","controls":["north"]},
+        "Shift": {"shape":"hold","controls":["l1"],"min_duration_ms":250},
+        "Symbols": {"shape":"single_press","controls":["r1"]},
+        "CursorLeft": {"shape":"on_screen"},
+        "CursorRight": {"shape":"on_screen"},
+        "Commit": {"shape":"single_press","controls":["start"]},
+        "NextLayout": {"shape":"single_press","controls":["select"]},
+        "EditPad": {"shape":"on_screen"},
+        "SuggestPick": {"shape":"single_press","controls":["dpad_up"]},
+        "SuggestList": null
+      },
+      "osk.edit": {
+        "WordLeft": {"shape":"on_screen"},
+        "WordRight": {"shape":"on_screen"},
+        "Select": {"shape":"hold","controls":["l1"],"min_duration_ms":250},
+        "SelectAll": {"shape":"single_press","controls":["select"]},
+        "Copy": {"shape":"single_press","controls":["east"]},
+        "Cut": {"shape":"single_press","controls":["west"]},
+        "Paste": {"shape":"single_press","controls":["north"]},
+        "Back": {"shape":"single_press","controls":["south"]},
+        "Done": {"shape":"single_press","controls":["start"]}
+      },
+      "pointer": {
+        "LeftClick": {"shape":"single_press","controls":["east"]},
+        "RightClick": {"shape":"single_press","controls":["north"]},
+        "MiddleClick": {"shape":"single_press","controls":["west"]},
+        "Escape": {"shape":"single_press","controls":["south"]},
+        "Back": {"shape":"single_press","controls":["l1"]},
+        "Forward": {"shape":"single_press","controls":["r1"]},
+        "Slow": null,
+        "ScrollMode": null,
+        "Enter": {"shape":"single_press","controls":["start"]},
+        "Tab": {"shape":"single_press","controls":["select"]}
+      }
+    },
+    "minimal": {
+      "osk": {
+        "Type": {"shape":"single_press","controls":["east"]},
+        "Close": {"shape":"single_press","controls":["south"]},
+        "Backspace": {"shape":"single_press","controls":["west"]},
+        "Space": {"shape":"single_press","controls":["north"]},
+        "Shift": {"shape":"on_screen"},
+        "Symbols": {"shape":"on_screen"},
+        "CursorLeft": {"shape":"on_screen"},
+        "CursorRight": {"shape":"on_screen"},
+        "Commit": {"shape":"on_screen"},
+        "NextLayout": {"shape":"on_screen"},
+        "EditPad": {"shape":"on_screen"},
+        "SuggestPick": {"shape":"single_press","controls":["dpad_up"]},
+        "SuggestList": null
+      },
+      "osk.edit": {
+        "WordLeft": {"shape":"on_screen"},
+        "WordRight": {"shape":"on_screen"},
+        "Select": {"shape":"on_screen"},
+        "SelectAll": {"shape":"on_screen"},
+        "Copy": {"shape":"single_press","controls":["east"]},
+        "Cut": {"shape":"single_press","controls":["west"]},
+        "Paste": {"shape":"single_press","controls":["north"]},
+        "Back": {"shape":"single_press","controls":["south"]},
+        "Done": {"shape":"on_screen"}
+      },
+      "pointer": {
+        "LeftClick": {"shape":"single_press","controls":["east"]},
+        "RightClick": {"shape":"single_press","controls":["north"]},
+        "MiddleClick": {"shape":"single_press","controls":["west"]},
+        "Escape": {"shape":"single_press","controls":["south"]},
+        "Back": null,
+        "Forward": null,
+        "Slow": null,
+        "ScrollMode": null,
+        "Enter": {"shape":"single_press","controls":["start"]},
+        "Tab": {"shape":"single_press","controls":["select"]}
+      }
+    }
+  }
+}

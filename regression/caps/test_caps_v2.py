@@ -193,7 +193,9 @@ CASES = [
     # ---- schema_version gating ----
     ("neg-v2-key-at-v1", [("schema_version = 2", "schema_version = 1")], {"E_V2_AT_V1"}, None),
     ("neg-v2-key-absent-version", [("schema_version = 2\n", "")], {"E_V2_AT_V1"}, None),
-    ("neg-schema-version-3", [("schema_version = 2", "schema_version = 3")], {"E_SCHEMA_VERSION"}, None),
+    ("neg-schema-version-4", [("schema_version = 2", "schema_version = 4")], {"E_SCHEMA_VERSION"}, None),
+    ("neg-v3-key-at-v2",
+     [("$append", '\n[input_profile]\ndevice_class = "two_stick"\n')], {"E_V3_KEY"}, None),
     # ---- joints ----
     ("neg-dup-joint-id", [("$append", DUP_JOINT)], {"E_JOINT_DUPLICATE"}, None),
     ("neg-joint-node-name", [('node     = "pivot_lid"', 'node     = "hinge_lid"')],
@@ -453,14 +455,15 @@ def catalog_cases(tmp):
 
 
 def main():
-    # --- 1. shipped descriptors: v2 with [model]/[physical], declared and derived sim-ready ---
+    # --- 1. shipped descriptors: v3 (v2 content + [input_profile]), declared+derived sim-ready ---
     rc, out, err = run("validate", "a133", "a523")
     check("validate a133 a523: exit 0", rc == 0, out + err)
     for d in ("a133", "a523"):
         data = caps._load(os.path.join(ROOT, "devices", d, "capabilities.toml"))
-        check(f"{d}: v2 descriptor declaring sim-ready with [model] + [physical] (tsp-h5ed.46.9)",
-              data.get("schema_version") == 2 and "model" in data and "physical" in data
-              and data.get("maturity", {}).get("declared") == "sim-ready")
+        check(f"{d}: v3 descriptor declaring sim-ready with [model] + [physical] (tsp-ihne1.3)",
+              data.get("schema_version") == 3 and "model" in data and "physical" in data
+              and data.get("maturity", {}).get("declared") == "sim-ready"
+              and data.get("input_profile", {}).get("device_class") == "two_stick")
         check(f"{d}: derived rung is sim-ready", caps.derive_maturity(data) == "sim-ready")
     rc, out, err = run("validate")
     check("bare validate (all descriptors + ci-matrix + catalog): exit 0", rc == 0, out + err)
