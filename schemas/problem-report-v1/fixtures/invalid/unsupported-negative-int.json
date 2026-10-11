@@ -1,0 +1,5 @@
+{
+  "expected_reason": "unsupported",
+  "description": "v encoded as negative integer -1",
+  "cbor_hex": "a1617620"
+}

@@ -529,3 +529,30 @@ consumer_path = "tests/test-gamescope-pvr-cache.sh"
 parser = "template"
 template = "g1_sha={value}"
 reason = "mode-runner test input for the locked Gamescope source"
+
+[[references]]
+id = "cts-recovery-dut-bundle-sha"
+platform_field = "platform_payload.cts_bundle_v1.artifact_sha256"
+consumer_repo = "image"
+consumer_path = "tools/a-cts-recovery/a-cts-dut"
+parser = "template"
+template = 'BUNDLE_SHA={value}'
+reason = "recovery DUT harness expectation for the locked CTS bundle (image#214/#217)"
+
+[[references]]
+id = "cts-recovery-smoke-bundle-sha"
+platform_field = "platform_payload.cts_bundle_v1.artifact_sha256"
+consumer_repo = "image"
+consumer_path = "tools/a-cts-recovery/smoke.sh"
+parser = "template"
+template = 'BUNDLE_SHA={value}'
+reason = "raw-image smoke harness expectation for the locked CTS bundle (image#214/#217)"
+
+[[references]]
+id = "cts-recovery-smoke-source-commit"
+platform_field = "platform_payload.cts_bundle_v1.build_args.PF_CTS_SOURCE_COMMIT"
+consumer_repo = "image"
+consumer_path = "tools/a-cts-recovery/smoke.sh"
+parser = "template"
+template = "grep -Fxq 'source_commit={value}'"
+reason = "CTS provenance receipt check in the raw-image smoke harness (image#214/#217)"

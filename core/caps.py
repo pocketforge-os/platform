@@ -161,7 +161,7 @@ SW_CODES = {
 # Schema v3 (tsp-ihne1.3) adds [input_profile]; v1/v2 descriptors stay untouched the same way.
 # ---------------------------------------------------------------------------
 SCHEMA_VERSION_MAX = 3
-V2_TOP_KEYS = ("physical", "model", "joints", "maturity")
+V2_TOP_KEYS = ("physical", "model", "joints", "maturity", "memory", "graphics")
 V2_SCREEN_KEYS = ("id", "node", "panel_px", "fourcc", "diagonal_in", "active_mm", "touch")
 V2_SENSOR_KINDS = ("hinge_angle",)
 V3_TOP_KEYS = ("input_profile",)
@@ -174,7 +174,10 @@ JOINT_UNITS = {"hinge": "deg", "swivel": "deg", "slide": "mm"}  # documented; un
 
 # ---------------------------------------------------------------------------
 # Minimal JSON-Schema engine (Draft-2020-12 SUBSET: exactly the keywords the
-# shipped schema uses). Returns a list of human-readable error strings.
+# shipped schemas use — the descriptor schema and the ABI contract schema in
+# abi/platform-capabilities.schema.json, which needs const/allOf/if/then and
+# boolean-false subschemas for its per-schema_version discipline).
+# Returns a list of human-readable error strings.
 # ---------------------------------------------------------------------------
 def _typ_ok(inst, t):
     if t == "object":  return isinstance(inst, dict)
@@ -195,7 +198,18 @@ def _resolve_ref(root, ref):
     return node
 
 
+def _jeq(a, b):
+    # JSON-Schema equality is TYPE-AWARE: Python says True == 1, JSON says true != 1.
+    # Numbers still compare across int/float (1 == 1.0), as the draft requires.
+    if isinstance(a, bool) != isinstance(b, bool):
+        return False
+    return a == b
+
+
 def _jschema(inst, schema, root, path, errs):
+    if schema is False:
+        errs.append(f"{path or '<root>'}: not allowed here (false schema)")
+        return
     if "$ref" in schema:
         _jschema(inst, _resolve_ref(root, schema["$ref"]), root, path, errs)
         return
@@ -203,7 +217,9 @@ def _jschema(inst, schema, root, path, errs):
     if t is not None and not _typ_ok(inst, t):
         errs.append(f"{path or '<root>'}: expected {t}, got {type(inst).__name__}")
         return  # type wrong -> downstream checks are noise
-    if "enum" in schema and inst not in schema["enum"]:
+    if "const" in schema and not _jeq(inst, schema["const"]):
+        errs.append(f"{path}: {inst!r} != const {schema['const']!r}")
+    if "enum" in schema and not any(_jeq(inst, e) for e in schema["enum"]):
         errs.append(f"{path}: {inst!r} not in {schema['enum']}")
     if isinstance(inst, str):
         if "pattern" in schema and not re.search(schema["pattern"], inst):
@@ -238,6 +254,22 @@ def _jschema(inst, schema, root, path, errs):
         if items is not None:
             for i, el in enumerate(inst):
                 _jschema(el, items, root, f"{path}[{i}]", errs)
+        if schema.get("uniqueItems"):
+            seen = set()
+            for el in inst:
+                key = json.dumps(el, sort_keys=True)
+                if key in seen:
+                    errs.append(f"{path}: duplicate item (uniqueItems)")
+                    break
+                seen.add(key)
+    for sub in schema.get("allOf", []):
+        _jschema(inst, sub, root, path, errs)
+    if "if" in schema:
+        probe = []
+        _jschema(inst, schema["if"], root, path, probe)
+        branch = "then" if not probe else "else"
+        if branch in schema:
+            _jschema(inst, schema[branch], root, path, errs)
 
 
 def schema_errors(data, schema):
@@ -637,6 +669,23 @@ def v2_semantic_errors(data):
             errs.append(f"E_PHYSICAL [physical].envelope_mm {', '.join(bad)} must be > 0 mm")
         if "mass_g" in phys and not phys["mass_g"] > 0:
             errs.append("E_PHYSICAL [physical].mass_g must be > 0 (omit it when unmeasured)")
+
+    # [memory]: minimum-spec facts (tsp-fxlsw Task 2). physical_mib is the measured MemTotal
+    # floor; app_budget_mib is what an app may assume is available, so it can never exceed
+    # physical_mib. The image renderer maps these onto the platform contract's schema-2
+    # physical_memory_mib / app_memory_budget_mib fields.
+    mem = data.get("memory")
+    if mem:
+        budget = mem.get("app_budget_mib")
+        if budget is not None and budget > mem.get("physical_mib", 0):
+            errs.append(f"E_MEMORY [memory].app_budget_mib {budget} exceeds physical_mib "
+                        f"{mem.get('physical_mib', 0)}")
+
+    # [graphics]: the version vocabularies are schema-enforced enums; an empty table declares
+    # nothing and hides the omission, so it is an error (omit the whole section instead).
+    if "graphics" in data and not data.get("graphics"):
+        errs.append("E_GRAPHICS [graphics] is empty (declare gles_max/vulkan_max, or omit the "
+                    "whole section)")
 
     # [model]: the glb exists and parses; under pf-semantic-v1 every bound name is a glb node.
     model = data.get("model")

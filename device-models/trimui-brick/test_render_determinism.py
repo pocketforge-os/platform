@@ -25,7 +25,12 @@ one invocation:
      same injected run after a render.py edit writes both PNGs, and a recorded
      rect 2 pixels off is re-derived;
   3. negative: a seeded one-line .scad mutation (bottom corner radius 4.8 ->
-     5.8 mm) changes semantic-neutral.png, so (2) cannot pass by never writing.
+     5.8 mm) changes semantic-neutral.png, so (2) cannot pass by never writing;
+  4. hermetic (no OpenSCAD; tsp-h5ed.46.34), per file render.py hashes and then
+     uses: the recorded PNG kept by --semantic-output, semantic-model.json and the
+     .scad. Positive: the honest file is read once and used. Negative: the file is
+     replaced right after render.py read it (the render._after_read test hook) or
+     the .scad is edited during the render, and render.py refuses, naming the file.
 
 Local only, like render.py --check: needs OpenSCAD (OPENSCAD=<path>) and Pillow.
 Run:  python3 device-models/trimui-brick/test_render_determinism.py
@@ -35,6 +40,7 @@ from __future__ import annotations
 
 import contextlib
 import copy
+import hashlib
 import io
 import json
 import os
@@ -84,6 +90,7 @@ def hermetic_cases(work: Path) -> None:
     with Image.open(SAMPLE_PNG) as source:
         base = source.convert("RGB")
     render.save_png(base, committed)
+    committed = committed.read_bytes()
     limit = render.JITTER_MAX_PIXELS
     check("keep: identical render", render.keeps_committed(committed, base, True))
     check("keep: 1 tie pixel", render.keeps_committed(committed, with_changed_pixels(base, 1), True))
@@ -93,8 +100,7 @@ def hermetic_cases(work: Path) -> None:
           not render.keeps_committed(committed, with_changed_pixels(base, limit + 1), True))
     check("write: different size",
           not render.keeps_committed(committed, base.resize((base.width - 1, base.height)), True))
-    check("write: no recorded PNG",
-          not render.keeps_committed(work / "absent.png", base, True))
+    check("write: no recorded PNG", not render.keeps_committed(None, base, True))
     check("write: 1 pixel but a different derivation",
           not render.keeps_committed(committed, with_changed_pixels(base, 1), False))
 
@@ -196,6 +202,122 @@ def injected_ties():
         sys.stdout.write(stdout.getvalue())
 
 
+@contextlib.contextmanager
+def replaced_after_read(target: Path):
+    """render.py's read hook replaces ``target`` right after render.py first reads it:
+    a new file of the same size with one byte changed, as an editor or a checkout
+    writes it."""
+    real_hook = render._after_read
+    pending = [True]
+
+    def replace(path: Path) -> None:
+        if path == target and pending:
+            pending.clear()
+            data = path.read_bytes()
+            replacement = path.with_name(path.name + ".replacement")
+            replacement.write_bytes(data[:-1] + bytes([data[-1] ^ 1]))
+            os.replace(replacement, path)
+
+    render._after_read = replace
+    try:
+        yield
+    finally:
+        render._after_read = real_hook
+    check(f"test hook: {target.name} was replaced after render.py read it", not pending)
+
+
+def refuses(name: str, path: Path, action) -> None:
+    """``action`` refuses with a message naming ``path``."""
+    try:
+        action()
+    except RuntimeError as error:
+        check(name, path.name in str(error) and "changed" in str(error), f"error={error}")
+    else:
+        check(name, False, "render.py used the file")
+
+
+@contextlib.contextmanager
+def stubbed_render(neutral: Image.Image, during=None):
+    """render_skin_set without OpenSCAD: hashes the inputs first like the real one,
+    then returns ``neutral``, a lit copy and fixed rects. ``during`` runs inside the
+    render."""
+    real_render_skin_set = render.render_skin_set
+
+    def stub(work: Path, committed: dict | None = None) -> tuple:
+        inputs = render.input_hashes()
+        if during is not None:
+            during()
+        metadata = {**inputs, "canvas": {"w": neutral.width, "h": neutral.height},
+                    "controls": {"dpad": {"x": 1, "y": 2, "w": 3, "h": 4}},
+                    "control_views": {"dpad": "front"}, "display_rect": None, "views": {}}
+        return neutral, with_changed_pixels(neutral, 200), metadata
+
+    render.render_skin_set = stub
+    try:
+        yield
+    finally:
+        render.render_skin_set = real_render_skin_set
+
+
+def pinned_read_cases(work: Path) -> None:
+    """Every file render.py hashes and then uses is read once, through one open file
+    (tsp-h5ed.46.34): per site, the honest file is used, and a file replaced between
+    the read and its use is refused with its path."""
+    root = scratch_root(work / "pinned")
+    saved = point_render_at(root)
+    output = work / "pinned" / "semantic"
+    try:
+        with Image.open(SAMPLE_PNG) as source:
+            base = source.convert("RGB")
+        jittered = with_changed_pixels(base, 1)
+        with stubbed_render(base):
+            render.write_semantic_output(output)
+        files = (render.MODEL,) + tuple(output / name for name in OUTPUTS)
+        originals = {path: path.read_bytes() for path in files}
+        neutral, recorded = output / OUTPUTS[0], output / OUTPUTS[2]
+
+        def restore() -> None:
+            for path, data in originals.items():
+                path.write_bytes(data)
+
+        def unchanged(paths) -> bool:
+            return all(path.read_bytes() == originals[path] for path in paths)
+
+        # The recorded PNG --semantic-output keeps: decided, hashed and kept from one read.
+        sha = render.save_canonical_png(jittered, neutral, True)
+        check("keep, honest semantic-neutral.png: the kept bytes' hash is returned and the file left",
+              sha == hashlib.sha256(originals[neutral]).hexdigest() and unchanged([neutral]), sha)
+        with replaced_after_read(neutral):
+            refuses("keep, semantic-neutral.png replaced after the read: refused", neutral,
+                    lambda: render.save_canonical_png(jittered, neutral, True))
+        restore()
+
+        # semantic-model.json: --semantic-output overwrites only the file it read.
+        with stubbed_render(jittered):
+            render.write_semantic_output(output)
+        check("--semantic-output, honest semantic-model.json: written, every file as recorded",
+              unchanged(files))
+        with stubbed_render(jittered), replaced_after_read(recorded):
+            refuses("--semantic-output, semantic-model.json replaced after the read: refused",
+                    recorded, lambda: render.write_semantic_output(output))
+        check("--semantic-output refused: the replacement is left and no PNG written",
+              recorded.read_bytes() != originals[recorded] and unchanged(files[1:3]))
+        restore()
+
+        # The .scad: hashed before the render, re-hashed before anything is written.
+        def edit_model() -> None:
+            render.MODEL.write_bytes(originals[render.MODEL] + b"// edited\n")
+
+        with stubbed_render(jittered, during=edit_model):
+            refuses("--semantic-output, .scad edited during the render: refused",
+                    render.MODEL, lambda: render.write_semantic_output(output))
+        check("--semantic-output refused on the .scad: nothing written", unchanged(files[1:]))
+        restore()
+    finally:
+        for name, value in saved.items():
+            setattr(render, name, value)
+
+
 def render_pair(work: Path) -> None:
     root = scratch_root(work)
     saved = point_render_at(root)
@@ -276,6 +398,11 @@ def main() -> int:
             hermetic_cases(work)
         else:
             check("render.py has the tie-jitter canonicaliser (" + ", ".join(api) + ")", False)
+        pinned = ("read_pinned", "ensure_pinned", "input_hashes", "ensure_inputs", "_after_read")
+        if all(hasattr(render, name) for name in pinned):
+            pinned_read_cases(work)
+        else:
+            check("render.py reads each file it hashes once (" + ", ".join(pinned) + ")", False)
         render_pair(work)
 
     print()
