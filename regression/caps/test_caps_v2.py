@@ -179,6 +179,15 @@ NO_MODEL = [('[model]\nglb    = "skins/synth-clamshell/model.glb"\nframe  = "pf-
             ('[maturity]\ndeclared = "sim-ready"', "")]
 SYSTEM_UNBOUND = [('source = "gpio-keys"\nskin_part = "btn_vol_up"\n', 'source = "gpio-keys"\n'),
                   ('source = "gpio-keys"\nskin_part = "btn_vol_down"\n', 'source = "gpio-keys"\n')]
+# Minimum-spec facts (tsp-fxlsw Task 2): the shape the a133 descriptor ships.
+MEMORY_GRAPHICS = """
+[memory]
+physical_mib   = 970
+app_budget_mib = 600
+
+[graphics]
+gles_max = "3.0"
+"""
 
 CASES = [
     # ---- positive controls (beyond the untouched fixture) ----
@@ -278,6 +287,15 @@ CASES = [
     ("neg-touch-axis", [("x = { min = 0, max = 639 }", "x = { min = 639, max = 0 }")], {"E_SCREEN_TOUCH"}, None),
     ("neg-physical-zero", [("w = 150.0, h = 75.0, d = 22.0", "w = 150.0, h = 0.0, d = 22.0")],
      {"E_PHYSICAL"}, None),
+    # ---- [memory]/[graphics] minimum-spec facts (tsp-fxlsw Task 2) ----
+    ("pos-memory-graphics", [("$append", MEMORY_GRAPHICS)], POS, None),
+    ("neg-memory-budget-over-physical",
+     [("$append", MEMORY_GRAPHICS.replace("app_budget_mib = 600", "app_budget_mib = 971"))],
+     {"E_MEMORY"}, None),
+    ("neg-graphics-empty", [("$append", "\n[graphics]\n")], {"E_GRAPHICS"}, None),
+    ("neg-v2-memory-at-v1",
+     [("schema_version = 2", "schema_version = 1"), ("$append", MEMORY_GRAPHICS)],
+     {"E_V2_AT_V1"}, None),
     # ---- schema-level (structural; untagged schema errors) ----
     ("neg-schema-fourcc", [('fourcc        = "XR24"\ndiagonal_in   = 3.5\nactive_mm     = { w = 71.1, h = 53.3 }\n\n[[screens]]',
                             'fourcc        = "XR2"\ndiagonal_in   = 3.5\nactive_mm     = { w = 71.1, h = 53.3 }\n\n[[screens]]')],
@@ -285,6 +303,9 @@ CASES = [
     ("neg-schema-joint-kind", [('kind     = "hinge"', 'kind     = "telescope"')], set(), "kind"),
     ("neg-schema-joint-unknown-key", [('kind     = "hinge"', 'kind     = "hinge"\nunits    = "deg"')], set(), "units"),
     ("neg-schema-maturity-enum", [('declared = "sim-ready"', 'declared = "shipping"')], set(), "declared"),
+    ("neg-schema-graphics-gles", [("$append", '\n[graphics]\ngles_max = "9.9"\n')], set(), "gles_max"),
+    ("neg-schema-memory-unknown-key",
+     [("$append", "\n[memory]\nphysical_mib = 970\nbudget_mib     = 600\n")], set(), "budget_mib"),
 ]
 
 
@@ -462,6 +483,24 @@ def main():
               data.get("schema_version") == 2 and "model" in data and "physical" in data
               and data.get("maturity", {}).get("declared") == "sim-ready")
         check(f"{d}: derived rung is sim-ready", caps.derive_maturity(data) == "sim-ready")
+    # Minimum-spec facts (tsp-fxlsw Task 2): a133 ships [memory] + [graphics]; a523 ships
+    # only what was measured. PROVISIONAL values must name their bake-off in a TOML
+    # comment so the placeholder is traceable (no snowflakes).
+    a133 = caps._load(os.path.join(ROOT, "devices", "a133", "capabilities.toml"))
+    check("a133: [memory] physical_mib=970, app_budget_mib=600 (Task 2 minimum spec)",
+          a133.get("memory") == {"physical_mib": 970, "app_budget_mib": 600}, str(a133.get("memory")))
+    check("a133: [graphics] gles_max='3.0', no vulkan_max (PowerVR has no Vulkan here)",
+          a133.get("graphics") == {"gles_max": "3.0"}, str(a133.get("graphics")))
+    a133_text = read(os.path.join(ROOT, "devices", "a133", "capabilities.toml"))
+    check("a133: PROVISIONAL app_budget_mib comment names bake-off tsp-r45im",
+          "PROVISIONAL" in a133_text and "tsp-r45im" in a133_text)
+    check("a133: PROVISIONAL gles_max comment names GLES conformance tsp-mc9m.41.924.24.21",
+          "tsp-mc9m.41.924.24.21" in a133_text)
+    a523 = caps._load(os.path.join(ROOT, "devices", "a523", "capabilities.toml"))
+    check("a523: [memory] physical_mib=1024 only; app_budget_mib omitted (fail-closed)",
+          a523.get("memory") == {"physical_mib": 1024}, str(a523.get("memory")))
+    check("a523: no [graphics] section (GLES unverified on Mali; omission, not fabrication)",
+          "graphics" not in a523)
     rc, out, err = run("validate")
     check("bare validate (all descriptors + ci-matrix + catalog): exit 0", rc == 0, out + err)
     check("bare validate covers a133, a523, ci-matrix and the catalog",

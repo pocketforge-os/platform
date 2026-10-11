@@ -153,6 +153,9 @@ slider or the guest changes** (joint angle, lid switch value, touch points).
 | | `reachable_inputs` | | input ids still pickable; absent = all |
 | | `screen_rotation` | | `{ <screen id> = none\|cw90\|cw180\|cw270 }`, relative to the screen's declared `rotation` |
 | `[maturity]` | `declared` | ✅ | `planned`\|`model-only`\|`sim-ready` (D18), bounded by the derived rung |
+| `[memory]` | `physical_mib` | ✅ | measured MemTotal floor in MiB (tsp-fxlsw Task 2). The image renderer maps it to the platform contract's `physical_memory_mib` |
+| | `app_budget_mib` | | what an app may assume is available (≤ `physical_mib`, else `E_MEMORY`); maps to `app_memory_budget_mib`. Omit when unmeasured: apps declaring a memory requirement then fail closed (`requirement_unverifiable`) |
+| `[graphics]` | `gles_max`, `vulkan_max` | | highest supported version, from the contract vocabularies (`2.0`–`3.2` GLES, `1.0`–`1.4` Vulkan); map to `gles_max`/`vulkan_max`. An empty `[graphics]` table is `E_GRAPHICS` — omit the section instead (omission, not fabrication). Contract `inputs`/`display` facts are DERIVED from `[[inputs]]`/`[[screens]]`, never re-declared |
 
 **Posture semantics.** Postures are UI/simulator groupings over ONE joint value; hardware has
 no posture concept. In document order they must TILE the joint range exactly: the first starts
@@ -172,7 +175,8 @@ plane rather than the 3D model; `model-only` = `[model]` present with some bindi
 `E_SCREEN_ID`, `E_SCREEN_TOUCH`, `E_PHYSICAL`, `E_MODEL_SHA`, `E_MODEL_GLB`, `E_MODEL_SOURCE`,
 `E_MODEL_NODE`, `E_JOINT_DUPLICATE` (id or pivot node), `E_JOINT_NODE`, `E_JOINT_AXIS`,
 `E_JOINT_RANGE`, `E_JOINT_REF` (parent, sensor), `E_JOINT_SWITCH`, `E_JOINT_DRIVE`,
-`E_POSTURE_TILING`, `E_POSTURE_DUPLICATE`, `E_POSTURE_REF`, `E_MATURITY_EXCEEDS`.
+`E_POSTURE_TILING`, `E_POSTURE_DUPLICATE`, `E_POSTURE_REF`, `E_MATURITY_EXCEEDS`, `E_MEMORY`,
+`E_GRAPHICS`.
 
 Not in v2 yet: `EV_SW`/`EV_REL` `[[inputs]]` rows (switch/wheel kinds). The simulator's input
 synthesiser rejects `EV_SW` today, so these wait for its v2 (D8). A lid switch is expressed on

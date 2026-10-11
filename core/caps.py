@@ -160,7 +160,7 @@ SW_CODES = {
 # descriptor (every one shipped before v2, and every collector-emitted candidate) is untouched.
 # ---------------------------------------------------------------------------
 SCHEMA_VERSION_MAX = 2
-V2_TOP_KEYS = ("physical", "model", "joints", "maturity")
+V2_TOP_KEYS = ("physical", "model", "joints", "maturity", "memory", "graphics")
 V2_SCREEN_KEYS = ("id", "node", "panel_px", "fourcc", "diagonal_in", "active_mm", "touch")
 V2_SENSOR_KINDS = ("hinge_angle",)
 JOINT_UNITS = {"hinge": "deg", "swivel": "deg", "slide": "mm"}  # documented; units follow kind
@@ -617,6 +617,23 @@ def v2_semantic_errors(data):
             errs.append(f"E_PHYSICAL [physical].envelope_mm {', '.join(bad)} must be > 0 mm")
         if "mass_g" in phys and not phys["mass_g"] > 0:
             errs.append("E_PHYSICAL [physical].mass_g must be > 0 (omit it when unmeasured)")
+
+    # [memory]: minimum-spec facts (tsp-fxlsw Task 2). physical_mib is the measured MemTotal
+    # floor; app_budget_mib is what an app may assume is available, so it can never exceed
+    # physical_mib. The image renderer maps these onto the platform contract's schema-2
+    # physical_memory_mib / app_memory_budget_mib fields.
+    mem = data.get("memory")
+    if mem:
+        budget = mem.get("app_budget_mib")
+        if budget is not None and budget > mem.get("physical_mib", 0):
+            errs.append(f"E_MEMORY [memory].app_budget_mib {budget} exceeds physical_mib "
+                        f"{mem.get('physical_mib', 0)}")
+
+    # [graphics]: the version vocabularies are schema-enforced enums; an empty table declares
+    # nothing and hides the omission, so it is an error (omit the whole section instead).
+    if "graphics" in data and not data.get("graphics"):
+        errs.append("E_GRAPHICS [graphics] is empty (declare gles_max/vulkan_max, or omit the "
+                    "whole section)")
 
     # [model]: the glb exists and parses; under pf-semantic-v1 every bound name is a glb node.
     model = data.get("model")

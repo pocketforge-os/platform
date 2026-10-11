@@ -365,11 +365,47 @@ class ProfileTest(unittest.TestCase):
     def test_platform_support_schema_is_exact_and_runtime_known(self):
         schema = json.loads(pathlib.Path(profile.PLATFORM_SUPPORT_SCHEMA).read_text())
         self.assertFalse(schema["additionalProperties"])
-        self.assertEqual(schema["properties"]["schema_version"]["const"], 1)
+        # tsp-fxlsw Task 2: the contract schema admits version 1 OR 2 (was const 1).
+        self.assertEqual(schema["properties"]["schema_version"]["enum"], [1, 2])
         self.assertEqual(set(schema["required"]), set(APP_RUNTIME))
         known = schema["properties"]["supported_capabilities"]["items"]["enum"]
         self.assertEqual(known, sorted(set(known)))
         self.assertTrue(set(APP_RUNTIME["supported_capabilities"]).issubset(known))
+
+    def test_platform_support_schema_2_facts_mirror_the_runtime_contract(self):
+        # tsp-fxlsw Task 2: schema 2 adds six OPTIONAL facts, mirroring runtime@939ee0e6
+        # crates/pf-app-manifest PlatformContract field for field (u32 domains, the
+        # KNOWN_GLES_VERSIONS / KNOWN_VULKAN_VERSIONS / KNOWN_INPUTS vocabularies, and
+        # DisplaySize {width, height}). The runtime parser owns the per-version discipline
+        # (schema 1 must declare none of these; schema 2 requires the four non-graphics
+        # facts), so the JSON schema keeps every one of them optional.
+        schema = json.loads(pathlib.Path(profile.PLATFORM_SUPPORT_SCHEMA).read_text())
+        props = schema["properties"]
+        optional_v2 = ("physical_memory_mib", "app_memory_budget_mib",
+                       "gles_max", "vulkan_max", "inputs", "display")
+        for key in optional_v2:
+            self.assertIn(key, props)
+            self.assertNotIn(key, schema["required"])
+        u32 = {"type": "integer", "minimum": 0, "maximum": 4294967295}
+        self.assertEqual(props["physical_memory_mib"], u32)
+        self.assertEqual(props["app_memory_budget_mib"], u32)
+        self.assertEqual(props["gles_max"], {"type": "string", "enum": ["2.0", "3.0", "3.1", "3.2"]})
+        self.assertEqual(props["vulkan_max"],
+                         {"type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4"]})
+        self.assertEqual(props["inputs"], {
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "enum": ["buttons", "dpad", "stick", "two_sticks", "touch", "keyboard", "pointer"],
+            },
+        })
+        self.assertEqual(props["display"], {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["width", "height"],
+            "properties": {"width": u32, "height": u32},
+        })
 
     def test_dev_only_source_shas_are_empty_only_for_release(self):
         dev, _, dev_missing = profile.build_args("a133", "dev")
