@@ -32,6 +32,7 @@ REQUIRED = {
     "text": {"bind", "max_chars"}, "link": {"page"}, "progress": {"bind"},
     "binding": {"context", "action"}, "date_time": {"bind"}, "custom": {"renderer"},
 }
+SCHEMA_NAMES = {kind: ("dateTime" if kind == "date_time" else kind) for kind in FIELDS}
 
 
 class Invalid(ValueError):
@@ -91,6 +92,36 @@ def item(value: Any, path: str) -> None:
         need(isinstance(value.get("step", 1), int) and value.get("step", 1) > 0, path, "step must be positive")
 
 
+def validate_schema_contract(schema: Any) -> None:
+    """Prove the published schema and this dependency-free evaluator describe one surface."""
+    path = str(SCHEMA)
+    need(isinstance(schema, dict), path, "schema must be an object")
+    need(schema.get("$schema") == "https://json-schema.org/draft/2020-12/schema", path, "wrong JSON Schema draft")
+    need(schema.get("additionalProperties") is False, path, "top level must be closed")
+    need(set(schema.get("required", ())) == {"format", "id", "root", "pages"}, path, "top-level required fields drifted")
+    defs = schema.get("$defs")
+    need(isinstance(defs, dict), path, "missing $defs")
+    common = defs.get("itemCommon", {})
+    need(set(common.get("required", ())) == {"id", "kind", "label"}, f"{path}#/$defs/itemCommon", "required fields drifted")
+    need(set(common.get("properties", {})) == COMMON, f"{path}#/$defs/itemCommon", "common fields drifted")
+
+    refs = defs.get("item", {}).get("oneOf", [])
+    actual_refs = {entry.get("$ref", "").removeprefix("#/$defs/") for entry in refs if isinstance(entry, dict)}
+    need(actual_refs == set(SCHEMA_NAMES.values()), f"{path}#/$defs/item", "kind references drifted")
+    for kind, schema_name in SCHEMA_NAMES.items():
+        variant = defs.get(schema_name)
+        vpath = f"{path}#/$defs/{schema_name}"
+        need(isinstance(variant, dict) and variant.get("unevaluatedProperties") is False, vpath, "kind must be closed")
+        all_of = variant.get("allOf")
+        need(isinstance(all_of, list) and len(all_of) == 2, vpath, "kind must combine common and specific fields")
+        need(all_of[0] == {"$ref": "#/$defs/itemCommon"}, vpath, "common item reference drifted")
+        specific = all_of[1]
+        properties = specific.get("properties", {})
+        need(properties.get("kind", {}).get("const") == kind, vpath, "kind tag drifted")
+        need(set(properties) == {"kind"} | FIELDS[kind], vpath, "kind fields drifted")
+        need(set(specific.get("required", ())) == REQUIRED.get(kind, set()), vpath, "required fields drifted")
+
+
 def validate(document: Any) -> None:
     need(isinstance(document, dict), "$", "document must be an object")
     need(set(document) == {"format", "id", "root", "pages"}, "$", "invalid top-level fields")
@@ -130,7 +161,7 @@ def validate(document: Any) -> None:
 
 def main() -> None:
     schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
-    need(schema.get("$schema") == "https://json-schema.org/draft/2020-12/schema", str(SCHEMA), "wrong JSON Schema draft")
+    validate_schema_contract(schema)
     files = sorted(FIXTURES.glob("*.json"))
     need(bool(files), str(FIXTURES), "no fixtures")
     for fixture in files:

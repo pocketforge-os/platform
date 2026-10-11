@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from validate import Invalid, validate
+from validate import Invalid, SCHEMA, validate, validate_schema_contract
 
 
 class MenuPageValidationTest(unittest.TestCase):
@@ -29,6 +29,15 @@ class MenuPageValidationTest(unittest.TestCase):
         invalid["pages"][0]["sections"][0]["items"][3]["page"] = "missing"
         with self.assertRaises(Invalid):
             validate(invalid)
+
+    def test_schema_matches_the_semantic_validator(self):
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        validate_schema_contract(schema)
+
+        invalid = copy.deepcopy(schema)
+        invalid["$defs"]["toggle"]["allOf"][1]["required"] = []
+        with self.assertRaises(Invalid):
+            validate_schema_contract(invalid)
 
 
 if __name__ == "__main__":
