@@ -34,6 +34,19 @@ declared = "sim-ready"           # derived: [model] present, every screen has a 
 [physical]
 envelope_mm = { w = 188.35, h = 79.77, d = 17.0 }   # device-models/trimui-smart-pro/trimui-smart-pro.scad envelope
 
+# Minimum-spec facts (tsp-fxlsw Task 2): the image renderer derives the platform-contract
+# schema-2 fields from here. Contract inputs/display are derived from [[inputs]]/[[screens]]
+# below, never re-declared.
+[memory]
+physical_mib   = 970   # MemTotal floor: 997,816 kB stock probe (hardware-firmware-probes.md §3);
+                       # the design capture was 993,636 kB — the lower figure is the fail-safe
+app_budget_mib = 600   # PROVISIONAL until bake-off tsp-r45im measures the session reserve;
+                       # apps declaring more are refused (insufficient_memory)
+
+[graphics]
+gles_max = "3.0"       # PROVISIONAL until GLES conformance run tsp-mc9m.41.924.24.21;
+                       # vulkan_max omitted — no Vulkan on this PowerVR stack (omission, not fabrication)
+
 [model]
 glb    = "skins/a133/model.glb"
 frame  = "pf-mm-v1"

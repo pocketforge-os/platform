@@ -35,6 +35,15 @@ declared = "sim-ready"           # derived: [model] present, every screen has a 
 [physical]
 envelope_mm = { w = 188.35, h = 79.77, d = 17.0 }   # device-models/trimui-smart-pro-s/trimui-smart-pro-s.scad envelope
 
+# Minimum-spec facts (tsp-fxlsw Task 2): the image renderer derives the platform-contract
+# schema-2 fields from here. app_budget_mib is omitted (session reserve unmeasured) and there is
+# no [graphics] section (GLES unverified on this Mali) — apps declaring those facts fail closed
+# with requirement_unverifiable. Omission, not fabrication.
+[memory]
+physical_mib = 962    # measured MemTotal floor: 986,008 kB on TrimUI Smart Pro S / a523
+                      # (mission-control logs/pros-probe-20260619T192246.log §MEMORY,
+                      # kernel 5.15.147) = 962.9 MiB, floored
+
 [model]
 glb    = "skins/a523/model.glb"
 frame  = "pf-mm-v1"

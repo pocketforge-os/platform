@@ -13,6 +13,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("pf_profile", ROOT / "core/profile.py")
 profile = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(profile)
+caps_spec = importlib.util.spec_from_file_location("pf_caps", ROOT / "core/caps.py")
+caps = importlib.util.module_from_spec(caps_spec)
+caps_spec.loader.exec_module(caps)
 
 APP_RUNTIME = {
     "schema_version": 1,
@@ -365,11 +368,102 @@ class ProfileTest(unittest.TestCase):
     def test_platform_support_schema_is_exact_and_runtime_known(self):
         schema = json.loads(pathlib.Path(profile.PLATFORM_SUPPORT_SCHEMA).read_text())
         self.assertFalse(schema["additionalProperties"])
-        self.assertEqual(schema["properties"]["schema_version"]["const"], 1)
+        # tsp-fxlsw Task 2: the contract schema admits version 1 OR 2 (was const 1).
+        self.assertEqual(schema["properties"]["schema_version"]["enum"], [1, 2])
         self.assertEqual(set(schema["required"]), set(APP_RUNTIME))
         known = schema["properties"]["supported_capabilities"]["items"]["enum"]
         self.assertEqual(known, sorted(set(known)))
         self.assertTrue(set(APP_RUNTIME["supported_capabilities"]).issubset(known))
+
+    def test_platform_support_schema_2_facts_mirror_the_runtime_contract(self):
+        # tsp-fxlsw Task 2: schema 2 adds six OPTIONAL facts, mirroring runtime@939ee0e6
+        # crates/pf-app-manifest PlatformContract field for field (u32 domains, the
+        # KNOWN_GLES_VERSIONS / KNOWN_VULKAN_VERSIONS / KNOWN_INPUTS vocabularies, and
+        # DisplaySize {width, height}). The runtime parser owns the per-version discipline
+        # (schema 1 must declare none of these; schema 2 requires the four non-graphics
+        # facts), so the JSON schema keeps every one of them optional.
+        schema = json.loads(pathlib.Path(profile.PLATFORM_SUPPORT_SCHEMA).read_text())
+        props = schema["properties"]
+        optional_v2 = ("physical_memory_mib", "app_memory_budget_mib",
+                       "gles_max", "vulkan_max", "inputs", "display")
+        for key in optional_v2:
+            self.assertIn(key, props)
+            self.assertNotIn(key, schema["required"])
+        u32 = {"type": "integer", "minimum": 0, "maximum": 4294967295}
+        self.assertEqual(props["physical_memory_mib"], u32)
+        self.assertEqual(props["app_memory_budget_mib"], u32)
+        self.assertEqual(props["gles_max"], {"type": "string", "enum": ["2.0", "3.0", "3.1", "3.2"]})
+        self.assertEqual(props["vulkan_max"],
+                         {"type": "string", "enum": ["1.0", "1.1", "1.2", "1.3", "1.4"]})
+        self.assertEqual(props["inputs"], {
+            "type": "array",
+            "uniqueItems": True,
+            "items": {
+                "type": "string",
+                "enum": ["buttons", "dpad", "stick", "two_sticks", "touch", "keyboard", "pointer"],
+            },
+        })
+        self.assertEqual(props["display"], {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["width", "height"],
+            "properties": {"width": u32, "height": u32},
+        })
+        # The per-version discipline is expressed as conditional branches that mirror
+        # parse_platform_contract: schema 1 forbids every v2 fact; schema 2 requires the
+        # four non-graphics facts (gles_max/vulkan_max stay optional at both versions).
+        v1_branch, v2_branch = schema["allOf"]
+        self.assertEqual(v1_branch["if"], {"required": ["schema_version"],
+                                           "properties": {"schema_version": {"const": 1}}})
+        self.assertEqual(v1_branch["then"]["properties"], {k: False for k in optional_v2})
+        self.assertEqual(v2_branch["if"], {"required": ["schema_version"],
+                                           "properties": {"schema_version": {"const": 2}}})
+        self.assertEqual(v2_branch["then"]["required"],
+                         ["physical_memory_mib", "app_memory_budget_mib", "inputs", "display"])
+
+    def test_platform_support_schema_branches_accept_exactly_the_runtime_contract(self):
+        # tsp-fxlsw Task 2 (review round 1): the published schema must accept exactly the
+        # documents runtime@939ee0e6 parse_platform_contract accepts. Positive and negative
+        # controls are judged by the repo's own JSON-Schema engine in this single run.
+        schema = json.loads(pathlib.Path(profile.PLATFORM_SUPPORT_SCHEMA).read_text())
+
+        def errs(doc):
+            return caps.schema_errors(doc, schema)
+
+        v1 = dict(APP_RUNTIME)
+        v2 = dict(APP_RUNTIME, schema_version=2, physical_memory_mib=970,
+                  app_memory_budget_mib=600, gles_max="3.0",
+                  inputs=["buttons", "dpad", "stick", "two_sticks"],
+                  display={"width": 1280, "height": 720})
+        # Positive controls: a v1 doc, a v2 doc, and v2 with both optional graphics facts.
+        self.assertEqual(errs(v1), [])
+        self.assertEqual(errs(v2), [])
+        self.assertEqual(errs(dict(v2, vulkan_max="1.3")), [])
+        # Negative controls: every v2-only fact is forbidden at schema 1, by name.
+        forbidden_values = {"physical_memory_mib": 970, "app_memory_budget_mib": 600,
+                            "gles_max": "3.0", "vulkan_max": "1.3", "inputs": ["buttons"],
+                            "display": {"width": 640, "height": 480}}
+        for field, value in forbidden_values.items():
+            with self.subTest(forbidden_at_v1=field):
+                got = errs(dict(v1, **{field: value}))
+                self.assertTrue(got and any(field in e for e in got), got)
+        # Negative controls: every fact required at schema 2 is enforced, by name.
+        for field in ("physical_memory_mib", "app_memory_budget_mib", "inputs", "display"):
+            with self.subTest(required_at_v2=field):
+                doc = {k: val for k, val in v2.items() if k != field}
+                got = errs(doc)
+                self.assertTrue(got and any(field in e for e in got), got)
+        # Negative controls: version and vocabulary discipline.
+        self.assertTrue(any("schema_version" in e for e in errs(dict(v1, schema_version=3))))
+        # JSON-Schema equality is type-aware: `true` is not 1 (Python's == disagrees), so a
+        # boolean schema_version must not satisfy enum [1, 2] nor select the v1 const branch.
+        self.assertTrue(any("schema_version" in e for e in errs(dict(v1, schema_version=True))))
+        self.assertTrue(any("gles_max" in e for e in errs(dict(v2, gles_max="9.9"))))
+        self.assertTrue(any("vulkan_max" in e for e in errs(dict(v2, vulkan_max="0.9"))))
+        self.assertTrue(any("inputs" in e for e in errs(dict(v2, inputs=["buttons", "turbo"]))))
+        self.assertTrue(any("inputs" in e for e in errs(dict(v2, inputs=["buttons", "buttons"]))))
+        self.assertTrue(any("display" in e for e in errs(dict(v2, display={"width": 1280}))))
+        self.assertTrue(any("bogus" in e for e in errs(dict(v1, bogus=1))))
 
     def test_dev_only_source_shas_are_empty_only_for_release(self):
         dev, _, dev_missing = profile.build_args("a133", "dev")
