@@ -306,17 +306,21 @@ class ProfileTest(unittest.TestCase):
         # missing pins are unchanged.
         # tsp-ihne1.33 (cr-symbols) moves only PF_IMAGE_SHA (image#225 merge
         # 60bde8ff) on every row; keys, lock state, and missing pins are unchanged.
+        # The same bead's image#221 co-pins move PF_RUNTIME_SHA (runtime#108
+        # de890215) on every row and PF_LAUNCHER_SHA (launcher#154 95302865) on
+        # the open rows that stage it; keys, lock state, and missing pins are
+        # unchanged.
         expected = {
-            ("a133", "dev"): "64c5c9d5923d76a90df863bd1b31164691bc342080db4d2e246da9cce9268a4e",
-            ("a133", "release"): "5c3f9dfcd84437e818b7191338cbb8625ff4477b89b0aa18d470c06478685243",
-            ("a133-open-7x", "dev"): "bacc90faf8ae9d6a935491484e9310b77a9a55a54719594c5062669666234338",
-            ("a133-open-7x", "release"): "029a669339905d4dc928c8cf4689ef7ee55ba48b40c30d8d3bb3b6a7ccb63309",
-            ("a133-owned", "dev"): "e8412b02adeea1e143bacdc1d07e1c0e94af48f227edce9bc96608b910568b6c",
-            ("a133-owned", "release"): "2fd35bf0542fc8de8be5f0d07dff09d573c272a60db0db186f8f7c2c767f7f31",
-            ("a523", "dev"): "226a008df86e37373cb9094325df1e5d743e6d64d51f7c8b44f8a6e5f4e13d06",
-            ("a523", "release"): "e7652039053952f94f0a9c9e7612d25b8f8a9f7c08a5ca51b194033f2dc1c9c8",
-            ("sdm845", "dev"): "bd8d81f71e6d2cb04533fcae3089ebef431be9704679e52e749f7b13bece27aa",
-            ("sdm845", "release"): "39c9a185d3994ab2228950568a16692f3bb195382eaa54cbb0ee7974eed41222",
+            ("a133", "dev"): "aa601d19f5e4ebbec0004e42069d242049f51dfdc75be1140f613982bab4c483",
+            ("a133", "release"): "a08aff0a19f50a128617fe8809e05153f2506890b719ec4d0dd22864e3c20c3c",
+            ("a133-open-7x", "dev"): "a13fcb81eb24d43bff8497747f062e2c283e32053155065c58811fdec471e57b",
+            ("a133-open-7x", "release"): "9bebf9758d4ae78ed18594f47122bba462a8a5b315307a7c396febaaa829eee7",
+            ("a133-owned", "dev"): "490df5b763d4cf7c244406063c8680c083d2599ca2d477bf67104195c96f7d94",
+            ("a133-owned", "release"): "8e53fe5ed32fd663df76beead2913dc99dd5392030de0f38911c50f26a8ff2d6",
+            ("a523", "dev"): "40c3b55985fc115e34912e51e013c303fdefe734c3a257bc51c0c3bae1ac33f2",
+            ("a523", "release"): "a389e421d79f8a337391670b5a6b73dd8cf7935b72b5bf37431e3c89d774fbb1",
+            ("sdm845", "dev"): "4bc34e31fd6b93b2eebf6b1d4c84dfa02abbf0b8d6bb77145292b8d902ef7833",
+            ("sdm845", "release"): "3d2ce66e86395d0e33d90e485dbb78ccbe958ffac9fa427023601d1503569e23",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -504,7 +508,7 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "95302865bc584ce5e1c96e09df387aa5f58455f6")
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
@@ -576,7 +580,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
-        self.assertEqual(args["PF_LAUNCHER_SHA"], "73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], "95302865bc584ce5e1c96e09df387aa5f58455f6")
         self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
         self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
         self.assertEqual(
