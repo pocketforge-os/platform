@@ -307,17 +307,19 @@ class ProfileTest(unittest.TestCase):
         # Build 8 (tsp-mc9m.41.996.13) advances PF_IMAGE_SHA and PF_CLOUD_INIT_SHA
         # globally. Runtime and launcher move only on profiles that stage those
         # open-GPU inputs.
+        # The tsp-mc9m.41.1002.7.2 Build 8 finalizer repair advances only the
+        # universal PF_CLOUD_INIT_SHA; image, runtime, and launcher stay pinned.
         expected = {
-            ("a133", "dev"): "50f3edb7080e840702fd30f1b2401bf4f0c100d1294237c27da46a8c90062a81",
-            ("a133", "release"): "b6954ecc2a93612f7c92756c3251376e3036a4f716196f6117918f4a2247628d",
-            ("a133-open-7x", "dev"): "df1fccad1d84daa8538390bf9fbb1f8a1cd10ad5fad5f08b3a9013dbff3b9cb0",
-            ("a133-open-7x", "release"): "b5a5a88a074045fc0b2fe098bf17d9b0415c600074469d3dd333f1e48d6d4ec0",
-            ("a133-owned", "dev"): "6b364049097c6dd7aa9c3ae336cb271ba62bfa865236abd911e810e1642fbc9e",
-            ("a133-owned", "release"): "b6625b2072514bef3fd8fab19950d4fb5e5d4a315646ccdc4c75a68bd9588f81",
-            ("a523", "dev"): "0addefd6a386273881e5387e196a6d12914618dc46d70f3e5971218fcdf4ef53",
-            ("a523", "release"): "568e20d0852a004adf9e07c6cf44546bcefeef4a8acdb9d325d0b018fbf5ae51",
-            ("sdm845", "dev"): "58edf55e98d056a948467bb937aba5cd8f1d47b5c887407f7fd1ba7dec310186",
-            ("sdm845", "release"): "8c90f3b35a6d9353d569679218a78b719a7cdcf4410636c519e3c09a5aff03ed",
+            ("a133", "dev"): "96044cc78f0f1145d39b87b46a230c6d496760b1cf0454aabb453f0a96c6da9d",
+            ("a133", "release"): "0f80986b5c91e668bd4e2d97628dd9a97ba9541ac6223f9fddfeee169619a097",
+            ("a133-open-7x", "dev"): "26ddb24c7eb48c5752764d96ef195a1637a8b582ddcaaed4dbab062db2d28c4e",
+            ("a133-open-7x", "release"): "2b910998e8260832bd8308af5ce10995070ffc32ae6f0154713902243dc3572c",
+            ("a133-owned", "dev"): "c2c434ee8375d2a6a9ccc58278705fa904aae42ddb29d56df52f3652b18e512a",
+            ("a133-owned", "release"): "00603dec56d1cbee2961c976bc96d47099603c088e9c48915452cec07dc88430",
+            ("a523", "dev"): "8d66be2eab29dbbd931cb5eb0199fc5c3cf961cb336ec8d0f3f611552a308855",
+            ("a523", "release"): "f652c3bc5b83f2f509db4953e011352379cb8098e783ff5a0190b0e01531183c",
+            ("sdm845", "dev"): "c92ed529554332d7ece8b0fda3c9f34ce5c48f2c4a8015040807915296f15ce3",
+            ("sdm845", "release"): "b0205a37da14a792faa1756cdbbbdb98531862fabf84e72eacbe5db1568138a1",
         }
         for key, digest in expected.items():
             dev_id, variant = key

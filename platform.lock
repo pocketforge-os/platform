@@ -144,8 +144,11 @@ name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
 ref  = "main"          # tsp-mc9m.41.996.13 Build 8: image#233 (merge dc7992e0) refreshes the
                        # launcher/runtime co-pin guard to launcher#156/runtime#119, carries the
-                       # gamescope#10 producer witness, and requires cloud-init-tsp#13. These
-                       # four guarded inputs move atomically below. Previous pin
+                       # gamescope#10 producer witness, and accepts the lock-selected cloud-init
+                       # source through its generic PF_CLOUD_INIT_SHA receipt guard. The
+                       # tsp-mc9m.41.1002.7.2 finalizer repair advances only cloud-init-tsp below;
+                       # image, launcher, and runtime remain at this compatible generation.
+                       # Previous pin
                        # (67aaa529df41501b5f5cec515106a713b9d3af73): image#220's preference-
                        # authority boundary plus image#221's System Menu lane.
                        # Earlier pin (b7901079b12c71d179a5c6b58a46dc757246a900):
@@ -1341,11 +1344,14 @@ sha  = "0d483c38a1e67543022c51244dd2437cd71332d6"
 [[repos]]
 name = "cloud-init-tsp"  # canonical/cloud-init 26.2 plus PocketForge's strict local
 url  = "https://github.com/pocketforge-os/cloud-init-tsp.git"  # NoCloud seed policy.
-ref  = "pocketforge-main"  # tsp-mc9m.41.996.13 Build 8: cloud-init-tsp#13 (merge a85ca5bd)
-                           # is the cloud-init half of image#233's exact co-pin guard. Previous
-                           # pin (43d184bfa1a55d6d120b1191b7e0fb32b7d42a3c): cloud-init-tsp#11
-                           # rootfs growth and growpart runtime dependency.
-sha  = "a85ca5bd72ddf1d5f567f97ae96ebdeb928cd379"
+ref  = "pocketforge-main"  # tsp-mc9m.41.1002.7.2 Build 8: cloud-init-tsp#14 (merge db8deddc)
+                           # remounts an already-mounted read-only seed writable only during
+                           # finalization, then restores read-only state on success or failure.
+                           # Image dc7992e0 consumes this exact lock-selected SHA generically;
+                           # launcher 8209c392 and runtime b289235d therefore remain unchanged.
+                           # Previous pin (a85ca5bd72ddf1d5f567f97ae96ebdeb928cd379):
+                           # cloud-init-tsp#13, originally paired with image#233.
+sha  = "db8deddc5f0a3f0ff70a6f152d777e30d2e7fc44"
 
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
