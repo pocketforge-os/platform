@@ -1,0 +1,5 @@
+{
+  "expected_reason": "unsupported",
+  "description": "v encoded as half-float 1.0",
+  "cbor_hex": "a16176f93c00"
+}

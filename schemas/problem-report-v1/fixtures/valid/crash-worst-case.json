@@ -1,0 +1,219 @@
+{
+  "report": {
+    "v": 1,
+    "kind": "crash",
+    "how": "SIGABRT",
+    "day": "2099-12-31",
+    "build": "ffffffffffff",
+    "model": "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "uptime": "10-60m",
+    "del": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "app": {
+      "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "ver": "123456789.123456789.123456789.12",
+      "origin": "image"
+    },
+    "session": "10-60m",
+    "mem": {
+      "pressure": true,
+      "oom": true
+    },
+    "frames": [
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ],
+      [
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        281474976710655
+      ]
+    ],
+    "panic_at": "crates/pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp.rs:99999:999"
+  },
+  "bytes": 2709,
+  "cbor_hex": "ad61760163617070a362696478c86161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161612e626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626376657278203132333435363738392e3132333435363738392e3132333435363738392e3132666f726967696e65696d616765636461796a323039392d31322d33316364656c5820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff63686f776753494741425254636d656da2636f6f6df5687072657373757265f5646b696e64656372617368656275696c646c666666666666666666666666656d6f64656c78206d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d666672616d65739830825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff825820ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff1b0000ffffffffffff66757074696d656631302d36306d6773657373696f6e6631302d36306d6870616e69635f617478806372617465732f7070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070707070702e72733a39393939393a393939"
+}

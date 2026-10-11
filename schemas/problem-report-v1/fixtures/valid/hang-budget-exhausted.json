@@ -1,0 +1,26 @@
+{
+  "report": {
+    "v": 1,
+    "kind": "hang",
+    "how": "stop-timeout",
+    "day": "2026-10-10",
+    "build": "3fa9c2e17b04",
+    "model": "trimui-smart-pro",
+    "app": {
+      "id": "org.example.racer",
+      "ver": "1.4.2",
+      "origin": "catalog"
+    },
+    "uptime": "10-60m",
+    "session": "1-10m",
+    "mem": {
+      "pressure": true,
+      "oom": false
+    },
+    "frames": [],
+    "del": "5d1a9c7e3b2f4a6081c0e9d7b5a3f1e2c4d6b8a0f2e4c6a8b0d2f4e6a8c0e2f4",
+    "samples": []
+  },
+  "bytes": 242,
+  "cbor_hex": "ad61760163617070a3626964716f72672e6578616d706c652e72616365726376657265312e342e32666f726967696e67636174616c6f67636461796a323032362d31302d31306364656c58205d1a9c7e3b2f4a6081c0e9d7b5a3f1e2c4d6b8a0f2e4c6a8b0d2f4e6a8c0e2f463686f776c73746f702d74696d656f7574636d656da2636f6f6df4687072657373757265f5646b696e646468616e67656275696c646c336661396332653137623034656d6f64656c707472696d75692d736d6172742d70726f666672616d65738066757074696d656631302d36306d6773616d706c6573806773657373696f6e65312d31306d"
+}

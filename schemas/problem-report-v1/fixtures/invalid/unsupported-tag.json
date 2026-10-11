@@ -1,0 +1,5 @@
+{
+  "expected_reason": "unsupported",
+  "description": "a tagged item (tag 1, epoch time) as a field value",
+  "cbor_hex": "a16176c11a6720c800"
+}

@@ -1,0 +1,50 @@
+{
+  "expected_reason": "grammar",
+  "description": "a version string with free text",
+  "report": {
+    "v": 1,
+    "kind": "crash",
+    "how": "SIGSEGV",
+    "day": "2026-10-10",
+    "build": "3fa9c2e17b04",
+    "model": "trimui-smart-pro",
+    "app": {
+      "id": "org.example.racer",
+      "ver": "1.2-beta (Matt's build)",
+      "origin": "catalog"
+    },
+    "uptime": "10-60m",
+    "session": "1-10m",
+    "mem": {
+      "pressure": false,
+      "oom": false
+    },
+    "frames": [
+      [
+        {
+          "$bytes": "8f3a1c0de4b5a6978877665544332211aabbccdd"
+        },
+        107188
+      ],
+      [
+        {
+          "$bytes": "8f3a1c0de4b5a6978877665544332211aabbccdd"
+        },
+        106240
+      ],
+      [
+        null,
+        null
+      ],
+      [
+        {
+          "$bytes": "1122334455667788"
+        },
+        34832
+      ]
+    ],
+    "del": {
+      "$bytes": "5d1a9c7e3b2f4a6081c0e9d7b5a3f1e2c4d6b8a0f2e4c6a8b0d2f4e6a8c0e2f4"
+    }
+  }
+}

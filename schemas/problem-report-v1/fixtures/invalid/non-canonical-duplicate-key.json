@@ -1,0 +1,5 @@
+{
+  "expected_reason": "non-canonical",
+  "description": "the key v twice",
+  "cbor_hex": "a2617601617601"
+}

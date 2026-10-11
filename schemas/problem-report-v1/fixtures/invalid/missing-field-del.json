@@ -1,0 +1,47 @@
+{
+  "expected_reason": "missing-field",
+  "description": "no deletion token hash",
+  "report": {
+    "v": 1,
+    "kind": "crash",
+    "how": "SIGSEGV",
+    "day": "2026-10-10",
+    "build": "3fa9c2e17b04",
+    "model": "trimui-smart-pro",
+    "app": {
+      "id": "org.example.racer",
+      "ver": "1.4.2",
+      "origin": "catalog"
+    },
+    "uptime": "10-60m",
+    "session": "1-10m",
+    "mem": {
+      "pressure": false,
+      "oom": false
+    },
+    "frames": [
+      [
+        {
+          "$bytes": "8f3a1c0de4b5a6978877665544332211aabbccdd"
+        },
+        107188
+      ],
+      [
+        {
+          "$bytes": "8f3a1c0de4b5a6978877665544332211aabbccdd"
+        },
+        106240
+      ],
+      [
+        null,
+        null
+      ],
+      [
+        {
+          "$bytes": "1122334455667788"
+        },
+        34832
+      ]
+    ]
+  }
+}
