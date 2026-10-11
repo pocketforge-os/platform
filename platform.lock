@@ -142,10 +142,12 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.996.13 Build 8: image#233 (merge dc7992e0) refreshes the
-                       # launcher/runtime co-pin guard to launcher#156/runtime#119, carries the
-                       # gamescope#10 producer witness, and accepts the lock-selected cloud-init
-                       # source through its generic PF_CLOUD_INIT_SHA receipt guard. The
+ref  = "main"          # tsp-mc9m.41.996.13 Build 8: image#235 (merge c4ab729e) accepts platform
+                       # descriptor v3's unchanged v2 device facts, on top of image#233 (merge
+                       # dc7992e0), which refreshes the launcher/runtime co-pin guard to
+                       # launcher#156/runtime#119, carries the gamescope#10 producer witness,
+                       # and accepts the lock-selected cloud-init source through its generic
+                       # PF_CLOUD_INIT_SHA receipt guard. The
                        # tsp-mc9m.41.1002.7.2 finalizer repair advances only cloud-init-tsp below;
                        # image, launcher, and runtime remain at this compatible generation.
                        # Previous pin
@@ -600,7 +602,7 @@ ref  = "main"          # tsp-mc9m.41.996.13 Build 8: image#233 (merge dc7992e0) 
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "dc7992e0bb5ec70af1ff3f45f21cd5afc20b52e3"
+sha  = "c4ab729ebe18a7ebf6805452d639204d24c08cb2"
 
 [[repos]]
 name = "gamescope"
