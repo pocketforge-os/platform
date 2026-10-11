@@ -112,7 +112,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(resolved, expected)
 
     def test_gamescope_source_tree_digest_is_required_lowercase_and_emitted(self):
-        expected = "e4e22746b20841f130b29c9a6c7061f45701e5a844cef282cec486ca1fce90bf"
+        expected = "c4c21e8dc03651872d1ce0419646e26a1c3d09eb0d555851d6276681e5e59d51"
         resolved, _ = profile.resolve("a133-open-7x-gpu")
         self.assertEqual(resolved["gamescope"]["source_tree_sha256"], expected)
         args, _, missing = profile.build_args("a133-open-7x-gpu")
@@ -298,17 +298,20 @@ class ProfileTest(unittest.TestCase):
         # The tsp-mc9m.41.1002.8.6 cloud-init completion pin moves only the universal
         # PF_CLOUD_INIT_SHA on every row; keys, lock state, and missing pins are unchanged.
         # Its c4377732 security correction again moves only PF_CLOUD_INIT_SHA.
+        # Build 7 (tsp-mc9m.41.1017) moves PF_IMAGE_SHA and PF_CLOUD_INIT_SHA on every
+        # row and PF_POOLSUITE_SHA on the dev rows that stage it; keys, lock state, and
+        # missing pins are unchanged.
         expected = {
-            ("a133", "dev"): "8a7711d1574ada423e85fb78bc279aaacbe07788b3b7b04820675c3d6498f33b",
-            ("a133", "release"): "bb88adfbcb762904bf54c0cdae0abe7cc851080189648062bdee786c0eb0a16a",
-            ("a133-open-7x", "dev"): "9bc86fc62394913711487f43c55dabe3445a17789e9b72ff7ff24501d2588300",
-            ("a133-open-7x", "release"): "ad601eba6906b63783eb96af7ca27d449acd5af8406fb82312651d3047dff8ae",
-            ("a133-owned", "dev"): "c8b34544b44072e1d94aa689ef544b324f61afa0116c866b7b81e305f7812ecc",
-            ("a133-owned", "release"): "3d3cdd5ad34d638142b739529fb20e56e9d91f6822842935bed8f94fd221656e",
-            ("a523", "dev"): "a31b19185f4a88153f3a1cd97e8cdfe1a79645288669fe908bc521507c839933",
-            ("a523", "release"): "36e5d51893be583e5323a7d64dad90f1904784596320125cd5cf7022cb5580a1",
-            ("sdm845", "dev"): "e03c639aa9a42b39daba2d4ac1c806b8d04682976177d0adbff71f89053c3297",
-            ("sdm845", "release"): "c0cbe5a56949e91092cedc220ebf542c79e7c93d5cc393709d14645bec83f98d",
+            ("a133", "dev"): "2c8c7cc9dfd278b5464c7cb2b693074bcaa5dc8c4d3cebeba3200fcc3c770b59",
+            ("a133", "release"): "960eacdb05289031cd808cc9551b215b80fa89efc9f8709d0c7610741c54389f",
+            ("a133-open-7x", "dev"): "adbd5b9cf56ee489bed86e8ed972e0276f5a30d920efafc28bf188e03e686642",
+            ("a133-open-7x", "release"): "b9a1326f44ae43f9eb3181968824798f53ca4a050383439c40f2124a871b59e5",
+            ("a133-owned", "dev"): "8ffde5ad756ad2d7706230b4ed494a7b50fa63b34c3799e77139f6635e9fa798",
+            ("a133-owned", "release"): "15e4f5c6d5029f9accefe24351376fcfe5aa03a937ca81acc43f794e454d1300",
+            ("a523", "dev"): "a94a03af5538262c0cb9a9654aa838af4ac39a7b4bad043c87b0059a2a2a610a",
+            ("a523", "release"): "6bc0fa5984980039f0bd9b0ac3e69f2dbeae626b8a52036924b074d440454915",
+            ("sdm845", "dev"): "2282044c7bc0236e7603a2b0373576133bb58843ebdd6e4a37ec9855d74b81fe",
+            ("sdm845", "release"): "1d319cedef195756be6f78735e538c633d3bbf18d52b332bc6dcc8fc3e703e06",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -378,7 +381,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(release_missing, [])
         self.assertRegex(dev["PF_HWPROBE_SHA"], r"^[0-9a-f]{40}$")
         self.assertRegex(dev["PF_SIM_SHA"], r"^[0-9a-f]{40}$")
-        self.assertEqual(dev["PF_POOLSUITE_SHA"], "c9d805f2b181092ddabe8f9f52fcaabb3b9f17d8")
+        self.assertEqual(dev["PF_POOLSUITE_SHA"], "b36f2e605ed90305f08abae6e89712b295aeba62")
         self.assertEqual(release["PF_HWPROBE_SHA"], "")
         self.assertEqual(release["PF_SIM_SHA"], "")
         self.assertEqual(release["PF_POOLSUITE_SHA"], "")
@@ -438,7 +441,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "c22dbc0226242cd1e582073eac5d82d36953c0d8")
+        self.assertEqual(args["PF_KERNEL_SHA"], "de8ca3df549158834e1459dc0cd555bb97536be4")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -455,7 +458,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "c22dbc0226242cd1e582073eac5d82d36953c0d8")
+        self.assertEqual(args["PF_KERNEL_SHA"], "de8ca3df549158834e1459dc0cd555bb97536be4")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
@@ -470,7 +473,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "e2c29ab8a84f57ae500f4ad6c6aea86ac0bbe01f",
-                "PF_IMAGE_SHA": "67e45ed0d246e9e05eb20b89a1d4304a4b20f1c2",
+                "PF_IMAGE_SHA": "b7901079b12c71d179a5c6b58a46dc757246a900",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
