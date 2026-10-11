@@ -1,0 +1,45 @@
+name: menu page schema
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'schemas/menu-page.schema.json'
+      - 'schemas/menu-page/**'
+      - '.github/workflows/menu-page-schema.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'schemas/menu-page.schema.json'
+      - 'schemas/menu-page/**'
+      - '.github/workflows/menu-page-schema.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: menu-page-schema
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, pf-pr-review]
+    timeout-minutes: 5
+    steps:
+      - name: Validate schema fixtures and negative controls
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          workdir="$(mktemp -d "${RUNNER_TEMP:?RUNNER_TEMP is required}/menu-page.XXXXXX")"
+          cleanup() {
+            find "$workdir" -mindepth 1 -delete
+            rmdir "$workdir"
+          }
+          trap cleanup EXIT
+          git clone --quiet "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$workdir"
+          cd "$workdir"
+          sha="${HEAD_SHA:-$GITHUB_SHA}"
+          git fetch --quiet origin "$sha"
+          git checkout --quiet --detach "$sha"
+          python3 schemas/menu-page/validate.py
+          python3 -m unittest schemas/menu-page/test_validate.py
