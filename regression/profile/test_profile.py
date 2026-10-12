@@ -324,17 +324,19 @@ class ProfileTest(unittest.TestCase):
         # Image#236's GNU build-id producer merge likewise advances only PF_IMAGE_SHA.
         # Image#237's linear Gamescope cache rebind again advances only PF_IMAGE_SHA.
         # Image#238's hwprobe static-link repair again advances only PF_IMAGE_SHA.
+        # Image#239's byte-identical GPU-UM toolchain mirror again advances only
+        # PF_IMAGE_SHA here; GPU-UM #207/#208 remain open-profile-only.
         expected = {
-            ("a133", "dev"): "973d09bcf86b49a91a37c7b70a6ee912e6933e646396bd6545184b0240abd781",
-            ("a133", "release"): "3a9a258c3de3f441e16347ed32049b2882d09754113c927ff7b18bf32dd953ce",
-            ("a133-open-7x", "dev"): "91f83e1d746fb8fd2f0734925d18f3600b2c512cb75ffbfae1e8947aed7cc1cb",
-            ("a133-open-7x", "release"): "b367fa2a009b2054e255b3af58afc5bd0d7c9f6de5c54c475dadcb8120eaf666",
-            ("a133-owned", "dev"): "84fcbc3e2f0475335d7c5ca8b51f5a3cb4150f2efa0b3df925fed755a9b42306",
-            ("a133-owned", "release"): "d848242118a452130ebd697742ecc1a0a5e99ba135039785469146ab2d5371c3",
-            ("a523", "dev"): "4700eacebf08054fcb21e5f00b3cd04fd2864eb708447e32f4ef493a0b61cd7d",
-            ("a523", "release"): "9649b318c14507e94311ccd9e4e48871ea6ec685cec1d15612f1275382242997",
-            ("sdm845", "dev"): "b8c692ddcf49e8c70cfb3c78e3006238bd8250eb4bfe7e7e95024c54de9bd06d",
-            ("sdm845", "release"): "b249535de1b8de30c5434df93e43d02c7a624875e15c5d7dc266a3d06dcb2c6c",
+            ("a133", "dev"): "563693bd52feaf911ec7d3db5dab21574f3ce45669f549b84935d6de38d2732d",
+            ("a133", "release"): "5562adb131729b07056c2541eb3e1be2f9819f1eb6295ec4403e3d25046ab5f8",
+            ("a133-open-7x", "dev"): "8954cd51a5e8583ba02902523fd562209868b618a9cfd17b1f3df293d7369458",
+            ("a133-open-7x", "release"): "6f81198714c032b590972cf8c9fbe96aec13900ea078db28ffa8b7dbdca06140",
+            ("a133-owned", "dev"): "e20c68d21ba48b9ea2e316c5822c35d6f00966185f82ac0ce0df16ffca655db7",
+            ("a133-owned", "release"): "8ab45c3b23941c7d24e736d16110f6d766c44afa956dcd068a1a48e9c74c5fbd",
+            ("a523", "dev"): "e8fade6ddb44d4b1290d292e0195f645fe6c55e23eda5062009401786242bf62",
+            ("a523", "release"): "1a4c6fa2ce644bde3662bf15153977c481e85617910f67465c3ef3a912fa6082",
+            ("sdm845", "dev"): "9e8e7f3e1fb9ed1a5045ab5d708fddc8c61bbff2a82d881f89ba31d046c93cbc",
+            ("sdm845", "release"): "3a7334cebf622f17f431f8e500941ced9eb6e45f63a73de91287e0b8a0f788b0",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -512,7 +514,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "6ccb87902144babc2838b03840c0413bf0941ab4")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "e2c29ab8a84f57ae500f4ad6c6aea86ac0bbe01f")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "bd1713af2183cf5d945945c2b127e25d382ee8e9")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -586,8 +588,8 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": args["PF_IMAGE_SHA"],
             },
             {
-                "PF_GPU_UM_SHA": "e2c29ab8a84f57ae500f4ad6c6aea86ac0bbe01f",
-                "PF_IMAGE_SHA": "8abace1178ca64df8e6db4b3854dd1f479d45f19",
+                "PF_GPU_UM_SHA": "bd1713af2183cf5d945945c2b127e25d382ee8e9",
+                "PF_IMAGE_SHA": "78c9f41af87151e5137c6f80fbcc49a560526051",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
