@@ -14,7 +14,7 @@ spec.loader.exec_module(profile)
 
 SELECTED = "a133-open-7x-gpu-cts"
 BASE = "a133-open-7x-gpu"
-SHA256 = "9ce9b9c252c1b288ffb4a58dd8e976fd35110b4e2b1d9cc1a3a0cd3be13e5125"
+SHA256 = "544702ae2b495908bac41546c2d2768c4858ecc40bcb41a3120c32829d7e4c86"
 URL = (
     "http://10.0.40.90:8790/artifacts/sha256/"
     f"{SHA256}/pf-deqp-gles-aarch64.tar.gz"
