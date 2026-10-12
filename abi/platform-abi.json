@@ -40,7 +40,7 @@
       },
       "id": "pocketforge/a523-mali",
       "kernel": {
-        "ref": "device/a523",
+        "ref": "device/a523-linear",
         "repo": "kernel-sunxi-5.15",
         "sha": "e63004b0e9478de722571d97cd0e853194ffb9a2"
       },

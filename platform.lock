@@ -742,7 +742,7 @@ sha  = "a7cfec247898bb2c22e51bb705a7f18fd5910285"
 [[repos]]
 name = "kernel-sunxi-6.x"    # A133 open-stack kernel with in-tree Imagination DRM PowerVR
 url  = "https://github.com/pocketforge-os/kernel-sunxi-6.x.git"
-ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 rejects a phase-shifted KO sync response. A cold start loses odd-byte phase, so "KO" is the K tail of one OK plus the O head of the next; accepting it left a K to prefix the BROM ACK and SETUART read "KBRO" -> -EILSEQ. KO tolerance is kept until a discard or retained partial proves phase loss, so the warm rebind path is unchanged by construction.
+ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 rejects a phase-shifted KO sync response. A cold start loses odd-byte phase, so "KO" is the K tail of one OK plus the O head of the next; accepting it left a K to prefix the BROM ACK and SETUART read "KBRO" -> -EILSEQ. KO tolerance is kept until a discard or retained partial proves phase loss, so the warm rebind path is unchanged by construction.
                               # tsp-mc9m.60.7.2.3.12.1.1: kernel-sunxi-6.x#280 merged as 6ccb87902144babc2838b03840c0413bf0941ab4 after independent review of 2fb210bf7196ed22352a8af51425db9bfd848eb3; publishes bounded receive-callback provenance only.
                               # Prior (8dc9064df7a5d838d1a0c24ffb6a5fbdda00ec50): tsp-mc9m.60.7.2.3.11.1: kernel-sunxi-6.x#278 waits for asserted CTS before the first HCI command. The port is UPSTAT_AUTOCTS (8250_dwlib.c sets UART_CAP_AFE), so queuing HCI_Reset before the firmware asserted CTS left it gated in hardware with icount.tx frozen; AUTOCTS ports get no software TX restart on the later CTS edge. Bounded 200ms, fail-closed.
                               # Prior (9826b9ddfed526acfcafdd326a7ea66676929038): tsp-mc9m.60.7.2.3.11: kernel-sunxi-6.x#277 adds a first-HCI-command discriminator reporting TX progression, CTS, bounded drain, pre-parser raw RX and parser outcome on the success path; physical-tx stays explicitly unproven.
@@ -1008,7 +1008,7 @@ sha  = "de8ca3df549158834e1459dc0cd555bb97536be4"
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
 url  = "https://github.com/pocketforge-os/kernel-sunxi-5.15.git"   #  = AvaotaSBC base for fork-tracking.
-ref  = "device/a523"
+ref  = "device/a523-linear"
 sha  = "e63004b0e9478de722571d97cd0e853194ffb9a2"
 
 [[repos]]
@@ -1179,13 +1179,13 @@ sha  = "3deecd9bf607051b567f7edb392b405b287132a6"
 [[repos]]
 name = "u-boot-tsp-a523"      # owned A523 U-Boot; kept separate (bootchain-sunxi consolidation DROPPED — infra-025)
 url  = "https://github.com/pocketforge-os/u-boot-tsp-a523.git"
-ref  = "main"                 # standardized to `main` (was `pf-main`, which no longer exists — fixed tsp-1dl.1.1)
+ref  = "main-linear"          # active linear line (was `main`; earlier `pf-main` no longer exists — tsp-1dl.1.1)
 sha  = "e195dd28d5401b5c73f70e16950081b8b2b3a031"
 
 [[repos]]
 name = "tfa-tsp-a523"         # owned A523 TF-A; kept separate (bootchain-sunxi consolidation DROPPED — infra-025)
 url  = "https://github.com/pocketforge-os/tfa-tsp-a523.git"
-ref  = "main"
+ref  = "main-linear"
 sha  = "deaba081685170ffff0aec9f7a260ad1586840fe"
 
 [[repos]]
@@ -1270,7 +1270,7 @@ sha  = "db70249c8b25b7c3271cce71a19005b361527aaf"
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
 url  = "https://github.com/pocketforge-os/tfa-tsp-a133.git"      # tsp-147u.11/.13. PLAT=sun50i_a133 targets
-ref  = "main"                 # the A133 RVBAR (CPUSUBSYS 0x08100040) — brings up all 4 cores; native PSCI,
+ref  = "main-linear"          # the A133 RVBAR (CPUSUBSYS 0x08100040) — brings up all 4 cores; native PSCI,
                               # no SCP, SUNXI_BL31_IN_DRAM default. Closes the vendor monitor.bin provenance
                               # gap. Validated: "Brought up 4 CPUs" on pf-node-01.
 sha  = "199316464722231e1a818e0d3f927be9c0fc2798"
@@ -1363,7 +1363,7 @@ sha  = "0d483c38a1e67543022c51244dd2437cd71332d6"
 [[repos]]
 name = "cloud-init-tsp"  # canonical/cloud-init 26.2 plus PocketForge's strict local
 url  = "https://github.com/pocketforge-os/cloud-init-tsp.git"  # NoCloud seed policy.
-ref  = "pocketforge-main"  # tsp-mc9m.41.1002.7.2 Build 8: cloud-init-tsp#14 (merge db8deddc)
+ref  = "pocketforge-main-linear"  # tsp-mc9m.41.1002.7.2 Build 8: cloud-init-tsp#14 (merge db8deddc)
                            # remounts an already-mounted read-only seed writable only during
                            # finalization, then restores read-only state on success or failure.
                            # Image dc7992e0 consumes this exact lock-selected SHA generically;
