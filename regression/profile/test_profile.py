@@ -589,7 +589,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "bd1713af2183cf5d945945c2b127e25d382ee8e9",
-                "PF_IMAGE_SHA": "78c9f41af87151e5137c6f80fbcc49a560526051",
+                "PF_IMAGE_SHA": "e14183c152c7b0ab28979d14eb9cb2d2ce34d255",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
