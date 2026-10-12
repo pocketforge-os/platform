@@ -13,7 +13,7 @@ grep -Fxq 'PF_GAMESCOPE_SHA=298881e3dff1ade108d57a257e8bf59bf8c6436f' <<<"${sele
 grep -Fxq 'PF_GAMESCOPE_UPSTREAM_BASE=bb2ddfc8b1091d6c4d0133b1ea9dcd2494b69ab9' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_PATCH_SERIES_SHA256=c0beae3d5d2ef5bc012602dcef56b8269f4d9690cbe007e732716e4856e3d60e' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256=5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6' <<<"${selected_args}"
-grep -Fxq 'PF_GAMESCOPE_SOURCE_TREE_SHA256=c4c21e8dc03651872d1ce0419646e26a1c3d09eb0d555851d6276681e5e59d51' <<<"${selected_args}"
+grep -Fxq 'PF_GAMESCOPE_SOURCE_TREE_SHA256=8e1b933249f4972049a54977217a54c6c96cb4b061f9d8b3dcca62c0b8cd9f0f' <<<"${selected_args}"
 
 for device in a133 a133-open a523 a133-open-7x-gpu-noradio a133-open-7x-gpu-spl-trace; do
     if python3 "${ROOT}/core/profile.py" buildargs "${device}" | grep -q '^PF_GAMESCOPE_'; then
