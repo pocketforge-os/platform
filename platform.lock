@@ -616,7 +616,9 @@ ref  = "pocketforge-linear" # tsp-mc9m.41.996.15 Build 8: gamescope#11 and #10 r
                         # nine non-merge commits onto the last admitted linear head c30e8cee.
                         # The linear head and eaca59d9 have the identical tree
                         # a65c549d78e383ab27495f06bb337dc82f59ef41; the dependency manifest
-                        # is byte-identical at 5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6.
+                        # and LICENSE remain byte-identical. The committed stage/materializer
+                        # (umask 022) witnesses source tree 8e1b933249f4972049a54977217a54c6c96cb4b061f9d8b3dcca62c0b8cd9f0f;
+                        # only the generated receipts embed the new integrated-head provenance.
                         # `pocketforge` remains the immutable
                         # merge-history archive; gpu-14 switches the default only after this pin
                         # merges. The exact sha below is the sole build input; never resolve this

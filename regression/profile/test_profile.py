@@ -115,7 +115,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(resolved, expected)
 
     def test_gamescope_source_tree_digest_is_required_lowercase_and_emitted(self):
-        expected = "c4c21e8dc03651872d1ce0419646e26a1c3d09eb0d555851d6276681e5e59d51"
+        expected = "8e1b933249f4972049a54977217a54c6c96cb4b061f9d8b3dcca62c0b8cd9f0f"
         resolved, _ = profile.resolve("a133-open-7x-gpu")
         self.assertEqual(resolved["gamescope"]["source_tree_sha256"], expected)
         args, _, missing = profile.build_args("a133-open-7x-gpu")
