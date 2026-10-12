@@ -47,6 +47,9 @@ CLOUD_INIT_SOURCE_LINE = re.compile(r"^PF_CLOUD_INIT_SHA=.*\n", re.M)
 # tsp-op5a.440.1.1 deliberately changes only a133-open-7x-gpu buildargs/resolve to add its
 # branch-only exact Gamescope package selector and platform-locked materialized source-tree
 # digest; every unrelated profile digest stays fixed.
+# tsp-mc9m.41.996.15 deliberately changes that profile's Gamescope selector from the archived
+# merge-history branch to its tree-identical linear branch; the masked commit identity and every
+# unrelated profile digest stay fixed.
 # tsp-mc9m.41.1002 adds the universal PF_CLOUD_INIT_SHA source identity. It is
 # independently covered by cloud-init-staging-test.sh and, like later platform
 # runtime payloads, is removed from this historical descriptor-only baseline.
@@ -63,10 +66,10 @@ PRE_DESCRIPTOR_DIGESTS = {
     ("a133-open-7x", "buildargs release"): "508d6b9703a852606a4c380a6194c303a3b3a03d2dbeb481ad060468dc7b95a5",
     ("a133-open-7x", "env"): "b377507c70e95156b3956597d6f66e582549419cbca9455aeaa512851e4cc018",
     ("a133-open-7x", "resolve"): "e4e792f18991106e2d69f29b3000e0915ff84f44e568ece91859d7bd00128222",
-    ("a133-open-7x-gpu", "buildargs dev"): "c924b56421aef651f9499c945b619cef850b77a4333b97327e34ac0387e5f719",
-    ("a133-open-7x-gpu", "buildargs release"): "8069974d70639da8bd65032d2fe19c467a522cb87cca55b03738934323812090",
+    ("a133-open-7x-gpu", "buildargs dev"): "7f5bdf2b7e60568b2c45fb2eeb1b621f1147e9a509486e4a9589f52af8406b97",
+    ("a133-open-7x-gpu", "buildargs release"): "74fe9eb8496768b9f693b491bf74c42dbce5265bf4e22a18a5b08bb0d42ab259",
     ("a133-open-7x-gpu", "env"): "d8f9bd9b1fc5159735ae4a9fc2ed413bf2db17a46615e49651020d0b1d7a2f3a",
-    ("a133-open-7x-gpu", "resolve"): "f86f10d5f8e484c472fc96aa22f292d144e7c8e682e4fa7af7b2440f00ffd229",
+    ("a133-open-7x-gpu", "resolve"): "5662a5ac861b06059c1732cc4401a30659200b24db85857d8fdc9b83c8cad8f2",
     ("a133-open-7x-gpu-noradio", "buildargs dev"): "5bcabe3cfbfb73f7524044f6516d96cdcc277ce4cfcb9fb7f644c130f8ea03b9",
     ("a133-open-7x-gpu-noradio", "buildargs release"): "e1f84199f439af205ea93aec746dda90988b9fe0dc1bececc558ce0c7475873b",
     ("a133-open-7x-gpu-noradio", "env"): "d3efc6a7693b973a9581d5115c61b2cd3b53f8f291b008d930cb72351cdbd5a8",

@@ -9,9 +9,9 @@ SELECTED=a133-open-7x-gpu
 selected_args="$(python3 "${ROOT}/core/profile.py" buildargs "${SELECTED}")"
 grep -Fxq 'PF_GAMESCOPE_MODE=g1' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_REPO=gamescope' <<<"${selected_args}"
-grep -Fxq 'PF_GAMESCOPE_SHA=eaca59d90a22431238bb084fce4d399036851d92' <<<"${selected_args}"
+grep -Fxq 'PF_GAMESCOPE_SHA=298881e3dff1ade108d57a257e8bf59bf8c6436f' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_UPSTREAM_BASE=bb2ddfc8b1091d6c4d0133b1ea9dcd2494b69ab9' <<<"${selected_args}"
-grep -Fxq 'PF_GAMESCOPE_PATCH_SERIES_SHA256=bb6cfe0bad0d62ad774a0d1e5e4d6faff3efc379728c435ad6ce8cc0fc302ec4' <<<"${selected_args}"
+grep -Fxq 'PF_GAMESCOPE_PATCH_SERIES_SHA256=c0beae3d5d2ef5bc012602dcef56b8269f4d9690cbe007e732716e4856e3d60e' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256=5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_SOURCE_TREE_SHA256=c4c21e8dc03651872d1ce0419646e26a1c3d09eb0d555851d6276681e5e59d51' <<<"${selected_args}"
 
