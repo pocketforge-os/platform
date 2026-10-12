@@ -90,9 +90,9 @@ variants            = ["dev"]
 mode_arg            = "PF_CTS_BUNDLE_MODE"
 mode_value          = "v1"
 artifact_url_arg    = "PF_CTS_BUNDLE_URL"
-artifact_url        = "http://10.0.40.90:8790/artifacts/sha256/9ce9b9c252c1b288ffb4a58dd8e976fd35110b4e2b1d9cc1a3a0cd3be13e5125/pf-deqp-gles-aarch64.tar.gz"
+artifact_url        = "http://10.0.40.90:8790/artifacts/sha256/544702ae2b495908bac41546c2d2768c4858ecc40bcb41a3120c32829d7e4c86/pf-deqp-gles-aarch64.tar.gz"
 artifact_sha256_arg = "PF_CTS_BUNDLE_SHA256"
-artifact_sha256     = "9ce9b9c252c1b288ffb4a58dd8e976fd35110b4e2b1d9cc1a3a0cd3be13e5125"
+artifact_sha256     = "544702ae2b495908bac41546c2d2768c4858ecc40bcb41a3120c32829d7e4c86"
 
 [platform_payload.cts_bundle_v1.build_args]
 PF_CTS_SOURCE_TAG    = "opengl-es-cts-3.2.14.1"
