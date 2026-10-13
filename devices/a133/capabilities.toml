@@ -68,10 +68,11 @@ frame  = "pf-mm-v1"
 naming = "pf-semantic-v1"
 source = "device-models/trimui-smart-pro"
 
-# Screen = render INTENT, not panel pixel truth. The app draws a LANDSCAPE 1280x720 canvas;
-# the disp engine rotates it onto the physically-portrait panel (present=portrait). The
-# rotation MECHANISM (A133 legacy disp2, derived rotate-768) is per-SoC CODE, not data here
-# — only the logical enum is carried. Panel dims live in the kernel DTS (lcd0), not here.
+# Screen = render INTENT, not panel pixel truth. The app draws a LANDSCAPE 1280x720 canvas
+# and must not pre-rotate. The panel is portrait-native and mounted rotated — the DT
+# `rotation = <90>` makes the DRM connector expose "panel orientation" "Right Side Up",
+# and the session compositor (gamescope) is the sole physical-to-logical rotator.
+# Panel dims live in the kernel DTS (lcd0), not here.
 [[screens]]
 role          = "primary"
 present       = "portrait"
@@ -238,11 +239,19 @@ semantics = "binary"
 range = { min = 0, max = 255, fuzz = 0, flat = 0 }
 skin_part = "trig_r"
 
+# Build 9 input receipt (tsp-h5ed.46.25, 2026-10-13): live-window generation
+# 9179d1446ad98af5c5387ab25435f0fe, raw image
+# 406aba39e725f3c65a396ac2f8a0a1b0e96f9cacd9b245bc5d5bb543994b1255, runtime FDT
+# 35945342b75c7002b5b5c39f4b5b38d0696691a8563034ce53feb06579d122a5. The runtime DT has
+# `/soc/lradc@5070800` status=disabled and the evdev inventory has no volume-key node. Therefore
+# the VOL± rows below retain their historical stock-OS source; this descriptor does not invent a
+# Build 9 source. The kernel/DT regression is tracked by the owning lane.
+#
 # Volume rocker — VOL+ / VOL- (tsp-bwrg.16). These are REAL physical controls, but they do NOT
-# live on the gamepad node: the a133 exposes THREE input nodes, and the volume keys are on the
-# LRADC `sunxi-keyboard` node (event0), firing KEY_VOLUMEUP(115)/KEY_VOLUMEDOWN(114) — proven on
-# silicon by tsp-ozbp.2's VOL± negative control (pressing VOL± fired 117 event0 KEY_VOLUME* events,
-# zero UART bytes). The gamepad node (event2 "TRIMUI Player1") does NOT advertise 114/115 at all
+# live on the gamepad node. The older kernel-4.9 PocketForge image exposed the chassis rocker on
+# the LRADC `sunxi-keyboard` node (event0), firing KEY_VOLUMEUP(115)/KEY_VOLUMEDOWN(114) — proven
+# on silicon by tsp-ozbp.2's VOL± negative control (pressing VOL± fired 117 event0 KEY_VOLUME*
+# events, zero UART bytes). The gamepad node "TRIMUI Player1" does NOT advertise 114/115 at all
 # (word1 of its KEY bitmap is zero), which is why the single-`--source` collector could never
 # capture them — the structural miss this bead exists to fix.
 #
@@ -260,9 +269,7 @@ skin_part = "trig_r"
 # Whether the shim also merges the headset-remote node is a broker/collection decision (tracked with
 # the multi-source work), deliberately NOT frozen here.
 # skin_part (tsp-h5ed.46.21): each rocker half is its own model part, btn_vol_down / btn_vol_up,
-# so the sim can press VOL± on the body as well as from its toolbar. The top-edge POWER key is a
-# model part too (btn_power), bound to no input: this descriptor has no power [[inputs]] row, and
-# adding one is a separate descriptor change (it would enter the sim input plan).
+# so the sim can press VOL± on the body as well as from its toolbar.
 [[inputs]]
 id = "vol_up"
 kind = "button"
@@ -279,6 +286,22 @@ code = "KEY_VOLUMEDOWN"
 class = "system"
 source = "sunxi-keyboard"
 skin_part = "btn_vol_down"
+
+# Build 9 exposes KEY_POWER (cap_key bit 116) on event0 named verbatim `axp20x-pek`, with
+# bus/vendor/product 0000/0000/0000 and by-path
+# `platform-7081400.i2c-platform-axp20x-pek-event`. The provider is the AXP717 at
+# `/soc/i2c@7081400/pmic@34`. Other receipt nodes are recorded but do not add descriptor rows:
+# event1 `gpio-keys-hall` is SW_LID (0019/0001/0001), event2
+# `H616 Audio Codec Headphone Jack` is 0000/0000/0000, and event3 `sunxi-ir` is
+# 0019/0001/0001. They are switches/peripherals rather than chassis controls in this scope.
+[[inputs]]
+id = "power"
+kind = "button"
+ev_type = "EV_KEY"
+code = "KEY_POWER"
+class = "system"
+source = "axp20x-pek"
+skin_part = "btn_power"
 
 # ---- ACTUATORS ----
 # 23 addressable RGB LEDs (sunxi_led0..22 ×rgb) = the analog-stick rings + edge (probe §14).

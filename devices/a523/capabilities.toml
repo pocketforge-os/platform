@@ -69,8 +69,9 @@ naming = "pf-semantic-v1"
 source = "device-models/trimui-smart-pro-s"
 
 # Same chassis + panel as the base. Render INTENT is identical (app draws landscape 1280x720,
-# present portrait). The rotation MECHANISM differs per-SoC (A523 = sunxi DRM/KMS, not the
-# A133's legacy disp2) but that is CODE, not descriptor data — the logical enum is the same.
+# present portrait, must not pre-rotate). The panel is portrait-native and mounted rotated;
+# the session compositor (gamescope) is the sole physical-to-logical rotator — the logical
+# enum carries the same rotation as the a133 sibling.
 [[screens]]
 role          = "primary"
 present       = "portrait"
