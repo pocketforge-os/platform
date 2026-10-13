@@ -62,14 +62,15 @@ manifest_signing_active = false
 # witness with Build 7.
 # tsp-mc9m.41.996.15 Build 9: kernel#91/#92 change G2D DT/clock handling, xradio
 # implementation and tests only. The de8ca3df..45b87a7d include/uapi trees are
-# byte-identical (tree 5ccf3d70), so the Build-7 exported-header witness stays put.
+# byte-identical (tree 5ccf3d70), but the producer exports headers from the boot-kernel
+# tree and receipt-checks its exact source identity. Move the witness with that tree.
 [platform_runtime.steamlink_ffmpeg59_v1]
 schema_version = 1
 profile         = "a133-open-7x-gpu"
 mode_arg        = "PF_STEAMLINK_FFMPEG59_MODE"
 mode_value      = "v1"
 source_repo     = "kernel-sunxi-7.x"
-source_sha      = "de8ca3df549158834e1459dc0cd555bb97536be4"
+source_sha      = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 runtime_path    = "/usr/lib/pocketforge/platform-runtimes/steamlink-ffmpeg59/v1"
 
 [platform_runtime.steamlink_ffmpeg59_v1.build_args]
@@ -79,7 +80,7 @@ PF_FFMPEG_ORIG_SHA256        = "56d4daf10c17330a45c8fe11bc260997677ca2432d3d5951
 PF_FFMPEG_ORIG_ASC_SHA256    = "ee93598ac566d1be4a80801e0a58f91ede2e6a5e9e670f681723b447f23c59d0"
 PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a39512921680090952e1"
 PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
-PF_FFMPEG_UAPI_SHA           = "de8ca3df549158834e1459dc0cd555bb97536be4"
+PF_FFMPEG_UAPI_SHA           = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 
 # tsp-mc9m.41.924.24.14: immutable full GLES CTS checklist used only by the
 # opt-in dev test image. Unlike platform_runtime above, this input is already a
@@ -145,8 +146,10 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.996.13 Build 8: image#241 (merge e14183c1) makes the
-                       # Steam Link FFmpeg 5.9 runtime emit GNU build IDs and carries image#240's
+ref  = "main"          # tsp-mc9m.41.996.15 Build 9 repair: image#243 (merge dc3637f7) moves
+                       # the Steam Link kernel-UAPI source receipt to the boot-kernel identity
+                       # 45b87a7d. Image#241 (merge e14183c1) makes the Steam Link FFmpeg 5.9
+                       # runtime emit GNU build IDs and carries image#240's
                        # Wi-Fi lease-loss watchdog fix. Previous image#239 (merge 78c9f41a) moves the
                        # byte-identical GPU-UM toolchain provenance mirror to bd1713af and carries
                        # image#238's hwprobe static-link fix, image#237's Gamescope PVR cache
@@ -612,7 +615,7 @@ ref  = "main"          # tsp-mc9m.41.996.13 Build 8: image#241 (merge e14183c1) 
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "e14183c152c7b0ab28979d14eb9cb2d2ce34d255"
+sha  = "dc3637f774e304f5a42a22f948bdd6d54608f259"
 
 [[repos]]
 name = "gamescope"
@@ -777,8 +780,9 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.996.15 Build 9): device/a
                              # patched hardware obtained 192.168.86.14, passed the bulk probe,
                              # and sustained authenticated SSH over wlp4s0. The range changes
                              # neither UAPI tree (include/uapi stays 5ccf3d70 and arm64 UAPI
-                             # stays 92d8ba17), so the Steam Link exported-header witness
-                             # remains de8ca3df. No-radio remains
+                             # stays 92d8ba17), but the runtime producer copies this exact
+                             # boot-kernel tree and receipt-checks its source identity, so its
+                             # exported-header witness moves to 45b87a7d. No-radio remains
                              # independently frozen at 23cdf7bf under the standing ruling.
                              # Previous pin (de8ca3df549158834e1459dc0cd555bb97536be4):
                              # Build 7: kernel#87 CONFIG_USER_NS and kernel#88 Landlock plus

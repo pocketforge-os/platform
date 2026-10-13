@@ -13,7 +13,7 @@ profile = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(profile)
 
 SELECTED = "a133-open-7x-gpu"
-UAPI_SHA = "de8ca3df549158834e1459dc0cd555bb97536be4"
+UAPI_SHA = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 KERNEL_SHA = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 EXPECTED_ARGS = {
     "PF_STEAMLINK_FFMPEG59_MODE": "v1",
@@ -37,7 +37,7 @@ class PlatformRuntimeTest(unittest.TestCase):
         self.assertEqual(runtime["source_repo"], "kernel-sunxi-7.x")
         self.assertEqual(runtime["source_sha"], UAPI_SHA)
         self.assertEqual(lock["repos"][runtime["source_repo"]]["sha"], KERNEL_SHA)
-        self.assertNotEqual(runtime["source_sha"], KERNEL_SHA)
+        self.assertEqual(runtime["source_sha"], KERNEL_SHA)
 
         args, _, missing = profile.build_args(SELECTED)
         self.assertEqual(missing, [])
