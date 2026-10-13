@@ -1040,8 +1040,9 @@ def cmd_emit_sdldb(argv):
 # EXPECTATION, probe = GROUND TRUTH. RULE: every descriptor code MUST be advertised
 # by its named node when that node exists in the capture (descriptor codes
 # SUBSET-OF probe codes) -> ERROR if not. An explicitly named system-key source
-# absent from a capture made from another image is unverified -> INFO, not false
-# evidence that the descriptor is wrong. Codes the
+# absent from a capture made from another image is unverified -> ERROR, so a
+# cross-image comparison is explicit and can never masquerade as a successful
+# evidence gate. Codes the
 # probe advertises but the descriptor omits are EXPECTED (the shared Xbox-360 HID
 # superset) -> INFO, never an error. absinfo (min/max) mismatch -> WARN (reconcile
 # the descriptor to silicon). Feed it a capture from regression/caps/evdev-probe.py.
@@ -1110,8 +1111,8 @@ def probe_diff(dev_id, capture):
                 source = inp.get("source")
                 source_nodes = nodes_by_name.get(source, []) if source else nodes
                 if source and not source_nodes:
-                    infos.append(f"{dev_id}: input '{iid}' source node '{source}' is absent "
-                                 f"from this probe; {c} is unverified (cross-image capture)")
+                    errs.append(f"{dev_id}: input '{iid}' source node '{source}' is absent "
+                                f"from this probe; {c} is unverified (cross-image capture)")
                 elif not any(c in n.get("keys", []) for n in source_nodes):
                     where = f"source node '{source}'" if source else "NO probe node"
                     errs.append(f"{dev_id}: input '{iid}' claims system key {c} but {where} "
