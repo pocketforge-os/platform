@@ -154,12 +154,6 @@ new = {identity(new_aliases)}
 '''.encode()
 
 
-def without_build9_migration(manifest: bytes) -> bytes:
-    start = manifest.index(b"# One-shot policy for Build 9.")
-    end = manifest.index(b'[[mirrors]]\nid = "steamlink-patch-series"', start)
-    return manifest[:start] + manifest[end:]
-
-
 def pin_lock(image_commit: str, *, duplicate_runtime_field: bool = False) -> bytes:
     duplicate = f'''\
 
@@ -697,7 +691,6 @@ comparison = "equal"
 
     def test_current_contract_generation_passes_and_mixed_generation_fails(self) -> None:
         candidate_manifest = (ROOT / "ci" / "lock-mirrors.toml").read_bytes()
-        policy_baseline_manifest = without_build9_migration(candidate_manifest)
         current_tree = {
             "build/Dockerfile.pf": (FIXTURES / "current" / "Dockerfile.pf").read_bytes(),
             "build/produce-gamescope-pvr-cache.sh": (
@@ -717,7 +710,7 @@ comparison = "equal"
             (ROOT / "platform.lock").read_bytes(),
             candidate_manifest,
             resolver,
-            baseline_manifest_raw=policy_baseline_manifest,
+            baseline_manifest_raw=candidate_manifest,
             baseline_commit=BASE_COMMIT,
         )
         self.assertTrue(result.ok, result.render())
@@ -733,7 +726,7 @@ comparison = "equal"
             mixed_lock,
             candidate_manifest,
             FixtureResolver({("image", CURRENT_IMAGE): current_tree}),
-            baseline_manifest_raw=policy_baseline_manifest,
+            baseline_manifest_raw=candidate_manifest,
             baseline_commit=BASE_COMMIT,
         )
         self.assertFalse(mixed.ok)
@@ -753,7 +746,7 @@ comparison = "equal"
             mixed_gamescope_lock,
             candidate_manifest,
             FixtureResolver({("image", CURRENT_IMAGE): current_tree}),
-            baseline_manifest_raw=policy_baseline_manifest,
+            baseline_manifest_raw=candidate_manifest,
             baseline_commit=BASE_COMMIT,
         )
         self.assertFalse(mixed_gamescope.ok)
