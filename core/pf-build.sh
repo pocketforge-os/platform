@@ -207,6 +207,13 @@ pf_stage_device_descriptor() {
     [ "$got" = "$want" ] \
         || pf_die "stage: device descriptor $id sha256 $got != PF_DEVICE_DESCRIPTOR_SHA256 $want"
     pf_log "stage: platform-inputs <- devices/$id/capabilities.toml (sha256=${got:0:12})"
+    create_context_dir "$src_dir/platform-inputs/device"
+    dest="$src_dir/platform-inputs/device/capabilities.toml"
+    install -m 0644 -- "$source" "$dest"
+    got="$(sha256sum -- "$dest" | cut -d' ' -f1)"
+    [ "$got" = "$want" ] \
+        || pf_die "stage: device-neutral descriptor sha256 $got != PF_DEVICE_DESCRIPTOR_SHA256 $want"
+    pf_log "stage: platform-inputs/device <- devices/$id/capabilities.toml (sha256=${got:0:12})"
 }
 
 pf_stage_sources() {

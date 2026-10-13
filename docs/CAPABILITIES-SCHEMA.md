@@ -236,6 +236,60 @@ Derived rung per row: `sim-ready` = `platform_id`'s descriptor validates AND the
 `E_CATALOG_MATURITY`; below it is allowed (the X55 is declared `planned` while its package holds
 only the fixture reference model). Hardware verification is not a rung (D18).
 
+## Display orientation contract
+
+The session compositor (gamescope) is the sole physical-to-logical rotator. A policy
+input combines the fixed mount (DT/connector panel orientation), the posture (descriptor
+joints/switches), an optional accelerometer with its mount matrix, and SW_ROTATE_LOCK
+into one output transform.
+
+**Apps see only a logical size** via Wayland/Xwayland plus SDL3 display orientation and
+resize/configure events. Pre-rotation is optional and negotiated
+(`preferred_buffer_transform`), never hard-coded in the app. Apps draw the logical
+landscape canvas declared by `render_canvas` and must not pre-rotate.
+
+### `app.toml` `[display]`
+
+Each app declares its allowed orientations in `app.toml`:
+
+```toml
+[display]
+orientations = ["landscape", "landscape_flipped"]
+```
+
+| key | required | notes |
+|---|---|---|
+| `orientations` | | non-empty subset of `landscape` \| `landscape_flipped` \| `portrait` \| `portrait_flipped` (SDL enum names); default `["landscape"]`. Unknown values are refused at parse time. Duplicates are refused. |
+| `display_min` | | `{ w, h }` — the smallest logical canvas the app needs in any allowed orientation. An app is refused only if `display_min` cannot be met in any of its allowed orientations. |
+
+Fixed-orientation apps are kept upright and letterboxed (the Android model): the
+compositor refuses to rotate an app that never lists the device's current orientation.
+An app that lists only `["landscape"]` on a portrait device will see a
+letterboxed landscape region.
+
+### Descriptor orientation fields
+
+These descriptor fields carry the hardware facts the display policy consumes:
+
+- **`[[screens]].present`** — `landscape` or `portrait`, the mounted physical
+  orientation the user sees. Together with `rotation` below this tells the compositor
+  which way the panel is fixed.
+- **`[[screens]].rotation`** — logical enum `none` / `cw90` / `cw180` / `cw270`;
+  maps the logical `render_canvas` onto the physical panel. The compositor reads the
+  DRM connector's "panel orientation" (derived from the DT `rotation` value, e.g.
+  `rotation = <90>` → "Right Side Up") and this descriptor field records the result.
+- **`[[screens]].render_canvas`** — `{ w, h }` — the logical LANDSCAPE buffer the
+  app draws into. The compositor rotates this onto the physical panel.
+- **`[[joints.postures]].screen_rotation`** — `{ <screen id> = none|cw90|cw180|cw270 }`,
+  an additional rotation relative to the screen's declared `rotation`, applied by the
+  compositor when the device is in that posture (e.g. a swivelled screen or a flip).
+
+### Input rotation
+
+Touch follows the display rotation (compositor). Gamepad stays in the control-deck
+frame; `pf-input-broker` remaps axes only on a whole-body rotation (tate) posture,
+never for a screen-only swivel.
+
 ## What `pf caps validate` checks
 1. **Schema** (structure, types, enums, patterns, `additionalProperties:false`).
 2. **`device.id` JOIN** — `identity.id` == directory == `profile.toml [device].id` (the sole build-profile cross-check; geometry stays in the DTS).

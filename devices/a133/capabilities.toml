@@ -68,10 +68,11 @@ frame  = "pf-mm-v1"
 naming = "pf-semantic-v1"
 source = "device-models/trimui-smart-pro"
 
-# Screen = render INTENT, not panel pixel truth. The app draws a LANDSCAPE 1280x720 canvas;
-# the disp engine rotates it onto the physically-portrait panel (present=portrait). The
-# rotation MECHANISM (A133 legacy disp2, derived rotate-768) is per-SoC CODE, not data here
-# — only the logical enum is carried. Panel dims live in the kernel DTS (lcd0), not here.
+# Screen = render INTENT, not panel pixel truth. The app draws a LANDSCAPE 1280x720 canvas
+# and must not pre-rotate. The panel is portrait-native and mounted rotated — the DT
+# `rotation = <90>` makes the DRM connector expose "panel orientation" "Right Side Up",
+# and the session compositor (gamescope) is the sole physical-to-logical rotator.
+# Panel dims live in the kernel DTS (lcd0), not here.
 [[screens]]
 role          = "primary"
 present       = "portrait"
