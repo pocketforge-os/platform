@@ -92,6 +92,10 @@ def _schema_structural_check(doc, schema):
                 continue
             if prop_key in instance:
                 val = instance[prop_key]
+                if "$ref" in prop_schema:
+                    resolved = resolve_ref(prop_schema["$ref"])
+                    if resolved and isinstance(val, dict):
+                        check_node(val, resolved, f"{path}{prop_key}.")
                 check_node_type(val, prop_schema, f"{path}{prop_key}.")
                 if isinstance(val, list) and isinstance(prop_schema, dict):
                     if "minItems" in prop_schema and len(val) < prop_schema["minItems"]:
