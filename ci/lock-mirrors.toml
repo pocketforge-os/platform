@@ -268,8 +268,8 @@ aliases = [
 consumer_repo = "image"
 consumer_path = "tests/test-steamlink-ffmpeg59-runtime.sh"
 parser = "template"
-template = 'run_contract_builder {value}'
-reason = "positive producer-admission control for the current image UAPI lock"
+template = 'build9_uapi_sha={value}'
+reason = "named positive producer-admission identity for the current image UAPI lock"
 
 [[references]]
 id = "volatile-root-kernel-pr-provenance"

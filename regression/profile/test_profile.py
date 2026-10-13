@@ -328,19 +328,20 @@ class ProfileTest(unittest.TestCase):
         # PF_IMAGE_SHA here; GPU-UM #207/#208 remain open-profile-only.
         # Image#240's Wi-Fi lease-loss watchdog and image#241's Steam Link FFmpeg
         # GNU build IDs again advance only the universal PF_IMAGE_SHA.
-        # Build 9 advances only the canonical kernel-sunxi-7.x PF_KERNEL_SHA on
-        # a133-open-7x; the byte-identical Steam Link UAPI witness stays at Build 7.
+        # Build 9 repair advances PF_IMAGE_SHA globally. The canonical open-GPU
+        # profile also moves its byte-identical Steam Link UAPI witness to the
+        # boot-kernel source identity; the no-radio override stays frozen.
         expected = {
-            ("a133", "dev"): "ebfbc4a89bb7b10c7ba1708f8183fbd72c8678b693f45ba36855068d6efc29c9",
-            ("a133", "release"): "be32b782e6cbbf20b70b55f261688e20e4a7bf3b4b527594b047314ed1e250d0",
-            ("a133-open-7x", "dev"): "f867a0284465bf36aff2474957771c227c86ba2f025a9bc43cbd1db64cc4554e",
-            ("a133-open-7x", "release"): "a7fb9b1f64a7813a77b4ed33a0f5d6e1c384f8621c1c52f15800cce608a68726",
-            ("a133-owned", "dev"): "357f59e15f6ce1a66cf0ecf0318dd8d1e6dd35dc963b9ae137796570b7ad93cc",
-            ("a133-owned", "release"): "e16f4e37e0d20a8f42b3ba8452124262f08c3cbb45209307ffc578579a72bdbd",
-            ("a523", "dev"): "e2806f0f2a73db2a644ae7c6bf1ddce476cbe33948652bb0ead2d4d0ac0b8159",
-            ("a523", "release"): "0d756253e04e2aafc626d66205d93f0ba58f975ce8a95433dd37feaae275fbd4",
-            ("sdm845", "dev"): "93a8004cc0668ef90baa3e256d66d57b4feee9f3d1e09bfe932fb5e42292114b",
-            ("sdm845", "release"): "394b2b5e99e4363919e3aff12dd5bae91ce077a31a67fabd6f51ba5d47696a24",
+            ("a133", "dev"): "e8c4c1e02dbf4ecd9a501dcad14f2e76abc68108ca270bf52888d3b83c74d591",
+            ("a133", "release"): "8062eb6a4a8d6d8ee81c4151192dda3b1e39b459a5e0784e511d8cc5327e8bb2",
+            ("a133-open-7x", "dev"): "12f2f3656af62f887484a7880495448e82826795169c84c70dbab4e082321e27",
+            ("a133-open-7x", "release"): "86f707d21e17091123c0b3229d17e9da2a867148449200684a94eca3c4e4f16d",
+            ("a133-owned", "dev"): "15181d0031f1e4be8d1a1990717993d9136070314ce211299a1a9838a57593cd",
+            ("a133-owned", "release"): "85afd1a85af005d250fb0c605665692390e4de76590bc382420269e881f89afd",
+            ("a523", "dev"): "4e906d3da2f74ad08746bfb82894133d9214a3fb0c31d88bfeaa9e4189dc25fe",
+            ("a523", "release"): "f32feb4725daee2340327893a4f913e140f2c42d5aaa28c244d4e6dcb2016dbe",
+            ("sdm845", "dev"): "e6e02b92b5062316558024266c22137b683f7a97b4cb735a57c4ae8dbe7154e7",
+            ("sdm845", "release"): "ceafb0b63e97338592ba314d38a488330c6050bcba811fee170f3559f8c0777a",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -593,7 +594,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "bd1713af2183cf5d945945c2b127e25d382ee8e9",
-                "PF_IMAGE_SHA": "e14183c152c7b0ab28979d14eb9cb2d2ce34d255",
+                "PF_IMAGE_SHA": "dc3637f774e304f5a42a22f948bdd6d54608f259",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
