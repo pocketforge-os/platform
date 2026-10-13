@@ -11,7 +11,8 @@ set -euo pipefail
 
 build_env=(env -i "HOME=${HOME:?}" "PATH=${PATH:?}")
 for name in DOCKER_CONFIG DOCKER_CONTEXT DOCKER_HOST DOCKER_TLS_VERIFY \
-    DOCKER_CERT_PATH BUILDX_CONFIG XDG_RUNTIME_DIR SSL_CERT_FILE SSL_CERT_DIR; do
+    DOCKER_CERT_PATH BUILDX_CONFIG XDG_RUNTIME_DIR SSH_AUTH_SOCK \
+    SSL_CERT_FILE SSL_CERT_DIR; do
     if [[ -v $name ]]; then
         build_env+=("$name=${!name}")
     fi
