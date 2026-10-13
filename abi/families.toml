@@ -105,7 +105,7 @@ provenance_ref   = "tsp-1dl.4.5, tsp-cv7.6.1"
 schema_version         = 1
 gpu_models             = ["open"]
 runtime_abi            = "1"
-supported_capabilities = ["audio", "entropy", "input", "settings"]
+supported_capabilities = ["audio", "entropy", "input", "open_url", "settings"]
 
 # ── pocketforge/a523-mali — TrimUI Smart Pro S (Allwinner A523 / sun55iw3) ──────────────────
 [[family]]

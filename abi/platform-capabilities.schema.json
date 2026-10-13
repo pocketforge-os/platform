@@ -44,6 +44,7 @@
           "location",
           "magnetometer",
           "menu",
+          "open_url",
           "options",
           "pointer",
           "rumble",
