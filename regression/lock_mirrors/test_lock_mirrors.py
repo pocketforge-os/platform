@@ -22,6 +22,7 @@ PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
 CURRENT_IMAGE = "e14183c152c7b0ab28979d14eb9cb2d2ce34d255"
 CURRENT_UAPI = "de8ca3df549158834e1459dc0cd555bb97536be4"
+BUILD9_KERNEL = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 CURRENT_GAMESCOPE = "298881e3dff1ade108d57a257e8bf59bf8c6436f"
 STALE_GAMESCOPE = "0000000000000000000000000000000000000000"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
@@ -78,6 +79,78 @@ consumer_path = "{SOURCE_LOCK_PATH}"
 parser = "shell-assignment"
 key = "KERNEL_UAPI_SHA"
 comparison = "equal"
+'''.encode()
+
+
+def build9_lock(image_commit: str) -> bytes:
+    return f'''\
+[platform_runtime.steamlink_ffmpeg59_v1]
+source_sha = "{CURRENT_UAPI}"
+
+[platform_runtime.steamlink_ffmpeg59_v1.build_args]
+PF_FFMPEG_UAPI_SHA = "{CURRENT_UAPI}"
+
+[[repos]]
+name = "kernel-sunxi-7.x"
+url = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
+sha = "{BUILD9_KERNEL}"
+
+[[repos]]
+name = "image"
+url = "{IMAGE_URL}"
+sha = "{image_commit}"
+'''.encode()
+
+
+def build9_uapi_manifest(*, aliases: tuple[str, ...], migration: bytes = b"") -> bytes:
+    rendered_aliases = ", ".join(f'"{alias}"' for alias in aliases)
+    return f'''\
+schema_version = 1
+
+[[consumers]]
+repo = "image"
+url = "{IMAGE_URL}"
+commit_selector = "repos.image.sha"
+
+[[mirrors]]
+id = "steamlink-kernel-uapi-sha"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+aliases = [{rendered_aliases}]
+consumer_repo = "image"
+consumer_path = "{SOURCE_LOCK_PATH}"
+parser = "shell-assignment"
+key = "KERNEL_UAPI_SHA"
+comparison = "equal"
+'''.encode() + migration
+
+
+def build9_uapi_migration(
+    *,
+    mirror_id: str = "steamlink-kernel-uapi-sha",
+    old_aliases: tuple[str, ...] = (
+        "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+        "repos.kernel-sunxi-7.x.sha",
+    ),
+    new_aliases: tuple[str, ...] = (
+        "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+    ),
+) -> bytes:
+    def identity(aliases: tuple[str, ...]) -> str:
+        rendered_aliases = ", ".join(f'"{alias}"' for alias in aliases)
+        return (
+            '{ platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA", '
+            f'aliases = [{rendered_aliases}], consumer_repo = "image", '
+            f'consumer_path = "{SOURCE_LOCK_PATH}", parser = "shell-assignment", '
+            'key = "KERNEL_UAPI_SHA", comparison = "equal", expected_matches = 1 }'
+        )
+
+    return f'''\
+
+[[mirror_migrations]]
+id = "build9-steamlink-kernel-uapi-sha"
+mirror_id = "{mirror_id}"
+old = {identity(old_aliases)}
+new = {identity(new_aliases)}
 '''.encode()
 
 
@@ -148,6 +221,78 @@ PF_FFMPEG_UAPI_SHA = "{EXPECTED_UAPI}"
 
 
 class LockMirrorGateTests(unittest.TestCase):
+    def test_build9_mirror_migration_is_exact_scoped_and_one_shot(self) -> None:
+        old_aliases = (
+            "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+            "repos.kernel-sunxi-7.x.sha",
+        )
+        new_aliases = ("platform_runtime.steamlink_ffmpeg59_v1.source_sha",)
+        tree = {
+            SOURCE_LOCK_PATH: f"KERNEL_UAPI_SHA='{CURRENT_UAPI}'\n".encode(),
+        }
+        lock = build9_lock(CORRECTED_IMAGE)
+        old_manifest = build9_uapi_manifest(aliases=old_aliases)
+        candidate = build9_uapi_manifest(aliases=new_aliases)
+
+        undeclared = gate.check_gate(
+            lock,
+            candidate,
+            FixtureResolver({("image", CORRECTED_IMAGE): tree}),
+            baseline_manifest_raw=old_manifest,
+            baseline_commit=BASE_COMMIT,
+        )
+        self.assertFalse(undeclared.ok)
+        exact_refusal = next(
+            diagnostic
+            for diagnostic in undeclared.diagnostics
+            if diagnostic.classification == "BASELINE_MIRROR_CHANGED"
+        )
+        self.assertEqual(exact_refusal.platform_field, "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA")
+        self.assertIn("'steamlink-kernel-uapi-sha'", exact_refusal.detail)
+        self.assertIn("aliases", exact_refusal.detail)
+        print("BUILD9 RED undeclared:", exact_refusal.render())
+
+        migration = build9_uapi_migration()
+        declared_baseline = build9_uapi_manifest(aliases=old_aliases, migration=migration)
+        exact = gate.check_gate(
+            lock,
+            candidate,
+            FixtureResolver({("image", CORRECTED_IMAGE): tree}),
+            baseline_manifest_raw=declared_baseline,
+            baseline_commit=BASE_COMMIT,
+        )
+        self.assertTrue(exact.ok, exact.render())
+
+        negative_candidates = {
+            "different mirror id": build9_uapi_manifest(
+                aliases=old_aliases,
+                migration=build9_uapi_migration(mirror_id="some-other-mirror"),
+            ),
+            "extra field change": candidate.replace(
+                b'consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"',
+                b'consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/moved.lock"',
+            ),
+            "wrong old identity": build9_uapi_manifest(
+                aliases=old_aliases,
+                migration=build9_uapi_migration(old_aliases=new_aliases),
+            ),
+            "wrong new identity": build9_uapi_manifest(
+                aliases=old_aliases,
+                migration=build9_uapi_migration(new_aliases=old_aliases),
+            ),
+            "stale declaration": declared_baseline,
+        }
+        for name, negative_baseline in negative_candidates.items():
+            with self.subTest(name=name):
+                result = gate.check_gate(
+                    lock,
+                    candidate if name != "stale declaration" else declared_baseline,
+                    FixtureResolver({("image", CORRECTED_IMAGE): tree}),
+                    baseline_manifest_raw=negative_baseline,
+                    baseline_commit=BASE_COMMIT,
+                )
+                self.assertFalse(result.ok, f"{name} unexpectedly passed")
+
     def test_platform267_red_and_corrected_green(self) -> None:
         stale_tree = {
             SOURCE_LOCK_PATH: (FIXTURES / "platform267" / "source.lock").read_bytes(),
