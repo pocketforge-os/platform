@@ -15,6 +15,18 @@
     "fetch":   { "$ref": "#/$defs/fetch" },
     "display": { "$ref": "#/$defs/display" }
   },
+  "allOf": [
+    {
+      "if": {
+        "required": ["schema_version"],
+        "properties": { "schema_version": { "const": 2 } }
+      },
+      "then": {},
+      "else": {
+        "properties": { "display": false }
+      }
+    }
+  ],
   "$defs": {
     "display": {
       "type": "object",

@@ -42,27 +42,99 @@ def schema_errors(manifest_text):
 
 def _schema_structural_check(doc, schema):
     """Minimal structural check when jsonschema is not available: enforce
-    additionalProperties. Not exhaustive but catches the key cases."""
+    additionalProperties, resolve $ref, handle if/then/else gating."""
     errs = []
-    props = schema.get("properties", {})
-    ap = schema.get("additionalProperties", False)
-    if ap is False:
-        for key in doc:
-            if key not in props:
-                errs.append(f"Additional properties are not allowed ('{key}' was unexpected)")
-    for key, subschema in props.items():
-        if key in doc and subschema.get("type") == "object":
-            sub_doc = doc[key]
-            if subschema.get("additionalProperties") is False:
-                sub_props = subschema.get("properties", {})
-                for sub_key in sub_doc:
-                    if sub_key not in sub_props:
-                        errs.append(f"Additional properties are not allowed ('{key}.{sub_key}' was unexpected)")
-    if "schema_version" in props:
-        sv = doc.get("schema_version")
-        if sv is not None and "enum" in props["schema_version"]:
-            if sv not in props["schema_version"]["enum"]:
-                errs.append(f"{sv} is not one of {props['schema_version']['enum']}")
+
+    def resolve_ref(ref):
+        if not ref.startswith("#/"):
+            return None
+        parts = ref[2:].split("/")
+        node = schema
+        for p in parts:
+            if isinstance(node, dict):
+                node = node.get(p)
+            else:
+                return None
+        return node if isinstance(node, dict) else None
+
+    def check_node(instance, node_schema, path):
+        if not isinstance(node_schema, dict):
+            return
+        if "$ref" in node_schema:
+            resolved = resolve_ref(node_schema["$ref"])
+            if resolved:
+                check_node(instance, resolved, path)
+            return
+        if not isinstance(instance, dict):
+            return
+        # allOf with if/then/else
+        for item in node_schema.get("allOf", []):
+            if "if" in item and isinstance(item["if"], dict):
+                if_match = _check_if(instance, item["if"])
+                if if_match and "then" in item:
+                    check_node(instance, item["then"], path)
+                elif not if_match and "else" in item:
+                    check_node(instance, item["else"], path)
+        # additionalProperties: false
+        props = node_schema.get("properties", {})
+        ap = node_schema.get("additionalProperties", False)
+        if ap is False:
+            for key in instance:
+                if key not in props:
+                    errs.append(f"Additional properties are not allowed ('{path}{key}' was unexpected)")
+        # check property schemas
+        for prop_key, prop_schema in props.items():
+            if not isinstance(prop_schema, dict):
+                if prop_schema is False and prop_key in instance:
+                    errs.append(f"Property '{path}{prop_key}' is not allowed")
+                continue
+            if prop_key in instance:
+                val = instance[prop_key]
+                check_node_type(val, prop_schema, f"{path}{prop_key}.")
+                if isinstance(val, list) and isinstance(prop_schema, dict):
+                    if "minItems" in prop_schema and len(val) < prop_schema["minItems"]:
+                        errs.append(f"{path}{prop_key}: array too short (min {prop_schema['minItems']}, got {len(val)})")
+                    if prop_schema.get("uniqueItems") and len(val) != len(set(str(v) for v in val)):
+                        errs.append(f"{path}{prop_key}: duplicate items")
+                    items_schema = prop_schema.get("items")
+                    if isinstance(items_schema, dict) and "enum" in items_schema:
+                        for v in val:
+                            if v not in items_schema["enum"]:
+                                errs.append(f"{path}{prop_key}: '{v}' is not one of {items_schema['enum']}")
+                # required fields in sub-object
+                if isinstance(val, dict):
+                    for req_key in prop_schema.get("required", []):
+                        if req_key not in val:
+                            errs.append(f"{path}{prop_key}: missing required field '{req_key}'")
+
+    def check_node_type(val, node_schema, path):
+        t = node_schema.get("type")
+        if t == "integer" and not isinstance(val, int):
+            errs.append(f"{path} expected integer, got {type(val).__name__}")
+        if t == "string" and not isinstance(val, str):
+            errs.append(f"{path} expected string, got {type(val).__name__}")
+        if t == "array" and not isinstance(val, list):
+            errs.append(f"{path} expected array, got {type(val).__name__}")
+        if t == "object" and not isinstance(val, dict):
+            errs.append(f"{path} expected object, got {type(val).__name__}")
+        if "enum" in node_schema and val not in node_schema["enum"]:
+            errs.append(f"{path} {val} is not one of {node_schema['enum']}")
+
+    def _check_if(instance, if_schema):
+        if "required" in if_schema:
+            if not all(k in instance for k in if_schema["required"]):
+                return False
+        if "properties" in if_schema:
+            for pk, pv in if_schema["properties"].items():
+                if not isinstance(pv, dict):
+                    continue
+                if pk not in instance:
+                    continue
+                if "const" in pv and instance[pk] != pv["const"]:
+                    return False
+        return True
+
+    check_node(doc, schema, "")
     return errs
 
 
