@@ -623,7 +623,7 @@ ref  = "main"          # tsp-mc9m.41.995.100.1 determinism repair: image#242 (me
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "6c1b0e6656e84d7d53f9cbdaf87187039f38d266"
+sha  = "1aee0282aa3308be50ee64235023a23a4ab8b21a"
 
 [[repos]]
 name = "pf-cursor-theme"
