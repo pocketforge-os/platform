@@ -26,6 +26,7 @@ cursor = repos["pf-cursor-theme"]
 assert cursor["ref"] == "pocketforge-linear"
 assert cursor["sha"] == "c5783fbb7d9d89c82bc1b4757c303e267b6cd104"
 assert lock["cursor_theme"]["tools_recipe_sha"] == "22b8c9feb04565c9ee84858687ed30455da7ed58"
+assert lock["cursor_theme"]["tools_image_digest"] == "2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862"
 PY
 
 echo 'cursor-theme staging contract: PASS'

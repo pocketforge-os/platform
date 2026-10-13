@@ -288,12 +288,17 @@ def load_lock():
     cursor_theme = data.get("cursor_theme", {})
     if not isinstance(cursor_theme, dict):
         raise ProfileSchemaError("[cursor_theme] must be a table")
-    if set(cursor_theme) != {"tools_image", "tools_recipe_sha"}:
+    if set(cursor_theme) != {"tools_image", "tools_image_digest", "tools_recipe_sha"}:
         raise ProfileSchemaError(
-            "[cursor_theme] must contain exactly tools_image and tools_recipe_sha")
+            "[cursor_theme] must contain exactly tools_image, tools_image_digest, and tools_recipe_sha")
     tools_image = cursor_theme.get("tools_image", "")
     if not re.fullmatch(r"[^@]+@sha256:[0-9a-f]{64}", tools_image):
         raise ProfileSchemaError("[cursor_theme].tools_image must be digest-pinned")
+    tools_image_digest = cursor_theme.get("tools_image_digest", "")
+    if not re.fullmatch(r"[0-9a-f]{64}", tools_image_digest):
+        raise ProfileSchemaError("[cursor_theme].tools_image_digest must be a full SHA-256")
+    if not tools_image.endswith("@sha256:" + tools_image_digest):
+        raise ProfileSchemaError("[cursor_theme].tools_image_digest must match tools_image")
     if not re.fullmatch(r"[0-9a-f]{40}", cursor_theme.get("tools_recipe_sha", "")):
         raise ProfileSchemaError("[cursor_theme].tools_recipe_sha must be a full 40-hex SHA")
     platform_runtime = data.get("platform_runtime", {})
