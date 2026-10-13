@@ -750,7 +750,7 @@ pf_os_image_dockerbuild() {
     [ "$TARGET" = ci-dell ] && pf_create_staging_dir "$cache_dir"
     pf_ensure_insecure_builder "$builder"
     pf_log "EXEC os-image multistage build"
-    "${cmd[@]}"
+    "$SCRIPT_DIR/lib/pf-build-env" "${cmd[@]}"
 }
 
 if [ "$ARTIFACT" = "os-image" ]; then
