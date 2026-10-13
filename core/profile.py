@@ -335,9 +335,6 @@ def load_lock():
         if source is None:
             raise ProfileSchemaError(
                 f"{where}.source_repo '{runtime['source_repo']}' is not in platform.lock")
-        if source.get("sha") != source_sha:
-            raise ProfileSchemaError(
-                f"{where}.source_sha must equal the canonical {runtime['source_repo']} pin")
     platform_payload = data.get("platform_payload", {})
     if not isinstance(platform_payload, dict):
         raise ProfileSchemaError("[platform_payload] must be a table")
@@ -887,8 +884,9 @@ def build_args(dev_id, variant="dev"):
     # in the explicit inheritance lineage. The lock describes their build-arg
     # surface generically so core does not learn a consumer, codec, or hardware
     # implementation. Siblings do not inherit a payload accidentally. A
-    # payload that consumes kernel source must match both the selected repo and
-    # the profile-resolved revision.
+    # payload that consumes kernel source must match the selected repo. Its
+    # exact source revision is independently lock-owned: exported UAPI inputs
+    # can remain on an older byte-identical tree while the boot kernel advances.
     profile_lineage = set(_device_profile_lineage(merged["device"]))
     for runtime_id, runtime in lock["platform_runtime"].items():
         if runtime["profile"] not in profile_lineage:
@@ -897,7 +895,7 @@ def build_args(dev_id, variant="dev"):
             # Preserve the existing missing-pin diagnostic surface. The payload
             # cannot be selected until the normal source gate has a revision.
             continue
-        if runtime["source_repo"] != kernel_repo or runtime["source_sha"] != kernel_sha:
+        if runtime["source_repo"] != kernel_repo:
             raise ProfileSchemaError(
                 f"platform runtime '{runtime_id}' source does not match profile '{dev_id}' kernel")
         selected_args = {runtime["mode_arg"]: runtime["mode_value"], **runtime["build_args"]}

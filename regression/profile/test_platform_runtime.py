@@ -14,6 +14,7 @@ spec.loader.exec_module(profile)
 
 SELECTED = "a133-open-7x-gpu"
 UAPI_SHA = "de8ca3df549158834e1459dc0cd555bb97536be4"
+KERNEL_SHA = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 EXPECTED_ARGS = {
     "PF_STEAMLINK_FFMPEG59_MODE": "v1",
     "PF_FFMPEG_DEBIAN_VERSION": "7:5.1.8-0+deb12u1",
@@ -35,7 +36,8 @@ class PlatformRuntimeTest(unittest.TestCase):
                          "/usr/lib/pocketforge/platform-runtimes/steamlink-ffmpeg59/v1")
         self.assertEqual(runtime["source_repo"], "kernel-sunxi-7.x")
         self.assertEqual(runtime["source_sha"], UAPI_SHA)
-        self.assertEqual(lock["repos"][runtime["source_repo"]]["sha"], UAPI_SHA)
+        self.assertEqual(lock["repos"][runtime["source_repo"]]["sha"], KERNEL_SHA)
+        self.assertNotEqual(runtime["source_sha"], KERNEL_SHA)
 
         args, _, missing = profile.build_args(SELECTED)
         self.assertEqual(missing, [])
@@ -51,9 +53,9 @@ class PlatformRuntimeTest(unittest.TestCase):
                 args, _, _ = profile.build_args(device)
                 self.assertTrue(payload_keys.isdisjoint(args))
 
-    def test_source_revision_must_match_profile_resolved_kernel(self):
+    def test_source_repo_must_match_profile_resolved_kernel(self):
         lock = copy.deepcopy(profile.load_lock())
-        lock["platform_runtime"]["steamlink_ffmpeg59_v1"]["source_sha"] = "1" * 40
+        lock["platform_runtime"]["steamlink_ffmpeg59_v1"]["source_repo"] = "kernel-sunxi-6.x"
         with mock.patch.object(profile, "load_lock", return_value=lock):
             with self.assertRaisesRegex(profile.ProfileSchemaError, "does not match"):
                 profile.build_args(SELECTED)
@@ -79,8 +81,8 @@ class PlatformRuntimeTest(unittest.TestCase):
         malformed["platform_runtime"]["steamlink_ffmpeg59_v1"]["mode_arg"] = "unsafe"
         cases["mode-arg"] = malformed
         malformed = copy.deepcopy(good)
-        malformed["platform_runtime"]["steamlink_ffmpeg59_v1"]["source_sha"] = "2" * 40
-        cases["canonical-source"] = malformed
+        malformed["platform_runtime"]["steamlink_ffmpeg59_v1"]["source_sha"] = "not-a-sha"
+        cases["source-shape"] = malformed
         malformed = copy.deepcopy(good)
         malformed["platform_runtime"]["steamlink_ffmpeg59_v1"]["build_args"]["lower"] = "x"
         cases["build-arg"] = malformed

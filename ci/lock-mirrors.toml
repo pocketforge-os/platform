@@ -136,7 +136,6 @@ id = "steamlink-kernel-uapi-sha"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
 aliases = [
   "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
-  "repos.kernel-sunxi-7.x.sha",
 ]
 consumer_repo = "image"
 consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
@@ -253,7 +252,6 @@ id = "steamlink-uapi-runtime-test-drift-expectation"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
 aliases = [
   "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
-  "repos.kernel-sunxi-7.x.sha",
 ]
 consumer_repo = "image"
 consumer_path = "tests/test-steamlink-ffmpeg59-runtime.sh"
@@ -266,7 +264,6 @@ id = "steamlink-uapi-runtime-test-current-control"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
 aliases = [
   "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
-  "repos.kernel-sunxi-7.x.sha",
 ]
 consumer_repo = "image"
 consumer_path = "tests/test-steamlink-ffmpeg59-runtime.sh"
@@ -276,9 +273,8 @@ reason = "positive producer-admission control for the current image UAPI lock"
 
 [[references]]
 id = "volatile-root-kernel-pr-provenance"
-platform_field = "repos.kernel-sunxi-7.x.sha"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.source_sha"
 aliases = [
-  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
   "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA",
 ]
 consumer_repo = "image"
