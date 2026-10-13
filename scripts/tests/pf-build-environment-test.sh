@@ -26,12 +26,14 @@ if grep -Eq '^(TRACEPARENT|TRACESTATE|OTEL_|GITHUB_|RUNNER_|CI=|BUILDKIT_|BUILDX
     exit 1
 fi
 
+# shellcheck disable=SC2016
 SSH_AUTH_SOCK=/run/user/1000/pf-test-agent.sock \
 DOCKER_HOST=ssh://builder.example \
     "$root/core/lib/pf-build-env" sh -c 'env | LC_ALL=C sort >"$1"' sh "$tmp/ssh-host-environment"
 grep -qxF 'DOCKER_HOST=ssh://builder.example' "$tmp/ssh-host-environment"
 grep -qxF 'SSH_AUTH_SOCK=/run/user/1000/pf-test-agent.sock' "$tmp/ssh-host-environment"
 
+# shellcheck disable=SC2016
 SSH_AUTH_SOCK=/run/user/1000/pf-test-agent.sock \
 DOCKER_CONTEXT=remote-builder \
     "$root/core/lib/pf-build-env" sh -c 'env | LC_ALL=C sort >"$1"' sh "$tmp/ssh-context-environment"
