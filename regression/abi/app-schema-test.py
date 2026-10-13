@@ -75,13 +75,15 @@ def _schema_structural_check(doc, schema):
                     check_node(instance, item["then"], path)
                 elif not if_match and "else" in item:
                     check_node(instance, item["else"], path)
-        # additionalProperties: false
+        # additionalProperties: false — only when explicitly set (JSON Schema
+        # defaults to additionalProperties allowed, not forbidden)
         props = node_schema.get("properties", {})
-        ap = node_schema.get("additionalProperties", False)
-        if ap is False:
-            for key in instance:
-                if key not in props:
-                    errs.append(f"Additional properties are not allowed ('{path}{key}' was unexpected)")
+        if "additionalProperties" in node_schema:
+            ap = node_schema["additionalProperties"]
+            if ap is False:
+                for key in instance:
+                    if key not in props:
+                        errs.append(f"Additional properties are not allowed ('{path}{key}' was unexpected)")
         # check property schemas
         for prop_key, prop_schema in props.items():
             if not isinstance(prop_schema, dict):
