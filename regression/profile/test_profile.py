@@ -22,13 +22,13 @@ APP_RUNTIME = {
     "runtime_family": "pocketforge/a133-powervr",
     "runtime_abi": "1",
     "platform_version": "20",
-    "supported_capabilities": ["audio", "entropy", "input", "settings"],
+    "supported_capabilities": ["audio", "entropy", "input", "open_url", "settings"],
 }
 APP_BUILD_ARGS = {
     "PF_APP_RUNTIME_FAMILY": "pocketforge/a133-powervr",
     "PF_APP_RUNTIME_ABI": "1",
     "PF_APP_PLATFORM_VERSION": "20",
-    "PF_APP_CAPABILITIES": "audio entropy input settings",
+    "PF_APP_CAPABILITIES": "audio entropy input open_url settings",
 }
 A133_OPEN_PROFILES = {
     "a133-open",
@@ -331,17 +331,18 @@ class ProfileTest(unittest.TestCase):
         # Build 9 repair advances PF_IMAGE_SHA globally. The canonical open-GPU
         # profile also moves its byte-identical Steam Link UAPI witness to the
         # boot-kernel source identity; the no-radio override stays frozen.
+        # Image#242's determinism repair again advances only universal PF_IMAGE_SHA.
         expected = {
-            ("a133", "dev"): "e8c4c1e02dbf4ecd9a501dcad14f2e76abc68108ca270bf52888d3b83c74d591",
-            ("a133", "release"): "8062eb6a4a8d6d8ee81c4151192dda3b1e39b459a5e0784e511d8cc5327e8bb2",
-            ("a133-open-7x", "dev"): "12f2f3656af62f887484a7880495448e82826795169c84c70dbab4e082321e27",
-            ("a133-open-7x", "release"): "86f707d21e17091123c0b3229d17e9da2a867148449200684a94eca3c4e4f16d",
-            ("a133-owned", "dev"): "15181d0031f1e4be8d1a1990717993d9136070314ce211299a1a9838a57593cd",
-            ("a133-owned", "release"): "85afd1a85af005d250fb0c605665692390e4de76590bc382420269e881f89afd",
-            ("a523", "dev"): "4e906d3da2f74ad08746bfb82894133d9214a3fb0c31d88bfeaa9e4189dc25fe",
-            ("a523", "release"): "f32feb4725daee2340327893a4f913e140f2c42d5aaa28c244d4e6dcb2016dbe",
-            ("sdm845", "dev"): "e6e02b92b5062316558024266c22137b683f7a97b4cb735a57c4ae8dbe7154e7",
-            ("sdm845", "release"): "ceafb0b63e97338592ba314d38a488330c6050bcba811fee170f3559f8c0777a",
+            ("a133", "dev"): "b2112971573e0893890df3968c4b43eec35ad051029fad8749cb2880b65924f4",
+            ("a133", "release"): "8c841407d578baacf19bf0cd20f8977577a13b2c58aa812c93d299e9e5a64999",
+            ("a133-open-7x", "dev"): "b9ff9973851aaf68db1c824383f5c8757414271cbe9e55464a159420d36ebe61",
+            ("a133-open-7x", "release"): "e29af3e61c70718e9dafa424fca52ddd3188e1517672e84bcb8c4cd4d4545941",
+            ("a133-owned", "dev"): "0cd6a79e2286e55e3f8b6650d7980fadfb30c9fd46db8fa1ddd7ee7cf2ee937c",
+            ("a133-owned", "release"): "70b5e48a64454569da0d0fee6b7af94b8e639a2e2a9e0ff885ebe88a3a5972ed",
+            ("a523", "dev"): "26d0577dcbcab9da73ef80180ad65e75c02a0c40f833f47f74e09304ffbfc451",
+            ("a523", "release"): "89dc6f3765e4d89c1ff3fb8e8ffc8e7ebefbf74a1424fd015a7edab5775ab59b",
+            ("sdm845", "dev"): "d7028fff46c41443328c8d7a1c3453677a3bb76f97e348dcd9ac270e00eecfbc",
+            ("sdm845", "release"): "7fea62195de8e1a2f984bef4114029ddca02f9df981431b98fdaab991c90cdbb",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -371,17 +372,17 @@ class ProfileTest(unittest.TestCase):
 
         cases = {
             "unsorted": (
-                '["audio", "entropy", "input", "settings"]',
+                '["audio", "entropy", "input", "open_url", "settings"]',
                 '["settings", "audio"]',
                 "must be sorted",
             ),
             "duplicate": (
-                '["audio", "entropy", "input", "settings"]',
+                '["audio", "entropy", "input", "open_url", "settings"]',
                 '["audio", "audio", "entropy"]',
                 "must be unique",
             ),
             "runtime-unknown": (
-                '["audio", "entropy", "input", "settings"]',
+                '["audio", "entropy", "input", "open_url", "settings"]',
                 '["audio", "entropy", "input", "telepathy"]',
                 "runtime-unknown values: telepathy",
             ),
@@ -394,6 +395,36 @@ class ProfileTest(unittest.TestCase):
                     with mock.patch.object(profile, "ABI_FAMILIES", str(registry)):
                         with self.assertRaisesRegex(profile.ProfileSchemaError, message):
                             profile._resolve_app_runtime_support(merged)
+
+    def test_open_url_capability_is_admitted_and_near_miss_word_refused(self):
+        # tsp-mc9m.41.996.5.2: open_url joins the device-side vocabulary because
+        # runtime#111 admits it in pf-app-manifest KNOWN_CAPABILITIES. The shipped
+        # registry must back it for the a133 open-GPU launcher, and a near-miss
+        # spelling must still be refused, so the same invocation carries both the
+        # positive acceptance and the negative vocabulary control.
+        merged, _ = profile.resolve("a133")
+        merged = copy.deepcopy(merged)
+        merged["gpu"]["model"] = "open"
+        support = profile._resolve_app_runtime_support(merged)
+        self.assertIn("open_url", support["supported_capabilities"])
+        schema = json.loads(pathlib.Path(profile.PLATFORM_SUPPORT_SCHEMA).read_text())
+        known = schema["properties"]["supported_capabilities"]["items"]["enum"]
+        self.assertIn("open_url", known)
+
+        source = pathlib.Path(profile.ABI_FAMILIES).read_text(encoding="utf-8")
+        mutated = source.replace(
+            '["audio", "entropy", "input", "open_url", "settings"]',
+            '["audio", "entropy", "input", "open_url", "openurl", "settings"]',
+            1,
+        )
+        self.assertNotEqual(mutated, source)
+        with tempfile.TemporaryDirectory() as tmp:
+            registry = pathlib.Path(tmp) / "families.toml"
+            registry.write_text(mutated, encoding="utf-8")
+            with mock.patch.object(profile, "ABI_FAMILIES", str(registry)):
+                with self.assertRaisesRegex(
+                        profile.ProfileSchemaError, "runtime-unknown values: openurl"):
+                    profile._resolve_app_runtime_support(merged)
 
     def test_platform_support_schema_is_exact_and_runtime_known(self):
         schema = json.loads(pathlib.Path(profile.PLATFORM_SUPPORT_SCHEMA).read_text())
@@ -594,7 +625,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "bd1713af2183cf5d945945c2b127e25d382ee8e9",
-                "PF_IMAGE_SHA": "dc3637f774e304f5a42a22f948bdd6d54608f259",
+                "PF_IMAGE_SHA": "8d6bbc50e856828a6b764c711cb08f2544e3607b",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

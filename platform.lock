@@ -146,7 +146,9 @@ kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.996.15 Build 9 repair: image#243 (merge dc3637f7) moves
+ref  = "main"          # tsp-mc9m.41.995.100.1 determinism repair: image#242 (merge 8d6bbc50)
+                       # strips tracing state at every build-stage RUN boundary and removes/refuses
+                       # build-run rootfs logs for both A133 and A523. Prior image#243 (merge dc3637f7) moves
                        # the Steam Link kernel-UAPI source receipt to the boot-kernel identity
                        # 45b87a7d. Image#241 (merge e14183c1) makes the Steam Link FFmpeg 5.9
                        # runtime emit GNU build IDs and carries image#240's
@@ -615,7 +617,7 @@ ref  = "main"          # tsp-mc9m.41.996.15 Build 9 repair: image#243 (merge dc3
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "dc3637f774e304f5a42a22f948bdd6d54608f259"
+sha  = "8d6bbc50e856828a6b764c711cb08f2544e3607b"
 
 [[repos]]
 name = "gamescope"
