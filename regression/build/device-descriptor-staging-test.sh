@@ -64,8 +64,11 @@ for variant in dev release; do
     staged="$tmp/open-$variant/platform-inputs/devices/a133/capabilities.toml"
     cmp "$ROOT/devices/a133/capabilities.toml" "$staged"
     test "$(stat -c %a "$staged")" = 644
+    staged_neutral="$tmp/open-$variant/platform-inputs/device/capabilities.toml"
+    cmp "$ROOT/devices/a133/capabilities.toml" "$staged_neutral"
+    test "$(stat -c %a "$staged_neutral")" = 644
     test "$(cd "$tmp/open-$variant/platform-inputs" && find . -mindepth 1 | LC_ALL=C sort | tr '\n' ' ')" \
-        = './devices ./devices/a133 ./devices/a133/capabilities.toml '
+        = './device ./device/capabilities.toml ./devices ./devices/a133 ./devices/a133/capabilities.toml '
 done
 
 # Every other profile shape stages no platform-inputs directory at all.
@@ -86,5 +89,18 @@ refuses wrong-sha $'PF_DEVICE_DESCRIPTOR_ID=a133\nPF_DEVICE_DESCRIPTOR_SHA256='"
 refuses no-sha $'PF_DEVICE_DESCRIPTOR_ID=a133\nPF_DEVICE_DESCRIPTOR_SHA256='
 refuses escape-id $'PF_DEVICE_DESCRIPTOR_ID=../a133\nPF_DEVICE_DESCRIPTOR_SHA256='"$want_sha"
 refuses absent-id $'PF_DEVICE_DESCRIPTOR_ID=a133-open\nPF_DEVICE_DESCRIPTOR_SHA256='"$want_sha"
+
+# Device-neutral path: when any device descriptor is staged, an identical copy lands at
+# ./device/capabilities.toml alongside the per-SoC ./devices/<id>/capabilities.toml.
+# The a133-open path exercises this through pf_stage_sources above; this block exercises it
+# for the a523 descriptor directly (pf_stage_device_descriptor is the shared function).
+a523_stage="$tmp/a523-stage"
+a523_src="$ROOT/devices/a523/capabilities.toml"
+a523_want="$(sha256sum "$a523_src" | cut -d' ' -f1)"
+create_context_dir() { mkdir -p -- "$1"; }
+pf_stage_device_descriptor "$a523_stage" a523 "$a523_want"
+cmp "$a523_src" "$a523_stage/platform-inputs/devices/a523/capabilities.toml"
+cmp "$a523_src" "$a523_stage/platform-inputs/device/capabilities.toml"
+test "$(stat -c %a "$a523_stage/platform-inputs/device/capabilities.toml")" = 644
 
 echo 'PASS: device descriptor staged verbatim for A133-open only, digest-verified, fail-closed'
