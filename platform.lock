@@ -629,7 +629,7 @@ sha  = "1aee0282aa3308be50ee64235023a23a4ab8b21a"
 name = "pf-cursor-theme"
 url  = "https://github.com/pocketforge-os/pf-cursor-theme.git"
 ref  = "pocketforge-linear"
-sha  = "dbeaa3c4ac5726e0dd81efd6846ca67a7c6a74d6"
+sha  = "c5783fbb7d9d89c82bc1b4757c303e267b6cd104"
 
 [[repos]]
 name = "gamescope"

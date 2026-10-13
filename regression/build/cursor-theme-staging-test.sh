@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD="${ROOT}/core/pf-build.sh"
 args="$(python3 "${ROOT}/core/profile.py" buildargs a133)"
 
-grep -Fxq 'PF_CURSOR_THEME_SHA=dbeaa3c4ac5726e0dd81efd6846ca67a7c6a74d6' <<<"${args}"
+grep -Fxq 'PF_CURSOR_THEME_SHA=c5783fbb7d9d89c82bc1b4757c303e267b6cd104' <<<"${args}"
 grep -Fxq 'PF_CURSOR_TOOLS_IMAGE=10.0.32.86:5555/pocketforge/ci-tools@sha256:2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862' <<<"${args}"
 grep -Fxq 'PF_CURSOR_TOOLS_RECIPE_SHA=22b8c9feb04565c9ee84858687ed30455da7ed58' <<<"${args}"
 
@@ -24,7 +24,7 @@ with open(sys.argv[1], "rb") as stream:
 repos = {repo["name"]: repo for repo in lock["repos"]}
 cursor = repos["pf-cursor-theme"]
 assert cursor["ref"] == "pocketforge-linear"
-assert cursor["sha"] == "dbeaa3c4ac5726e0dd81efd6846ca67a7c6a74d6"
+assert cursor["sha"] == "c5783fbb7d9d89c82bc1b4757c303e267b6cd104"
 assert lock["cursor_theme"]["tools_recipe_sha"] == "22b8c9feb04565c9ee84858687ed30455da7ed58"
 PY
 
