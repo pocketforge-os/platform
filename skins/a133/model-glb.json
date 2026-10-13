@@ -23,7 +23,7 @@
   "exporter": "device-models/export_gltf.py",
   "exporter_sha256": "2eebfb653f1dc72e67df213c7d8074f574bbe40a8e356cb75a26b6ee472de6a9",
   "glb": "skins/a133/model.glb",
-  "glb_sha256": "6908dc6385bc8a85081401b3768e4034c722770dc440b65c6ebb6a9cf9f10c74",
+  "glb_sha256": "1bd139f61c8376ce8b68128827e808529f0be5df0f5dd62c34353daf2e1a0eca",
   "model": "trimui-smart-pro",
   "nodes": [
     "body",
@@ -68,7 +68,7 @@
       "right": "30b5c87b2e3d3238a7109bba623158f1990b60c63ddf606adeb7fb66548c0835",
       "top": "613d9f824ef5cc03bb12d86f7ba4ad0c4e5991dab24b24437f051f9d4a1e05ed"
     },
-    "glb_sha256": "6908dc6385bc8a85081401b3768e4034c722770dc440b65c6ebb6a9cf9f10c74",
+    "glb_sha256": "1bd139f61c8376ce8b68128827e808529f0be5df0f5dd62c34353daf2e1a0eca",
     "renderer": "device-models/render_glb_views.py",
     "renderer_sha256": "41cb951ac33b509085efd30c957da2bb696558ca692536c44a798b872e87069a"
   }

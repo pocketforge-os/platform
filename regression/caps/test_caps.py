@@ -306,7 +306,7 @@ def main():
               all(f in caps.SDL_FIELDS for f in m))
 
     # --- SPIKE-0 probe-diff (asymmetric rule) against a synthetic xpad capture ---
-    def xpad_capture(home=True, drop=None, absx_min=0):
+    def xpad_capture(home=True, drop=None, absx_min=0, power_keys=None):
         # BTN_TL2/BTN_TR2 = the DIGITAL L2/R2 the node advertises (tsp-5p1). The X360-presented
         # ABS_Z/ABS_RZ axes below stay too -> they're now an unused advertised superset (INFO).
         keys = ["BTN_A", "BTN_B", "BTN_C", "BTN_X", "BTN_Y", "BTN_Z", "BTN_TL", "BTN_TR",
@@ -331,11 +331,24 @@ def main():
         # 114/115 on — the whole point of the multi-node model.
         kbd = {"path": "/dev/input/event0", "name": "sunxi-keyboard",
                "keys": (["KEY_HOMEPAGE"] if home else []) + ["KEY_VOLUMEUP", "KEY_VOLUMEDOWN"]}
-        return {"nodes": [kbd, pad]}
+        nodes = [kbd, pad]
+        if power_keys is not None:
+            nodes.insert(1, {"path": "/dev/input/event1", "name": "axp20x-pek",
+                             "keys": list(power_keys)})
+        return {"nodes": nodes}
 
     e, w, i = caps.probe_diff("a133", xpad_capture())
     check("probe-diff a133: subset holds (no errors)", e == [])
     check("probe-diff a133: HID superset reported as INFO", any("superset" in x for x in i))
+    # A named system-key source may legitimately be absent from a capture made from a
+    # different image. That is UNKNOWN (INFO), not proof that the descriptor is false.
+    check("probe-diff a133: absent cross-image power source reported unverified",
+          any("axp20x-pek" in x and "unverified" in x for x in i))
+    e, w, i = caps.probe_diff("a133", xpad_capture(power_keys=["KEY_POWER"]))
+    check("probe-diff a133: named power source advertising KEY_POWER passes", e == [])
+    e, w, i = caps.probe_diff("a133", xpad_capture(power_keys=[]))
+    check("probe-diff a133: present named power source missing KEY_POWER -> ERROR",
+          any("axp20x-pek" in x and "KEY_POWER" in x for x in e))
     e, w, i = caps.probe_diff("a133", xpad_capture(drop="BTN_A"))
     check("probe-diff a133: descriptor code not advertised -> ERROR", any("BTN_A" in x for x in e))
     e, w, i = caps.probe_diff("a133", xpad_capture(absx_min=-1000))
