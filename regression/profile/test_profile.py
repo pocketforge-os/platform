@@ -22,13 +22,13 @@ APP_RUNTIME = {
     "runtime_family": "pocketforge/a133-powervr",
     "runtime_abi": "1",
     "platform_version": "20",
-    "supported_capabilities": ["audio", "entropy", "input", "settings"],
+    "supported_capabilities": ["audio", "entropy", "input", "open_url", "settings"],
 }
 APP_BUILD_ARGS = {
     "PF_APP_RUNTIME_FAMILY": "pocketforge/a133-powervr",
     "PF_APP_RUNTIME_ABI": "1",
     "PF_APP_PLATFORM_VERSION": "20",
-    "PF_APP_CAPABILITIES": "audio entropy input settings",
+    "PF_APP_CAPABILITIES": "audio entropy input open_url settings",
 }
 A133_OPEN_PROFILES = {
     "a133-open",
@@ -371,17 +371,17 @@ class ProfileTest(unittest.TestCase):
 
         cases = {
             "unsorted": (
-                '["audio", "entropy", "input", "settings"]',
+                '["audio", "entropy", "input", "open_url", "settings"]',
                 '["settings", "audio"]',
                 "must be sorted",
             ),
             "duplicate": (
-                '["audio", "entropy", "input", "settings"]',
+                '["audio", "entropy", "input", "open_url", "settings"]',
                 '["audio", "audio", "entropy"]',
                 "must be unique",
             ),
             "runtime-unknown": (
-                '["audio", "entropy", "input", "settings"]',
+                '["audio", "entropy", "input", "open_url", "settings"]',
                 '["audio", "entropy", "input", "telepathy"]',
                 "runtime-unknown values: telepathy",
             ),
@@ -394,6 +394,36 @@ class ProfileTest(unittest.TestCase):
                     with mock.patch.object(profile, "ABI_FAMILIES", str(registry)):
                         with self.assertRaisesRegex(profile.ProfileSchemaError, message):
                             profile._resolve_app_runtime_support(merged)
+
+    def test_open_url_capability_is_admitted_and_near_miss_word_refused(self):
+        # tsp-mc9m.41.996.5.2: open_url joins the device-side vocabulary because
+        # runtime#111 admits it in pf-app-manifest KNOWN_CAPABILITIES. The shipped
+        # registry must back it for the a133 open-GPU launcher, and a near-miss
+        # spelling must still be refused, so the same invocation carries both the
+        # positive acceptance and the negative vocabulary control.
+        merged, _ = profile.resolve("a133")
+        merged = copy.deepcopy(merged)
+        merged["gpu"]["model"] = "open"
+        support = profile._resolve_app_runtime_support(merged)
+        self.assertIn("open_url", support["supported_capabilities"])
+        schema = json.loads(pathlib.Path(profile.PLATFORM_SUPPORT_SCHEMA).read_text())
+        known = schema["properties"]["supported_capabilities"]["items"]["enum"]
+        self.assertIn("open_url", known)
+
+        source = pathlib.Path(profile.ABI_FAMILIES).read_text(encoding="utf-8")
+        mutated = source.replace(
+            '["audio", "entropy", "input", "open_url", "settings"]',
+            '["audio", "entropy", "input", "open_url", "openurl", "settings"]',
+            1,
+        )
+        self.assertNotEqual(mutated, source)
+        with tempfile.TemporaryDirectory() as tmp:
+            registry = pathlib.Path(tmp) / "families.toml"
+            registry.write_text(mutated, encoding="utf-8")
+            with mock.patch.object(profile, "ABI_FAMILIES", str(registry)):
+                with self.assertRaisesRegex(
+                        profile.ProfileSchemaError, "runtime-unknown values: openurl"):
+                    profile._resolve_app_runtime_support(merged)
 
     def test_platform_support_schema_is_exact_and_runtime_known(self):
         schema = json.loads(pathlib.Path(profile.PLATFORM_SUPPORT_SCHEMA).read_text())
