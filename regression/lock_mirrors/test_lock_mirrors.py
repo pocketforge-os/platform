@@ -154,6 +154,12 @@ new = {identity(new_aliases)}
 '''.encode()
 
 
+def without_build9_migration(manifest: bytes) -> bytes:
+    start = manifest.index(b"# One-shot policy for Build 9.")
+    end = manifest.index(b'[[mirrors]]\nid = "steamlink-patch-series"', start)
+    return manifest[:start] + manifest[end:]
+
+
 def pin_lock(image_commit: str, *, duplicate_runtime_field: bool = False) -> bytes:
     duplicate = f'''\
 
@@ -247,7 +253,10 @@ class LockMirrorGateTests(unittest.TestCase):
             for diagnostic in undeclared.diagnostics
             if diagnostic.classification == "BASELINE_MIRROR_CHANGED"
         )
-        self.assertEqual(exact_refusal.platform_field, "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA")
+        self.assertEqual(
+            exact_refusal.platform_field,
+            "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA",
+        )
         self.assertIn("'steamlink-kernel-uapi-sha'", exact_refusal.detail)
         self.assertIn("aliases", exact_refusal.detail)
         print("BUILD9 RED undeclared:", exact_refusal.render())
@@ -263,35 +272,70 @@ class LockMirrorGateTests(unittest.TestCase):
         )
         self.assertTrue(exact.ok, exact.render())
 
-        negative_candidates = {
-            "different mirror id": build9_uapi_manifest(
-                aliases=old_aliases,
-                migration=build9_uapi_migration(mirror_id="some-other-mirror"),
+        other_mirror = b"[[mirrors]]" + old_manifest.split(b"[[mirrors]]", 1)[1].replace(
+            b'id = "steamlink-kernel-uapi-sha"', b'id = "some-other-mirror"', 1
+        )
+        different_id_baseline = (
+            old_manifest
+            + b"\n"
+            + other_mirror
+            + build9_uapi_migration(mirror_id="some-other-mirror")
+        )
+        different_id_candidate = candidate + b"\n" + other_mirror
+        negative_cases = {
+            "different mirror id": (
+                different_id_baseline,
+                different_id_candidate,
+                "BASELINE_MIRROR_CHANGED",
             ),
-            "extra field change": candidate.replace(
-                b'consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"',
-                b'consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/moved.lock"',
+            "extra field change": (
+                declared_baseline,
+                candidate.replace(
+                    b'consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"',
+                    b'consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/moved.lock"',
+                ),
+                "BASELINE_MIRROR_CHANGED",
             ),
-            "wrong old identity": build9_uapi_manifest(
-                aliases=old_aliases,
-                migration=build9_uapi_migration(old_aliases=new_aliases),
+            "wrong old identity": (
+                build9_uapi_manifest(
+                    aliases=old_aliases,
+                    migration=build9_uapi_migration(old_aliases=new_aliases),
+                ),
+                candidate,
+                "MALFORMED_BASELINE_MANIFEST",
             ),
-            "wrong new identity": build9_uapi_manifest(
-                aliases=old_aliases,
-                migration=build9_uapi_migration(new_aliases=old_aliases),
+            "wrong new identity": (
+                build9_uapi_manifest(
+                    aliases=old_aliases,
+                    migration=build9_uapi_migration(new_aliases=()),
+                ),
+                candidate,
+                "BASELINE_MIRROR_CHANGED",
             ),
-            "stale declaration": declared_baseline,
+            "stale declaration": (
+                declared_baseline,
+                declared_baseline,
+                "BASELINE_MIRROR_MIGRATION_STALE",
+            ),
         }
-        for name, negative_baseline in negative_candidates.items():
+        for name, (
+            negative_baseline,
+            negative_candidate,
+            classification,
+        ) in negative_cases.items():
             with self.subTest(name=name):
                 result = gate.check_gate(
                     lock,
-                    candidate if name != "stale declaration" else declared_baseline,
+                    negative_candidate,
                     FixtureResolver({("image", CORRECTED_IMAGE): tree}),
                     baseline_manifest_raw=negative_baseline,
                     baseline_commit=BASE_COMMIT,
                 )
                 self.assertFalse(result.ok, f"{name} unexpectedly passed")
+                self.assertIn(
+                    classification,
+                    [diagnostic.classification for diagnostic in result.diagnostics],
+                )
 
     def test_platform267_red_and_corrected_green(self) -> None:
         stale_tree = {
@@ -652,6 +696,8 @@ comparison = "equal"
         self.assertIn("profile_pins.fixture.runtime", ambiguous.platform_field)
 
     def test_current_contract_generation_passes_and_mixed_generation_fails(self) -> None:
+        candidate_manifest = (ROOT / "ci" / "lock-mirrors.toml").read_bytes()
+        policy_baseline_manifest = without_build9_migration(candidate_manifest)
         current_tree = {
             "build/Dockerfile.pf": (FIXTURES / "current" / "Dockerfile.pf").read_bytes(),
             "build/produce-gamescope-pvr-cache.sh": (
@@ -669,9 +715,9 @@ comparison = "equal"
         resolver = FixtureResolver({("image", CURRENT_IMAGE): current_tree})
         result = gate.check_gate(
             (ROOT / "platform.lock").read_bytes(),
-            (ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            candidate_manifest,
             resolver,
-            baseline_manifest_raw=(ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            baseline_manifest_raw=policy_baseline_manifest,
             baseline_commit=BASE_COMMIT,
         )
         self.assertTrue(result.ok, result.render())
@@ -685,9 +731,9 @@ comparison = "equal"
         )
         mixed = gate.check_gate(
             mixed_lock,
-            (ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            candidate_manifest,
             FixtureResolver({("image", CURRENT_IMAGE): current_tree}),
-            baseline_manifest_raw=(ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            baseline_manifest_raw=policy_baseline_manifest,
             baseline_commit=BASE_COMMIT,
         )
         self.assertFalse(mixed.ok)
@@ -705,9 +751,9 @@ comparison = "equal"
         )
         mixed_gamescope = gate.check_gate(
             mixed_gamescope_lock,
-            (ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            candidate_manifest,
             FixtureResolver({("image", CURRENT_IMAGE): current_tree}),
-            baseline_manifest_raw=(ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            baseline_manifest_raw=policy_baseline_manifest,
             baseline_commit=BASE_COMMIT,
         )
         self.assertFalse(mixed_gamescope.ok)

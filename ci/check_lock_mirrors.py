@@ -73,9 +73,18 @@ class Rule:
 
 
 @dataclass(frozen=True)
+class MirrorMigration:
+    migration_id: str
+    mirror_id: str
+    old: Rule
+    new: Rule
+
+
+@dataclass(frozen=True)
 class Manifest:
     consumers: tuple[Consumer, ...]
     rules: tuple[Rule, ...]
+    mirror_migrations: tuple[MirrorMigration, ...]
 
 
 @dataclass(frozen=True)
@@ -290,6 +299,83 @@ def _safe_consumer_path(value: str, where: str) -> str:
     return str(path)
 
 
+def _parse_migration_identity(
+    raw: object,
+    *,
+    mirror_id: str,
+    where: str,
+    consumer_names: set[str],
+) -> Rule:
+    if not isinstance(raw, dict):
+        raise ValueError(f"{where} must be a table")
+    parser = _required_string(raw, "parser", where)
+    allowed = {
+        "platform_field",
+        "aliases",
+        "consumer_repo",
+        "consumer_path",
+        "parser",
+        "comparison",
+        "expected_matches",
+        "key" if parser == "shell-assignment" else "template",
+    }
+    _strict_keys(raw, allowed, where)
+    missing = sorted(allowed - set(raw))
+    if missing:
+        raise ValueError(f"{where}: missing complete identity key(s): {', '.join(missing)}")
+
+    platform_field = _required_string(raw, "platform_field", where)
+    raw_aliases = raw.get("aliases")
+    if not isinstance(raw_aliases, list) or not all(
+        isinstance(alias, str) and alias for alias in raw_aliases
+    ):
+        raise ValueError(f"{where}.aliases must be an array of non-empty strings")
+    aliases = tuple(raw_aliases)
+    if len(set((platform_field, *aliases))) != 1 + len(aliases):
+        raise ValueError(f"{where}.aliases contains a duplicate platform field")
+
+    consumer_repo = _required_string(raw, "consumer_repo", where)
+    if consumer_repo not in consumer_names:
+        raise ValueError(f"{where}.consumer_repo is not declared in consumers")
+    consumer_path = _safe_consumer_path(
+        _required_string(raw, "consumer_path", where), where
+    )
+    if parser not in RULE_PARSERS:
+        raise ValueError(f"{where}.parser must be one of {sorted(RULE_PARSERS)}")
+    key = raw.get("key")
+    template = raw.get("template")
+    if parser == "shell-assignment" and (not isinstance(key, str) or not key):
+        raise ValueError(f"{where}: shell-assignment requires key")
+    if parser == "template" and (
+        not isinstance(template, str) or template.count("{value}") != 1
+    ):
+        raise ValueError(f"{where}: template parser requires exactly one '{{value}}'")
+    comparison = _required_string(raw, "comparison", where)
+    if comparison != "equal":
+        raise ValueError(f"{where}.comparison must equal 'equal'")
+    expected_matches = raw.get("expected_matches")
+    if (
+        isinstance(expected_matches, bool)
+        or not isinstance(expected_matches, int)
+        or expected_matches < 1
+    ):
+        raise ValueError(f"{where}.expected_matches must be a positive integer")
+    return Rule(
+        mirror_id,
+        "mirror",
+        platform_field,
+        aliases,
+        consumer_repo,
+        consumer_path,
+        parser,
+        key if isinstance(key, str) else None,
+        template if isinstance(template, str) else None,
+        comparison,
+        expected_matches,
+        None,
+    )
+
+
 def parse_manifest(raw: bytes) -> Manifest:
     try:
         data = tomllib.loads(raw.decode("utf-8"))
@@ -297,7 +383,11 @@ def parse_manifest(raw: bytes) -> Manifest:
         raise ValueError(f"TOML parse failed: {error}") from error
     if not isinstance(data, dict):
         raise ValueError("manifest root must be a table")
-    _strict_keys(data, {"schema_version", "consumers", "mirrors", "references"}, "manifest")
+    _strict_keys(
+        data,
+        {"schema_version", "consumers", "mirrors", "references", "mirror_migrations"},
+        "manifest",
+    )
     if data.get("schema_version") != 1:
         raise ValueError("schema_version must equal 1")
 
@@ -406,7 +496,49 @@ def parse_manifest(raw: bytes) -> Manifest:
             )
     if not any(rule.kind == "mirror" for rule in rules):
         raise ValueError("at least one mirror rule is required")
-    return Manifest(tuple(consumers), tuple(rules))
+    mirrors = {rule.rule_id: rule for rule in rules if rule.kind == "mirror"}
+    raw_migrations = data.get("mirror_migrations", [])
+    if not isinstance(raw_migrations, list):
+        raise ValueError("mirror_migrations must be an array of tables")
+    migrations: list[MirrorMigration] = []
+    migration_ids: set[str] = set()
+    migration_mirror_ids: set[str] = set()
+    for index, item in enumerate(raw_migrations):
+        where = f"mirror_migrations[{index}]"
+        if not isinstance(item, dict):
+            raise ValueError(f"{where} must be a table")
+        _strict_keys(item, {"id", "mirror_id", "old", "new"}, where)
+        migration_id = _required_string(item, "id", where)
+        mirror_id = _required_string(item, "mirror_id", where)
+        if migration_id in migration_ids:
+            raise ValueError(f"{where}: duplicate migration id {migration_id!r}")
+        if mirror_id in migration_mirror_ids:
+            raise ValueError(f"{where}: duplicate migration for mirror {mirror_id!r}")
+        current = mirrors.get(mirror_id)
+        if current is None:
+            raise ValueError(f"{where}.mirror_id does not name a declared mirror")
+        old = _parse_migration_identity(
+            item.get("old"),
+            mirror_id=mirror_id,
+            where=f"{where}.old",
+            consumer_names=consumer_names,
+        )
+        new = _parse_migration_identity(
+            item.get("new"),
+            mirror_id=mirror_id,
+            where=f"{where}.new",
+            consumer_names=consumer_names,
+        )
+        if old != current:
+            raise ValueError(
+                f"{where}.old must exactly match current mirror {mirror_id!r}"
+            )
+        if old == new:
+            raise ValueError(f"{where}.new must differ from old")
+        migration_ids.add(migration_id)
+        migration_mirror_ids.add(mirror_id)
+        migrations.append(MirrorMigration(migration_id, mirror_id, old, new))
+    return Manifest(tuple(consumers), tuple(rules), tuple(migrations))
 
 
 def _consumer_identity(consumer: Consumer) -> str:
@@ -467,6 +599,16 @@ def baseline_diagnostics(
     candidate_mirrors = {
         rule.rule_id: rule for rule in candidate.rules if rule.kind == "mirror"
     }
+    baseline_migrations = {
+        migration.mirror_id: migration for migration in baseline.mirror_migrations
+    }
+    candidate_migration_ids = {
+        migration.migration_id for migration in candidate.mirror_migrations
+    }
+    candidate_migration_mirrors = {
+        migration.mirror_id for migration in candidate.mirror_migrations
+    }
+    consumed_migrations: set[str] = set()
     for required in (rule for rule in baseline.rules if rule.kind == "mirror"):
         actual = candidate_mirrors.get(required.rule_id)
         if actual is None:
@@ -476,6 +618,16 @@ def baseline_diagnostics(
         else:
             changed = _changed_mirror_fields(required, actual)
             if not changed:
+                continue
+            migration = baseline_migrations.get(required.rule_id)
+            if (
+                migration is not None
+                and required == migration.old
+                and actual == migration.new
+                and migration.migration_id not in candidate_migration_ids
+                and migration.mirror_id not in candidate_migration_mirrors
+            ):
+                consumed_migrations.add(migration.migration_id)
                 continue
             classification = "BASELINE_MIRROR_CHANGED"
             actual_identity = _mirror_identity(actual)
@@ -492,6 +644,38 @@ def baseline_diagnostics(
                 required.consumer_path,
                 _mirror_identity(required),
                 actual_identity,
+                detail,
+            )
+        )
+    candidate_migrations = {
+        migration.migration_id: migration for migration in candidate.mirror_migrations
+    }
+    for migration in baseline.mirror_migrations:
+        if migration.migration_id in candidate_migrations:
+            classification = "BASELINE_MIRROR_MIGRATION_STALE"
+            actual = "declaration-carried"
+            detail = (
+                f"one-shot migration {migration.migration_id!r} must be consumed "
+                "by its exact mirror transition and removed from the candidate"
+            )
+        elif migration.migration_id not in consumed_migrations:
+            classification = "BASELINE_MIRROR_MIGRATION_UNCONSUMED"
+            actual = "declaration-removed-without-exact-transition"
+            detail = (
+                f"one-shot migration {migration.migration_id!r} was removed without "
+                f"the exact declared transition for mirror {migration.mirror_id!r}"
+            )
+        else:
+            continue
+        diagnostics.append(
+            Diagnostic(
+                classification,
+                migration.old.platform_field,
+                migration.old.consumer_repo,
+                baseline_commit,
+                MANIFEST_PATH,
+                f"consume-and-remove:{migration.migration_id}",
+                actual,
                 detail,
             )
         )
