@@ -44,8 +44,8 @@ manifest_signing_active = false
 # image's platform-runtime producer. The generic descriptor makes selection and
 # build arguments lock-owned; image validates this contract against its own
 # source.lock before downloading or transforming any external source. The source
-# revision is intentionally repeated: it couples the exported userspace headers
-# to the exact kernel revision selected by the admitted profile.
+# revision names the exact kernel tree that supplied the exported userspace headers;
+# it moves only when include/uapi or arch/arm64/include/uapi changes.
 # tsp-mc9m.41.1000.1: a65b6107 -> 4684f03b -> e9952056 changes no include/uapi file;
 # these provenance moves therefore leave the FFmpeg 59 runtime ABI/input bytes unchanged.
 # tsp-mc9m.41.923.75: move the exact exported-header witness with the replacement
@@ -60,6 +60,9 @@ manifest_signing_active = false
 # the requirement-check scripts (`git diff c22dbc02..de8ca3df -- include/uapi
 # arch/arm64/include/uapi` is empty). Move the byte-identical exported-header
 # witness with Build 7.
+# tsp-mc9m.41.996.15 Build 9: kernel#91/#92 change G2D DT/clock handling, xradio
+# implementation and tests only. The de8ca3df..45b87a7d include/uapi trees are
+# byte-identical (tree 5ccf3d70), so the Build-7 exported-header witness stays put.
 [platform_runtime.steamlink_ffmpeg59_v1]
 schema_version = 1
 profile         = "a133-open-7x-gpu"
@@ -766,16 +769,20 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.1017 Build 7): device/a133
-                             # de8ca3df549158834e1459dc0cd555bb97536be4 contains kernel#87's
-                             # CONFIG_USER_NS enablement (4ecd7a18, merge afb7a64a) and
-                             # kernel#88's Landlock LSM (5051d8ed) plus its memory-policy fix
-                             # (7eafacbf). Proven: `git diff c22dbc02..de8ca3df -- include/uapi
-                             # arch/arm64/include/uapi` is empty — the range touches only the
-                             # a133 defconfig fragments and the requirement-check scripts — so
-                             # the exported-header witnesses above move byte-identically.
-                             # Verified: de8ca3df is an ancestor of origin/device/a133.
-                             # No-radio remains independently frozen.
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.996.15 Build 9): device/a133
+                             # 45b87a7d0e68a5aaafdc94523db791483e8a27cd = de8ca3df plus
+                             # kernel#91 (c71231b2, enable the A100/A133 G2D MBUS clock) and
+                             # kernel#92 (e233522a test + eb34f56c xradio TX CCMP IV fix).
+                             # Build 8 associated but never obtained DHCPv4 (TX 34 -> 35);
+                             # patched hardware obtained 192.168.86.14, passed the bulk probe,
+                             # and sustained authenticated SSH over wlp4s0. The range changes
+                             # neither UAPI tree (include/uapi stays 5ccf3d70 and arm64 UAPI
+                             # stays 92d8ba17), so the Steam Link exported-header witness
+                             # remains de8ca3df. No-radio remains
+                             # independently frozen at 23cdf7bf under the standing ruling.
+                             # Previous pin (de8ca3df549158834e1459dc0cd555bb97536be4):
+                             # Build 7: kernel#87 CONFIG_USER_NS and kernel#88 Landlock plus
+                             # its memory-policy fix. Its exported-header witness is retained.
                              # Previous pin (c22dbc0226242cd1e582073eac5d82d36953c0d8):
                              # Build 6: kernel#84 built-in overlayfs, #85 writeback .get_modes
                              # NULL-helper oops fix, #86 writeback/DSI possible_clones repair.
@@ -1003,7 +1010,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.1017 Build 7): device/a13
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "de8ca3df549158834e1459dc0cd555bb97536be4"
+sha  = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch

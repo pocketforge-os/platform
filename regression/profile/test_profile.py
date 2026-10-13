@@ -328,11 +328,13 @@ class ProfileTest(unittest.TestCase):
         # PF_IMAGE_SHA here; GPU-UM #207/#208 remain open-profile-only.
         # Image#240's Wi-Fi lease-loss watchdog and image#241's Steam Link FFmpeg
         # GNU build IDs again advance only the universal PF_IMAGE_SHA.
+        # Build 9 advances only the canonical kernel-sunxi-7.x PF_KERNEL_SHA on
+        # a133-open-7x; the byte-identical Steam Link UAPI witness stays at Build 7.
         expected = {
             ("a133", "dev"): "ebfbc4a89bb7b10c7ba1708f8183fbd72c8678b693f45ba36855068d6efc29c9",
             ("a133", "release"): "be32b782e6cbbf20b70b55f261688e20e4a7bf3b4b527594b047314ed1e250d0",
-            ("a133-open-7x", "dev"): "32a8dc018dca6d1145d066d9233b593d2da21dc76d3907fbe3184e93e23f562d",
-            ("a133-open-7x", "release"): "60b65c7d839e084a555be5bbd73333dac845cdc918e8f29071736617f28e43d2",
+            ("a133-open-7x", "dev"): "f867a0284465bf36aff2474957771c227c86ba2f025a9bc43cbd1db64cc4554e",
+            ("a133-open-7x", "release"): "a7fb9b1f64a7813a77b4ed33a0f5d6e1c384f8621c1c52f15800cce608a68726",
             ("a133-owned", "dev"): "357f59e15f6ce1a66cf0ecf0318dd8d1e6dd35dc963b9ae137796570b7ad93cc",
             ("a133-owned", "release"): "e16f4e37e0d20a8f42b3ba8452124262f08c3cbb45209307ffc578579a72bdbd",
             ("a523", "dev"): "e2806f0f2a73db2a644ae7c6bf1ddce476cbe33948652bb0ead2d4d0ac0b8159",
@@ -559,7 +561,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "de8ca3df549158834e1459dc0cd555bb97536be4")
+        self.assertEqual(args["PF_KERNEL_SHA"], "45b87a7d0e68a5aaafdc94523db791483e8a27cd")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -576,7 +578,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "de8ca3df549158834e1459dc0cd555bb97536be4")
+        self.assertEqual(args["PF_KERNEL_SHA"], "45b87a7d0e68a5aaafdc94523db791483e8a27cd")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
