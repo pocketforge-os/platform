@@ -5,6 +5,7 @@ root=$(CDPATH='' cd -- "$(dirname "$0")/../.." && pwd)
 tmp=$(mktemp -d "${RUNNER_TEMP:-/tmp}/pf-build-environment-test.XXXXXX")
 trap 'find "$tmp" -mindepth 1 -delete; rmdir "$tmp"' EXIT
 
+# shellcheck disable=SC2016
 TRACEPARENT=00-0123456789abcdef0123456789abcdef-0123456789abcdef-01 \
 TRACESTATE=pf-red=1 \
 OTEL_SERVICE_NAME=pf-red \
@@ -25,5 +26,5 @@ if grep -Eq '^(TRACEPARENT|TRACESTATE|OTEL_|GITHUB_|RUNNER_|CI=|BUILDKIT_|BUILDX
     exit 1
 fi
 
-grep -Fq 'core/lib/pf-build-env' "$root/core/pf-build.sh"
+grep -Fq 'lib/pf-build-env' "$root/core/pf-build.sh"
 echo 'pf-build-environment-test=PASS'
