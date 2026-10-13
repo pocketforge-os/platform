@@ -160,7 +160,7 @@ pf_max_epoch() {
 pf_validate_build_stage_target() {
     local target="$1"
     case "$target" in
-        export|component-test-fetch|component-test-kernel|component-test-gpu-km|component-test-gpu-um|component-test-bootchain|component-test-sdl|component-test-wpa|component-test-cloud-init|component-test-runtime|component-test-ffmpeg|component-test-sdl-static|component-test-hwprobe|component-test-poolsuite|component-test-recovery|component-test-launcher|component-test-gamescope) ;;
+        export|component-test-fetch|component-test-kernel|component-test-gpu-km|component-test-gpu-um|component-test-bootchain|component-test-sdl|component-test-wpa|component-test-cloud-init|component-test-runtime|component-test-ffmpeg|component-test-sdl-static|component-test-hwprobe|component-test-poolsuite|component-test-recovery|component-test-launcher|component-test-gamescope|component-test-cursor-theme) ;;
         *) pf_die "PF_BUILD_STAGE_TARGET is not an admitted export/component-test target: $target" ;;
     esac
     printf '%s\n' "$target"
@@ -236,6 +236,7 @@ pf_stage_sources() {
         "libsdl3-sunxifb|libsdl3-sunxifb|$(v PF_LIBSDL3_SHA)"
         "wpa-supplicant-tsp|wpa-supplicant-tsp|$(v PF_WPA_SHA)"
         "cloud-init-tsp|cloud-init-tsp|$(v PF_CLOUD_INIT_SHA)"
+        "cursor-theme|pf-cursor-theme|$(v PF_CURSOR_THEME_SHA)|1"
         "runtime|runtime|$(v PF_RUNTIME_SHA)"
         "blobs|blobs|$(v PF_BLOBS_SHA)"
         "vendor-manifest|vendor-manifest|$(v PF_VENDOR_MANIFEST_SHA)"
@@ -329,10 +330,15 @@ pf_stage_sources() {
         # these before building, rejecting a valid-looking arg paired with a
         # different archive.
         case "$logical" in
-            kernel|wpa-supplicant-tsp|cloud-init-tsp)
+            kernel|wpa-supplicant-tsp|cloud-init-tsp|cursor-theme)
                 printf '%s\n' "$sha" > "$dest/.pf-source-revision"
+                chmod 0444 "$dest/.pf-source-revision"
                 ;;
         esac
+        if [ "$logical" = cursor-theme ]; then
+            find "$dest" -type f -exec chmod 0444 {} +
+            find "$dest" -type d -exec chmod 0555 {} +
+        fi
         n="$(find "$dest" -type f | wc -l)"
         pf_log "stage: $logical <- $repo@${sha:0:12}  ($n files, src=$gitdir)"
     done
@@ -703,6 +709,7 @@ pf_os_image_dockerbuild() {
            --build-context "sdl-src=$src_dir/libsdl3-sunxifb"
            --build-context "wpa-src=$src_dir/wpa-supplicant-tsp"
            --build-context "cloud-init-src=$src_dir/cloud-init-tsp"
+           --build-context "cursor-theme-src=$src_dir/cursor-theme"
            --build-context "runtime-src=$src_dir/runtime"
            --build-context "blobs-src=$src_dir/blobs"
            --build-context "vendor-manifest-src=$src_dir/vendor-manifest"

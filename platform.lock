@@ -40,6 +40,12 @@ release_pub_key         = "RWQoxeia9PBYyeMA93KCQALv/JTDLQGFVM7VDzjGcdidk5nhUP+3i
 release_pub_source      = "github.com/pocketforge-os/infra/trust/minisign.pub"
 manifest_signing_active = false
 
+# Cursor compilation toolchain. The source tree is pinned independently below;
+# this records the allowlisted producer image and the recipe commit that built it.
+[cursor_theme]
+tools_image      = "10.0.32.86:5555/pocketforge/ci-tools@sha256:2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862"
+tools_recipe_sha = "22b8c9feb04565c9ee84858687ed30455da7ed58"
+
 # tsp-mc9m.41.996.2: immutable, profile-scoped compatibility payload consumed by
 # image's platform-runtime producer. The generic descriptor makes selection and
 # build arguments lock-owned; image validates this contract against its own
@@ -617,7 +623,13 @@ ref  = "main"          # tsp-mc9m.41.995.100.1 determinism repair: image#242 (me
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "8d6bbc50e856828a6b764c711cb08f2544e3607b"
+sha  = "6c1b0e6656e84d7d53f9cbdaf87187039f38d266"
+
+[[repos]]
+name = "pf-cursor-theme"
+url  = "https://github.com/pocketforge-os/pf-cursor-theme.git"
+ref  = "pocketforge-linear"
+sha  = "dbeaa3c4ac5726e0dd81efd6846ca67a7c6a74d6"
 
 [[repos]]
 name = "gamescope"
