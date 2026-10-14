@@ -20,8 +20,9 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "188a9570dc218082fcbec25807eb8240117a7468"
-CURRENT_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
+CURRENT_IMAGE = "4fba4d2a2b405b100996a9c595070aea73896f93"
+CURRENT_UAPI = "07bb60764cbc64b5a5d760c34709f07f8259e985"
+BUILD9_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 BUILD9_KERNEL = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 CURRENT_GAMESCOPE = "d62ee16578a8592487323e234f206bc30374ce9e"
 STALE_GAMESCOPE = "0000000000000000000000000000000000000000"
@@ -85,10 +86,10 @@ comparison = "equal"
 def build9_lock(image_commit: str) -> bytes:
     return f'''\
 [platform_runtime.steamlink_ffmpeg59_v1]
-source_sha = "{CURRENT_UAPI}"
+source_sha = "{BUILD9_UAPI}"
 
 [platform_runtime.steamlink_ffmpeg59_v1.build_args]
-PF_FFMPEG_UAPI_SHA = "{CURRENT_UAPI}"
+PF_FFMPEG_UAPI_SHA = "{BUILD9_UAPI}"
 
 [[repos]]
 name = "kernel-sunxi-7.x"
@@ -228,7 +229,7 @@ class LockMirrorGateTests(unittest.TestCase):
         )
         new_aliases = ("platform_runtime.steamlink_ffmpeg59_v1.source_sha",)
         tree = {
-            SOURCE_LOCK_PATH: f"KERNEL_UAPI_SHA='{CURRENT_UAPI}'\n".encode(),
+            SOURCE_LOCK_PATH: f"KERNEL_UAPI_SHA='{BUILD9_UAPI}'\n".encode(),
         }
         lock = build9_lock(CORRECTED_IMAGE)
         old_manifest = build9_uapi_manifest(aliases=old_aliases)
@@ -701,9 +702,9 @@ comparison = "equal"
             "build/produce-gamescope-pvr-cache.sh": (
                 f"expected_gamescope_sha={CURRENT_GAMESCOPE}\n".encode()
             ),
-            "build/tests/fixtures/gpu-um-toolchain-8cda9585.Dockerfile": (
+            "build/tests/fixtures/gpu-um-toolchain-3f045e0a.Dockerfile": (
                 b"# Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at "
-                b"8cda9585d05d72c072c82a436b4d4db92ee93386.\n"
+                b"3f045e0ae9ac2855df143060200b18922e155fa1.\n"
             ),
             ".github/workflows/app-policy-pair.yml": (
                 f"          repository: pocketforge-os/runtime\n"

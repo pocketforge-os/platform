@@ -71,13 +71,16 @@ tools_recipe_sha = "ec5b2621f636261978d3bb4fd9843ae22a59c320"
 # implementation and tests only. The de8ca3df..45b87a7d include/uapi trees are
 # byte-identical (tree 5ccf3d70), but the producer exports headers from the boot-kernel
 # tree and receipt-checks its exact source identity. Move the witness with that tree.
+# tsp-mc9m.41.1029 Build 11: kernel#93 changes CI-only workflow files and kernel#94
+# enables the v184 virtual-GPU config. The 45b87a7d..07bb6076 exported UAPI trees
+# remain byte-identical; move the exact receipt identity with the boot kernel.
 [platform_runtime.steamlink_ffmpeg59_v1]
 schema_version = 1
 profile         = "a133-open-7x-gpu"
 mode_arg        = "PF_STEAMLINK_FFMPEG59_MODE"
 mode_value      = "v1"
 source_repo     = "kernel-sunxi-7.x"
-source_sha      = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
+source_sha      = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 runtime_path    = "/usr/lib/pocketforge/platform-runtimes/steamlink-ffmpeg59/v1"
 
 [platform_runtime.steamlink_ffmpeg59_v1.build_args]
@@ -87,7 +90,7 @@ PF_FFMPEG_ORIG_SHA256        = "56d4daf10c17330a45c8fe11bc260997677ca2432d3d5951
 PF_FFMPEG_ORIG_ASC_SHA256    = "ee93598ac566d1be4a80801e0a58f91ede2e6a5e9e670f681723b447f23c59d0"
 PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a39512921680090952e1"
 PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
-PF_FFMPEG_UAPI_SHA           = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
+PF_FFMPEG_UAPI_SHA           = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 
 # tsp-mc9m.41.924.24.14: immutable full GLES CTS checklist used only by the
 # opt-in dev test image. Unlike platform_runtime above, this input is already a
@@ -147,13 +150,19 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # stays at 23cdf7bf. #69's TSP DTS edit does not reach the no-radio DTB: the no-radio override
 # builds a frozen kernel-sunxi-7.x checkout at 23cdf7bf, not the moving device/a133 branch, so
 # its own TSP/Odyssey/no-radio DTS chain (and compiled DTB) is unaffected and unchanged.
+# tsp-mc9m.41.1029 Build 11 deliberately rejoins the diagnostic profile to the canonical
+# v184 kernel. Keep the explicit override because owned-image admission requires the
+# resolved no-radio kernel to equal this profile pin even when both values are identical.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
+kernel = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.995.100.1 Build 10 set: image#249 (merge 188a9570)
+ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#254 through
+                       # a51ffef4, plus the paired GPU-UM and Steam Link kernel-UAPI
+                       # source witnesses at image candidate 4fba4d2a.
+                       # Previous tsp-mc9m.41.995.100.1 Build 10 set: image#249 (merge 188a9570)
                        # advances the exact GPU-UM and Gamescope producer witnesses on image#244,
                        # which hard-pins the reviewed runtime#124/launcher#158 pair and contains the
                        # cursor, policy, and Landlock follow-ups. Previous pin 34eb2b36 contains image#242's
@@ -629,7 +638,7 @@ ref  = "main"          # tsp-mc9m.41.995.100.1 Build 10 set: image#249 (merge 18
                        # a133 clean-boot #18-#22.
                        # tsp-ihne1.1.1 paired image candidate: bind cursor tools
                        # recipe provenance before any cursor bytes are produced.
-sha  = "188a9570dc218082fcbec25807eb8240117a7468"
+sha  = "4fba4d2a2b405b100996a9c595070aea73896f93"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -810,7 +819,11 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.996.15 Build 9): device/a133
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.1029 Build 11): device/a133
+                             # 07bb60764cbc64b5a5d760c34709f07f8259e985 = Build 9's
+                             # 45b87a7d plus kernel#93's linear-workflow validation and
+                             # kernel#94's render-only virtio_gpu configuration for v184.
+                             # Previous KERNEL PIN (tsp-mc9m.41.996.15 Build 9):
                              # 45b87a7d0e68a5aaafdc94523db791483e8a27cd = de8ca3df plus
                              # kernel#91 (c71231b2, enable the A100/A133 G2D MBUS clock) and
                              # kernel#92 (e233522a test + eb34f56c xradio TX CCMP IV fix).
@@ -1052,7 +1065,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.996.15 Build 9): device/a
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
+sha  = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -1069,8 +1082,11 @@ sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 [[repos]]
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
-ref  = "main"                 # tsp-mc9m.41.995.100.1 Build 10: gpu-um-tsp#210/#211 GLES fixes,
-                               # merged at 8cda9585. Previous Build 8 GE8300 CTS batch:
+ref  = "main"                 # tsp-mc9m.41.1029 Build 11: gpu-um-tsp#212 atomics plus
+                               # #213 lowered XFB records, merged through 3f045e0a.
+                               # Previous tsp-mc9m.41.995.100.1 Build 10:
+                               # gpu-um-tsp#210/#211 GLES fixes merged at 8cda9585.
+                               # Previous Build 8 GE8300 CTS batch:
                                # gpu-um-tsp#207 fixes PCO compute imageStore coordinate and
                                # SMPWRITE addressing; #208 fixes PVR DOUTU sample-rate/MSAA.
                                # Both are ancestors of bd1713af2183cf5d945945c2b127e25d382ee8e9.
@@ -1218,7 +1234,7 @@ ref  = "main"                 # tsp-mc9m.41.995.100.1 Build 10: gpu-um-tsp#210/#
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "8cda9585d05d72c072c82a436b4d4db92ee93386"
+sha  = "3f045e0ae9ac2855df143060200b18922e155fa1"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
