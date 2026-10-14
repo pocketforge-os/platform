@@ -831,6 +831,8 @@ def build_args(dev_id, variant="dev"):
         # deliberately empty, so the image Dockerfile can select a NOT-SHIPPED stage without
         # making the build-argument surface variant-dependent.
         "PF_POOLSUITE_SHA": sha("poolsuite") if variant == "dev" else "",
+        # Key presence is the pf_stage_sources shipping signal. Keep emitting it
+        # even when the lock lookup is empty so an OS-image build fails closed.
         "PF_CURSOR_THEME_SHA": sha("pf-cursor-theme"),
         "PF_CURSOR_TOOLS_IMAGE": lock["cursor_theme"]["tools_image"],
         "PF_CURSOR_TOOLS_RECIPE_SHA": lock["cursor_theme"]["tools_recipe_sha"],

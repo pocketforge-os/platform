@@ -29,4 +29,53 @@ assert lock["cursor_theme"]["tools_recipe_sha"] == "22b8c9feb04565c9ee84858687ed
 assert lock["cursor_theme"]["tools_image_digest"] == "2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862"
 PY
 
+extract() { sed -n "/^$1()/,/^}/p" "${BUILD}"; }
+eval "$(extract pf_find_git_source)"
+eval "$(extract pf_ensure_commit)"
+eval "$(extract pf_stage_sources)"
+pf_log() { :; }
+pf_die() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
+
+tmp="$(mktemp -d "${RUNNER_TEMP:-/tmp}/cursor-theme-staging.XXXXXX")"
+cleanup() {
+    find "${tmp}" -type d -exec chmod u+rwx {} +
+    find "${tmp}" -type f -exec chmod u+rw {} +
+    find "${tmp}" -mindepth 1 -delete
+    rmdir "${tmp}"
+}
+trap cleanup EXIT
+mkdir -p "${tmp}/home/fixture"
+git -C "${tmp}/home/fixture" init -q
+git -C "${tmp}/home/fixture" config user.name test
+git -C "${tmp}/home/fixture" config user.email test@example.invalid
+printf 'cursor fixture\n' >"${tmp}/home/fixture/README"
+git -C "${tmp}/home/fixture" add README
+git -C "${tmp}/home/fixture" commit -qm fixture
+sha="$(git -C "${tmp}/home/fixture" rev-parse HEAD)"
+for repo in image source-kernel libsdl3-sunxifb wpa-supplicant-tsp cloud-init-tsp \
+        pf-cursor-theme runtime blobs vendor-manifest; do
+    ln -s fixture "${tmp}/home/${repo}"
+done
+unrelated_args=$'PF_IMAGE_SHA='"${sha}"$'\nPF_KERNEL_REPO=source-kernel\nPF_KERNEL_SHA='"${sha}"$'\nPF_GPU_MODEL=ddk\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_LIBSDL3_SHA='"${sha}"$'\nPF_WPA_SHA='"${sha}"$'\nPF_CLOUD_INIT_SHA='"${sha}"$'\nPF_RUNTIME_SHA='"${sha}"$'\nPF_BLOBS_SHA='"${sha}"$'\nPF_VENDOR_MANIFEST_SHA='"${sha}"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
+
+# The build-arg key is the shipping property: profile.py always emits it for an
+# OS image. Focused source-staging fixtures omit it and must remain independent.
+HOME="${tmp}/home" PF_MIRROR_DIR="${tmp}/mirrors" VARIANT=release \
+    pf_stage_sources "${tmp}/unrelated" "${unrelated_args}"
+test ! -e "${tmp}/unrelated/cursor-theme"
+
+HOME="${tmp}/home" PF_MIRROR_DIR="${tmp}/mirrors" VARIANT=release \
+    pf_stage_sources "${tmp}/shipping" \
+    "${unrelated_args}"$'\nPF_CURSOR_THEME_SHA='"${sha}"
+test "$(cat "${tmp}/shipping/cursor-theme/.pf-source-revision")" = "${sha}"
+
+missing_log="${tmp}/missing-pin.log"
+if ( HOME="${tmp}/home" PF_MIRROR_DIR="${tmp}/mirrors" VARIANT=release \
+    pf_stage_sources "${tmp}/missing-pin" \
+    "${unrelated_args}"$'\nPF_CURSOR_THEME_SHA=' 2>"${missing_log}" ); then
+    echo 'FAIL: cursor-shipping staging accepted an empty cursor pin' >&2
+    exit 1
+fi
+grep -Fq 'no platform.lock SHA for pf-cursor-theme (cursor-theme)' "${missing_log}"
+
 echo 'cursor-theme staging contract: PASS'

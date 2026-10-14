@@ -332,17 +332,19 @@ class ProfileTest(unittest.TestCase):
         # profile also moves its byte-identical Steam Link UAPI witness to the
         # boot-kernel source identity; the no-radio override stays frozen.
         # Image#242's determinism repair again advances only universal PF_IMAGE_SHA.
+        # Cursor packaging adds the universal PF_CURSOR_THEME_SHA and pinned
+        # PF_CURSOR_TOOLS_* producer inputs; image#246 advances PF_IMAGE_SHA.
         expected = {
-            ("a133", "dev"): "b2112971573e0893890df3968c4b43eec35ad051029fad8749cb2880b65924f4",
-            ("a133", "release"): "8c841407d578baacf19bf0cd20f8977577a13b2c58aa812c93d299e9e5a64999",
-            ("a133-open-7x", "dev"): "b9ff9973851aaf68db1c824383f5c8757414271cbe9e55464a159420d36ebe61",
-            ("a133-open-7x", "release"): "e29af3e61c70718e9dafa424fca52ddd3188e1517672e84bcb8c4cd4d4545941",
-            ("a133-owned", "dev"): "0cd6a79e2286e55e3f8b6650d7980fadfb30c9fd46db8fa1ddd7ee7cf2ee937c",
-            ("a133-owned", "release"): "70b5e48a64454569da0d0fee6b7af94b8e639a2e2a9e0ff885ebe88a3a5972ed",
-            ("a523", "dev"): "26d0577dcbcab9da73ef80180ad65e75c02a0c40f833f47f74e09304ffbfc451",
-            ("a523", "release"): "89dc6f3765e4d89c1ff3fb8e8ffc8e7ebefbf74a1424fd015a7edab5775ab59b",
-            ("sdm845", "dev"): "d7028fff46c41443328c8d7a1c3453677a3bb76f97e348dcd9ac270e00eecfbc",
-            ("sdm845", "release"): "7fea62195de8e1a2f984bef4114029ddca02f9df981431b98fdaab991c90cdbb",
+            ("a133", "dev"): "61a375cb6fac60811e28153523336147c88246a88a1eb82290509efbbbb9b33d",
+            ("a133", "release"): "411709bbee48ece58ec9f77c65d81a4cff4904de352d792df55838026de8bb9e",
+            ("a133-open-7x", "dev"): "75d8174fc34893a3f56999f9cc4c043fa434001703be35472d072420b2697c0b",
+            ("a133-open-7x", "release"): "414ac2ffc1f5f4fe0e8de0681a01423dd49039cc2e31752a87a3429629999070",
+            ("a133-owned", "dev"): "81db150597858a49f481bffe35dc5a30cdb364bcde05653de51640fb374221be",
+            ("a133-owned", "release"): "863f69747dd15bdf9e201ca08f6fe87c42021b2b10ab707ec7c4ff82774b11a0",
+            ("a523", "dev"): "0e666864657d300e90ed00426fd88f480d7ad9874774ca57fbf085de73af8d29",
+            ("a523", "release"): "544202639be7eb45b052a1af80aa4cf000117c96ffc796185314c9c30747c39b",
+            ("sdm845", "dev"): "e39b08ca04681325079cf665fd1725eb1272b65626b639fa18168d7088e1529b",
+            ("sdm845", "release"): "0236cc5eb7c7f8ed7c173512eb4c3046c07a4708387abda93b98a28c60368459",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -625,7 +627,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "bd1713af2183cf5d945945c2b127e25d382ee8e9",
-                "PF_IMAGE_SHA": "8d6bbc50e856828a6b764c711cb08f2544e3607b",
+                "PF_IMAGE_SHA": "f544e17afdc516d251bd32d23f88aa9dd39155e3",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

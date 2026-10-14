@@ -236,13 +236,19 @@ pf_stage_sources() {
         "libsdl3-sunxifb|libsdl3-sunxifb|$(v PF_LIBSDL3_SHA)"
         "wpa-supplicant-tsp|wpa-supplicant-tsp|$(v PF_WPA_SHA)"
         "cloud-init-tsp|cloud-init-tsp|$(v PF_CLOUD_INIT_SHA)"
-        "cursor-theme|pf-cursor-theme|$(v PF_CURSOR_THEME_SHA)|1"
         "runtime|runtime|$(v PF_RUNTIME_SHA)"
         "blobs|blobs|$(v PF_BLOBS_SHA)"
         "vendor-manifest|vendor-manifest|$(v PF_VENDOR_MANIFEST_SHA)"
         "uboot|$(v PF_UBOOT_REPO)|$(v PF_UBOOT_SHA)"
         "tfa|$(v PF_TFA_REPO)|$(v PF_TFA_SHA)"
     )
+    # PF_CURSOR_THEME_SHA key presence declares that this staging request ships
+    # the cursor payload. profile.py emits the key for every OS-image profile,
+    # including an empty value when the lock pin is missing, so real builds stay
+    # fail-closed. Focused component staging fixtures omit the unrelated key.
+    if grep -q '^PF_CURSOR_THEME_SHA=' <<< "$ba"; then
+        specs+=( "cursor-theme|pf-cursor-theme|$(v PF_CURSOR_THEME_SHA)|1" )
+    fi
     if [ "$VARIANT" = dev ]; then
         specs+=( "sim|sim|$(v PF_SIM_SHA)" "pf-hwprobe|pf-hwprobe|$(v PF_HWPROBE_SHA)"
                  "poolsuite|poolsuite|$(v PF_POOLSUITE_SHA)" )
