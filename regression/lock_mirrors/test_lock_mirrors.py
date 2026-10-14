@@ -20,7 +20,7 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "8d6bbc50e856828a6b764c711cb08f2544e3607b"
+CURRENT_IMAGE = "f590a53485daac5c37af98defbda6a014a0be849"
 CURRENT_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 BUILD9_KERNEL = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 CURRENT_GAMESCOPE = "298881e3dff1ade108d57a257e8bf59bf8c6436f"
@@ -715,7 +715,7 @@ comparison = "equal"
         )
         self.assertTrue(result.ok, result.render())
         self.assertEqual(resolver.requests, [("image", CURRENT_IMAGE)])
-        self.assertEqual(result.mirror_rule_count, 15)
+        self.assertEqual(result.mirror_rule_count, 17)
 
         mixed_lock = (ROOT / "platform.lock").read_bytes().replace(
             f'sha  = "{RUNTIME_SHA}"'.encode(),
