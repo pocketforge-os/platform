@@ -643,11 +643,28 @@ url  = "https://github.com/pocketforge-os/gamescope.git"
 ref  = "pocketforge-linear" # tsp-mc9m.41.995.100.1 Build 10: gamescope#21 at d62ee165,
                         # superseding Build 8's 298881e3 linear generation. Previously, #11 and #10 replayed as
                         # nine non-merge commits onto the last admitted linear head c30e8cee.
-                        # The linear head and eaca59d9 have the identical tree
-                        # a65c549d78e383ab27495f06bb337dc82f59ef41; the dependency manifest
-                        # and LICENSE remain byte-identical. The committed stage/materializer
-                        # (umask 022) witnesses source tree 8e1b933249f4972049a54977217a54c6c96cb4b061f9d8b3dcca62c0b8cd9f0f;
-                        # only the generated receipts embed the new integrated-head provenance.
+                        # Measured for d62ee165 (governed mirror, base bb2ddfc8): 73 non-merge
+                        # commits, zero merges; patch_ids_sha256 (bare space-joined
+                        # `git patch-id --stable` series)
+                        # ec80e37b3f665dbed5a6fbdafd0d2b1646b81d389271b3740d74065c7274b72f;
+                        # format-patch digest
+                        # fcfc485d5bad681e3740c201eae328fc2bf1590e73ef09731c074f32acfb5d04.
+                        # Unlike the previous pin, this head's tree is NOT Build 9's: d62ee165^{tree}
+                        # is e1f2743c1194881a90c4db71ad7c2f0dc19d3fa8 while 298881e3^{tree} is
+                        # a65c549d78e383ab27495f06bb337dc82f59ef41, so the committed
+                        # stage/materializer (umask 022) witness moved with it: source tree
+                        # f451380d392560951db4a308702606daf53b8e70df510fb294baef848b9340f6,
+                        # measured by running core/stage-gamescope-source.py end to end -
+                        # verify_series, the manifest digest, the offline primer, the admission
+                        # receipt (34 edges / 32 project pins) and the materializer all passed,
+                        # and it refused only at a deliberately zeroed --source-tree-sha256,
+                        # printing this digest as `actual=` before any license export or
+                        # publication. The dependency manifest
+                        # 5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6 and
+                        # LICENSE 907dd845489cd09c25f18b6819f476805285e2adcad8c099e3506260023e9e5f
+                        # are byte-identical to the previous pin, so the published dependency
+                        # cache needed no rebuild. regression/build/gamescope-series-witness-test.sh
+                        # now fails CI when this declared series drifts from the sha below.
                         # `pocketforge` remains the immutable
                         # merge-history archive; gpu-14 switches the default only after this pin
                         # merges. The exact sha below is the sole build input; never resolve this
