@@ -40,6 +40,28 @@ A133_OPEN_PROFILES = {
 
 
 class ProfileTest(unittest.TestCase):
+    def test_missing_platform_lock_keeps_buildargs_unseeded(self):
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.object(profile, "LOCK", str(pathlib.Path(tmp) / "missing.lock")):
+            for dev_id in profile.list_devices():
+                for variant in ("dev", "release"):
+                    with self.subTest(dev_id=dev_id, variant=variant):
+                        merged, _family = profile.resolve(dev_id)
+                        if merged.get("gamescope"):
+                            # Preserve the pre-existing no-lock refusal for the
+                            # governed-fork check; cursor defaults must not mask it
+                            # with a KeyError first.
+                            with self.assertRaisesRegex(
+                                    profile.ProfileSchemaError,
+                                    "source must be the governed PocketForge Gamescope fork"):
+                                profile.build_args(dev_id, variant)
+                            continue
+                        args, state, _missing = profile.build_args(dev_id, variant)
+                        self.assertEqual(state, "unseeded")
+                        self.assertEqual(args["PF_CURSOR_THEME_SHA"], "")
+                        self.assertEqual(args["PF_CURSOR_TOOLS_IMAGE"], "")
+                        self.assertEqual(args["PF_CURSOR_TOOLS_RECIPE_SHA"], "")
+
     def test_existing_profiles_resolve_unchanged(self):
         # Canonical hashes were generated from origin/main (48d20a4) before this
         # branch added a133-open-7x. They pin every pre-existing profile's entire

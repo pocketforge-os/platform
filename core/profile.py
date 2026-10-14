@@ -266,7 +266,12 @@ def _device_profile_lineage(device):
 def load_lock():
     if not os.path.isfile(LOCK):
         return {"seeded": False, "interim": False, "repos": {}, "profile_pins": {},
-                "platform_runtime": {}, "platform_payload": {}, "cursor_theme": {}}
+                "platform_runtime": {}, "platform_payload": {},
+                "cursor_theme": {
+                    "tools_image": "",
+                    "tools_image_digest": "",
+                    "tools_recipe_sha": "",
+                }}
     data = _load(LOCK)
     profile_pins = data.get("profile_pins", {})
     if not isinstance(profile_pins, dict):
