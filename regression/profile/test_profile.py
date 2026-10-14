@@ -360,16 +360,19 @@ class ProfileTest(unittest.TestCase):
         # proven by the pinned image's OCI metadata on every profile row.
         # The Build 10 Landlock set advances image/runtime/poolsuite globally;
         # launcher, gpu-um and Gamescope remain selected-profile-only inputs.
+        # The Build 10 poolsuite pin cceaab08 advances PF_POOLSUITE_SHA on the dev
+        # rows only; every release row stays byte-identical, verified by diffing the
+        # old and new payloads key by key.
         expected = {
-            ("a133", "dev"): "eeb6ba1a48936c8672b9e28795da468bf942c60783b45a6e7eaed5cf9812b0d6",
+            ("a133", "dev"): "f6b96e8a424c94803e4a08a3e454edea7652be64fe1828c29e4e706c3ed7b0f9",
             ("a133", "release"): "b3cecacf9a3351c27a405c2a5e854d4f72386b608c4f5214b5c86ae53da90dc4",
-            ("a133-open-7x", "dev"): "b092075244b61343b451073da39af37cb43888e183a82bb5745fbab93f688a69",
+            ("a133-open-7x", "dev"): "f6c5b07dfc1fd0b8647c21f0db12d4d92a38d5d3eaac704084e10c23fe9afd19",
             ("a133-open-7x", "release"): "2749f0e049ea06b17795afcf62c9950e153bfb730f19c66ae2138fee653e8f59",
-            ("a133-owned", "dev"): "500ddd852c94521ea14c333abca88ec103ad67e9143b52cafb4708474ea0361d",
+            ("a133-owned", "dev"): "f1d9d67f664a73cc5223ab760bd26b51af3b9d419f2d80cdea82b710b7e5284e",
             ("a133-owned", "release"): "50c2bf4733a3c049c0e6ab6677ef5dc9576f09450a41a3aecf2b8ea7f485f05b",
-            ("a523", "dev"): "f7cb7727bf2e537f803967f023fbb3189efbe77fe64bad752396f9104c4c8330",
+            ("a523", "dev"): "bf8821403b06f18495e8754ae4daf3b63e683f532e7b301ae165482cb6900734",
             ("a523", "release"): "2c7ab5b8606808ea5732be1c8fa29b7a91fd7f4a9ea947b388c8cedcdd961b63",
-            ("sdm845", "dev"): "97f2d43113c4b189ba8b1df3d263ac7f06cebec84b1bf90994864e70529c3a20",
+            ("sdm845", "dev"): "95ab81851d41f501ec149bbd2464a9d1e71c2e4944d3e171f68bbeba980c382d",
             ("sdm845", "release"): "b2807040559f140f5b25e713200273dcfabc700d013990198b9f30ebec57d735",
         }
         for key, digest in expected.items():
@@ -561,7 +564,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(release_missing, [])
         self.assertRegex(dev["PF_HWPROBE_SHA"], r"^[0-9a-f]{40}$")
         self.assertRegex(dev["PF_SIM_SHA"], r"^[0-9a-f]{40}$")
-        self.assertEqual(dev["PF_POOLSUITE_SHA"], "477801d21fa1aefc867bd75d6915c2d447ee7fc9")
+        self.assertEqual(dev["PF_POOLSUITE_SHA"], "cceaab085a270268efccc07930a732b41039dabf")
         self.assertEqual(release["PF_HWPROBE_SHA"], "")
         self.assertEqual(release["PF_SIM_SHA"], "")
         self.assertEqual(release["PF_POOLSUITE_SHA"], "")
