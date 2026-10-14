@@ -12,6 +12,9 @@ bash "$HERE/gpu-um-staging-test.sh"
 echo "### exact Gamescope source/package staging ###"
 bash "$HERE/gamescope-staging-test.sh"
 
+echo "### Gamescope series witness vs the pinned head ###"
+bash "$HERE/gamescope-series-witness-test.sh"
+
 echo "### cloud-init-tsp source staging ###"
 bash "$HERE/cloud-init-staging-test.sh"
 
