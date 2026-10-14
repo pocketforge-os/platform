@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
+NORMAL_KERNEL_SHA = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -30,8 +30,9 @@ NORMAL_KERNEL_SHA = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 # Cedrus SRAM/poll fix likewise leaves it held while the canonical pin moves to 671e7090.
 # The PowerVR MMU/freelist and DTB-guard batch again leaves it held while the canonical
 # pin moves to a65b6107; Build 7 and Build 9 likewise leave it held through de8ca3df
-# and 45b87a7d. It remains an explicit diagnostic override.
-NORADIO_KERNEL_SHA = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
+# and 45b87a7d. Build 11 deliberately rejoins it to the canonical v184 kernel while
+# preserving the separate lock-owned entry required by the owned-image admission gate.
+NORADIO_KERNEL_SHA = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 NORMAL_UBOOT_SHA = "db70249c8b25b7c3271cce71a19005b361527aaf"
 
 
@@ -101,23 +102,21 @@ class Open7NoradioProfileTest(unittest.TestCase):
         golden_path = ROOT / "regression/profile" / f"{NORADIO_DEVICE}-resolved.json"
         self.assertEqual(noradio_resolved, json.loads(golden_path.read_text()))
 
-    def test_build_args_change_only_identity_dtb_and_held_kernel(self):
+    def test_build_args_change_only_identity_and_dtb(self):
         normal_args, _, normal_missing = profile.build_args(NORMAL_DEVICE)
         noradio_args, _, noradio_missing = profile.build_args(NORADIO_DEVICE)
         self.assertEqual(normal_missing, [])
         self.assertEqual(noradio_missing, [])
         self.assertEqual(
             differences(without_platform_runtime(normal_args), noradio_args),
-            # The identity, selected DTB, and held kernel override (since the gpu-14
-            # kernel batch lock; the in-tree GPU KM SHA follows the kernel) differ.
+            # Build 11 rejoins the explicit override to the canonical kernel, so only
+            # the diagnostic identity and selected DTB differ.
             {
                 "PF_DEVICE_ID": (NORMAL_DEVICE, NORADIO_DEVICE),
                 "PF_KERNEL_DTB": (
                     "sun50i-a133-pocketforge-odyssey.dtb",
                     "sun50i-a133-pocketforge-odyssey-a133-open-7x-gpu-noradio.dtb",
                 ),
-                "PF_KERNEL_SHA": (NORMAL_KERNEL_SHA, NORADIO_KERNEL_SHA),
-                "PF_GPU_KM_SHA": (NORMAL_KERNEL_SHA, NORADIO_KERNEL_SHA),
             },
         )
         self.assertEqual(normal_args["PF_KERNEL_SHA"], NORMAL_KERNEL_SHA)
@@ -138,6 +137,20 @@ class Open7NoradioProfileTest(unittest.TestCase):
             lock["profile_pins"][NORADIO_DEVICE],
             {"kernel": NORADIO_KERNEL_SHA},
         )
+
+    def test_owned_spl_doc_tracks_rejoined_kernel_contract(self):
+        document = (ROOT / "docs" / "A133-OPEN-7X-OWNED-SPL.md").read_text()
+        self.assertIn(
+            f"Current canonical Linux 7 pin: `{NORMAL_KERNEL_SHA}`.",
+            document,
+        )
+        self.assertIn(
+            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; Build 11 deliberately "
+            "rejoins it to the canonical pin.",
+            document,
+        )
+        self.assertNotIn("holds its lock-owned kernel pin at `23cdf7bf`", document)
+        self.assertNotIn("a lock-owned profile pin at `23cdf7bf", document)
 
     def test_malformed_profile_pin_fails_closed(self):
         lock_data = profile._load(ROOT / "platform.lock")
