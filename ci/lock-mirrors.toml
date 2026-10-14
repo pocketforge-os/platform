@@ -68,6 +68,25 @@ template = '[ "${PF_RUNTIME_SHA}" = "{value}" ] || { echo "FATAL: runtime pin dr
 comparison = "equal"
 
 [[mirrors]]
+id = "image-app-policy-runtime-checkout"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = ".github/workflows/app-policy-pair.yml"
+parser = "template"
+template = '''          repository: pocketforge-os/runtime
+          ref: {value}'''
+comparison = "equal"
+
+[[mirrors]]
+id = "image-app-policy-runtime-identity"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = ".github/workflows/app-policy-pair.yml"
+parser = "template"
+template = '          test "$(git -C runtime-pair rev-parse HEAD)" = {value}'
+comparison = "equal"
+
+[[mirrors]]
 id = "image-recovery-args"
 platform_field = "repos.recovery.sha"
 consumer_repo = "image"
@@ -102,6 +121,25 @@ consumer_repo = "image"
 consumer_path = "build/Dockerfile.pf"
 parser = "template"
 template = '[ "${PF_LAUNCHER_SHA}" = "{value}" ] || { echo "FATAL: F13 launcher pin drift: ${PF_LAUNCHER_SHA}"; exit 1; }'
+comparison = "equal"
+
+[[mirrors]]
+id = "image-app-policy-launcher-checkout"
+platform_field = "repos.launcher.sha"
+consumer_repo = "image"
+consumer_path = ".github/workflows/app-policy-pair.yml"
+parser = "template"
+template = '''          repository: pocketforge-os/launcher
+          ref: {value}'''
+comparison = "equal"
+
+[[mirrors]]
+id = "image-app-policy-launcher-identity"
+platform_field = "repos.launcher.sha"
+consumer_repo = "image"
+consumer_path = ".github/workflows/app-policy-pair.yml"
+parser = "template"
+template = '          test "$(git -C launcher-pair rev-parse HEAD)" = {value}'
 comparison = "equal"
 
 [[mirrors]]
@@ -257,13 +295,13 @@ template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {val
 reason = "fixture source provenance after image#213 advanced the exact-pin fixture"
 
 [[references]]
-id = "gpu-um-vendored-fixture-comment-bd1713af"
+id = "gpu-um-vendored-fixture-comment-8cda9585"
 platform_field = "repos.gpu-um-tsp.sha"
 consumer_repo = "image"
-consumer_path = "build/tests/fixtures/gpu-um-toolchain-bd1713af.Dockerfile"
+consumer_path = "build/tests/fixtures/gpu-um-toolchain-8cda9585.Dockerfile"
 parser = "template"
 template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {value}.'
-reason = "fixture source provenance after image#239 advanced the exact-pin fixture"
+reason = "fixture source provenance after image#249 advanced the exact-pin fixture"
 
 [[references]]
 id = "gpu-um-drift-test-pin"

@@ -20,15 +20,15 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "34eb2b36002931d7006abc3bdc9fa9dffab7694f"
+CURRENT_IMAGE = "188a9570dc218082fcbec25807eb8240117a7468"
 CURRENT_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 BUILD9_KERNEL = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
-CURRENT_GAMESCOPE = "298881e3dff1ade108d57a257e8bf59bf8c6436f"
+CURRENT_GAMESCOPE = "d62ee16578a8592487323e234f206bc30374ce9e"
 STALE_GAMESCOPE = "0000000000000000000000000000000000000000"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 STALE_UAPI = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
-RUNTIME_SHA = "b289235d8cbdc8d542e551b8139d22b6abf31ec1"
-LAUNCHER_SHA = "8209c392ea19abfe6377d7254cb063eed43c491b"
+RUNTIME_SHA = "2736751f2dcd48155da02fb605cdc261da1ae5fc"
+LAUNCHER_SHA = "8a276aecf087d32a143d9db0d7a895d7f8222796"
 PREVIOUS_RUNTIME_SHA = "1dd87ecc2952584a7ef1473c5dcb872662b7c0cb"
 SOURCE_LOCK_PATH = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
 FIXTURES = Path(__file__).with_name("fixtures")
@@ -701,6 +701,18 @@ comparison = "equal"
             "build/produce-gamescope-pvr-cache.sh": (
                 f"expected_gamescope_sha={CURRENT_GAMESCOPE}\n".encode()
             ),
+            "build/tests/fixtures/gpu-um-toolchain-8cda9585.Dockerfile": (
+                b"# Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at "
+                b"8cda9585d05d72c072c82a436b4d4db92ee93386.\n"
+            ),
+            ".github/workflows/app-policy-pair.yml": (
+                f"          repository: pocketforge-os/runtime\n"
+                f"          ref: {RUNTIME_SHA}\n"
+                f"          repository: pocketforge-os/launcher\n"
+                f"          ref: {LAUNCHER_SHA}\n"
+                f'          test "$(git -C runtime-pair rev-parse HEAD)" = {RUNTIME_SHA}\n'
+                f'          test "$(git -C launcher-pair rev-parse HEAD)" = {LAUNCHER_SHA}\n'
+            ).encode(),
             SOURCE_LOCK_PATH: (FIXTURES / "corrected" / "source.lock").read_bytes().replace(
                 EXPECTED_UAPI.encode(), CURRENT_UAPI.encode(), 1
             ),
@@ -720,7 +732,7 @@ comparison = "equal"
         )
         self.assertTrue(result.ok, result.render())
         self.assertEqual(resolver.requests, [("image", CURRENT_IMAGE)])
-        self.assertEqual(result.mirror_rule_count, 19)
+        self.assertEqual(result.mirror_rule_count, 23)
 
         mixed_lock = (ROOT / "platform.lock").read_bytes().replace(
             f'sha  = "{RUNTIME_SHA}"'.encode(),
