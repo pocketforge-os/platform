@@ -12,3 +12,6 @@ python3 "$HERE/platform-version-test.py"
 echo
 echo "### app-descriptor validator + view unit tests ###"
 python3 "$HERE/appmanifest-test.py"
+echo
+echo "### app-schema JSON Schema validation ###"
+python3 "$HERE/app-schema-test.py"
