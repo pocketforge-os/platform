@@ -40,7 +40,13 @@ pf_die() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 PF_PLATFORM_DIR="$ROOT"
 
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+cleanup() {
+    find "$tmp" -type d -exec chmod u+rwx {} +
+    find "$tmp" -type f -exec chmod u+rw {} +
+    find "$tmp" -mindepth 1 -delete
+    rmdir "$tmp"
+}
+trap cleanup EXIT
 mkdir -p "$tmp/home/src-fixture"
 git -C "$tmp/home/src-fixture" init -q
 git -C "$tmp/home/src-fixture" config user.name test
