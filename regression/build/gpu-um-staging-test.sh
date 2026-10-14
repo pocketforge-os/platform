@@ -26,7 +26,13 @@ pf_log() { :; }
 pf_die() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+cleanup() {
+    find "$tmp" -type d -exec chmod u+rwx {} +
+    find "$tmp" -type f -exec chmod u+rw {} +
+    find "$tmp" -mindepth 1 -delete
+    rmdir "$tmp"
+}
+trap cleanup EXIT
 mkdir -p "$tmp/home/gpu-um-tsp"
 git -C "$tmp/home/gpu-um-tsp" init -q
 git -C "$tmp/home/gpu-um-tsp" config user.name test
@@ -35,10 +41,23 @@ printf 'open mesa\n' > "$tmp/home/gpu-um-tsp/README"
 git -C "$tmp/home/gpu-um-tsp" add README
 git -C "$tmp/home/gpu-um-tsp" commit -qm fixture
 sha="$(git -C "$tmp/home/gpu-um-tsp" rev-parse HEAD)"
-for repo in image libsdl3-sunxifb wpa-supplicant-tsp cloud-init-tsp runtime sim pf-hwprobe poolsuite blobs vendor-manifest launcher recovery; do
+for repo in image libsdl3-sunxifb wpa-supplicant-tsp cloud-init-tsp pf-cursor-theme runtime sim pf-hwprobe poolsuite blobs vendor-manifest launcher recovery; do
     ln -s gpu-um-tsp "$tmp/home/$repo"
 done
-common_args=$'PF_IMAGE_SHA='"$sha"$'\nPF_KERNEL_REPO=gpu-um-tsp\nPF_KERNEL_SHA='"$sha"$'\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_LIBSDL3_SHA='"$sha"$'\nPF_WPA_SHA='"$sha"$'\nPF_CLOUD_INIT_SHA='"$sha"$'\nPF_RUNTIME_SHA='"$sha"$'\nPF_SIM_SHA='"$sha"$'\nPF_HWPROBE_SHA='"$sha"$'\nPF_POOLSUITE_SHA='"$sha"$'\nPF_BLOBS_SHA='"$sha"$'\nPF_VENDOR_MANIFEST_SHA='"$sha"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
+base_args=$'PF_IMAGE_SHA='"$sha"$'\nPF_KERNEL_REPO=gpu-um-tsp\nPF_KERNEL_SHA='"$sha"$'\nPF_GPU_REPO=none\nPF_GPU_SHA=\nPF_LIBSDL3_SHA='"$sha"$'\nPF_WPA_SHA='"$sha"$'\nPF_CLOUD_INIT_SHA='"$sha"$'\nPF_RUNTIME_SHA='"$sha"$'\nPF_SIM_SHA='"$sha"$'\nPF_HWPROBE_SHA='"$sha"$'\nPF_POOLSUITE_SHA='"$sha"$'\nPF_BLOBS_SHA='"$sha"$'\nPF_VENDOR_MANIFEST_SHA='"$sha"$'\nPF_UBOOT_REPO=none\nPF_UBOOT_SHA=\nPF_TFA_REPO=none\nPF_TFA_SHA='
+common_args="$base_args"$'\nPF_CURSOR_THEME_SHA='"$sha"
+
+# This fixture calls the complete image source-staging function. It must carry
+# every required image input, while a cursor-shipping stage without its pin
+# must continue to fail closed and name the missing input.
+missing_cursor_log="$tmp/missing-cursor.log"
+if ( HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" VARIANT=dev \
+    pf_stage_sources "$tmp/missing-cursor" \
+    "$base_args"$'\nPF_GPU_MODEL=ddk\nPF_GPU_UM_REPO=\nPF_GPU_UM_SHA=' 2>"$missing_cursor_log" ); then
+    echo 'FAIL: cursor-shipping staging accepted a missing cursor pin' >&2
+    exit 1
+fi
+grep -Fq 'no platform.lock SHA for pf-cursor-theme (cursor-theme)' "$missing_cursor_log"
 
 HOME="$tmp/home" PF_MIRROR_DIR="$tmp/mirrors" VARIANT=dev pf_stage_sources "$tmp/open" \
     "$common_args"$'\nPF_GPU_MODEL=open\nPF_GPU_UM_REPO=gpu-um-tsp\nPF_GPU_UM_SHA='"$sha"$'\nPF_LAUNCHER_REPO=launcher\nPF_LAUNCHER_SHA='"$sha"$'\nPF_RECOVERY_REPO=recovery\nPF_RECOVERY_SHA='"$sha"
