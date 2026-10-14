@@ -138,6 +138,20 @@ class Open7NoradioProfileTest(unittest.TestCase):
             {"kernel": NORADIO_KERNEL_SHA},
         )
 
+    def test_owned_spl_doc_tracks_rejoined_kernel_contract(self):
+        document = (ROOT / "docs" / "A133-OPEN-7X-OWNED-SPL.md").read_text()
+        self.assertIn(
+            f"Current canonical Linux 7 pin: `{NORMAL_KERNEL_SHA}`.",
+            document,
+        )
+        self.assertIn(
+            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; Build 11 deliberately "
+            "rejoins it to the canonical pin.",
+            document,
+        )
+        self.assertNotIn("holds its lock-owned kernel pin at `23cdf7bf`", document)
+        self.assertNotIn("a lock-owned profile pin at `23cdf7bf", document)
+
     def test_malformed_profile_pin_fails_closed(self):
         lock_data = profile._load(ROOT / "platform.lock")
         cases = {
