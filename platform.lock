@@ -636,9 +636,10 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-                       # tsp-ihne1.1.1 paired image candidate: bind cursor tools
-                       # recipe provenance before any cursor bytes are produced.
-sha  = "4fba4d2a2b405b100996a9c595070aea73896f93"
+                       # tsp-mc9m.41.1029 paired image follow-up: move the load-bearing
+                       # Gamescope PVR-cache producer witness to gamescope#22's exact
+                       # linear head; package-path and cache-provenance tests move with it.
+sha  = "3d96fd8bab0af5d24c185ea8c4d5f52988805cf2"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -649,20 +650,20 @@ sha  = "c5783fbb7d9d89c82bc1b4757c303e267b6cd104"
 [[repos]]
 name = "gamescope"
 url  = "https://github.com/pocketforge-os/gamescope.git"
-ref  = "pocketforge-linear" # tsp-mc9m.41.995.100.1 Build 10: gamescope#21 at d62ee165,
-                        # superseding Build 8's 298881e3 linear generation. Previously, #11 and #10 replayed as
-                        # nine non-merge commits onto the last admitted linear head c30e8cee.
-                        # Measured for d62ee165 (governed mirror, base bb2ddfc8): 73 non-merge
+ref  = "pocketforge-linear" # tsp-mc9m.41.1029 follow-up: gamescope#22 at 0b03a62e,
+                        # adding the panel-mount rotation-direction fix as two linear commits
+                        # (9333e125 then 0b03a62e) on Build 10's d62ee165 head.
+                        # Measured for 0b03a62e (governed mirror, base bb2ddfc8): 75 non-merge
                         # commits, zero merges; patch_ids_sha256 (bare space-joined
                         # `git patch-id --stable` series)
-                        # ec80e37b3f665dbed5a6fbdafd0d2b1646b81d389271b3740d74065c7274b72f;
+                        # 28fb4d91cbf769ec0756c81f856df773f98959d9ad1bbd7d3f8fea5afb9038ce;
                         # format-patch digest
-                        # fcfc485d5bad681e3740c201eae328fc2bf1590e73ef09731c074f32acfb5d04.
-                        # Unlike the previous pin, this head's tree is NOT Build 9's: d62ee165^{tree}
-                        # is e1f2743c1194881a90c4db71ad7c2f0dc19d3fa8 while 298881e3^{tree} is
-                        # a65c549d78e383ab27495f06bb337dc82f59ef41, so the committed
+                        # 6ebf546f3722516cc3189346bdd09173cab426eee0562cd20eef886ab0f05015.
+                        # This head's Git tree is 738bc878991581539c41ca8520cc571997b2af72,
+                        # distinct from Build 10's e1f2743c1194881a90c4db71ad7c2f0dc19d3fa8,
+                        # so the committed
                         # stage/materializer (umask 022) witness moved with it: source tree
-                        # f451380d392560951db4a308702606daf53b8e70df510fb294baef848b9340f6,
+                        # 1582be24b260cf7633873fa54bc4e37bac944db086653eaa3c64edeba83af45d,
                         # measured by running core/stage-gamescope-source.py end to end -
                         # verify_series, the manifest digest, the offline primer, the admission
                         # receipt (34 edges / 32 project pins) and the materializer all passed,
@@ -696,7 +697,7 @@ ref  = "pocketforge-linear" # tsp-mc9m.41.995.100.1 Build 10: gamescope#21 at d6
                         # (tsp-op5a.440.1.1,
                         # 4232739e75c95113871e260967e8b4ff995ea897): branch-only integration
                         # candidate.
-sha  = "d62ee16578a8592487323e234f206bc30374ce9e"
+sha  = "0b03a62e720ae93afbd5e59167c8774f8ad74f0c"
 dependency_manifest_sha256 = "5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6"
 
 [[repos]]
