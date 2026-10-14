@@ -73,6 +73,14 @@ class RuntimeCapabilityContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "contains duplicates"):
             runtime_capabilities.runtime_capabilities(runtime_source("audio", "audio"))
 
+    def test_runtime_vocabulary_preserves_current_punctuation(self):
+        self.assertEqual(
+            runtime_capabilities.runtime_capabilities(
+                runtime_source("audio", "video-decode", "sandbox.nested_userns")
+            ),
+            {"audio", "video-decode", "sandbox.nested_userns"},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

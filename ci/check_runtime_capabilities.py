@@ -16,6 +16,7 @@ from check_lock_mirrors import Consumer, ConsumerResolver, GitCommitResolver, Mi
 
 RUNTIME_SOURCE = "crates/pf-app-manifest/src/lib.rs"
 COMMIT_RE = re.compile(r"[0-9a-f]{40}")
+CAPABILITY_RE = re.compile(r"[a-z][a-z0-9_.-]*")
 
 
 def runtime_pin(lock_raw: bytes) -> tuple[str, str]:
@@ -57,7 +58,13 @@ def runtime_capabilities(source: bytes) -> set[str]:
         raise ValueError(f"{RUNTIME_SOURCE} has no KNOWN_CAPABILITIES string array")
     body = re.sub(r"/\*.*?\*/", "", match.group(1), flags=re.DOTALL)
     body = re.sub(r"//[^\n]*", "", body)
-    values = re.findall(r'"([a-z][a-z0-9_]*)"', body)
+    values = re.findall(r'"([^"\n]*)"', body)
+    invalid = [value for value in values if CAPABILITY_RE.fullmatch(value) is None]
+    if invalid:
+        raise ValueError(
+            f"{RUNTIME_SOURCE} KNOWN_CAPABILITIES contains invalid literals: "
+            f"{', '.join(invalid)}"
+        )
     if not values or len(values) != len(set(values)):
         raise ValueError(f"{RUNTIME_SOURCE} KNOWN_CAPABILITIES is empty or contains duplicates")
     return set(values)
