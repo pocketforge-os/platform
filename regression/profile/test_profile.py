@@ -137,7 +137,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(resolved, expected)
 
     def test_gamescope_source_tree_digest_is_required_lowercase_and_emitted(self):
-        expected = "f451380d392560951db4a308702606daf53b8e70df510fb294baef848b9340f6"
+        expected = "1582be24b260cf7633873fa54bc4e37bac944db086653eaa3c64edeba83af45d"
         resolved, _ = profile.resolve("a133-open-7x-gpu")
         self.assertEqual(resolved["gamescope"]["source_tree_sha256"], expected)
         args, _, missing = profile.build_args("a133-open-7x-gpu")
@@ -366,17 +366,19 @@ class ProfileTest(unittest.TestCase):
         # Build 11 advances PF_IMAGE_SHA on all ten rows and PF_KERNEL_SHA only on
         # the a133-open-7x dev/release rows. State, missing pins, and every other
         # build argument remain byte-identical in a base-vs-candidate payload diff.
+        # The Gamescope rotation follow-up advances its paired image producer
+        # witness globally; only PF_IMAGE_SHA moves on these non-GPU rows.
         expected = {
-            ("a133", "dev"): "d90cac5149b4290febc2fa5afee4a2781154202b8a82efddedb9942d34ef7ef0",
-            ("a133", "release"): "67634d33aebc8bc2f5bea2e0ecfc848330fbef6400596eb47b046fba310c5c57",
-            ("a133-open-7x", "dev"): "8a996c144c54e6c302168f6f7be92dc951ae81d9f2d3c8e1e93ff9dd0ad8295e",
-            ("a133-open-7x", "release"): "975fecc048ba683ed28e0c27ad29fca0e811407775cae3fedf99b01ba10c9cb0",
-            ("a133-owned", "dev"): "976fddb7b8ce0c181f5921e1b9cf17ded0226987478d38d7cf3b7b370c0f3b3f",
-            ("a133-owned", "release"): "d694f9a7905d2bb6ad0da38edde1a94d8aa461a10d33e1f77c91e40936cea342",
-            ("a523", "dev"): "3391dd5aee7561bc1991bad656ac1197074833d8377ec1f046637610ba948aee",
-            ("a523", "release"): "bcab5a140b41cf3d996607fd646a6f5eab711211e5e57af5821506fae6b50d18",
-            ("sdm845", "dev"): "e016ce9ac2b527e6d0e812025ea56fe5bbb2ca8823e09720a8f562d79ba8a34c",
-            ("sdm845", "release"): "1ff2f405404c64b37b183749f75d3697904eb5b3b09ca347379ce740bd6fa6be",
+            ("a133", "dev"): "e9b4379411588f01d6bdb68c0a962b4d2ffb0580c5d760dd899fd3607d0385f8",
+            ("a133", "release"): "026878512938684b6ce5500bec49a46f702fb464246e31691efbe57093099ca6",
+            ("a133-open-7x", "dev"): "f0b2bcc39ca8a9d2eeed02e173dd7c7288631f3ccd55c53ecb7b2c50b09064b4",
+            ("a133-open-7x", "release"): "e5b069e3e4b3b1d3fc67d0791d009075f2cf8f12a43c51a91bf2aab6b57f8ca6",
+            ("a133-owned", "dev"): "7c36909a297947461df9a7532b7823027b865df39188422fa1c44a0005e6cf9e",
+            ("a133-owned", "release"): "9941e38cd53f8daa1349a1f35544c4c6f31034c3142b49c5616bcc7910cd54c0",
+            ("a523", "dev"): "9e6f1750ffd44dd9dd124a71d993232d732a0ccdc3cda3e5d2ac24854ee62aa5",
+            ("a523", "release"): "42d18bb3efc675acb556e3570fbc957325595744715bf50762143529e8604bec",
+            ("sdm845", "dev"): "cc713436b42ab3b85c75342451c0a5c243c3e3c3cffcced4c785d128a13fb8d5",
+            ("sdm845", "release"): "de1e617d39ab73a44db0c2ee2ccfdd0153f379587e6f39d2d7dd535b6f31d661",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -659,7 +661,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "3f045e0ae9ac2855df143060200b18922e155fa1",
-                "PF_IMAGE_SHA": "4fba4d2a2b405b100996a9c595070aea73896f93",
+                "PF_IMAGE_SHA": "106e3b156929bb515de2c028bbdb7a594fdc114b",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
