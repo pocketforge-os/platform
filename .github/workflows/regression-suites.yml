@@ -82,4 +82,5 @@ jobs:
 
           echo "regression suites @ $sha base $base_sha on runner $RUNNER_NAME"
           bash ci/check-lock-mirrors.sh "${baseline_args[@]}"
+          python3 ci/check_runtime_capabilities.py
           bash regression/run-offline.sh
