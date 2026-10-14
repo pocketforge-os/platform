@@ -41,6 +41,24 @@ template = 'ARG PF_CURSOR_TOOLS_RECIPE_SHA={value}'
 comparison = "equal"
 
 [[mirrors]]
+id = "image-cursor-tools-binding-image"
+platform_field = "cursor_theme.tools_image_digest"
+consumer_repo = "image"
+consumer_path = "scripts/verify-cursor-tools-recipe.py"
+parser = "template"
+template = 'pocketforge/ci-tools@sha256:{value}'
+comparison = "equal"
+
+[[mirrors]]
+id = "image-cursor-tools-binding-recipe"
+platform_field = "cursor_theme.tools_recipe_sha"
+consumer_repo = "image"
+consumer_path = "scripts/verify-cursor-tools-recipe.py"
+parser = "template"
+template = '"{value}",'
+comparison = "equal"
+
+[[mirrors]]
 id = "image-runtime-guard"
 platform_field = "repos.runtime.sha"
 consumer_repo = "image"
@@ -181,7 +199,7 @@ platform_field = "cursor_theme.tools_image_digest"
 consumer_repo = "image"
 consumer_path = "tests/test_cursor_theme_package.py"
 parser = "template"
-template = 'pocketforge/ci-tools@sha256:{value}'
+template = '               "{value}")'
 reason = "producer pin contract test"
 
 [[references]]
@@ -190,7 +208,7 @@ platform_field = "cursor_theme.tools_recipe_sha"
 consumer_repo = "image"
 consumer_path = "tests/test_cursor_theme_package.py"
 parser = "template"
-template = 'ARG PF_CURSOR_TOOLS_RECIPE_SHA={value}'
+template = 'TOOLS_RECIPE = "{value}"'
 reason = "producer recipe pin contract test"
 
 [[references]]
