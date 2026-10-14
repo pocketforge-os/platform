@@ -40,6 +40,28 @@ A133_OPEN_PROFILES = {
 
 
 class ProfileTest(unittest.TestCase):
+    def test_missing_platform_lock_keeps_buildargs_unseeded(self):
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.object(profile, "LOCK", str(pathlib.Path(tmp) / "missing.lock")):
+            for dev_id in profile.list_devices():
+                for variant in ("dev", "release"):
+                    with self.subTest(dev_id=dev_id, variant=variant):
+                        merged, _family = profile.resolve(dev_id)
+                        if merged.get("gamescope"):
+                            # Preserve the pre-existing no-lock refusal for the
+                            # governed-fork check; cursor defaults must not mask it
+                            # with a KeyError first.
+                            with self.assertRaisesRegex(
+                                    profile.ProfileSchemaError,
+                                    "source must be the governed PocketForge Gamescope fork"):
+                                profile.build_args(dev_id, variant)
+                            continue
+                        args, state, _missing = profile.build_args(dev_id, variant)
+                        self.assertEqual(state, "unseeded")
+                        self.assertEqual(args["PF_CURSOR_THEME_SHA"], "")
+                        self.assertEqual(args["PF_CURSOR_TOOLS_IMAGE"], "")
+                        self.assertEqual(args["PF_CURSOR_TOOLS_RECIPE_SHA"], "")
+
     def test_existing_profiles_resolve_unchanged(self):
         # Canonical hashes were generated from origin/main (48d20a4) before this
         # branch added a133-open-7x. They pin every pre-existing profile's entire
@@ -332,17 +354,21 @@ class ProfileTest(unittest.TestCase):
         # profile also moves its byte-identical Steam Link UAPI witness to the
         # boot-kernel source identity; the no-radio override stays frozen.
         # Image#242's determinism repair again advances only universal PF_IMAGE_SHA.
+        # Cursor packaging adds the universal PF_CURSOR_THEME_SHA and pinned
+        # PF_CURSOR_TOOLS_* producer inputs; image#246 advances PF_IMAGE_SHA.
+        # tsp-ihne1.1.1 corrects PF_CURSOR_TOOLS_RECIPE_SHA to the revision
+        # proven by the pinned image's OCI metadata on every profile row.
         expected = {
-            ("a133", "dev"): "b2112971573e0893890df3968c4b43eec35ad051029fad8749cb2880b65924f4",
-            ("a133", "release"): "8c841407d578baacf19bf0cd20f8977577a13b2c58aa812c93d299e9e5a64999",
-            ("a133-open-7x", "dev"): "b9ff9973851aaf68db1c824383f5c8757414271cbe9e55464a159420d36ebe61",
-            ("a133-open-7x", "release"): "e29af3e61c70718e9dafa424fca52ddd3188e1517672e84bcb8c4cd4d4545941",
-            ("a133-owned", "dev"): "0cd6a79e2286e55e3f8b6650d7980fadfb30c9fd46db8fa1ddd7ee7cf2ee937c",
-            ("a133-owned", "release"): "70b5e48a64454569da0d0fee6b7af94b8e639a2e2a9e0ff885ebe88a3a5972ed",
-            ("a523", "dev"): "26d0577dcbcab9da73ef80180ad65e75c02a0c40f833f47f74e09304ffbfc451",
-            ("a523", "release"): "89dc6f3765e4d89c1ff3fb8e8ffc8e7ebefbf74a1424fd015a7edab5775ab59b",
-            ("sdm845", "dev"): "d7028fff46c41443328c8d7a1c3453677a3bb76f97e348dcd9ac270e00eecfbc",
-            ("sdm845", "release"): "7fea62195de8e1a2f984bef4114029ddca02f9df981431b98fdaab991c90cdbb",
+            ("a133", "dev"): "3e232b1b23eaf96b92a5e6832a65ba5b1fd1e6d2caa0054120354e45668eea47",
+            ("a133", "release"): "2dcb009604e3db62667ec3e017e5de1c75b11abe70a4407a5576349b09aaebb6",
+            ("a133-open-7x", "dev"): "4c11f1ba5c251d8ea620439f9db7ee35ffb620b9b0613d0d55390c379d482141",
+            ("a133-open-7x", "release"): "b88466c7d4a40c77711e9a85ae83a78cbb935ed5f4c2a79b8eb9f30e9256d60c",
+            ("a133-owned", "dev"): "4dda460c5b6f73428b4a392296e70d89f7089d2ed976af396581860a1826a60e",
+            ("a133-owned", "release"): "c7c0a38b683e59d533f76237d435b342570b00d2a3dfee82473b6c485ae23e70",
+            ("a523", "dev"): "9e993f84ac4398181ebc89bb03700d1adfdf31b9a0678b0870f0f863468c360a",
+            ("a523", "release"): "5526130fcd84552b683d3c50bdfacb85b19ba3876a4db69081d254f167b364cb",
+            ("sdm845", "dev"): "1f184c95947d7ba7a77e1a8b81b42dac7cc477c7f46f1ff5390ca2f349003917",
+            ("sdm845", "release"): "b2bcbbfddfeb859819c5faa35c1c52e0b97f2a617af4a77170b57ddcb0cf2758",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -625,7 +651,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "bd1713af2183cf5d945945c2b127e25d382ee8e9",
-                "PF_IMAGE_SHA": "8d6bbc50e856828a6b764c711cb08f2544e3607b",
+                "PF_IMAGE_SHA": "34eb2b36002931d7006abc3bdc9fa9dffab7694f",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

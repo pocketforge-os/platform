@@ -57,6 +57,14 @@ PROFILE_PIN_KEYS = ("kernel", "uboot")
 DEVICE_DESCRIPTOR_FILE = "capabilities.toml"
 DEVICE_DESCRIPTOR_ID = re.compile(r"[a-z0-9][a-z0-9-]*")
 
+# The ci-tools image currently exposes its source revision only as OCI config
+# metadata, which a Dockerfile RUN cannot inspect. Keep the reviewed immutable
+# digest-to-recipe binding here and mirror it in image's pre-provenance guard.
+CURSOR_TOOLS_RECIPES = {
+    "2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862":
+        "ec5b2621f636261978d3bb4fd9843ae22a59c320",
+}
+
 
 class ProfileSchemaError(ValueError):
     """A loaded TOML document has the wrong schema shape."""
@@ -266,7 +274,12 @@ def _device_profile_lineage(device):
 def load_lock():
     if not os.path.isfile(LOCK):
         return {"seeded": False, "interim": False, "repos": {}, "profile_pins": {},
-                "platform_runtime": {}, "platform_payload": {}}
+                "platform_runtime": {}, "platform_payload": {},
+                "cursor_theme": {
+                    "tools_image": "",
+                    "tools_image_digest": "",
+                    "tools_recipe_sha": "",
+                }}
     data = _load(LOCK)
     profile_pins = data.get("profile_pins", {})
     if not isinstance(profile_pins, dict):
@@ -285,6 +298,26 @@ def load_lock():
                 raise ProfileSchemaError(
                     f"[profile_pins.{profile_id}].{source} must be a full 40-hex SHA")
     repos = {r["name"]: r for r in data.get("repos", []) if "name" in r}
+    cursor_theme = data.get("cursor_theme", {})
+    if not isinstance(cursor_theme, dict):
+        raise ProfileSchemaError("[cursor_theme] must be a table")
+    if set(cursor_theme) != {"tools_image", "tools_image_digest", "tools_recipe_sha"}:
+        raise ProfileSchemaError(
+            "[cursor_theme] must contain exactly tools_image, tools_image_digest, and tools_recipe_sha")
+    tools_image = cursor_theme.get("tools_image", "")
+    if not re.fullmatch(r"[^@]+@sha256:[0-9a-f]{64}", tools_image):
+        raise ProfileSchemaError("[cursor_theme].tools_image must be digest-pinned")
+    tools_image_digest = cursor_theme.get("tools_image_digest", "")
+    if not re.fullmatch(r"[0-9a-f]{64}", tools_image_digest):
+        raise ProfileSchemaError("[cursor_theme].tools_image_digest must be a full SHA-256")
+    if not tools_image.endswith("@sha256:" + tools_image_digest):
+        raise ProfileSchemaError("[cursor_theme].tools_image_digest must match tools_image")
+    if not re.fullmatch(r"[0-9a-f]{40}", cursor_theme.get("tools_recipe_sha", "")):
+        raise ProfileSchemaError("[cursor_theme].tools_recipe_sha must be a full 40-hex SHA")
+    if CURSOR_TOOLS_RECIPES.get(tools_image_digest) != cursor_theme["tools_recipe_sha"]:
+        raise ProfileSchemaError(
+            "cursor_tools_recipe_binding=refused "
+            "reason=tools_recipe_binding_mismatch")
     platform_runtime = data.get("platform_runtime", {})
     if not isinstance(platform_runtime, dict):
         raise ProfileSchemaError("[platform_runtime] must be a table")
@@ -396,7 +429,7 @@ def load_lock():
     return {"seeded": bool(data.get("seeded", False)),
             "interim": bool(data.get("interim_seed", False)), "repos": repos,
             "profile_pins": profile_pins, "platform_runtime": platform_runtime,
-            "platform_payload": platform_payload}
+            "platform_payload": platform_payload, "cursor_theme": cursor_theme}
 
 
 def _deep_fill(dst, src):
@@ -815,6 +848,11 @@ def build_args(dev_id, variant="dev"):
         # deliberately empty, so the image Dockerfile can select a NOT-SHIPPED stage without
         # making the build-argument surface variant-dependent.
         "PF_POOLSUITE_SHA": sha("poolsuite") if variant == "dev" else "",
+        # Key presence is the pf_stage_sources shipping signal. Keep emitting it
+        # even when the lock lookup is empty so an OS-image build fails closed.
+        "PF_CURSOR_THEME_SHA": sha("pf-cursor-theme"),
+        "PF_CURSOR_TOOLS_IMAGE": lock["cursor_theme"]["tools_image"],
+        "PF_CURSOR_TOOLS_RECIPE_SHA": lock["cursor_theme"]["tools_recipe_sha"],
         "PF_IMAGE_SHA": sha("image"),
         "PF_IMAGE_NAME": img.get("image_name", ""),
         "PF_IMAGE_ASSEMBLER": img.get("assembler", ""),

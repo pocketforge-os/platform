@@ -160,7 +160,7 @@ pf_max_epoch() {
 pf_validate_build_stage_target() {
     local target="$1"
     case "$target" in
-        export|component-test-fetch|component-test-kernel|component-test-gpu-km|component-test-gpu-um|component-test-bootchain|component-test-sdl|component-test-wpa|component-test-cloud-init|component-test-runtime|component-test-ffmpeg|component-test-sdl-static|component-test-hwprobe|component-test-poolsuite|component-test-recovery|component-test-launcher|component-test-gamescope) ;;
+        export|component-test-fetch|component-test-kernel|component-test-gpu-km|component-test-gpu-um|component-test-bootchain|component-test-sdl|component-test-wpa|component-test-cloud-init|component-test-runtime|component-test-ffmpeg|component-test-sdl-static|component-test-hwprobe|component-test-poolsuite|component-test-recovery|component-test-launcher|component-test-gamescope|component-test-cursor-theme) ;;
         *) pf_die "PF_BUILD_STAGE_TARGET is not an admitted export/component-test target: $target" ;;
     esac
     printf '%s\n' "$target"
@@ -242,6 +242,13 @@ pf_stage_sources() {
         "uboot|$(v PF_UBOOT_REPO)|$(v PF_UBOOT_SHA)"
         "tfa|$(v PF_TFA_REPO)|$(v PF_TFA_SHA)"
     )
+    # PF_CURSOR_THEME_SHA key presence declares that this staging request ships
+    # the cursor payload. profile.py emits the key for every OS-image profile,
+    # including an empty value when the lock pin is missing, so real builds stay
+    # fail-closed. Focused component staging fixtures omit the unrelated key.
+    if grep -q '^PF_CURSOR_THEME_SHA=' <<< "$ba"; then
+        specs+=( "cursor-theme|pf-cursor-theme|$(v PF_CURSOR_THEME_SHA)|1" )
+    fi
     if [ "$VARIANT" = dev ]; then
         specs+=( "sim|sim|$(v PF_SIM_SHA)" "pf-hwprobe|pf-hwprobe|$(v PF_HWPROBE_SHA)"
                  "poolsuite|poolsuite|$(v PF_POOLSUITE_SHA)" )
@@ -329,10 +336,15 @@ pf_stage_sources() {
         # these before building, rejecting a valid-looking arg paired with a
         # different archive.
         case "$logical" in
-            kernel|wpa-supplicant-tsp|cloud-init-tsp)
+            kernel|wpa-supplicant-tsp|cloud-init-tsp|cursor-theme)
                 printf '%s\n' "$sha" > "$dest/.pf-source-revision"
+                chmod 0444 "$dest/.pf-source-revision"
                 ;;
         esac
+        if [ "$logical" = cursor-theme ]; then
+            find "$dest" -type f -exec chmod 0444 {} +
+            find "$dest" -type d -exec chmod 0555 {} +
+        fi
         n="$(find "$dest" -type f | wc -l)"
         pf_log "stage: $logical <- $repo@${sha:0:12}  ($n files, src=$gitdir)"
     done
@@ -703,6 +715,7 @@ pf_os_image_dockerbuild() {
            --build-context "sdl-src=$src_dir/libsdl3-sunxifb"
            --build-context "wpa-src=$src_dir/wpa-supplicant-tsp"
            --build-context "cloud-init-src=$src_dir/cloud-init-tsp"
+           --build-context "cursor-theme-src=$src_dir/cursor-theme"
            --build-context "runtime-src=$src_dir/runtime"
            --build-context "blobs-src=$src_dir/blobs"
            --build-context "vendor-manifest-src=$src_dir/vendor-manifest"
