@@ -356,17 +356,19 @@ class ProfileTest(unittest.TestCase):
         # Image#242's determinism repair again advances only universal PF_IMAGE_SHA.
         # Cursor packaging adds the universal PF_CURSOR_THEME_SHA and pinned
         # PF_CURSOR_TOOLS_* producer inputs; image#246 advances PF_IMAGE_SHA.
+        # tsp-ihne1.1.1 corrects PF_CURSOR_TOOLS_RECIPE_SHA to the revision
+        # proven by the pinned image's OCI metadata on every profile row.
         expected = {
-            ("a133", "dev"): "61a375cb6fac60811e28153523336147c88246a88a1eb82290509efbbbb9b33d",
-            ("a133", "release"): "411709bbee48ece58ec9f77c65d81a4cff4904de352d792df55838026de8bb9e",
-            ("a133-open-7x", "dev"): "75d8174fc34893a3f56999f9cc4c043fa434001703be35472d072420b2697c0b",
-            ("a133-open-7x", "release"): "414ac2ffc1f5f4fe0e8de0681a01423dd49039cc2e31752a87a3429629999070",
-            ("a133-owned", "dev"): "81db150597858a49f481bffe35dc5a30cdb364bcde05653de51640fb374221be",
-            ("a133-owned", "release"): "863f69747dd15bdf9e201ca08f6fe87c42021b2b10ab707ec7c4ff82774b11a0",
-            ("a523", "dev"): "0e666864657d300e90ed00426fd88f480d7ad9874774ca57fbf085de73af8d29",
-            ("a523", "release"): "544202639be7eb45b052a1af80aa4cf000117c96ffc796185314c9c30747c39b",
-            ("sdm845", "dev"): "e39b08ca04681325079cf665fd1725eb1272b65626b639fa18168d7088e1529b",
-            ("sdm845", "release"): "0236cc5eb7c7f8ed7c173512eb4c3046c07a4708387abda93b98a28c60368459",
+            ("a133", "dev"): "3e232b1b23eaf96b92a5e6832a65ba5b1fd1e6d2caa0054120354e45668eea47",
+            ("a133", "release"): "2dcb009604e3db62667ec3e017e5de1c75b11abe70a4407a5576349b09aaebb6",
+            ("a133-open-7x", "dev"): "4c11f1ba5c251d8ea620439f9db7ee35ffb620b9b0613d0d55390c379d482141",
+            ("a133-open-7x", "release"): "b88466c7d4a40c77711e9a85ae83a78cbb935ed5f4c2a79b8eb9f30e9256d60c",
+            ("a133-owned", "dev"): "4dda460c5b6f73428b4a392296e70d89f7089d2ed976af396581860a1826a60e",
+            ("a133-owned", "release"): "c7c0a38b683e59d533f76237d435b342570b00d2a3dfee82473b6c485ae23e70",
+            ("a523", "dev"): "9e993f84ac4398181ebc89bb03700d1adfdf31b9a0678b0870f0f863468c360a",
+            ("a523", "release"): "5526130fcd84552b683d3c50bdfacb85b19ba3876a4db69081d254f167b364cb",
+            ("sdm845", "dev"): "1f184c95947d7ba7a77e1a8b81b42dac7cc477c7f46f1ff5390ca2f349003917",
+            ("sdm845", "release"): "b2bcbbfddfeb859819c5faa35c1c52e0b97f2a617af4a77170b57ddcb0cf2758",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -649,7 +651,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "bd1713af2183cf5d945945c2b127e25d382ee8e9",
-                "PF_IMAGE_SHA": "f544e17afdc516d251bd32d23f88aa9dd39155e3",
+                "PF_IMAGE_SHA": "34eb2b36002931d7006abc3bdc9fa9dffab7694f",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

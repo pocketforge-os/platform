@@ -20,7 +20,7 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "f544e17afdc516d251bd32d23f88aa9dd39155e3"
+CURRENT_IMAGE = "34eb2b36002931d7006abc3bdc9fa9dffab7694f"
 CURRENT_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 BUILD9_KERNEL = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 CURRENT_GAMESCOPE = "298881e3dff1ade108d57a257e8bf59bf8c6436f"
@@ -693,6 +693,11 @@ comparison = "equal"
         candidate_manifest = (ROOT / "ci" / "lock-mirrors.toml").read_bytes()
         current_tree = {
             "build/Dockerfile.pf": (FIXTURES / "current" / "Dockerfile.pf").read_bytes(),
+            "scripts/verify-cursor-tools-recipe.py": (
+                b'"10.0.32.86:5555/pocketforge/ci-tools@sha256:'
+                b'2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862":\n'
+                b'    "ec5b2621f636261978d3bb4fd9843ae22a59c320",\n'
+            ),
             "build/produce-gamescope-pvr-cache.sh": (
                 f"expected_gamescope_sha={CURRENT_GAMESCOPE}\n".encode()
             ),
@@ -715,7 +720,7 @@ comparison = "equal"
         )
         self.assertTrue(result.ok, result.render())
         self.assertEqual(resolver.requests, [("image", CURRENT_IMAGE)])
-        self.assertEqual(result.mirror_rule_count, 17)
+        self.assertEqual(result.mirror_rule_count, 19)
 
         mixed_lock = (ROOT / "platform.lock").read_bytes().replace(
             f'sha  = "{RUNTIME_SHA}"'.encode(),

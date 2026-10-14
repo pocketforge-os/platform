@@ -57,6 +57,14 @@ PROFILE_PIN_KEYS = ("kernel", "uboot")
 DEVICE_DESCRIPTOR_FILE = "capabilities.toml"
 DEVICE_DESCRIPTOR_ID = re.compile(r"[a-z0-9][a-z0-9-]*")
 
+# The ci-tools image currently exposes its source revision only as OCI config
+# metadata, which a Dockerfile RUN cannot inspect. Keep the reviewed immutable
+# digest-to-recipe binding here and mirror it in image's pre-provenance guard.
+CURSOR_TOOLS_RECIPES = {
+    "2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862":
+        "ec5b2621f636261978d3bb4fd9843ae22a59c320",
+}
+
 
 class ProfileSchemaError(ValueError):
     """A loaded TOML document has the wrong schema shape."""
@@ -306,6 +314,10 @@ def load_lock():
         raise ProfileSchemaError("[cursor_theme].tools_image_digest must match tools_image")
     if not re.fullmatch(r"[0-9a-f]{40}", cursor_theme.get("tools_recipe_sha", "")):
         raise ProfileSchemaError("[cursor_theme].tools_recipe_sha must be a full 40-hex SHA")
+    if CURSOR_TOOLS_RECIPES.get(tools_image_digest) != cursor_theme["tools_recipe_sha"]:
+        raise ProfileSchemaError(
+            "cursor_tools_recipe_binding=refused "
+            "reason=tools_recipe_binding_mismatch")
     platform_runtime = data.get("platform_runtime", {})
     if not isinstance(platform_runtime, dict):
         raise ProfileSchemaError("[platform_runtime] must be a table")
