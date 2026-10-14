@@ -639,7 +639,7 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # tsp-mc9m.41.1029 paired image follow-up: move the load-bearing
                        # Gamescope PVR-cache producer witness to gamescope#22's exact
                        # linear head; package-path and cache-provenance tests move with it.
-sha  = "106e3b156929bb515de2c028bbdb7a594fdc114b"
+sha  = "3d96fd8bab0af5d24c185ea8c4d5f52988805cf2"
 
 [[repos]]
 name = "pf-cursor-theme"
