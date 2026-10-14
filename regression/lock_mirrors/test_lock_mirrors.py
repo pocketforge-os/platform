@@ -22,6 +22,7 @@ PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
 CURRENT_IMAGE = "4fba4d2a2b405b100996a9c595070aea73896f93"
 CURRENT_UAPI = "07bb60764cbc64b5a5d760c34709f07f8259e985"
+CURRENT_CTS_SOURCE = "067e8832315e79817ede1c4863804e440f5d1c80"
 BUILD9_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 BUILD9_KERNEL = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 CURRENT_GAMESCOPE = "d62ee16578a8592487323e234f206bc30374ce9e"
@@ -722,6 +723,13 @@ comparison = "equal"
                 f"g1_sha={CURRENT_GAMESCOPE}\n"
                 f"grep -F '{CURRENT_GAMESCOPE}' producer\n".encode()
             ),
+            "tests/test-cts-bundle-image.sh": (
+                f'make_bundle "${{versioned_archive}}" {CURRENT_CTS_SOURCE} no versioned\n'
+                f'make_bundle "${{nameless_archive}}" {CURRENT_CTS_SOURCE} no none\n'.encode()
+            ),
+            "tests/test-steamlink-ffmpeg59-runtime.sh": (
+                f"build11_uapi_sha={CURRENT_UAPI}\n".encode()
+            ),
         }
         resolver = FixtureResolver({("image", CURRENT_IMAGE): current_tree})
         result = gate.check_gate(
@@ -734,6 +742,37 @@ comparison = "equal"
         self.assertTrue(result.ok, result.render())
         self.assertEqual(resolver.requests, [("image", CURRENT_IMAGE)])
         self.assertEqual(result.mirror_rule_count, 23)
+
+        classification_controls = (
+            (
+                b'template = \'make_bundle "${versioned_archive}" {value} no versioned\'',
+                b'template = \'make_bundle "${other_archive}" {value} no versioned\'',
+                "UNDECLARED_HIT",
+                "tests/test-cts-bundle-image.sh",
+            ),
+            (
+                b"template = 'build11_uapi_sha={value}'",
+                b"template = 'build12_uapi_sha={value}'",
+                "AMBIGUOUS_HIT",
+                "tests/test-steamlink-ffmpeg59-runtime.sh",
+            ),
+        )
+        for old_rule, broken_rule, classification, path in classification_controls:
+            with self.subTest(classification=classification, path=path):
+                self.assertIn(old_rule, candidate_manifest)
+                unclassified = gate.check_gate(
+                    (ROOT / "platform.lock").read_bytes(),
+                    candidate_manifest.replace(old_rule, broken_rule, 1),
+                    FixtureResolver({("image", CURRENT_IMAGE): current_tree}),
+                )
+                self.assertFalse(unclassified.ok)
+                self.assertTrue(
+                    any(
+                        diagnostic.classification == classification and diagnostic.path == path
+                        for diagnostic in unclassified.diagnostics
+                    ),
+                    unclassified.render(),
+                )
 
         mixed_lock = (ROOT / "platform.lock").read_bytes().replace(
             f'sha  = "{RUNTIME_SHA}"'.encode(),

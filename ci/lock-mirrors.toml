@@ -364,6 +364,20 @@ template = 'build9_uapi_sha={value}'
 reason = "named positive producer-admission identity for the current image UAPI lock"
 
 [[references]]
+id = "steamlink-uapi-runtime-test-build11-control"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+aliases = [
+  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+  "profile_pins.a133-open-7x-gpu-noradio.kernel",
+  "repos.kernel-sunxi-7.x.sha",
+]
+consumer_repo = "image"
+consumer_path = "tests/test-steamlink-ffmpeg59-runtime.sh"
+parser = "template"
+template = 'build11_uapi_sha={value}'
+reason = "Build 11 kernel-UAPI witness shared by the Steam Link source, profile override, and repository pin"
+
+[[references]]
 id = "volatile-root-kernel-pr-provenance"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.source_sha"
 aliases = [
@@ -527,6 +541,24 @@ consumer_path = "tests/test-cts-bundle-image.sh"
 parser = "template"
 template = 'make_bundle "${bad_manifest_archive}" {value} yes'
 reason = "negative CTS list-manifest fixture retaining the admitted source commit"
+
+[[references]]
+id = "cts-bundle-versioned-source-commit-test"
+platform_field = "platform_payload.cts_bundle_v1.build_args.PF_CTS_SOURCE_COMMIT"
+consumer_repo = "image"
+consumer_path = "tests/test-cts-bundle-image.sh"
+parser = "template"
+template = 'make_bundle "${versioned_archive}" {value} no versioned'
+reason = "CTS verifier fixture for an explicitly versioned bundle root"
+
+[[references]]
+id = "cts-bundle-nameless-source-commit-test"
+platform_field = "platform_payload.cts_bundle_v1.build_args.PF_CTS_SOURCE_COMMIT"
+consumer_repo = "image"
+consumer_path = "tests/test-cts-bundle-image.sh"
+parser = "template"
+template = 'make_bundle "${nameless_archive}" {value} no none'
+reason = "CTS verifier negative fixture for a bundle without a version marker"
 
 [[references]]
 id = "blobs-a133-cma-real-env-fixture"
