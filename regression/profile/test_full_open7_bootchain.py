@@ -52,7 +52,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_UBOOT_SHA": "db70249c8b25b7c3271cce71a19005b361527aaf",
             "PF_UBOOT_DEFCONFIG": "tg5040_defconfig",
             "PF_TFA_REPO": "tfa-tsp-a133",
-            "PF_TFA_SHA": "199316464722231e1a818e0d3f927be9c0fc2798",
+            "PF_TFA_SHA": "da28d33e2fee80a751d148cba748770ebe25dcbe",
             "PF_TFA_PLAT": "sun50i_a133",
             "PF_SPL_OFFSET_KIB": "128",
         }
