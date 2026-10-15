@@ -636,14 +636,14 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-                       # tsp-mc9m.41.1029 Build 13: image#263 merge
-                       # 85e1a5f1877b1e3c2bd3f0f4beea1e0be19476e3 carries the
-                       # gpu-um 1ae75772 toolchain recipe/provenance and the exact runtime
-                       # 0b36a9e8 + launcher 6de0ad32 production-contract guard.
+                       # tsp-mc9m.41.1029 Build 14 candidate: image#264 merge
+                       # 061146a8eb0d5a4e863339a58558fb2e931f4287 carries
+                       # self-flash v2 on top of Build 13's exact gpu-um,
+                       # runtime, and launcher production-contract guards.
                        # tsp-mc9m.41.1029 paired image follow-up: move the load-bearing
                        # Gamescope PVR-cache producer witness to gamescope#22's exact
                        # linear head; package-path and cache-provenance tests move with it.
-sha  = "85e1a5f1877b1e3c2bd3f0f4beea1e0be19476e3"
+sha  = "061146a8eb0d5a4e863339a58558fb2e931f4287"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1344,7 +1344,9 @@ url  = "https://github.com/pocketforge-os/tfa-tsp-a133.git"      # tsp-147u.11/.
 ref  = "main-linear"          # the A133 RVBAR (CPUSUBSYS 0x08100040) — brings up all 4 cores; native PSCI,
                               # no SCP, SUNXI_BL31_IN_DRAM default. Closes the vendor monitor.bin provenance
                               # gap. Validated: "Brought up 4 CPUs" on pf-node-01.
-sha  = "199316464722231e1a818e0d3f927be9c0fc2798"
+                              # Build 14 candidate: tfa-tsp-a133#8 adds the AXP717
+                              # PMIC restart path required by SD UHS device validation.
+sha  = "da28d33e2fee80a751d148cba748770ebe25dcbe"
 
 [[repos]]
 name = "blobs"                # private; preserved vendor originals + apply-*.py + *.SHA256 (text-only after B3)
@@ -1450,7 +1452,7 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 13: runtime#142 merge
                               # 0b36a9e880d7294677e899b2f6db03262cdc7774 adds the
                               # resident-monitor presentation deadline fix on top of the
                               # evdev authority and resident-hold work; image
-                              # 85e1a5f1877b1e3c2bd3f0f4beea1e0be19476e3 guards this exact SHA.
+                              # 061146a8eb0d5a4e863339a58558fb2e931f4287 guards this exact SHA.
                               # Previous tsp-mc9m.41.995.100.1 Build 10 Landlock set: runtime#124 merge
                               # 2736751f supplies the open_url vocabulary required by families.toml and is
                               # the exact runtime half of image#244's co-pin guard. Previous Build 8 pin:
@@ -1532,7 +1534,7 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 13: launcher#165 merge
                               # 6de0ad32af207ea208ccb29a42b3f3ae4e8d2777 revendors runtime
                               # 0b36a9e880d7294677e899b2f6db03262cdc7774 and moves atomically
                               # with that runtime plus image
-                              # 85e1a5f1877b1e3c2bd3f0f4beea1e0be19476e3's exact co-pin guard.
+                              # 061146a8eb0d5a4e863339a58558fb2e931f4287's exact co-pin guard.
                               # Previous tsp-mc9m.41.995.100.1 Build 10 Landlock set: launcher#158 merge
                               # 8a276aec vendors runtime f2402f59 from runtime#124 and is the exact launcher
                               # half of image#244's co-pin guard. Previous Build 8 pin: launcher#156
