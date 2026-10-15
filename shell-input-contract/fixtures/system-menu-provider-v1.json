@@ -1,0 +1,12 @@
+{
+  "protocol_version": 1,
+  "messages": [
+    {"version": 1, "type": "register"},
+    {"version": 1, "type": "registered"},
+    {"version": 1, "type": "system_menu"},
+    {"version": 1, "type": "ack", "action": "system_menu"},
+    {"version": 1, "type": "shown"},
+    {"version": 1, "type": "return"},
+    {"version": 1, "type": "ack", "action": "return"}
+  ]
+}

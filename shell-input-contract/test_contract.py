@@ -372,6 +372,103 @@ class ShellInputContractTest(unittest.TestCase):
         with self.assertRaises(jsonschema.ValidationError):
             checker.validate(absent)
 
+    def test_runtime108_bootstrap_subset_includes_shown_and_is_additive(self) -> None:
+        # The seven-frame fixture is the runtime#108 bootstrap compatibility subset
+        # of provider protocol v1 (see test_provider_subset_is_bootstrap_compat_not_exhaustive_v1).
+        fixture = json.loads((ROOT / "fixtures/system-menu-provider-v1.json").read_text())
+        validator.validate_bootstrap_protocol_fixture(fixture)
+        self.assertIn("shown", {message["type"] for message in fixture["messages"]})
+
+        additive = copy.deepcopy(fixture)
+        shown = next(message for message in additive["messages"] if message["type"] == "shown")
+        shown["future_optional"] = {"app_id": "future-snapshot-example"}
+        validator.validate_bootstrap_protocol_fixture(additive)
+
+        missing_shown = copy.deepcopy(fixture)
+        missing_shown["messages"] = [
+            message for message in missing_shown["messages"] if message["type"] != "shown"
+        ]
+        with self.assertRaises(validator.ContractError):
+            validator.validate_bootstrap_protocol_fixture(missing_shown)
+
+        wrong_major = copy.deepcopy(fixture)
+        next(message for message in wrong_major["messages"] if message["type"] == "shown")["version"] = 2
+        with self.assertRaises(validator.ContractError):
+            validator.validate_bootstrap_protocol_fixture(wrong_major)
+
+        try:
+            import jsonschema
+        except ImportError:
+            self.skipTest("optional jsonschema package unavailable")
+        schema = json.loads((ROOT.parent / "schemas/system-menu-provider-v1.schema.json").read_text())
+        checker = jsonschema.Draft202012Validator(schema)
+        checker.validate(additive)
+        with self.assertRaises(jsonschema.ValidationError):
+            checker.validate(missing_shown)
+        with self.assertRaises(jsonschema.ValidationError):
+            checker.validate(wrong_major)
+
+    def test_provider_subset_is_bootstrap_compat_not_exhaustive_v1(self) -> None:
+        # runtime#112 pairing, option (b): the seven-frame schema/fixture is the
+        # runtime#108 bootstrap compatibility subset of provider protocol v1.  Its
+        # exact-message-set check is exact WITHIN that fixture only; the full v1
+        # vocabulary is normative in the runtime repo's docs/input-ipc.md section 3,
+        # which additively defines closed, secure_entry and pong (provider -> router)
+        # plus dismiss and ping (router -> provider) in the same major.
+        fixture = _load(ROOT / "fixtures/system-menu-provider-v1.json")
+
+        # The shown frame's wire shape never changes (runtime MenuToRouter::Shown).
+        shown = next(message for message in fixture["messages"] if message["type"] == "shown")
+        self.assertEqual({"version": 1, "type": "shown"}, shown)
+
+        # Positive control: every additive runtime v1 frame is recognized vocabulary,
+        # not an "unknown provider protocol message".  Field shapes stay normative in
+        # runtime docs/input-ipc.md section 3 and machine-checked in the runtime repo
+        # (section 11); this validator deliberately does not duplicate them.
+        for frame in (
+            {"version": 1, "type": "closed", "reason": "resume"},
+            {"version": 1, "type": "secure_entry", "active": True},
+            {"version": 1, "type": "pong", "seq": 7},
+            {"version": 1, "type": "dismiss", "reason": "hold_return"},
+            {"version": 1, "type": "ping", "seq": 7},
+        ):
+            with self.subTest(additive=frame["type"]):
+                self.assertEqual(
+                    frame["type"],
+                    validator.validate_provider_message(frame, "additive")[0],
+                )
+
+        # Negative control: exactness is scoped to the bootstrap fixture — a fixture
+        # carrying an additive runtime frame is not the bootstrap subset and is refused.
+        inflated = copy.deepcopy(fixture)
+        inflated["messages"].append({"version": 1, "type": "pong", "seq": 1})
+        with self.assertRaises(validator.ContractError):
+            validator.validate_bootstrap_protocol_fixture(inflated)
+
+        # Negative control: a genuinely unknown type stays unknown.
+        with self.assertRaises(validator.ContractError):
+            validator.validate_provider_message({"version": 1, "type": "teleport"}, "unknown")
+
+        # Doc check: the schema and README must label the subset, name the additive
+        # frames, and cite the runtime contract normatively instead of claiming the
+        # exhaustive v1 vocabulary or policies pending owner approval.
+        schema = json.loads((ROOT.parent / "schemas/system-menu-provider-v1.schema.json").read_text())
+        self.assertIn("bootstrap", schema["title"])
+        self.assertIn("docs/input-ipc.md", schema["description"])
+        readme = (ROOT / "README.md").read_text()
+        section = readme.split("### Provider protocol v1", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("bootstrap compatibility subset", section)
+        self.assertIn("docs/input-ipc.md", section)
+        for additive in ("closed", "secure_entry", "pong", "dismiss", "ping"):
+            self.assertIn(additive, section)
+        for stale in (
+            "pending owner approval",
+            "owner-approved",
+            "reserved vocabulary/policy only",
+            "does not enforce a deadline",
+        ):
+            self.assertNotIn(stale, readme)
+
     def test_frozen_generations_validate_and_migrations(self) -> None:
         for name in ("trimui-smart-pro", "trimui-smart-pro-s", "fixture-buttonless"):
             validator.validate_contract(self.v1[name])

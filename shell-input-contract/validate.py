@@ -49,6 +49,25 @@ SYSTEM_MENU_BINDINGS = (
     {"shape": "double_press", "controls": ["guide"], "max_interval_ms": 500},
     {"shape": "hold", "controls": ["select", "l1", "r1"], "min_duration_ms": 1000},
 )
+# The runtime#108 bootstrap compatibility subset of provider protocol v1: the exact
+# message set carried by fixtures/system-menu-provider-v1.json.  Exactness is scoped
+# to that fixture and is not the exhaustive v1 vocabulary — the runtime repo's
+# docs/input-ipc.md section 3 (menu channel) normatively defines the additional
+# frames listed in ADDITIVE_PROVIDER_TYPES in the same major.
+BOOTSTRAP_PROVIDER_SIGNATURES = {
+    ("register", None),
+    ("registered", None),
+    ("system_menu", None),
+    ("ack", "system_menu"),
+    ("shown", None),
+    ("return", None),
+    ("ack", "return"),
+}
+# Additive runtime v1 frames outside the bootstrap subset.  Their field shapes are
+# normative in runtime docs/input-ipc.md section 3 and machine-checked in the
+# runtime repo (section 11); this validator recognizes the vocabulary deliberately
+# without duplicating the shapes, so the two sides cannot drift.
+ADDITIVE_PROVIDER_TYPES = {"closed", "secure_entry", "pong", "dismiss", "ping"}
 DEVICE_CLASSES = ("two_stick", "no_stick", "minimal")
 MAPPING_CONTEXTS = {"shell", "search", "global", "osk", "osk.edit", "pointer"}
 INHERITED_CONTEXTS = {"osk.num"}
@@ -149,6 +168,59 @@ def binding(value: Any, path: str, version: int = 2) -> dict[str, Any]:
     if extras:
         fail(path, f"field(s) invalid for {shape}: {', '.join(sorted(extras))}")
     return item
+
+
+def validate_provider_message(value: Any, path: str) -> tuple[str, str | None]:
+    """Validate one provider protocol v1 message against the runtime-defined vocabulary."""
+    if not isinstance(value, dict):
+        fail(path, "must be an object")
+    if "version" not in value or "type" not in value:
+        fail(path, "must contain version and type")
+    if type(value["version"]) is not int or value["version"] != 1:
+        fail(f"{path}.version", "must equal 1")
+    message_type = value["type"]
+    if not isinstance(message_type, str):
+        fail(f"{path}.type", "must be a string")
+    if message_type == "ack":
+        action = value.get("action")
+        if action not in {"system_menu", "return"}:
+            fail(f"{path}.action", "ack must identify system_menu or return")
+        return message_type, action
+    if message_type in ADDITIVE_PROVIDER_TYPES:
+        # Recognized v1 vocabulary outside the bootstrap subset.  The field shapes
+        # are normative in runtime docs/input-ipc.md section 3 and machine-checked
+        # in the runtime repo (section 11); this validator deliberately does not
+        # duplicate them, so the two sides cannot drift.
+        return message_type, None
+    if message_type not in {"register", "registered", "system_menu", "shown", "return"}:
+        fail(f"{path}.type", "unknown provider protocol message")
+    return message_type, None
+
+
+def validate_bootstrap_protocol_fixture(value: Any, source: str = "provider bootstrap subset") -> dict[str, Any]:
+    """Validate the runtime#108 bootstrap compatibility fixture.
+
+    The exact-message-set check below is exact WITHIN this fixture only; it is
+    not a claim that the seven signatures are the exhaustive v1 vocabulary.
+    """
+    fixture = obj(value, source, {"protocol_version", "messages"})
+    if type(fixture["protocol_version"]) is not int or fixture["protocol_version"] != 1:
+        fail(f"{source}.protocol_version", "must equal 1")
+    messages = fixture["messages"]
+    if not isinstance(messages, list):
+        fail(f"{source}.messages", "must be an array")
+    signatures = [
+        validate_provider_message(message, f"{source}.messages[{index}]")
+        for index, message in enumerate(messages)
+    ]
+    if len(signatures) != len(BOOTSTRAP_PROVIDER_SIGNATURES) or set(signatures) != BOOTSTRAP_PROVIDER_SIGNATURES:
+        fail(
+            f"{source}.messages",
+            "must contain each runtime#108 bootstrap message signature exactly once "
+            "(exact within this fixture only; runtime docs/input-ipc.md section 3 "
+            "additively defines closed, secure_entry, pong, dismiss and ping)",
+        )
+    return fixture
 
 
 def signature(value: dict[str, Any]) -> tuple[Any, ...]:
@@ -673,7 +745,9 @@ def main() -> int:
     paths = args.paths or sorted((ROOT / "fixtures").glob("*.json"))
     for path in paths:
         document = load(path)
-        if "system_menu_defaults" in document or "safe_return_defaults" in document:
+        if "protocol_version" in document and "messages" in document:
+            validate_bootstrap_protocol_fixture(document, str(path))
+        elif "system_menu_defaults" in document or "safe_return_defaults" in document:
             validate_defaults_registry(document, str(path))
         elif "device_class_defaults" in document:
             validate_class_defaults(document, str(path))

@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pocketforge.org/schemas/system-menu-provider-v1.schema.json",
+  "title": "PocketForge system-menu provider protocol v1: runtime#108 bootstrap compatibility message subset",
+  "description": "The seven-frame runtime#108 bootstrap compatibility subset of provider protocol v1, carried by shell-input-contract/fixtures/system-menu-provider-v1.json. The exact-message-set constraint below is exact WITHIN that fixture only; it is not the exhaustive v1 vocabulary. The normative vocabulary lives in the runtime repo's docs/input-ipc.md section 3 (menu channel), which additively defines closed, secure_entry and pong (provider to router) plus dismiss and ping (router to provider) in the same major. Normative timeouts (250 ms ack, 500 ms ack-to-shown, 1 s health watch, router-owned 2 s Menu hold) are in docs/input-ipc.md section 2; the executable fixtures and tests that pin them are in section 11.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol_version", "messages"],
+  "properties": {
+    "protocol_version": { "const": 1 },
+    "messages": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": { "$ref": "#/$defs/frame" },
+      "allOf": [
+        { "contains": { "$ref": "#/$defs/register" }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "$ref": "#/$defs/registered" }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "$ref": "#/$defs/systemMenu" }, "minContains": 1, "maxContains": 1 },
+        {
+          "contains": {
+            "allOf": [
+              { "$ref": "#/$defs/ack" },
+              { "properties": { "action": { "const": "system_menu" } } }
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        { "contains": { "$ref": "#/$defs/shown" }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "$ref": "#/$defs/return" }, "minContains": 1, "maxContains": 1 },
+        {
+          "contains": {
+            "allOf": [
+              { "$ref": "#/$defs/ack" },
+              { "properties": { "action": { "const": "return" } } }
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "frame": {
+      "oneOf": [
+        { "$ref": "#/$defs/register" },
+        { "$ref": "#/$defs/registered" },
+        { "$ref": "#/$defs/systemMenu" },
+        { "$ref": "#/$defs/ack" },
+        { "$ref": "#/$defs/shown" },
+        { "$ref": "#/$defs/return" }
+      ]
+    },
+    "register": {
+      "type": "object",
+      "required": ["version", "type"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "register" }
+      }
+    },
+    "registered": {
+      "type": "object",
+      "required": ["version", "type"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "registered" }
+      }
+    },
+    "systemMenu": {
+      "type": "object",
+      "required": ["version", "type"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "system_menu" }
+      }
+    },
+    "ack": {
+      "type": "object",
+      "required": ["version", "type", "action"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "ack" },
+        "action": { "enum": ["system_menu", "return"] }
+      }
+    },
+    "shown": {
+      "type": "object",
+      "required": ["version", "type"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "shown" }
+      }
+    },
+    "return": {
+      "type": "object",
+      "required": ["version", "type"],
+      "properties": {
+        "version": { "const": 1 },
+        "type": { "const": "return" }
+      }
+    }
+  }
+}
