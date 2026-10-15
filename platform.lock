@@ -636,15 +636,14 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-                       # tsp-mc9m.41.1029 Build 12: image#255 merge
-                       # d1e13403b4e9ce40a23ec5fed43d09dc1c351159 carries the
-                       # opt-in Gamescope session supervisor on top of image#257's direct
-                       # app resources and input-broker inventory. Its exact runtime and
-                       # launcher guards match the Build 12 co-pins below.
+                       # tsp-mc9m.41.1029 Build 13: image#263 merge
+                       # 85e1a5f1877b1e3c2bd3f0f4beea1e0be19476e3 carries the
+                       # gpu-um 1ae75772 toolchain recipe/provenance and the exact runtime
+                       # 0b36a9e8 + launcher 6de0ad32 production-contract guard.
                        # tsp-mc9m.41.1029 paired image follow-up: move the load-bearing
                        # Gamescope PVR-cache producer witness to gamescope#22's exact
                        # linear head; package-path and cache-provenance tests move with it.
-sha  = "d1e13403b4e9ce40a23ec5fed43d09dc1c351159"
+sha  = "85e1a5f1877b1e3c2bd3f0f4beea1e0be19476e3"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1240,7 +1239,7 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 11: gpu-um-tsp#212 atomic
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "3f045e0ae9ac2855df143060200b18922e155fa1"
+sha  = "1ae75772e7f42251062cf660fc13577b8fd60664"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
@@ -1447,11 +1446,11 @@ sha  = "db8deddc5f0a3f0ff70a6f152d777e30d2e7fc44"
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
-ref  = "main"                 # tsp-mc9m.41.1029 Build 12: runtime#136 merge
-                              # 679eb323a7eddb27b6af3273fa77ce63c33c42cd adds
-                              # the input route table and /opt/pocketforge/lib to close the
-                              # Steam Link Landlock gaps; image
-                              # d1e13403b4e9ce40a23ec5fed43d09dc1c351159 guards this exact SHA.
+ref  = "main"                 # tsp-mc9m.41.1029 Build 13: runtime#142 merge
+                              # 0b36a9e880d7294677e899b2f6db03262cdc7774 adds the
+                              # resident-monitor presentation deadline fix on top of the
+                              # evdev authority and resident-hold work; image
+                              # 85e1a5f1877b1e3c2bd3f0f4beea1e0be19476e3 guards this exact SHA.
                               # Previous tsp-mc9m.41.995.100.1 Build 10 Landlock set: runtime#124 merge
                               # 2736751f supplies the open_url vocabulary required by families.toml and is
                               # the exact runtime half of image#244's co-pin guard. Previous Build 8 pin:
@@ -1524,16 +1523,16 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 12: runtime#136 merge
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "679eb323a7eddb27b6af3273fa77ce63c33c42cd"
+sha  = "0b36a9e880d7294677e899b2f6db03262cdc7774"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
 url  = "https://github.com/pocketforge-os/launcher.git"   # top-coord RULING B). The image's `launcher`
-ref  = "main"                 # tsp-mc9m.41.1029 Build 12: launcher#162 merge
-                              # 77c0f054558b1dac8ff2d2795576577963f60760 revendors runtime
-                              # 679eb323a7eddb27b6af3273fa77ce63c33c42cd and moves atomically
+ref  = "main"                 # tsp-mc9m.41.1029 Build 13: launcher#165 merge
+                              # 6de0ad32af207ea208ccb29a42b3f3ae4e8d2777 revendors runtime
+                              # 0b36a9e880d7294677e899b2f6db03262cdc7774 and moves atomically
                               # with that runtime plus image
-                              # d1e13403b4e9ce40a23ec5fed43d09dc1c351159's exact co-pin guard.
+                              # 85e1a5f1877b1e3c2bd3f0f4beea1e0be19476e3's exact co-pin guard.
                               # Previous tsp-mc9m.41.995.100.1 Build 10 Landlock set: launcher#158 merge
                               # 8a276aec vendors runtime f2402f59 from runtime#124 and is the exact launcher
                               # half of image#244's co-pin guard. Previous Build 8 pin: launcher#156
@@ -1613,7 +1612,7 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 12: launcher#162 merge
                               # keeping their images byte-identical. Not-per-device (literal-name lookup like
                               # libsdl3/wpa/runtime). SHA = the exact commit the launcher stage drift-checks
                               # (PF_LAUNCHER_SHA); an ancestor of launcher/main @ seed time.
-sha  = "77c0f054558b1dac8ff2d2795576577963f60760"
+sha  = "6de0ad32af207ea208ccb29a42b3f3ae4e8d2777"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY

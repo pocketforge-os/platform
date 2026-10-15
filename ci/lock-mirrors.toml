@@ -226,6 +226,33 @@ parser = "shell-assignment"
 key = "PATCH_SERIES_SHA256"
 comparison = "equal"
 
+[[mirrors]]
+id = "input-harness-container-gamescope"
+platform_field = "repos.gamescope.sha"
+consumer_repo = "image"
+consumer_path = "tests/input-harness/Containerfile"
+parser = "template"
+template = 'ARG GAMESCOPE_COMMIT={value}'
+comparison = "equal"
+
+[[mirrors]]
+id = "input-harness-gamescope-pin"
+platform_field = "repos.gamescope.sha"
+consumer_repo = "image"
+consumer_path = "tests/input-harness/pins.env"
+parser = "shell-assignment"
+key = "GAMESCOPE_COMMIT"
+comparison = "equal"
+
+[[mirrors]]
+id = "input-harness-guest-sdl-pin"
+platform_field = "repos.libsdl3-sunxifb.sha"
+consumer_repo = "image"
+consumer_path = "tests/input-harness/guest-payload.pins"
+parser = "shell-assignment"
+key = "SDL_COMMIT"
+comparison = "equal"
+
 # The entries below classify non-load-bearing occurrences so the fallback sweep
 # can distinguish documentation/test provenance from a newly introduced mirror.
 # They are intentionally optional: historical prose may remain at an older SHA,
@@ -302,6 +329,42 @@ consumer_path = "build/tests/fixtures/gpu-um-toolchain-3f045e0a.Dockerfile"
 parser = "template"
 template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {value}.'
 reason = "fixture source provenance for the Build 11 gpu-um-tsp exact pin"
+
+[[references]]
+id = "gpu-um-vendored-fixture-comment-1ae75772"
+platform_field = "repos.gpu-um-tsp.sha"
+consumer_repo = "image"
+consumer_path = "build/tests/fixtures/gpu-um-toolchain-1ae75772.Dockerfile"
+parser = "template"
+template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {value}.'
+reason = "fixture source provenance for the Build 13 gpu-um-tsp exact pin"
+
+[[references]]
+id = "input-harness-gamescope-readme"
+platform_field = "repos.gamescope.sha"
+consumer_repo = "image"
+consumer_path = "tests/input-harness/README.md"
+parser = "template"
+template = '`{value}` (pocketforge-linear tip, matching'
+reason = "documentation for the load-bearing input harness gamescope mirror"
+
+[[references]]
+id = "input-harness-gamescope-selftest-pin"
+platform_field = "repos.gamescope.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-input-harness-selftest.py"
+parser = "template"
+template = '            == "{value}",'
+reason = "self-test expectation for the input harness gamescope pin"
+
+[[references]]
+id = "input-harness-gamescope-selftest-container"
+platform_field = "repos.gamescope.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-input-harness-selftest.py"
+parser = "template"
+template = "            'ARG GAMESCOPE_COMMIT={value}'"
+reason = "self-test expectation for the input harness container default"
 
 [[references]]
 id = "gpu-um-drift-test-pin"
