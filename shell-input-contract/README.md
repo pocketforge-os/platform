@@ -118,24 +118,35 @@ uses that same RPC and state machine, so there is one return implementation. Thi
 keeps return reachable before the provider ships and while it is crashed or hung.
 `open keyboard` is a declared future item only; this contract invents no others.
 
-### Provider protocol v1
+### Provider protocol v1: runtime#108 bootstrap compatibility subset
 
 `schemas/system-menu-provider-v1.schema.json` and
-`fixtures/system-menu-provider-v1.json` define the versioned provider message
-set. In addition to registration, `system_menu`, acknowledgements, and `return`,
-the provider can send `shown` after the menu frame has been committed. The broker
-accepts and logs `shown`; v1 does not enforce a deadline or health policy for it.
+`fixtures/system-menu-provider-v1.json` define the runtime#108 bootstrap
+compatibility subset of provider protocol v1: `register`, `registered`,
+`system_menu`, `ack` (`system_menu`), `shown`, `return`, and `ack` (`return`).
+The exact-message-set check in both the schema and the validator is exact
+WITHIN that fixture only — it is not the exhaustive v1 vocabulary. The
+normative vocabulary lives in the runtime repo's `docs/input-ipc.md` section 3
+(menu channel), which additively defines `closed`, `secure_entry`, and `pong`
+(provider to router) plus `dismiss` and `ping` (router to provider) in the
+same major.
+
+The provider sends `shown` — on the wire exactly `{"version": 1, "type":
+"shown"}`, the runtime's `MenuToRouter::Shown` — once the first frame of the
+menu sheet has been committed to gamescope. The acknowledgement deadline stays
+`SYSTEM_MENU_ACK_TIMEOUT` (250 ms). The 500 ms ack-to-`shown` deadline, the 1 s
+open-menu health watch (`ping`/`pong` every 500 ms), and the router-owned 2 s
+Menu hold are normative in the runtime contract and enforced by the router,
+not pending approval here: see runtime `docs/input-ipc.md` section 2
+(timeouts) and section 3 (menu channel); section 11 lists the executable
+fixtures and tests that pin them.
 
 Version 1 requires only the fields shown in the fixture and receivers ignore
-unknown optional fields. Adding optional fields, including a future owner-approved
-`{app_id, gen, rev, items}` snapshot, is additive. Changing an existing field's
-meaning or making a new field mandatory requires a new major version.
-
-The current acknowledgement deadline remains 250 ms: it is long enough for
-local scheduling jitter and short enough to keep fallback escape responsive.
-The proposed 500 ms `shown` deadline, 1 s open-menu health watch, and 2 s
-router-owned Menu hold are reserved vocabulary/policy only; they are not
-owner-approved or enforced by this contract change.
+unknown optional fields. Adding optional fields — for example a future
+`{app_id, gen, rev, items}` snapshot — or new message types such as the
+additive frames above is a minor change within the major. Changing an existing
+field's meaning, removing a field, or making a field mandatory requires a new
+major version (runtime `docs/input-ipc.md` section 1).
 
 ## Frozen generations and migration
 
