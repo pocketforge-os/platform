@@ -20,7 +20,7 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "d1e13403b4e9ce40a23ec5fed43d09dc1c351159"
+CURRENT_IMAGE = "85e1a5f1877b1e3c2bd3f0f4beea1e0be19476e3"
 CURRENT_UAPI = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 CURRENT_CTS_SOURCE = "067e8832315e79817ede1c4863804e440f5d1c80"
 BUILD9_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
@@ -29,8 +29,8 @@ CURRENT_GAMESCOPE = "0b03a62e720ae93afbd5e59167c8774f8ad74f0c"
 STALE_GAMESCOPE = "0000000000000000000000000000000000000000"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 STALE_UAPI = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
-RUNTIME_SHA = "679eb323a7eddb27b6af3273fa77ce63c33c42cd"
-LAUNCHER_SHA = "77c0f054558b1dac8ff2d2795576577963f60760"
+RUNTIME_SHA = "0b36a9e880d7294677e899b2f6db03262cdc7774"
+LAUNCHER_SHA = "6de0ad32af207ea208ccb29a42b3f3ae4e8d2777"
 PREVIOUS_RUNTIME_SHA = "1dd87ecc2952584a7ef1473c5dcb872662b7c0cb"
 SOURCE_LOCK_PATH = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
 FIXTURES = Path(__file__).with_name("fixtures")
@@ -703,9 +703,9 @@ comparison = "equal"
             "build/produce-gamescope-pvr-cache.sh": (
                 f"expected_gamescope_sha={CURRENT_GAMESCOPE}\n".encode()
             ),
-            "build/tests/fixtures/gpu-um-toolchain-3f045e0a.Dockerfile": (
+            "build/tests/fixtures/gpu-um-toolchain-1ae75772.Dockerfile": (
                 b"# Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at "
-                b"3f045e0ae9ac2855df143060200b18922e155fa1.\n"
+                b"1ae75772e7f42251062cf660fc13577b8fd60664.\n"
             ),
             ".github/workflows/app-policy-pair.yml": (
                 f"          repository: pocketforge-os/runtime\n"
