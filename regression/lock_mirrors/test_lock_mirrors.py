@@ -723,6 +723,22 @@ comparison = "equal"
                 f"g1_sha={CURRENT_GAMESCOPE}\n"
                 f"grep -F '{CURRENT_GAMESCOPE}' producer\n".encode()
             ),
+            "tests/input-harness/Containerfile": (
+                f"ARG GAMESCOPE_COMMIT={CURRENT_GAMESCOPE}\n".encode()
+            ),
+            "tests/input-harness/pins.env": (
+                f"GAMESCOPE_COMMIT={CURRENT_GAMESCOPE}\n".encode()
+            ),
+            "tests/input-harness/guest-payload.pins": (
+                b"SDL_COMMIT=7411a94803c95b2f93a898f3773ffe95dfec4263\n"
+            ),
+            "tests/input-harness/README.md": (
+                f"`{CURRENT_GAMESCOPE}` (pocketforge-linear tip, matching\n".encode()
+            ),
+            "tests/test-input-harness-selftest.py": (
+                f'            == "{CURRENT_GAMESCOPE}",\n'
+                f"            'ARG GAMESCOPE_COMMIT={CURRENT_GAMESCOPE}'\n".encode()
+            ),
             "tests/test-cts-bundle-image.sh": (
                 f'make_bundle "${{versioned_archive}}" {CURRENT_CTS_SOURCE} no versioned\n'
                 f'make_bundle "${{nameless_archive}}" {CURRENT_CTS_SOURCE} no none\n'.encode()
@@ -741,7 +757,7 @@ comparison = "equal"
         )
         self.assertTrue(result.ok, result.render())
         self.assertEqual(resolver.requests, [("image", CURRENT_IMAGE)])
-        self.assertEqual(result.mirror_rule_count, 23)
+        self.assertEqual(result.mirror_rule_count, 26)
 
         classification_controls = (
             (
