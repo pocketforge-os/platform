@@ -40,12 +40,19 @@ release_pub_key         = "RWQoxeia9PBYyeMA93KCQALv/JTDLQGFVM7VDzjGcdidk5nhUP+3i
 release_pub_source      = "github.com/pocketforge-os/infra/trust/minisign.pub"
 manifest_signing_active = false
 
+# Cursor compilation toolchain. The source tree is pinned independently below;
+# this records the allowlisted producer image and the recipe commit that built it.
+[cursor_theme]
+tools_image      = "10.0.32.86:5555/pocketforge/ci-tools@sha256:2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862"
+tools_image_digest = "2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862"
+tools_recipe_sha = "ec5b2621f636261978d3bb4fd9843ae22a59c320"
+
 # tsp-mc9m.41.996.2: immutable, profile-scoped compatibility payload consumed by
 # image's platform-runtime producer. The generic descriptor makes selection and
 # build arguments lock-owned; image validates this contract against its own
 # source.lock before downloading or transforming any external source. The source
-# revision is intentionally repeated: it couples the exported userspace headers
-# to the exact kernel revision selected by the admitted profile.
+# revision names the exact kernel tree that supplied the exported userspace headers;
+# it moves only when include/uapi or arch/arm64/include/uapi changes.
 # tsp-mc9m.41.1000.1: a65b6107 -> 4684f03b -> e9952056 changes no include/uapi file;
 # these provenance moves therefore leave the FFmpeg 59 runtime ABI/input bytes unchanged.
 # tsp-mc9m.41.923.75: move the exact exported-header witness with the replacement
@@ -56,13 +63,24 @@ manifest_signing_active = false
 # its KUnit test. Move the byte-identical exported-header witness with Build 5.
 # tsp-mc9m.41.995.43.2 Build 6: kernel#86 changes only sun4i DRM implementation,
 # KUnit, and manifest files. Move the byte-identical exported-header witness again.
+# tsp-mc9m.41.1017 Build 7: kernel#87/#88 change only a133 defconfig fragments and
+# the requirement-check scripts (`git diff c22dbc02..de8ca3df -- include/uapi
+# arch/arm64/include/uapi` is empty). Move the byte-identical exported-header
+# witness with Build 7.
+# tsp-mc9m.41.996.15 Build 9: kernel#91/#92 change G2D DT/clock handling, xradio
+# implementation and tests only. The de8ca3df..45b87a7d include/uapi trees are
+# byte-identical (tree 5ccf3d70), but the producer exports headers from the boot-kernel
+# tree and receipt-checks its exact source identity. Move the witness with that tree.
+# tsp-mc9m.41.1029 Build 11: kernel#93 changes CI-only workflow files and kernel#94
+# enables the v184 virtual-GPU config. The 45b87a7d..07bb6076 exported UAPI trees
+# remain byte-identical; move the exact receipt identity with the boot kernel.
 [platform_runtime.steamlink_ffmpeg59_v1]
 schema_version = 1
 profile         = "a133-open-7x-gpu"
 mode_arg        = "PF_STEAMLINK_FFMPEG59_MODE"
 mode_value      = "v1"
 source_repo     = "kernel-sunxi-7.x"
-source_sha      = "c22dbc0226242cd1e582073eac5d82d36953c0d8"
+source_sha      = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 runtime_path    = "/usr/lib/pocketforge/platform-runtimes/steamlink-ffmpeg59/v1"
 
 [platform_runtime.steamlink_ffmpeg59_v1.build_args]
@@ -72,7 +90,7 @@ PF_FFMPEG_ORIG_SHA256        = "56d4daf10c17330a45c8fe11bc260997677ca2432d3d5951
 PF_FFMPEG_ORIG_ASC_SHA256    = "ee93598ac566d1be4a80801e0a58f91ede2e6a5e9e670f681723b447f23c59d0"
 PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a39512921680090952e1"
 PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
-PF_FFMPEG_UAPI_SHA           = "c22dbc0226242cd1e582073eac5d82d36953c0d8"
+PF_FFMPEG_UAPI_SHA           = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 
 # tsp-mc9m.41.924.24.14: immutable full GLES CTS checklist used only by the
 # opt-in dev test image. Unlike platform_runtime above, this input is already a
@@ -86,9 +104,9 @@ variants            = ["dev"]
 mode_arg            = "PF_CTS_BUNDLE_MODE"
 mode_value          = "v1"
 artifact_url_arg    = "PF_CTS_BUNDLE_URL"
-artifact_url        = "http://10.0.40.90:8790/artifacts/sha256/9ce9b9c252c1b288ffb4a58dd8e976fd35110b4e2b1d9cc1a3a0cd3be13e5125/pf-deqp-gles-aarch64.tar.gz"
+artifact_url        = "http://10.0.40.90:8790/artifacts/sha256/544702ae2b495908bac41546c2d2768c4858ecc40bcb41a3120c32829d7e4c86/pf-deqp-gles-aarch64.tar.gz"
 artifact_sha256_arg = "PF_CTS_BUNDLE_SHA256"
-artifact_sha256     = "9ce9b9c252c1b288ffb4a58dd8e976fd35110b4e2b1d9cc1a3a0cd3be13e5125"
+artifact_sha256     = "544702ae2b495908bac41546c2d2768c4858ecc40bcb41a3120c32829d7e4c86"
 
 [platform_payload.cts_bundle_v1.build_args]
 PF_CTS_SOURCE_TAG    = "opengl-es-cts-3.2.14.1"
@@ -132,13 +150,57 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # stays at 23cdf7bf. #69's TSP DTS edit does not reach the no-radio DTB: the no-radio override
 # builds a frozen kernel-sunxi-7.x checkout at 23cdf7bf, not the moving device/a133 branch, so
 # its own TSP/Odyssey/no-radio DTS chain (and compiled DTB) is unaffected and unchanged.
+# tsp-mc9m.41.1029 Build 11 deliberately rejoins the diagnostic profile to the canonical
+# v184 kernel. Keep the explicit override because owned-image admission requires the
+# resolved no-radio kernel to equal this profile pin even when both values are identical.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "23cdf7bf4642c234901caf0bcd4f70dd89c73276"
+kernel = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
-ref  = "main"          # tsp-mc9m.41.995.43.2 Build 6: image#210/#211/#212/#213
+ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#254 through
+                       # a51ffef4, plus the paired GPU-UM and Steam Link kernel-UAPI
+                       # source witnesses at image candidate 4fba4d2a.
+                       # Previous tsp-mc9m.41.995.100.1 Build 10 set: image#249 (merge 188a9570)
+                       # advances the exact GPU-UM and Gamescope producer witnesses on image#244,
+                       # which hard-pins the reviewed runtime#124/launcher#158 pair and contains the
+                       # cursor, policy, and Landlock follow-ups. Previous pin 34eb2b36 contains image#242's
+                       # tracing-state isolation and build-run-log refusal plus subsequent Build 9 work.
+                       # Prior image#243 (merge dc3637f7) moves
+                       # the Steam Link kernel-UAPI source receipt to the boot-kernel identity
+                       # 45b87a7d. Image#241 (merge e14183c1) makes the Steam Link FFmpeg 5.9
+                       # runtime emit GNU build IDs and carries image#240's
+                       # Wi-Fi lease-loss watchdog fix. Previous image#239 (merge 78c9f41a) moves the
+                       # byte-identical GPU-UM toolchain provenance mirror to bd1713af and carries
+                       # image#238's hwprobe static-link fix, image#237's Gamescope PVR cache
+                       # producer rebind to the tree-identical linear head 298881e3, and image#236's
+                       # GNU build IDs plus vendor-manifest PowerVR firmware classification. Prior image#235
+                       # (merge c4ab729e) accepts platform descriptor v3's unchanged v2 device
+                       # facts, on top of image#233 (merge
+                       # dc7992e0), which refreshes the launcher/runtime co-pin guard to
+                       # launcher#156/runtime#119, carries the gamescope#10 producer witness,
+                       # and accepts the lock-selected cloud-init source through its generic
+                       # PF_CLOUD_INIT_SHA receipt guard. The
+                       # tsp-mc9m.41.1002.7.2 finalizer repair advances only cloud-init-tsp below;
+                       # image, launcher, and runtime remain at this compatible generation.
+                       # Previous pin
+                       # (67aaa529df41501b5f5cec515106a713b9d3af73): image#220's preference-
+                       # authority boundary plus image#221's System Menu lane.
+                       # Earlier pin (b7901079b12c71d179a5c6b58a46dc757246a900):
+                       # tsp-mc9m.41.1017 Build 7: image#223 advances the
+                       # Build-7 source witnesses: the steamlink FFmpeg 59 kernel-UAPI mirror
+                       # to de8ca3df and the Gamescope PVR producer pin to the linear
+                       # admitted-series head c30e8cee, on top of #219 (merge d9becb11;
+                       # 29bba85 adds the Debian 13 app-root ABI, d51b2d7 requires the Debian
+                       # 13 platform ABI) plus #214/#217/#218 (A-CTS terminal-evidence
+                       # preservation and CTS continuation after a recovered GPU reset; their
+                       # tools/a-cts-recovery bundle and source-commit literals are declared
+                       # by new [[references]] rules in ci/lock-mirrors.toml). Image main has
+                       # since moved to 8db6aee6 (#221, menu lane); that commit is NOT part of
+                       # Build 7 and is deliberately not taken.
+                       # Previous pin (67e45ed0d246e9e05eb20b89a1d4304a4b20f1c2):
+                       # tsp-mc9m.41.995.43.2 Build 6: image#210/#211/#212/#213
                        # b4ff0051ae96fb61f5c9c885f0581da4717219e9 scopes the ES 3.2
                        # candidate drirc to the CTS profile, proves it cannot leak into release,
                        # and advances the exact gpu-um mirror to d7637e31. Image#197 merged as
@@ -574,13 +636,74 @@ ref  = "main"          # tsp-mc9m.41.995.43.2 Build 6: image#210/#211/#212/#213
                        # --reproducible); image#27 (tsp-toq); tsp-h1o image#26 (a133 WiFi self-heal
                        # watchdog); image#25 (a523 initrd repro); image#23/#24 (a523 rootfs+assemble);
                        # a133 clean-boot #18-#22.
-sha  = "67e45ed0d246e9e05eb20b89a1d4304a4b20f1c2"
+                       # tsp-mc9m.41.1029 Build 12: image#255 merge
+                       # d1e13403b4e9ce40a23ec5fed43d09dc1c351159 carries the
+                       # opt-in Gamescope session supervisor on top of image#257's direct
+                       # app resources and input-broker inventory. Its exact runtime and
+                       # launcher guards match the Build 12 co-pins below.
+                       # tsp-mc9m.41.1029 paired image follow-up: move the load-bearing
+                       # Gamescope PVR-cache producer witness to gamescope#22's exact
+                       # linear head; package-path and cache-provenance tests move with it.
+sha  = "d1e13403b4e9ce40a23ec5fed43d09dc1c351159"
+
+[[repos]]
+name = "pf-cursor-theme"
+url  = "https://github.com/pocketforge-os/pf-cursor-theme.git"
+ref  = "pocketforge-linear"
+sha  = "c5783fbb7d9d89c82bc1b4757c303e267b6cd104"
 
 [[repos]]
 name = "gamescope"
 url  = "https://github.com/pocketforge-os/gamescope.git"
-ref  = "tsp-op5a.440.1.1" # Branch-only integration candidate; never resolve this ref at build time.
-sha  = "4232739e75c95113871e260967e8b4ff995ea897"
+ref  = "pocketforge-linear" # tsp-mc9m.41.1029 follow-up: gamescope#22 at 0b03a62e,
+                        # adding the panel-mount rotation-direction fix as two linear commits
+                        # (9333e125 then 0b03a62e) on Build 10's d62ee165 head.
+                        # Measured for 0b03a62e (governed mirror, base bb2ddfc8): 75 non-merge
+                        # commits, zero merges; patch_ids_sha256 (bare space-joined
+                        # `git patch-id --stable` series)
+                        # 28fb4d91cbf769ec0756c81f856df773f98959d9ad1bbd7d3f8fea5afb9038ce;
+                        # format-patch digest
+                        # 6ebf546f3722516cc3189346bdd09173cab426eee0562cd20eef886ab0f05015.
+                        # This head's Git tree is 738bc878991581539c41ca8520cc571997b2af72,
+                        # distinct from Build 10's e1f2743c1194881a90c4db71ad7c2f0dc19d3fa8,
+                        # so the committed
+                        # stage/materializer (umask 022) witness moved with it: source tree
+                        # 1582be24b260cf7633873fa54bc4e37bac944db086653eaa3c64edeba83af45d,
+                        # measured by running core/stage-gamescope-source.py end to end -
+                        # verify_series, the manifest digest, the offline primer, the admission
+                        # receipt (34 edges / 32 project pins) and the materializer all passed,
+                        # and it refused only at a deliberately zeroed --source-tree-sha256,
+                        # printing this digest as `actual=` before any license export or
+                        # publication. The dependency manifest
+                        # 5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6 and
+                        # LICENSE 907dd845489cd09c25f18b6819f476805285e2adcad8c099e3506260023e9e5f
+                        # are byte-identical to the previous pin, so the published dependency
+                        # cache needed no rebuild. regression/build/gamescope-series-witness-test.sh
+                        # now fails CI when this declared series drifts from the sha below.
+                        # `pocketforge` remains the immutable
+                        # merge-history archive; gpu-14 switches the default only after this pin
+                        # merges. The exact sha below is the sole build input; never resolve this
+                        # ref at build time. Previous ref/sha (tsp-mc9m.41.1017.1,
+                        # c30e8ceec43b137c206a445f49853b9fcdc58e71): tsp-mc9m.41.1017
+                        # Build 7 (gpu-14 ruling 2, linear admitted-series head): c30e8cee is
+                        # 4232739e plus 20 linear cherry-picks (no content edits, zero merges)
+                        # carrying everything the pocketforge integration merge d18b60bc
+                        # (gamescope#8) reachable since the previous pin contains: PR #9
+                        # (83d90cd: privileged compositor client gating abb557e, legacy X11
+                        # control atoms disabled bf9f0e4, privileged client docs 827d9c6),
+                        # the IME keymap/pending-string/timer fixes (a2afad26, 75d79308,
+                        # 5a6cde84), the trusted-system-overlay admission series (c6f866f8,
+                        # ed290194, 45392dc4) and the diagnostics/atomic-trace series
+                        # (11 commits, abb632c3..57d09d61). Proven tree-identical:
+                        # `git diff d18b60bc9580c9bb81036746b0c1c001c20cc9a2 c30e8cee…` is
+                        # empty; core/stage-gamescope-source.py admits it (exit 0) against a
+                        # cold-admitted dependency cache with the regenerated 28-patch series
+                        # table in devices/a133-open-7x-gpu/profile.toml. Previous ref/sha
+                        # (tsp-op5a.440.1.1,
+                        # 4232739e75c95113871e260967e8b4ff995ea897): branch-only integration
+                        # candidate.
+sha  = "0b03a62e720ae93afbd5e59167c8774f8ad74f0c"
+dependency_manifest_sha256 = "5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6"
 
 [[repos]]
 name = "kernel-sunxi-4.9"     # A133 4.9.191 line (device/a133); was kernel-tsp. 4.9 is upstream-EOL.
@@ -678,7 +801,7 @@ sha  = "a7cfec247898bb2c22e51bb705a7f18fd5910285"
 [[repos]]
 name = "kernel-sunxi-6.x"    # A133 open-stack kernel with in-tree Imagination DRM PowerVR
 url  = "https://github.com/pocketforge-os/kernel-sunxi-6.x.git"
-ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 rejects a phase-shifted KO sync response. A cold start loses odd-byte phase, so "KO" is the K tail of one OK plus the O head of the next; accepting it left a K to prefix the BROM ACK and SETUART read "KBRO" -> -EILSEQ. KO tolerance is kept until a discard or retained partial proves phase loss, so the warm rebind path is unchanged by construction.
+ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 rejects a phase-shifted KO sync response. A cold start loses odd-byte phase, so "KO" is the K tail of one OK plus the O head of the next; accepting it left a K to prefix the BROM ACK and SETUART read "KBRO" -> -EILSEQ. KO tolerance is kept until a discard or retained partial proves phase loss, so the warm rebind path is unchanged by construction.
                               # tsp-mc9m.60.7.2.3.12.1.1: kernel-sunxi-6.x#280 merged as 6ccb87902144babc2838b03840c0413bf0941ab4 after independent review of 2fb210bf7196ed22352a8af51425db9bfd848eb3; publishes bounded receive-callback provenance only.
                               # Prior (8dc9064df7a5d838d1a0c24ffb6a5fbdda00ec50): tsp-mc9m.60.7.2.3.11.1: kernel-sunxi-6.x#278 waits for asserted CTS before the first HCI command. The port is UPSTAT_AUTOCTS (8250_dwlib.c sets UART_CAP_AFE), so queuing HCI_Reset before the firmware asserted CTS left it gated in hardware with icount.tx frozen; AUTOCTS ports get no software TX restart on the later CTS edge. Bounded 200ms, fail-closed.
                               # Prior (9826b9ddfed526acfcafdd326a7ea66676929038): tsp-mc9m.60.7.2.3.11: kernel-sunxi-6.x#277 adds a first-HCI-command discriminator reporting TX progression, CTS, bounded drain, pre-parser raw RX and parser outcome on the success path; physical-tx stays explicitly unproven.
@@ -702,12 +825,29 @@ ref  = "device/a133"           # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.995.43.2 Build 6): device/a133
-                               # c22dbc0226242cd1e582073eac5d82d36953c0d8 contains kernel#84's
-                               # built-in overlayfs, kernel#85's writeback .get_modes NULL-helper
-                               # oops fix, and kernel#86's writeback/DSI possible_clones repair.
-                               # No-radio remains independently frozen.
-                               # Previous pin (8143e381126993e83af322cbb29e17229df0afdd):
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.1029 Build 11): device/a133
+                             # 07bb60764cbc64b5a5d760c34709f07f8259e985 = Build 9's
+                             # 45b87a7d plus kernel#93's linear-workflow validation and
+                             # kernel#94's render-only virtio_gpu configuration for v184.
+                             # Previous KERNEL PIN (tsp-mc9m.41.996.15 Build 9):
+                             # 45b87a7d0e68a5aaafdc94523db791483e8a27cd = de8ca3df plus
+                             # kernel#91 (c71231b2, enable the A100/A133 G2D MBUS clock) and
+                             # kernel#92 (e233522a test + eb34f56c xradio TX CCMP IV fix).
+                             # Build 8 associated but never obtained DHCPv4 (TX 34 -> 35);
+                             # patched hardware obtained 192.168.86.14, passed the bulk probe,
+                             # and sustained authenticated SSH over wlp4s0. The range changes
+                             # neither UAPI tree (include/uapi stays 5ccf3d70 and arm64 UAPI
+                             # stays 92d8ba17), but the runtime producer copies this exact
+                             # boot-kernel tree and receipt-checks its source identity, so its
+                             # exported-header witness moves to 45b87a7d. No-radio remains
+                             # independently frozen at 23cdf7bf under the standing ruling.
+                             # Previous pin (de8ca3df549158834e1459dc0cd555bb97536be4):
+                             # Build 7: kernel#87 CONFIG_USER_NS and kernel#88 Landlock plus
+                             # its memory-policy fix. Its exported-header witness is retained.
+                             # Previous pin (c22dbc0226242cd1e582073eac5d82d36953c0d8):
+                             # Build 6: kernel#84 built-in overlayfs, #85 writeback .get_modes
+                             # NULL-helper oops fix, #86 writeback/DSI possible_clones repair.
+                             # Previous pin (8143e381126993e83af322cbb29e17229df0afdd):
                                # Build 5 overlayfs plus writeback .get_modes repair.
                                # Previous pin (ea46664cf1695e83be3bd3bfb2bc14c0276b2e59):
                                # kernel#84 overlayfs dependency candidate.
@@ -931,12 +1071,12 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.995.43.2 Build 6): device
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "c22dbc0226242cd1e582073eac5d82d36953c0d8"
+sha  = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
 url  = "https://github.com/pocketforge-os/kernel-sunxi-5.15.git"   #  = AvaotaSBC base for fork-tracking.
-ref  = "device/a523"
+ref  = "device/a523-linear"
 sha  = "e63004b0e9478de722571d97cd0e853194ffb9a2"
 
 [[repos]]
@@ -948,8 +1088,15 @@ sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 [[repos]]
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
-ref  = "main"                 # tsp-98733d6399be82e4f00c.9.2: post-publication PVR repair batch
-                               # gpu-um-tsp#203/#205/#206 are ancestors of
+ref  = "main"                 # tsp-mc9m.41.1029 Build 11: gpu-um-tsp#212 atomics plus
+                               # #213 lowered XFB records, merged through 3f045e0a.
+                               # Previous tsp-mc9m.41.995.100.1 Build 10:
+                               # gpu-um-tsp#210/#211 GLES fixes merged at 8cda9585.
+                               # Previous Build 8 GE8300 CTS batch:
+                               # gpu-um-tsp#207 fixes PCO compute imageStore coordinate and
+                               # SMPWRITE addressing; #208 fixes PVR DOUTU sample-rate/MSAA.
+                               # Both are ancestors of bd1713af2183cf5d945945c2b127e25d382ee8e9.
+                               # Previous pin: gpu-um-tsp#203/#205/#206 are ancestors of
                                # e2c29ab8a84f57ae500f4ad6c6aea86ac0bbe01f: they add opt-in
                                # ETC2/EAC and array-layout qualification probes and make
                                # incomplete/timeout results fail closed as not_measured. Image#213
@@ -1093,7 +1240,7 @@ ref  = "main"                 # tsp-98733d6399be82e4f00c.9.2: post-publication P
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "e2c29ab8a84f57ae500f4ad6c6aea86ac0bbe01f"
+sha  = "3f045e0ae9ac2855df143060200b18922e155fa1"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
@@ -1104,13 +1251,13 @@ sha  = "3deecd9bf607051b567f7edb392b405b287132a6"
 [[repos]]
 name = "u-boot-tsp-a523"      # owned A523 U-Boot; kept separate (bootchain-sunxi consolidation DROPPED — infra-025)
 url  = "https://github.com/pocketforge-os/u-boot-tsp-a523.git"
-ref  = "main"                 # standardized to `main` (was `pf-main`, which no longer exists — fixed tsp-1dl.1.1)
+ref  = "main-linear"          # active linear line (was `main`; earlier `pf-main` no longer exists — tsp-1dl.1.1)
 sha  = "e195dd28d5401b5c73f70e16950081b8b2b3a031"
 
 [[repos]]
 name = "tfa-tsp-a523"         # owned A523 TF-A; kept separate (bootchain-sunxi consolidation DROPPED — infra-025)
 url  = "https://github.com/pocketforge-os/tfa-tsp-a523.git"
-ref  = "main"
+ref  = "main-linear"
 sha  = "deaba081685170ffff0aec9f7a260ad1586840fe"
 
 [[repos]]
@@ -1195,7 +1342,7 @@ sha  = "db70249c8b25b7c3271cce71a19005b361527aaf"
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
 url  = "https://github.com/pocketforge-os/tfa-tsp-a133.git"      # tsp-147u.11/.13. PLAT=sun50i_a133 targets
-ref  = "main"                 # the A133 RVBAR (CPUSUBSYS 0x08100040) — brings up all 4 cores; native PSCI,
+ref  = "main-linear"          # the A133 RVBAR (CPUSUBSYS 0x08100040) — brings up all 4 cores; native PSCI,
                               # no SCP, SUNXI_BL31_IN_DRAM default. Closes the vendor monitor.bin provenance
                               # gap. Validated: "Brought up 4 CPUs" on pf-node-01.
 sha  = "199316464722231e1a818e0d3f927be9c0fc2798"
@@ -1288,13 +1435,32 @@ sha  = "0d483c38a1e67543022c51244dd2437cd71332d6"
 [[repos]]
 name = "cloud-init-tsp"  # canonical/cloud-init 26.2 plus PocketForge's strict local
 url  = "https://github.com/pocketforge-os/cloud-init-tsp.git"  # NoCloud seed policy.
-ref  = "pocketforge-main"
-sha  = "c437773207e61551a0d4a8ebfdc12d1f95f6ce8f"
+ref  = "pocketforge-main-linear"  # tsp-mc9m.41.1002.7.2 Build 8: cloud-init-tsp#14 (merge db8deddc)
+                           # remounts an already-mounted read-only seed writable only during
+                           # finalization, then restores read-only state on success or failure.
+                           # Image dc7992e0 consumes this exact lock-selected SHA generically;
+                           # launcher 8209c392 and runtime b289235d therefore remain unchanged.
+                           # Previous pin (a85ca5bd72ddf1d5f567f97ae96ebdeb928cd379):
+                           # cloud-init-tsp#13, originally paired with image#233.
+sha  = "db8deddc5f0a3f0ff70a6f152d777e30d2e7fc44"
 
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
-ref  = "main"                 # tsp-mc9m.41.995.30.4: runtime#106 reviewed head
+ref  = "main"                 # tsp-mc9m.41.1029 Build 12: runtime#136 merge
+                              # 679eb323a7eddb27b6af3273fa77ce63c33c42cd adds
+                              # the input route table and /opt/pocketforge/lib to close the
+                              # Steam Link Landlock gaps; image
+                              # d1e13403b4e9ce40a23ec5fed43d09dc1c351159 guards this exact SHA.
+                              # Previous tsp-mc9m.41.995.100.1 Build 10 Landlock set: runtime#124 merge
+                              # 2736751f supplies the open_url vocabulary required by families.toml and is
+                              # the exact runtime half of image#244's co-pin guard. Previous Build 8 pin:
+                              # runtime#119 (merge b289235d) is the
+                              # runtime half of image#233's exact runtime/launcher co-pin guard.
+                              # Previous pin (4b71a503909090219c3a01c1718e9e772e0d488b):
+                              # runtime#109 preference authority generation for image#220.
+                              # Earlier pin (5738f3d5e108b52186b129a5db1c62a878278b19):
+                              # tsp-mc9m.41.995.30.4: runtime#106 reviewed head
                               # 5738f3d5e108b52186b129a5db1c62a878278b19 (merged as
                               # df2079e8509a09587994f226b1b0e6d32a244442) is the exact
                               # generation required by image#179 and vendored by launcher#153.
@@ -1358,12 +1524,26 @@ ref  = "main"                 # tsp-mc9m.41.995.30.4: runtime#106 reviewed head
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "5738f3d5e108b52186b129a5db1c62a878278b19"
+sha  = "679eb323a7eddb27b6af3273fa77ce63c33c42cd"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
 url  = "https://github.com/pocketforge-os/launcher.git"   # top-coord RULING B). The image's `launcher`
-ref  = "main"                 # tsp-mc9m.41.995.30.4: launcher#153 reviewed head
+ref  = "main"                 # tsp-mc9m.41.1029 Build 12: launcher#162 merge
+                              # 77c0f054558b1dac8ff2d2795576577963f60760 revendors runtime
+                              # 679eb323a7eddb27b6af3273fa77ce63c33c42cd and moves atomically
+                              # with that runtime plus image
+                              # d1e13403b4e9ce40a23ec5fed43d09dc1c351159's exact co-pin guard.
+                              # Previous tsp-mc9m.41.995.100.1 Build 10 Landlock set: launcher#158 merge
+                              # 8a276aec vendors runtime f2402f59 from runtime#124 and is the exact launcher
+                              # half of image#244's co-pin guard. Previous Build 8 pin: launcher#156
+                              # (merge 8209c392) refreshes
+                              # the vendored runtime crates to runtime#119. It is the launcher half
+                              # of image#233's exact runtime/launcher guard pair and moves atomically
+                              # with that image. Previous pin
+                              # (d46dbb48e610e10cc4d01562fedcdf7cdfae0f7d): launcher#155/image#220.
+                              # Earlier pin (73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5):
+                              # tsp-mc9m.41.995.30.4: launcher#153 reviewed head
                               # 73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5 (merged as
                               # 03c6c54b0c0ab4360090b2e9e6deff284f95836d) regenerates its
                               # runtime vendor generation at runtime#106 for image#179.
@@ -1433,7 +1613,7 @@ ref  = "main"                 # tsp-mc9m.41.995.30.4: launcher#153 reviewed head
                               # keeping their images byte-identical. Not-per-device (literal-name lookup like
                               # libsdl3/wpa/runtime). SHA = the exact commit the launcher stage drift-checks
                               # (PF_LAUNCHER_SHA); an ancestor of launcher/main @ seed time.
-sha  = "73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5"
+sha  = "77c0f054558b1dac8ff2d2795576577963f60760"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
@@ -1468,7 +1648,28 @@ sha  = "9fc7c74ac83b476ee6c0772c915d590bbd3d3e03"
 [[repos]]
 name = "poolsuite"            # Dev-image-only staged app source; release receives an empty context.
 url  = "https://github.com/pocketforge-os/poolsuite.git"
-ref  = "main"                 # tsp-f3fm.233.1: poolsuite c9d805f2 = fe3c9abe plus #109 (exact-head Codex
+ref  = "main"                 # tsp-mc9m.41.995.100.1 Build 10: poolsuite cceaab08 = 477801d2 + #124
+                              # (tsp-f3fm.237 A3 PR-C): Instagram 316->50 ms host frame; licensed Noto
+                              # Sans Symbols / Symbols 2 fallback subsets (variable NotoSansSymbols[wght]
+                              # at google/fonts 66928797, wght=100, deterministic recipe; OFL + originals
+                              # preserved under assets/fonts/src/); exhaustive fallback-glyph audit
+                              # (0 visible FAIL / 154); fidelity budgets shrink-only except ruled A3-R11
+                              # rebaseline of 3 events rows (tofu pathology, owner ruling tsp-f3fm.117).
+                              # No app.toml/egress change. Verified in the governed mirror: fast-forward,
+                              # 52 ahead / 0 behind, and the only PR merge in the range is poolsuite#124.
+                              # Previous pin (477801d21fa1aefc867bd75d6915c2d447ee7fc9): Build 10
+                              # Landlock set, poolsuite#120 merge.
+                              # Previous Build 7 pin (requested by the Poolsuite coordinator
+                              # tsp-f3fm for bench tsp-f3fm.235): poolsuite b36f2e60 = c9d805f2
+                              # plus #110–#115. Blitz becomes the shipping renderer: #114's
+                              # 4c4d40c makes Blitz the persistent device renderer and binds
+                              # title boxes to the presented window; #115 (merge b36f2e60) binds
+                              # all fidelity evidence to the explicit named renderer and one
+                              # binary snapshot; #110–#113 land the live-DOM foundation, live
+                              # core window fidelity, and the reviewed Blitz contracts.
+                              # Fast-forward, 32. Previous pin
+                              # (c9d805f2b181092ddabe8f9f52fcaabb3b9f17d8):
+                              # tsp-f3fm.233.1: poolsuite c9d805f2 = fe3c9abe plus #109 (exact-head Codex
                               # approve at a551fb25): run_host now uses the shared boot/settle/paint_device_frame
                               # path exercised by CI. The 100 fidelity states are byte-identical (+0 px), but the
                               # routing change still requires a device check. Fast-forward, 5. Previous pin
@@ -1498,7 +1699,7 @@ ref  = "main"                 # tsp-f3fm.233.1: poolsuite c9d805f2 = fe3c9abe pl
                               # e765ba2c Dockerfile.pf dev stage requires, FATAL if absent). Fast-forward, 2.
                               # Prior (5b33e32dfaf564693914a03b845a10dbc04f9062): tsp-f3fm.199 A1:
                               # poolsuite#101 merge; activation waits for A3.
-sha  = "c9d805f2b181092ddabe8f9f52fcaabb3b9f17d8"
+sha  = "cceaab085a270268efccc07930a732b41039dabf"
 
 # Vendor-originals CARv2 pin (B3 / tsp-1dl.3). The hermetic FETCH stage (image/build/Dockerfile.pf)
 # dag-imports THIS .car and fetches each blob --offline. sha256 is ROT-DETECTION on the specific copy

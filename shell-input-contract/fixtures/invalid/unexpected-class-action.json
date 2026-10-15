@@ -1,0 +1,1 @@
+{"add_mapping":{"context":"pointer","action":"ScrollMode","binding":{"shape":"single_press","controls":["r2"]}},"expected_reason":"unexpected-class-action"}

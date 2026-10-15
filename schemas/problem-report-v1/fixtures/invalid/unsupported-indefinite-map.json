@@ -1,0 +1,5 @@
+{
+  "expected_reason": "unsupported",
+  "description": "indefinite-length map",
+  "cbor_hex": "bf617601ff"
+}

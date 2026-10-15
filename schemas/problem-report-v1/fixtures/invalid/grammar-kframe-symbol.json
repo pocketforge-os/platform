@@ -1,0 +1,24 @@
+{
+  "expected_reason": "grammar",
+  "description": "a kernel frame symbol with free text",
+  "report": {
+    "v": 1,
+    "kind": "kernel",
+    "how": "oops",
+    "day": "2026-10-09",
+    "build": "3fa9c2e17b04",
+    "model": "a133",
+    "uptime": ">1h",
+    "del": {
+      "$bytes": "5d1a9c7e3b2f4a6081c0e9d7b5a3f1e2c4d6b8a0f2e4c6a8b0d2f4e6a8c0e2f4"
+    },
+    "kframes": [
+      [
+        "Comm: racer Tainted",
+        0,
+        16,
+        null
+      ]
+    ]
+  }
+}

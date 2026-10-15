@@ -1,0 +1,25 @@
+# abi/examples/app-input-layer.toml — a VALID descriptor declaring the system-input-layer
+# capabilities (tsp-ihne1.4; design/input-layer, every-menu-spec §10.2): `pointer` asks for the
+# system-drawn pointer, `menu` fills the app section of the system menu, and `options` declares
+# a shipped options.toml the system draws (fw-options).
+# Validate: `pf app-validate abi/examples/app-input-layer.toml`. Schema: abi/app.schema.json.
+# The capability UNIVERSE lives in the runtime (crates/pf-app-manifest KNOWN_CAPABILITIES); the
+# static validator checks token shape only. Device support is staged: a REQUIRED declaration
+# launches only where platform-capabilities.toml lists the word in supported_capabilities
+# (abi/platform-capabilities.schema.json); an OPTIONAL `pointer?` resolves everywhere.
+
+[app]
+id       = "com.example.launcher"
+name     = "Launcher Demo"
+category = "game"
+version  = "1.0.0"
+use      = ["input", "pointer", "menu", "options"]
+
+[runtime]
+family           = "pocketforge/a133-powervr"
+abi              = "1"
+platform-version = "20"
+
+[launch]
+exec          = "./launch"
+takes_display = true

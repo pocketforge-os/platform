@@ -69,6 +69,9 @@ on:
       - 'buildkit/pf-ci-buildkitd.toml'
       - 'scripts/pf-ci-buildx'
       - 'scripts/tests/pf-ci-buildx-test.sh'
+      - 'core/pf-build.sh'
+      - 'core/lib/pf-build-env'
+      - 'scripts/tests/pf-build-environment-test.sh'
   workflow_dispatch:
 
 # Least-privilege GITHUB_TOKEN for a job that executes untrusted (org-authored, per the fork guard)
@@ -131,6 +134,7 @@ jobs:
             git checkout --quiet --detach "$GITHUB_SHA"
           }
           bash scripts/tests/pf-ci-buildx-test.sh
+          bash scripts/tests/pf-build-environment-test.sh
           # Pick a Python 3.11+ (tomllib) interpreter — no third-party deps (core/caps.py is stdlib-only).
           PY=""
           for c in python3.12 python3.11 python3; do

@@ -1,0 +1,36 @@
+{
+  "report": {
+    "v": 1,
+    "kind": "crash",
+    "how": "SIGSEGV",
+    "day": "2026-10-10",
+    "build": "3fa9c2e17b04",
+    "model": "trimui-smart-pro",
+    "app": {
+      "origin": "sideloaded"
+    },
+    "uptime": "<1m",
+    "session": "<1m",
+    "mem": {
+      "pressure": false,
+      "oom": false
+    },
+    "frames": [
+      [
+        null,
+        null
+      ],
+      [
+        null,
+        null
+      ],
+      [
+        "8f3a1c0de4b5a6978877665544332211aabbccdd",
+        1024
+      ]
+    ],
+    "del": "5d1a9c7e3b2f4a6081c0e9d7b5a3f1e2c4d6b8a0f2e4c6a8b0d2f4e6a8c0e2f4"
+  },
+  "bytes": 227,
+  "cbor_hex": "ac61760163617070a1666f726967696e6a736964656c6f61646564636461796a323032362d31302d31306364656c58205d1a9c7e3b2f4a6081c0e9d7b5a3f1e2c4d6b8a0f2e4c6a8b0d2f4e6a8c0e2f463686f776753494753454756636d656da2636f6f6df4687072657373757265f4646b696e64656372617368656275696c646c336661396332653137623034656d6f64656c707472696d75692d736d6172742d70726f666672616d65738382f6f682f6f682548f3a1c0de4b5a6978877665544332211aabbccdd19040066757074696d65633c316d6773657373696f6e633c316d"
+}

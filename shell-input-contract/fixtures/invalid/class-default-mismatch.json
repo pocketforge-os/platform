@@ -1,0 +1,1 @@
+{"set_binding":{"context":"osk","action":"Shift","binding":{"shape":"single_press","controls":["l1"]}},"expected_reason":"class-default-mismatch"}

@@ -7,7 +7,7 @@ Covers the bead's acceptance: the named-family view resolves per family from pla
 the view NEVER drifts from the lock (derived); an app.toml `[runtime]` pin is PARSED + VALIDATED
 (unknown family / out-of-lock version / unsupported abi / malformed use rejected); the a523 SDL
 provenance gap is stated honestly."""
-import os, sys
+import json, os, sys
 
 CORE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "core")
 sys.path.insert(0, os.path.abspath(CORE))
@@ -127,12 +127,50 @@ check("missing [runtime] rejected", has(appmanifest.validate_toml_text(NO_RUNTIM
 
 # the shipped example fixtures agree with the validator
 HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 EX = os.path.abspath(os.path.join(HERE, "..", "..", "abi", "examples"))
-for good in ("app-a133-powervr.toml", "app-a523-mali.toml"):
+for good in ("app-a133-powervr.toml", "app-a523-mali.toml", "app-input-layer.toml"):
     with open(os.path.join(EX, good)) as fh:
         check(f"example {good} validates", appmanifest.validate_toml_text(fh.read()) == [])
 with open(os.path.join(EX, "app-invalid.toml")) as fh:
     check("example app-invalid.toml is rejected", appmanifest.validate_toml_text(fh.read()) != [])
+
+# ── the system-input-layer words are reserved + shape-checked (tsp-ihne1.4) ──────────────────
+# `pointer`/`menu`/`options` join the runtime capability universe (runtime/crates/pf-app-manifest
+# KNOWN_CAPABILITIES; design/input-layer, every-menu-spec §10.2). The platform side (a) reserves
+# them in the device-support schema so a platform-capabilities.toml can advertise them, and
+# (b) keeps the static validator's shape rules honest for them. The universe check itself stays
+# runtime-side by design (core/appmanifest.py knows no capability names).
+with open(os.path.join(ROOT, "abi", "platform-capabilities.schema.json")) as fh:
+    support_enum = json.load(fh)["properties"]["supported_capabilities"]["items"]["enum"]
+missing = sorted({"pointer", "menu", "options"} - set(support_enum))
+check("support schema reserves the input-layer capability words", not missing, missing)
+check("support schema enum stays sorted + unique", support_enum == sorted(set(support_enum)))
+
+INPUT_LAYER = """
+[app]
+id = "com.test.inputlayer"
+use = ["input", "pointer", "menu", "options"]
+[runtime]
+family = "pocketforge/a133-powervr"
+abi = "1"
+platform-version = "20"
+"""
+check("input-layer capabilities pass the static validator",
+      appmanifest.validate_toml_text(INPUT_LAYER) == [], appmanifest.validate_toml_text(INPUT_LAYER))
+
+INPUT_LAYER_ABUSE = """
+[app]
+id = "com.test.inputlayer"
+use = ["pointer", "pointer?", "menu:large"]
+[runtime]
+family = "pocketforge/a133-powervr"
+abi = "1"
+platform-version = "20"
+"""
+iv = appmanifest.validate_toml_text(INPUT_LAYER_ABUSE)
+check("duplicate pointer rejected", has(iv, "DuplicateCapability"))
+check("modifier on menu rejected", has(iv, "BadModifier"))
 
 print()
 if FAILS:

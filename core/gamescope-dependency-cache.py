@@ -165,7 +165,8 @@ def read_manifest(gamescope: Path, head: str, expected_sha256: str) -> bytes:
     return raw
 
 
-def validate_platform_lock(path: Path, gamescope_head: str) -> str:
+def validate_platform_lock(
+        path: Path, gamescope_head: str, manifest_sha256: str) -> str:
     if path.is_symlink() or not path.is_file():
         raise CacheError(f"platform.lock is not a regular file: {path}")
     raw = path.read_bytes()
@@ -184,6 +185,8 @@ def validate_platform_lock(path: Path, gamescope_head: str) -> str:
         raise CacheError("platform.lock Gamescope URL mismatch")
     if gamescope[0].get("sha") != gamescope_head:
         raise CacheError("platform.lock Gamescope pin mismatch")
+    if gamescope[0].get("dependency_manifest_sha256") != manifest_sha256:
+        raise CacheError("platform.lock Gamescope manifest digest mismatch")
     return digest_bytes(raw)
 
 
@@ -546,7 +549,7 @@ def build(args: argparse.Namespace,
             raise CacheError(f"refusing pre-existing output: {path}")
     require_bare_mirror(args.gamescope_git_dir, GAMESCOPE_URL, "gamescope")
     platform_lock_sha256 = validate_platform_lock(
-        args.platform_lock, args.gamescope_head)
+        args.platform_lock, args.gamescope_head, args.manifest_sha256)
     raw_manifest = read_manifest(
         args.gamescope_git_dir, args.gamescope_head, args.manifest_sha256)
     rows = parse_manifest(raw_manifest)

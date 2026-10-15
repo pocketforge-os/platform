@@ -26,7 +26,13 @@ pf_log() { :; }
 pf_die() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+cleanup() {
+    find "$tmp" -type d -exec chmod u+rwx {} +
+    find "$tmp" -type f -exec chmod u+rw {} +
+    find "$tmp" -mindepth 1 -delete
+    rmdir "$tmp"
+}
+trap cleanup EXIT
 mkdir -p "$tmp/home/gpu-um-tsp"
 git -C "$tmp/home/gpu-um-tsp" init -q
 git -C "$tmp/home/gpu-um-tsp" config user.name test

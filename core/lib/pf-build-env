@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Execute the Buildx client with only the connection/authentication environment
+# needed to reach the explicitly selected builder. BuildKit propagates tracing
+# context from its client, so ambient CI state must stop at this boundary.
+set -euo pipefail
+
+[ "$#" -gt 0 ] || {
+    echo 'usage: pf-build-env COMMAND [ARG...]' >&2
+    exit 2
+}
+
+build_env=(env -i "HOME=${HOME:?}" "PATH=${PATH:?}")
+for name in DOCKER_CONFIG DOCKER_CONTEXT DOCKER_HOST DOCKER_TLS_VERIFY \
+    DOCKER_CERT_PATH BUILDX_CONFIG XDG_RUNTIME_DIR SSH_AUTH_SOCK \
+    SSL_CERT_FILE SSL_CERT_DIR; do
+    if [[ -v $name ]]; then
+        build_env+=("$name=${!name}")
+    fi
+done
+exec "${build_env[@]}" "$@"

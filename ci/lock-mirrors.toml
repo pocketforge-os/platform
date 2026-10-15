@@ -23,12 +23,67 @@ template = 'docker/Dockerfile.ge8300-mesa-cross at {value}. Do NOT add'
 comparison = "equal"
 
 [[mirrors]]
+id = "image-cursor-tools-image"
+platform_field = "cursor_theme.tools_image_digest"
+consumer_repo = "image"
+consumer_path = "build/Dockerfile.pf"
+parser = "template"
+template = 'ARG PF_CURSOR_TOOLS_IMAGE=10.0.32.86:5555/pocketforge/ci-tools@sha256:{value}'
+comparison = "equal"
+
+[[mirrors]]
+id = "image-cursor-tools-recipe"
+platform_field = "cursor_theme.tools_recipe_sha"
+consumer_repo = "image"
+consumer_path = "build/Dockerfile.pf"
+parser = "template"
+template = 'ARG PF_CURSOR_TOOLS_RECIPE_SHA={value}'
+comparison = "equal"
+
+[[mirrors]]
+id = "image-cursor-tools-binding-image"
+platform_field = "cursor_theme.tools_image_digest"
+consumer_repo = "image"
+consumer_path = "scripts/verify-cursor-tools-recipe.py"
+parser = "template"
+template = 'pocketforge/ci-tools@sha256:{value}'
+comparison = "equal"
+
+[[mirrors]]
+id = "image-cursor-tools-binding-recipe"
+platform_field = "cursor_theme.tools_recipe_sha"
+consumer_repo = "image"
+consumer_path = "scripts/verify-cursor-tools-recipe.py"
+parser = "template"
+template = '"{value}",'
+comparison = "equal"
+
+[[mirrors]]
 id = "image-runtime-guard"
 platform_field = "repos.runtime.sha"
 consumer_repo = "image"
 consumer_path = "build/Dockerfile.pf"
 parser = "template"
 template = '[ "${PF_RUNTIME_SHA}" = "{value}" ] || { echo "FATAL: runtime pin drift: ${PF_RUNTIME_SHA}"; exit 1; }'
+comparison = "equal"
+
+[[mirrors]]
+id = "image-app-policy-runtime-checkout"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = ".github/workflows/app-policy-pair.yml"
+parser = "template"
+template = '''          repository: pocketforge-os/runtime
+          ref: {value}'''
+comparison = "equal"
+
+[[mirrors]]
+id = "image-app-policy-runtime-identity"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = ".github/workflows/app-policy-pair.yml"
+parser = "template"
+template = '          test "$(git -C runtime-pair rev-parse HEAD)" = {value}'
 comparison = "equal"
 
 [[mirrors]]
@@ -66,6 +121,25 @@ consumer_repo = "image"
 consumer_path = "build/Dockerfile.pf"
 parser = "template"
 template = '[ "${PF_LAUNCHER_SHA}" = "{value}" ] || { echo "FATAL: F13 launcher pin drift: ${PF_LAUNCHER_SHA}"; exit 1; }'
+comparison = "equal"
+
+[[mirrors]]
+id = "image-app-policy-launcher-checkout"
+platform_field = "repos.launcher.sha"
+consumer_repo = "image"
+consumer_path = ".github/workflows/app-policy-pair.yml"
+parser = "template"
+template = '''          repository: pocketforge-os/launcher
+          ref: {value}'''
+comparison = "equal"
+
+[[mirrors]]
+id = "image-app-policy-launcher-identity"
+platform_field = "repos.launcher.sha"
+consumer_repo = "image"
+consumer_path = ".github/workflows/app-policy-pair.yml"
+parser = "template"
+template = '          test "$(git -C launcher-pair rev-parse HEAD)" = {value}'
 comparison = "equal"
 
 [[mirrors]]
@@ -136,7 +210,6 @@ id = "steamlink-kernel-uapi-sha"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
 aliases = [
   "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
-  "repos.kernel-sunxi-7.x.sha",
 ]
 consumer_repo = "image"
 consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
@@ -157,6 +230,24 @@ comparison = "equal"
 # can distinguish documentation/test provenance from a newly introduced mirror.
 # They are intentionally optional: historical prose may remain at an older SHA,
 # but a current lock value at any undeclared location still fails closed.
+
+[[references]]
+id = "image-cursor-tools-image-test"
+platform_field = "cursor_theme.tools_image_digest"
+consumer_repo = "image"
+consumer_path = "tests/test_cursor_theme_package.py"
+parser = "template"
+template = '               "{value}")'
+reason = "producer pin contract test"
+
+[[references]]
+id = "image-cursor-tools-recipe-test"
+platform_field = "cursor_theme.tools_recipe_sha"
+consumer_repo = "image"
+consumer_path = "tests/test_cursor_theme_package.py"
+parser = "template"
+template = 'TOOLS_RECIPE = "{value}"'
+reason = "producer recipe pin contract test"
 
 [[references]]
 id = "gpu-um-vendored-fixture-comment"
@@ -204,6 +295,15 @@ template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {val
 reason = "fixture source provenance after image#213 advanced the exact-pin fixture"
 
 [[references]]
+id = "gpu-um-vendored-fixture-comment-3f045e0a"
+platform_field = "repos.gpu-um-tsp.sha"
+consumer_repo = "image"
+consumer_path = "build/tests/fixtures/gpu-um-toolchain-3f045e0a.Dockerfile"
+parser = "template"
+template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {value}.'
+reason = "fixture source provenance for the Build 11 gpu-um-tsp exact pin"
+
+[[references]]
 id = "gpu-um-drift-test-pin"
 platform_field = "repos.gpu-um-tsp.sha"
 consumer_repo = "image"
@@ -244,7 +344,6 @@ id = "steamlink-uapi-runtime-test-drift-expectation"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
 aliases = [
   "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
-  "repos.kernel-sunxi-7.x.sha",
 ]
 consumer_repo = "image"
 consumer_path = "tests/test-steamlink-ffmpeg59-runtime.sh"
@@ -257,19 +356,31 @@ id = "steamlink-uapi-runtime-test-current-control"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
 aliases = [
   "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+]
+consumer_repo = "image"
+consumer_path = "tests/test-steamlink-ffmpeg59-runtime.sh"
+parser = "template"
+template = 'build9_uapi_sha={value}'
+reason = "named positive producer-admission identity for the current image UAPI lock"
+
+[[references]]
+id = "steamlink-uapi-runtime-test-build11-control"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+aliases = [
+  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+  "profile_pins.a133-open-7x-gpu-noradio.kernel",
   "repos.kernel-sunxi-7.x.sha",
 ]
 consumer_repo = "image"
 consumer_path = "tests/test-steamlink-ffmpeg59-runtime.sh"
 parser = "template"
-template = 'run_contract_builder {value}'
-reason = "positive producer-admission control for the current image UAPI lock"
+template = 'build11_uapi_sha={value}'
+reason = "Build 11 kernel-UAPI witness shared by the Steam Link source, profile override, and repository pin"
 
 [[references]]
 id = "volatile-root-kernel-pr-provenance"
-platform_field = "repos.kernel-sunxi-7.x.sha"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.source_sha"
 aliases = [
-  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
   "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA",
 ]
 consumer_repo = "image"
@@ -432,6 +543,24 @@ template = 'make_bundle "${bad_manifest_archive}" {value} yes'
 reason = "negative CTS list-manifest fixture retaining the admitted source commit"
 
 [[references]]
+id = "cts-bundle-versioned-source-commit-test"
+platform_field = "platform_payload.cts_bundle_v1.build_args.PF_CTS_SOURCE_COMMIT"
+consumer_repo = "image"
+consumer_path = "tests/test-cts-bundle-image.sh"
+parser = "template"
+template = 'make_bundle "${versioned_archive}" {value} no versioned'
+reason = "CTS verifier fixture for an explicitly versioned bundle root"
+
+[[references]]
+id = "cts-bundle-nameless-source-commit-test"
+platform_field = "platform_payload.cts_bundle_v1.build_args.PF_CTS_SOURCE_COMMIT"
+consumer_repo = "image"
+consumer_path = "tests/test-cts-bundle-image.sh"
+parser = "template"
+template = 'make_bundle "${nameless_archive}" {value} no none'
+reason = "CTS verifier negative fixture for a bundle without a version marker"
+
+[[references]]
 id = "blobs-a133-cma-real-env-fixture"
 platform_field = "repos.blobs.sha"
 consumer_repo = "image"
@@ -504,6 +633,24 @@ template = 'assert launcher_guard == ["{value}"]'
 reason = "test expectation for the declared production mirror"
 
 [[references]]
+id = "runtime-w2c-prefsd-test-constant"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "tests/verify-w2c-prefsd-wiring.py"
+parser = "template"
+template = 'RUNTIME_SHA = "{value}"'
+reason = "prefsd deployment test expectation for the declared production mirror"
+
+[[references]]
+id = "launcher-w2c-prefsd-test-constant"
+platform_field = "repos.launcher.sha"
+consumer_repo = "image"
+consumer_path = "tests/verify-w2c-prefsd-wiring.py"
+parser = "template"
+template = 'LAUNCHER_SHA = "{value}"'
+reason = "prefsd deployment test expectation for the declared production mirror"
+
+[[references]]
 id = "gamescope-package-path-test-source-pin"
 platform_field = "repos.gamescope.sha"
 consumer_repo = "image"
@@ -529,3 +676,30 @@ consumer_path = "tests/test-gamescope-pvr-cache.sh"
 parser = "template"
 template = "g1_sha={value}"
 reason = "mode-runner test input for the locked Gamescope source"
+
+[[references]]
+id = "cts-recovery-dut-bundle-sha"
+platform_field = "platform_payload.cts_bundle_v1.artifact_sha256"
+consumer_repo = "image"
+consumer_path = "tools/a-cts-recovery/a-cts-dut"
+parser = "template"
+template = 'BUNDLE_SHA={value}'
+reason = "recovery DUT harness expectation for the locked CTS bundle (image#214/#217)"
+
+[[references]]
+id = "cts-recovery-smoke-bundle-sha"
+platform_field = "platform_payload.cts_bundle_v1.artifact_sha256"
+consumer_repo = "image"
+consumer_path = "tools/a-cts-recovery/smoke.sh"
+parser = "template"
+template = 'BUNDLE_SHA={value}'
+reason = "raw-image smoke harness expectation for the locked CTS bundle (image#214/#217)"
+
+[[references]]
+id = "cts-recovery-smoke-source-commit"
+platform_field = "platform_payload.cts_bundle_v1.build_args.PF_CTS_SOURCE_COMMIT"
+consumer_repo = "image"
+consumer_path = "tools/a-cts-recovery/smoke.sh"
+parser = "template"
+template = "grep -Fxq 'source_commit={value}'"
+reason = "CTS provenance receipt check in the raw-image smoke harness (image#214/#217)"

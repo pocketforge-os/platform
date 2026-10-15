@@ -158,17 +158,26 @@ SW_CODES = {
 # ---------------------------------------------------------------------------
 # Schema v2 (tsp-h5ed.46.3). schema_version absent = 1. These keys are only legal at v2, so a v1
 # descriptor (every one shipped before v2, and every collector-emitted candidate) is untouched.
+# Schema v3 (tsp-ihne1.3) adds [input_profile]; v1/v2 descriptors stay untouched the same way.
 # ---------------------------------------------------------------------------
-SCHEMA_VERSION_MAX = 2
-V2_TOP_KEYS = ("physical", "model", "joints", "maturity")
+SCHEMA_VERSION_MAX = 3
+V2_TOP_KEYS = ("physical", "model", "joints", "maturity", "memory", "graphics")
 V2_SCREEN_KEYS = ("id", "node", "panel_px", "fourcc", "diagonal_in", "active_mm", "touch")
 V2_SENSOR_KINDS = ("hinge_angle",)
+V3_TOP_KEYS = ("input_profile",)
+DEVICE_CLASSES = ("two_stick", "no_stick", "minimal")
+# Shoulder/trigger codes a device_class='minimal' chassis may not expose (every-menu-spec
+# #keyboard: minimal = face buttons + Start/Select, no shoulders or triggers).
+SHOULDER_CODES = {"BTN_TL", "BTN_TR", "BTN_TL2", "BTN_TR2"}
 JOINT_UNITS = {"hinge": "deg", "swivel": "deg", "slide": "mm"}  # documented; units follow kind
 
 
 # ---------------------------------------------------------------------------
 # Minimal JSON-Schema engine (Draft-2020-12 SUBSET: exactly the keywords the
-# shipped schema uses). Returns a list of human-readable error strings.
+# shipped schemas use — the descriptor schema and the ABI contract schema in
+# abi/platform-capabilities.schema.json, which needs const/allOf/if/then and
+# boolean-false subschemas for its per-schema_version discipline).
+# Returns a list of human-readable error strings.
 # ---------------------------------------------------------------------------
 def _typ_ok(inst, t):
     if t == "object":  return isinstance(inst, dict)
@@ -189,7 +198,18 @@ def _resolve_ref(root, ref):
     return node
 
 
+def _jeq(a, b):
+    # JSON-Schema equality is TYPE-AWARE: Python says True == 1, JSON says true != 1.
+    # Numbers still compare across int/float (1 == 1.0), as the draft requires.
+    if isinstance(a, bool) != isinstance(b, bool):
+        return False
+    return a == b
+
+
 def _jschema(inst, schema, root, path, errs):
+    if schema is False:
+        errs.append(f"{path or '<root>'}: not allowed here (false schema)")
+        return
     if "$ref" in schema:
         _jschema(inst, _resolve_ref(root, schema["$ref"]), root, path, errs)
         return
@@ -197,7 +217,9 @@ def _jschema(inst, schema, root, path, errs):
     if t is not None and not _typ_ok(inst, t):
         errs.append(f"{path or '<root>'}: expected {t}, got {type(inst).__name__}")
         return  # type wrong -> downstream checks are noise
-    if "enum" in schema and inst not in schema["enum"]:
+    if "const" in schema and not _jeq(inst, schema["const"]):
+        errs.append(f"{path}: {inst!r} != const {schema['const']!r}")
+    if "enum" in schema and not any(_jeq(inst, e) for e in schema["enum"]):
         errs.append(f"{path}: {inst!r} not in {schema['enum']}")
     if isinstance(inst, str):
         if "pattern" in schema and not re.search(schema["pattern"], inst):
@@ -232,6 +254,22 @@ def _jschema(inst, schema, root, path, errs):
         if items is not None:
             for i, el in enumerate(inst):
                 _jschema(el, items, root, f"{path}[{i}]", errs)
+        if schema.get("uniqueItems"):
+            seen = set()
+            for el in inst:
+                key = json.dumps(el, sort_keys=True)
+                if key in seen:
+                    errs.append(f"{path}: duplicate item (uniqueItems)")
+                    break
+                seen.add(key)
+    for sub in schema.get("allOf", []):
+        _jschema(inst, sub, root, path, errs)
+    if "if" in schema:
+        probe = []
+        _jschema(inst, schema["if"], root, path, probe)
+        branch = "then" if not probe else "else"
+        if branch in schema:
+            _jschema(inst, schema[branch], root, path, errs)
 
 
 def schema_errors(data, schema):
@@ -471,19 +509,28 @@ def semantic_errors(dev_id, data):
             if sp and sp not in part_names:
                 errs.append(f"input '{inp.get('id','?')}': skin_part '{sp}' has no [skin.parts] entry")
 
-    # 6) schema v2 (tsp-h5ed.46.3): version gate, then the v2 rules.
+    # 6) schema version gates (v2: tsp-h5ed.46.3, v3: tsp-ihne1.3), then each version's rules.
     ver = data.get("schema_version", 1)
     if ver > SCHEMA_VERSION_MAX:
         errs.append(f"E_SCHEMA_VERSION schema_version {ver} is newer than this validator "
                     f"supports ({SCHEMA_VERSION_MAX})")
-    elif ver < 2:
-        for key in v2_keys_used(data):
-            errs.append(f"E_V2_AT_V1 {key} is a schema v2 key but schema_version is {ver} "
-                        f"(absent = 1): set schema_version = 2")
     else:
-        e2, w2 = v2_semantic_errors(data)
-        errs += e2
-        warns += w2
+        if ver < 2:
+            for key in v2_keys_used(data):
+                errs.append(f"E_V2_AT_V1 {key} is a schema v2 key but schema_version is {ver} "
+                            f"(absent = 1): set schema_version = 2")
+        else:
+            e2, w2 = v2_semantic_errors(data)
+            errs += e2
+            warns += w2
+        if ver < 3:
+            for key in v3_keys_used(data):
+                errs.append(f"E_V3_KEY {key} is a schema v3 key but schema_version is {ver}: "
+                            f"set schema_version = 3")
+        else:
+            e3, w3 = v3_semantic_errors(data)
+            errs += e3
+            warns += w3
     return errs, warns
 
 
@@ -496,6 +543,11 @@ def v2_keys_used(data):
         if s.get("kind") in V2_SENSOR_KINDS:
             used.append(f"sensors '{s.get('id', '?')}' kind={s.get('kind')}")
     return used
+
+
+def v3_keys_used(data):
+    """Every v3-only key present in a descriptor, as human-readable locations."""
+    return [f"[{k}]" for k in V3_TOP_KEYS if k in data]
 
 
 def screen_ids(data):
@@ -617,6 +669,23 @@ def v2_semantic_errors(data):
             errs.append(f"E_PHYSICAL [physical].envelope_mm {', '.join(bad)} must be > 0 mm")
         if "mass_g" in phys and not phys["mass_g"] > 0:
             errs.append("E_PHYSICAL [physical].mass_g must be > 0 (omit it when unmeasured)")
+
+    # [memory]: minimum-spec facts (tsp-fxlsw Task 2). physical_mib is the measured MemTotal
+    # floor; app_budget_mib is what an app may assume is available, so it can never exceed
+    # physical_mib. The image renderer maps these onto the platform contract's schema-2
+    # physical_memory_mib / app_memory_budget_mib fields.
+    mem = data.get("memory")
+    if mem:
+        budget = mem.get("app_budget_mib")
+        if budget is not None and budget > mem.get("physical_mib", 0):
+            errs.append(f"E_MEMORY [memory].app_budget_mib {budget} exceeds physical_mib "
+                        f"{mem.get('physical_mib', 0)}")
+
+    # [graphics]: the version vocabularies are schema-enforced enums; an empty table declares
+    # nothing and hides the omission, so it is an error (omit the whole section instead).
+    if "graphics" in data and not data.get("graphics"):
+        errs.append("E_GRAPHICS [graphics] is empty (declare gles_max/vulkan_max, or omit the "
+                    "whole section)")
 
     # [model]: the glb exists and parses; under pf-semantic-v1 every bound name is a glb node.
     model = data.get("model")
@@ -774,6 +843,64 @@ def v2_semantic_errors(data):
     return errs, warns
 
 
+def v3_semantic_errors(data):
+    """Schema v3 rules (tsp-ihne1.3). [input_profile] coherence: the table shape is owned by
+    the JSON schema; what is checked here are the facts that only the WHOLE descriptor can
+    show — device_class against the derived presence facts of the [[inputs]] rows, and
+    reserved_controls against real, non-system input ids. Every error starts with its E_* name."""
+    errs, warns = [], []
+    profile = data.get("input_profile")
+    if not isinstance(profile, dict):
+        return errs, warns  # the JSON schema owns the missing/malformed table message
+    rows = [row for row in data.get("inputs", []) if isinstance(row, dict)]
+    by_id = {row.get("id"): row for row in rows}
+    kinds = [row.get("kind", "button") for row in rows]
+    sticks = kinds.count("stick")
+    cls = profile.get("device_class")
+
+    # device_class against the retail control inventory (bindings key on the product, not
+    # the chip: the Brick shares the A133 but has no sticks — #keyboard).
+    if cls == "two_stick" and sticks < 2:
+        errs.append(f"E_INPUT_PROFILE device_class 'two_stick' needs two kind='stick' [[inputs]] "
+                    f"rows (found {sticks})")
+    if cls in ("no_stick", "minimal") and sticks:
+        errs.append(f"E_INPUT_PROFILE device_class '{cls}' forbids kind='stick' [[inputs]] rows "
+                    f"(found {sticks})")
+    if cls == "minimal":
+        banned = sorted(
+            {row.get("id", "?") for row in rows
+             if row.get("kind") == "trigger"
+             or any(c in SHOULDER_CODES for c in str(row.get("code", "")).split(","))})
+        if banned:
+            errs.append("E_INPUT_PROFILE device_class 'minimal' forbids shoulders and triggers "
+                        f"(found [[inputs]] rows: {', '.join(banned)})")
+    if cls in DEVICE_CLASSES and kinds.count("hat") < 1:
+        errs.append("E_INPUT_PROFILE every device_class needs a D-pad: a kind='hat' [[inputs]] "
+                    "row (suggestions, cursor and pointer-mode rows key on it)")
+    # stick clicks are optional extras that only make sense with sticks (#keyboard).
+    if "stick-click" in kinds and sticks < 1:
+        errs.append("E_INPUT_PROFILE kind='stick-click' [[inputs]] rows require at least one "
+                    "kind='stick' row")
+
+    # reserved_controls: real gamepad controls the system keeps (the Menu control(s)); the
+    # router consumes them before routing and no action may bind to them.
+    reserved = profile.get("reserved_controls")
+    if not isinstance(reserved, list):
+        reserved = [] if reserved is None else [reserved]
+    seen = set()
+    for rid in reserved:
+        if rid in seen:
+            errs.append(f"E_INPUT_PROFILE reserved_controls: '{rid}' appears more than once")
+        seen.add(rid)
+        row = by_id.get(rid)
+        if row is None:
+            errs.append(f"E_INPUT_PROFILE reserved_controls: '{rid}' is not an [[inputs]] id")
+        elif row.get("class") == "system":
+            errs.append(f"E_INPUT_PROFILE reserved_controls: '{rid}' is class='system' (already "
+                        f"withheld from apps; reserve gamepad controls only)")
+    return errs, warns
+
+
 # ---------------------------------------------------------------------------
 # SDL gamecontrollerdb emit (tsp-9sx.4): the descriptor is ALSO the single source
 # for the SDL3 gamepad mapping — no hand-maintained second file. Keyed by numeric
@@ -911,7 +1038,11 @@ def cmd_emit_sdldb(argv):
 # ---------------------------------------------------------------------------
 # SPIKE-0 (tsp-9sx.1): descriptor <-> evdev-probe ASYMMETRIC diff. descriptor =
 # EXPECTATION, probe = GROUND TRUTH. RULE: every descriptor code MUST be advertised
-# by the probe (descriptor codes SUBSET-OF probe codes) -> ERROR if not. Codes the
+# by its named node when that node exists in the capture (descriptor codes
+# SUBSET-OF probe codes) -> ERROR if not. An explicitly named system-key source
+# absent from a capture made from another image is unverified -> ERROR, so a
+# cross-image comparison is explicit and can never masquerade as a successful
+# evidence gate. Codes the
 # probe advertises but the descriptor omits are EXPECTED (the shared Xbox-360 HID
 # superset) -> INFO, never an error. absinfo (min/max) mismatch -> WARN (reconcile
 # the descriptor to silicon). Feed it a capture from regression/caps/evdev-probe.py.
@@ -941,9 +1072,9 @@ def probe_diff(dev_id, capture):
 
     pad_keys = set(pad.get("keys", []))
     pad_abs = pad.get("abs", {})
-    all_keys = set()
+    nodes_by_name = {}
     for n in nodes:
-        all_keys.update(n.get("keys", []))
+        nodes_by_name.setdefault(n.get("name"), []).append(n)
 
     # BTN_* comparison is by CODE VALUE, not name spelling (tsp-ozbp.14). The kernel gives the
     # four face buttons two names for one number -- BTN_A==BTN_SOUTH 0x130, BTN_B==BTN_EAST
@@ -977,9 +1108,15 @@ def probe_diff(dev_id, capture):
                     errs.append(f"{dev_id}: input '{iid}' claims {c} but the gamepad node "
                                 f"does not advertise it")
             elif c.startswith("KEY_"):
-                if c not in all_keys:
-                    errs.append(f"{dev_id}: input '{iid}' claims system key {c} but NO probe "
-                                f"node advertises it")
+                source = inp.get("source")
+                source_nodes = nodes_by_name.get(source, []) if source else nodes
+                if source and not source_nodes:
+                    errs.append(f"{dev_id}: input '{iid}' source node '{source}' is absent "
+                                f"from this probe; {c} is unverified (cross-image capture)")
+                elif not any(c in n.get("keys", []) for n in source_nodes):
+                    where = f"source node '{source}'" if source else "NO probe node"
+                    errs.append(f"{dev_id}: input '{iid}' claims system key {c} but {where} "
+                                f"does not advertise it")
         # absinfo reconcile (min/max) for ranged inputs
         axis_map = []
         if inp.get("kind") == "stick" and len(codes) == 2:

@@ -20,14 +20,17 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "67e45ed0d246e9e05eb20b89a1d4304a4b20f1c2"
-CURRENT_UAPI = "c22dbc0226242cd1e582073eac5d82d36953c0d8"
-CURRENT_GAMESCOPE = "4232739e75c95113871e260967e8b4ff995ea897"
+CURRENT_IMAGE = "d1e13403b4e9ce40a23ec5fed43d09dc1c351159"
+CURRENT_UAPI = "07bb60764cbc64b5a5d760c34709f07f8259e985"
+CURRENT_CTS_SOURCE = "067e8832315e79817ede1c4863804e440f5d1c80"
+BUILD9_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
+BUILD9_KERNEL = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
+CURRENT_GAMESCOPE = "0b03a62e720ae93afbd5e59167c8774f8ad74f0c"
 STALE_GAMESCOPE = "0000000000000000000000000000000000000000"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 STALE_UAPI = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
-RUNTIME_SHA = "5738f3d5e108b52186b129a5db1c62a878278b19"
-LAUNCHER_SHA = "73cda6ceb17ec6c2f8b9e030aa28c162a5d601c5"
+RUNTIME_SHA = "679eb323a7eddb27b6af3273fa77ce63c33c42cd"
+LAUNCHER_SHA = "77c0f054558b1dac8ff2d2795576577963f60760"
 PREVIOUS_RUNTIME_SHA = "1dd87ecc2952584a7ef1473c5dcb872662b7c0cb"
 SOURCE_LOCK_PATH = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
 FIXTURES = Path(__file__).with_name("fixtures")
@@ -78,6 +81,78 @@ consumer_path = "{SOURCE_LOCK_PATH}"
 parser = "shell-assignment"
 key = "KERNEL_UAPI_SHA"
 comparison = "equal"
+'''.encode()
+
+
+def build9_lock(image_commit: str) -> bytes:
+    return f'''\
+[platform_runtime.steamlink_ffmpeg59_v1]
+source_sha = "{BUILD9_UAPI}"
+
+[platform_runtime.steamlink_ffmpeg59_v1.build_args]
+PF_FFMPEG_UAPI_SHA = "{BUILD9_UAPI}"
+
+[[repos]]
+name = "kernel-sunxi-7.x"
+url = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
+sha = "{BUILD9_KERNEL}"
+
+[[repos]]
+name = "image"
+url = "{IMAGE_URL}"
+sha = "{image_commit}"
+'''.encode()
+
+
+def build9_uapi_manifest(*, aliases: tuple[str, ...], migration: bytes = b"") -> bytes:
+    rendered_aliases = ", ".join(f'"{alias}"' for alias in aliases)
+    return f'''\
+schema_version = 1
+
+[[consumers]]
+repo = "image"
+url = "{IMAGE_URL}"
+commit_selector = "repos.image.sha"
+
+[[mirrors]]
+id = "steamlink-kernel-uapi-sha"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+aliases = [{rendered_aliases}]
+consumer_repo = "image"
+consumer_path = "{SOURCE_LOCK_PATH}"
+parser = "shell-assignment"
+key = "KERNEL_UAPI_SHA"
+comparison = "equal"
+'''.encode() + migration
+
+
+def build9_uapi_migration(
+    *,
+    mirror_id: str = "steamlink-kernel-uapi-sha",
+    old_aliases: tuple[str, ...] = (
+        "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+        "repos.kernel-sunxi-7.x.sha",
+    ),
+    new_aliases: tuple[str, ...] = (
+        "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+    ),
+) -> bytes:
+    def identity(aliases: tuple[str, ...]) -> str:
+        rendered_aliases = ", ".join(f'"{alias}"' for alias in aliases)
+        return (
+            '{ platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA", '
+            f'aliases = [{rendered_aliases}], consumer_repo = "image", '
+            f'consumer_path = "{SOURCE_LOCK_PATH}", parser = "shell-assignment", '
+            'key = "KERNEL_UAPI_SHA", comparison = "equal", expected_matches = 1 }'
+        )
+
+    return f'''\
+
+[[mirror_migrations]]
+id = "build9-steamlink-kernel-uapi-sha"
+mirror_id = "{mirror_id}"
+old = {identity(old_aliases)}
+new = {identity(new_aliases)}
 '''.encode()
 
 
@@ -148,6 +223,116 @@ PF_FFMPEG_UAPI_SHA = "{EXPECTED_UAPI}"
 
 
 class LockMirrorGateTests(unittest.TestCase):
+    def test_build9_mirror_migration_is_exact_scoped_and_one_shot(self) -> None:
+        old_aliases = (
+            "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+            "repos.kernel-sunxi-7.x.sha",
+        )
+        new_aliases = ("platform_runtime.steamlink_ffmpeg59_v1.source_sha",)
+        tree = {
+            SOURCE_LOCK_PATH: f"KERNEL_UAPI_SHA='{BUILD9_UAPI}'\n".encode(),
+        }
+        lock = build9_lock(CORRECTED_IMAGE)
+        old_manifest = build9_uapi_manifest(aliases=old_aliases)
+        candidate = build9_uapi_manifest(aliases=new_aliases)
+
+        undeclared = gate.check_gate(
+            lock,
+            candidate,
+            FixtureResolver({("image", CORRECTED_IMAGE): tree}),
+            baseline_manifest_raw=old_manifest,
+            baseline_commit=BASE_COMMIT,
+        )
+        self.assertFalse(undeclared.ok)
+        exact_refusal = next(
+            diagnostic
+            for diagnostic in undeclared.diagnostics
+            if diagnostic.classification == "BASELINE_MIRROR_CHANGED"
+        )
+        self.assertEqual(
+            exact_refusal.platform_field,
+            "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA",
+        )
+        self.assertIn("'steamlink-kernel-uapi-sha'", exact_refusal.detail)
+        self.assertIn("aliases", exact_refusal.detail)
+        print("BUILD9 RED undeclared:", exact_refusal.render())
+
+        migration = build9_uapi_migration()
+        declared_baseline = build9_uapi_manifest(aliases=old_aliases, migration=migration)
+        exact = gate.check_gate(
+            lock,
+            candidate,
+            FixtureResolver({("image", CORRECTED_IMAGE): tree}),
+            baseline_manifest_raw=declared_baseline,
+            baseline_commit=BASE_COMMIT,
+        )
+        self.assertTrue(exact.ok, exact.render())
+
+        other_mirror = b"[[mirrors]]" + old_manifest.split(b"[[mirrors]]", 1)[1].replace(
+            b'id = "steamlink-kernel-uapi-sha"', b'id = "some-other-mirror"', 1
+        )
+        different_id_baseline = (
+            old_manifest
+            + b"\n"
+            + other_mirror
+            + build9_uapi_migration(mirror_id="some-other-mirror")
+        )
+        different_id_candidate = candidate + b"\n" + other_mirror
+        negative_cases = {
+            "different mirror id": (
+                different_id_baseline,
+                different_id_candidate,
+                "BASELINE_MIRROR_CHANGED",
+            ),
+            "extra field change": (
+                declared_baseline,
+                candidate.replace(
+                    b'consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"',
+                    b'consumer_path = "build/platform-runtimes/steamlink-ffmpeg59/v1/moved.lock"',
+                ),
+                "BASELINE_MIRROR_CHANGED",
+            ),
+            "wrong old identity": (
+                build9_uapi_manifest(
+                    aliases=old_aliases,
+                    migration=build9_uapi_migration(old_aliases=new_aliases),
+                ),
+                candidate,
+                "MALFORMED_BASELINE_MANIFEST",
+            ),
+            "wrong new identity": (
+                build9_uapi_manifest(
+                    aliases=old_aliases,
+                    migration=build9_uapi_migration(new_aliases=()),
+                ),
+                candidate,
+                "BASELINE_MIRROR_CHANGED",
+            ),
+            "stale declaration": (
+                declared_baseline,
+                declared_baseline,
+                "BASELINE_MIRROR_MIGRATION_STALE",
+            ),
+        }
+        for name, (
+            negative_baseline,
+            negative_candidate,
+            classification,
+        ) in negative_cases.items():
+            with self.subTest(name=name):
+                result = gate.check_gate(
+                    lock,
+                    negative_candidate,
+                    FixtureResolver({("image", CORRECTED_IMAGE): tree}),
+                    baseline_manifest_raw=negative_baseline,
+                    baseline_commit=BASE_COMMIT,
+                )
+                self.assertFalse(result.ok, f"{name} unexpectedly passed")
+                self.assertIn(
+                    classification,
+                    [diagnostic.classification for diagnostic in result.diagnostics],
+                )
+
     def test_platform267_red_and_corrected_green(self) -> None:
         stale_tree = {
             SOURCE_LOCK_PATH: (FIXTURES / "platform267" / "source.lock").read_bytes(),
@@ -507,11 +692,29 @@ comparison = "equal"
         self.assertIn("profile_pins.fixture.runtime", ambiguous.platform_field)
 
     def test_current_contract_generation_passes_and_mixed_generation_fails(self) -> None:
+        candidate_manifest = (ROOT / "ci" / "lock-mirrors.toml").read_bytes()
         current_tree = {
             "build/Dockerfile.pf": (FIXTURES / "current" / "Dockerfile.pf").read_bytes(),
+            "scripts/verify-cursor-tools-recipe.py": (
+                b'"10.0.32.86:5555/pocketforge/ci-tools@sha256:'
+                b'2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862":\n'
+                b'    "ec5b2621f636261978d3bb4fd9843ae22a59c320",\n'
+            ),
             "build/produce-gamescope-pvr-cache.sh": (
                 f"expected_gamescope_sha={CURRENT_GAMESCOPE}\n".encode()
             ),
+            "build/tests/fixtures/gpu-um-toolchain-3f045e0a.Dockerfile": (
+                b"# Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at "
+                b"3f045e0ae9ac2855df143060200b18922e155fa1.\n"
+            ),
+            ".github/workflows/app-policy-pair.yml": (
+                f"          repository: pocketforge-os/runtime\n"
+                f"          ref: {RUNTIME_SHA}\n"
+                f"          repository: pocketforge-os/launcher\n"
+                f"          ref: {LAUNCHER_SHA}\n"
+                f'          test "$(git -C runtime-pair rev-parse HEAD)" = {RUNTIME_SHA}\n'
+                f'          test "$(git -C launcher-pair rev-parse HEAD)" = {LAUNCHER_SHA}\n'
+            ).encode(),
             SOURCE_LOCK_PATH: (FIXTURES / "corrected" / "source.lock").read_bytes().replace(
                 EXPECTED_UAPI.encode(), CURRENT_UAPI.encode(), 1
             ),
@@ -520,18 +723,56 @@ comparison = "equal"
                 f"g1_sha={CURRENT_GAMESCOPE}\n"
                 f"grep -F '{CURRENT_GAMESCOPE}' producer\n".encode()
             ),
+            "tests/test-cts-bundle-image.sh": (
+                f'make_bundle "${{versioned_archive}}" {CURRENT_CTS_SOURCE} no versioned\n'
+                f'make_bundle "${{nameless_archive}}" {CURRENT_CTS_SOURCE} no none\n'.encode()
+            ),
+            "tests/test-steamlink-ffmpeg59-runtime.sh": (
+                f"build11_uapi_sha={CURRENT_UAPI}\n".encode()
+            ),
         }
         resolver = FixtureResolver({("image", CURRENT_IMAGE): current_tree})
         result = gate.check_gate(
             (ROOT / "platform.lock").read_bytes(),
-            (ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            candidate_manifest,
             resolver,
-            baseline_manifest_raw=(ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            baseline_manifest_raw=candidate_manifest,
             baseline_commit=BASE_COMMIT,
         )
         self.assertTrue(result.ok, result.render())
         self.assertEqual(resolver.requests, [("image", CURRENT_IMAGE)])
-        self.assertEqual(result.mirror_rule_count, 15)
+        self.assertEqual(result.mirror_rule_count, 23)
+
+        classification_controls = (
+            (
+                b'template = \'make_bundle "${versioned_archive}" {value} no versioned\'',
+                b'template = \'make_bundle "${other_archive}" {value} no versioned\'',
+                "UNDECLARED_HIT",
+                "tests/test-cts-bundle-image.sh",
+            ),
+            (
+                b"template = 'build11_uapi_sha={value}'",
+                b"template = 'build12_uapi_sha={value}'",
+                "AMBIGUOUS_HIT",
+                "tests/test-steamlink-ffmpeg59-runtime.sh",
+            ),
+        )
+        for old_rule, broken_rule, classification, path in classification_controls:
+            with self.subTest(classification=classification, path=path):
+                self.assertIn(old_rule, candidate_manifest)
+                unclassified = gate.check_gate(
+                    (ROOT / "platform.lock").read_bytes(),
+                    candidate_manifest.replace(old_rule, broken_rule, 1),
+                    FixtureResolver({("image", CURRENT_IMAGE): current_tree}),
+                )
+                self.assertFalse(unclassified.ok)
+                self.assertTrue(
+                    any(
+                        diagnostic.classification == classification and diagnostic.path == path
+                        for diagnostic in unclassified.diagnostics
+                    ),
+                    unclassified.render(),
+                )
 
         mixed_lock = (ROOT / "platform.lock").read_bytes().replace(
             f'sha  = "{RUNTIME_SHA}"'.encode(),
@@ -540,9 +781,9 @@ comparison = "equal"
         )
         mixed = gate.check_gate(
             mixed_lock,
-            (ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            candidate_manifest,
             FixtureResolver({("image", CURRENT_IMAGE): current_tree}),
-            baseline_manifest_raw=(ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            baseline_manifest_raw=candidate_manifest,
             baseline_commit=BASE_COMMIT,
         )
         self.assertFalse(mixed.ok)
@@ -560,9 +801,9 @@ comparison = "equal"
         )
         mixed_gamescope = gate.check_gate(
             mixed_gamescope_lock,
-            (ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            candidate_manifest,
             FixtureResolver({("image", CURRENT_IMAGE): current_tree}),
-            baseline_manifest_raw=(ROOT / "ci" / "lock-mirrors.toml").read_bytes(),
+            baseline_manifest_raw=candidate_manifest,
             baseline_commit=BASE_COMMIT,
         )
         self.assertFalse(mixed_gamescope.ok)

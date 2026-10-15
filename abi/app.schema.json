@@ -2,18 +2,50 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://pocketforge.os/schemas/app.schema.json",
   "title": "PocketForge canonical app descriptor (app.toml)",
-  "description": "THE reconciled app.toml — ONE descriptor, THREE consumers (the on-device broker/supervisor at launch; the packaging path at build/sign; the SDK/author tooling at scaffold). Reconciles the three pre-E8 schemas: Phase-1 plan pocketforge-plan.md §9.3/§9.4 ([app]/[launch]/[health]/[fetch]); Phase-2 OCI build-integration-reference.md §18 (the sibling OCI/signature/SBOM/slice files); and pf-broker manifest.rs ([app].use=[] authority graph). E8 (tsp-ziac.1) ADDS the [runtime] platform-family pin (family + abi + platform-version), which none of the three carried. The OCI/signature/SBOM/resource-limit layer is a set of SIBLING FILES beside app.toml (see docs/PLATFORM-ABI-CONTRACT.md), not keys in this file.",
+  "description": "THE reconciled app.toml — ONE descriptor, THREE consumers (the on-device broker/supervisor at launch; the packaging path at build/sign; the SDK/author tooling at scaffold). Reconciles the three pre-E8 schemas: Phase-1 plan pocketforge-plan.md §9.3/§9.4 ([app]/[launch]/[health]/[fetch]); Phase-2 OCI build-integration-reference.md §18 (the sibling OCI/signature/SBOM/slice files); and pf-broker manifest.rs ([app].use=[] authority graph). E8 (tsp-ziac.1) ADDS the [runtime] platform-family pin (family + abi + platform-version), which none of the three carried. The OCI/signature/SBOM/resource-limit layer is a set of SIBLING FILES beside app.toml (see docs/PLATFORM-ABI-CONTRACT.md), not keys in this file. v2 (tsp-mc9m.41.1026.4 / runtime#126) adds schema_version and [display] orientations (from the display-orientation contract tsp-mc9m.41.996.18).",
   "type": "object",
   "additionalProperties": false,
   "required": ["app", "runtime"],
   "properties": {
+    "schema_version": { "type": "integer", "enum": [1, 2], "default": 1, "description": "Schema version. 1 = pre-display (old manifests accepted unchanged). 2 = current (adds [display] orientations)." },
     "app":     { "$ref": "#/$defs/app" },
     "runtime": { "$ref": "#/$defs/runtime" },
     "launch":  { "$ref": "#/$defs/launch" },
     "health":  { "$ref": "#/$defs/health" },
-    "fetch":   { "$ref": "#/$defs/fetch" }
+    "fetch":   { "$ref": "#/$defs/fetch" },
+    "display": { "$ref": "#/$defs/display" }
   },
+  "allOf": [
+    {
+      "if": {
+        "required": ["schema_version"],
+        "properties": { "schema_version": { "const": 2 } }
+      },
+      "then": {},
+      "else": {
+        "properties": { "display": false }
+      }
+    }
+  ],
   "$defs": {
+    "display": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["orientations"],
+      "description": "How the compositor may present the app. Absent = default ['landscape']. The compositor owns all physical-to-logical rotation; apps declare allowed orientations here and the compositor keeps them upright.",
+      "properties": {
+        "orientations": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Non-empty subset of SDL_DisplayOrientation names (SDL3), no duplicates. Default ['landscape']. An app is refused only if display_min cannot be met in any allowed orientation.",
+          "items": {
+            "type": "string",
+            "enum": ["landscape", "landscape_flipped", "portrait", "portrait_flipped"]
+          }
+        }
+      }
+    },
     "app": {
       "type": "object",
       "additionalProperties": false,
@@ -29,7 +61,7 @@
         "upstream_version": { "type": "string" },
         "use": {
           "type": "array",
-          "description": "Capability authority graph: `<cap>[:<modifier>][?]` tokens. `?` = OPTIONAL (graceful HardwareAbsent if the device can't back it). The AUTHORITATIVE capability-universe + descriptor-backed dangling check is runtime/crates/pf-broker/src/manifest.rs (cooperative, on-device). The platform static validator checks only token well-formedness (see core/appmanifest.py).",
+          "description": "Capability authority graph: `<cap>[:<modifier>][?]` tokens. `?` = OPTIONAL (graceful HardwareAbsent if the device can't back it). The AUTHORITATIVE capability universe is runtime/crates/pf-app-manifest KNOWN_CAPABILITIES (re-exported as the broker's KNOWN_CAPS); the descriptor-backed dangling + trust checks are enforced cooperatively on-device (runtime/crates/pf-broker/src/manifest.rs). The platform static validator checks only token well-formedness (see core/appmanifest.py). The device-side support vocabulary is supported_capabilities in abi/platform-capabilities.schema.json.",
           "items": { "type": "string", "pattern": "^[a-z0-9]+(:[^\\s?]+)?\\??$" }
         }
       }

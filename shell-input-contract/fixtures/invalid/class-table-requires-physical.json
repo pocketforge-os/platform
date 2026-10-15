@@ -1,0 +1,1 @@
+{"target":"class-defaults","set_entry":{"class":"minimal","context":"osk","action":"Space","value":{"shape":"on_screen"}},"expected_reason":"keyboard-action-requires-physical"}

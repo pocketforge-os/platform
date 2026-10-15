@@ -16,10 +16,28 @@
 # SPIKE-0 proves they actually BIND. The Home key code/device is a SPIKE-0 confirm (see below).
 
 # Schema v2 (tsp-h5ed.46.9): adds [maturity], [physical], [model] and per-screen node/panel facts.
-schema_version = 2
+# Schema v3 (tsp-ihne1.3): adds [input_profile] — the device-class binding facts the input
+# router and the shell input contract key on (bindings follow the retail product, not the chip).
+schema_version = 3
 
-# Default "confirm" face button (Xbox/PS = south). HINT only; full action mapping is E2's.
-accept_default = "south"
+# Default "confirm" face button. X18 (every-menu-spec §1): the shell contract ships
+# Activate on `east` because this chassis is Nintendo-arranged (the printed A button is the
+# east position), so the hint names the printed Accept button, not the Xbox/PS position.
+# A HINT only; full confirm/cancel/action mapping is the broker/SDK layer's job (E2).
+accept_default = "east"
+
+# Device input profile (schema v3, tsp-ihne1.3). device_class picks the shipped device-class
+# binding table (shell-input-contract/fixtures/device-class-defaults.json; every-menu-spec
+# §4.1/§4.3.1): two_stick = Smart Pro / Smart Pro S / X55-class (stick clicks l3/r3 are
+# optional extras, never required). reserved_controls are the gamepad controls the system
+# keeps for itself (the Menu controls — the router consumes them before routing and no
+# action may ever bind to them; on this unit SystemMenu ships on `home`, and `guide` stays
+# reserved because a ruled menu binding may re-resolve onto it). Presence facts (D-pad,
+# sticks, stick clicks, panel size) are DERIVED from the [[inputs]]/[[screens]] rows;
+# caps.py fails a device_class that contradicts them.
+[input_profile]
+device_class      = "two_stick"
+reserved_controls = ["guide", "home"]
 
 [identity]
 id           = "a523"
@@ -35,6 +53,15 @@ declared = "sim-ready"           # derived: [model] present, every screen has a 
 [physical]
 envelope_mm = { w = 188.35, h = 79.77, d = 17.0 }   # device-models/trimui-smart-pro-s/trimui-smart-pro-s.scad envelope
 
+# Minimum-spec facts (tsp-fxlsw Task 2): the image renderer derives the platform-contract
+# schema-2 fields from here. app_budget_mib is omitted (session reserve unmeasured) and there is
+# no [graphics] section (GLES unverified on this Mali) — apps declaring those facts fail closed
+# with requirement_unverifiable. Omission, not fabrication.
+[memory]
+physical_mib = 962    # measured MemTotal floor: 986,008 kB on TrimUI Smart Pro S / a523
+                      # (mission-control logs/pros-probe-20260619T192246.log §MEMORY,
+                      # kernel 5.15.147) = 962.9 MiB, floored
+
 [model]
 glb    = "skins/a523/model.glb"
 frame  = "pf-mm-v1"
@@ -42,8 +69,9 @@ naming = "pf-semantic-v1"
 source = "device-models/trimui-smart-pro-s"
 
 # Same chassis + panel as the base. Render INTENT is identical (app draws landscape 1280x720,
-# present portrait). The rotation MECHANISM differs per-SoC (A523 = sunxi DRM/KMS, not the
-# A133's legacy disp2) but that is CODE, not descriptor data — the logical enum is the same.
+# present portrait, must not pre-rotate). The panel is portrait-native and mounted rotated;
+# the session compositor (gamescope) is the sole physical-to-logical rotator — the logical
+# enum carries the same rotation as the a133 sibling.
 [[screens]]
 role          = "primary"
 present       = "portrait"
