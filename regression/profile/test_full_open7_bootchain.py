@@ -49,7 +49,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_BOOTCHAIN_MODEL": "sunxi-spl-uboot",
             "PF_BOOT_PROTO": "sunxi-spl-booti",
             "PF_UBOOT_REPO": "u-boot-tsp-a133",
-            "PF_UBOOT_SHA": "db70249c8b25b7c3271cce71a19005b361527aaf",
+            "PF_UBOOT_SHA": "72abd96b6b879638e5df037d2b693ab39b72b41d",
             "PF_UBOOT_DEFCONFIG": "tg5040_defconfig",
             "PF_TFA_REPO": "tfa-tsp-a133",
             "PF_TFA_SHA": "da28d33e2fee80a751d148cba748770ebe25dcbe",
@@ -75,14 +75,15 @@ class FullOpen7BootchainTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x-gpu")
         self.assertEqual(missing, [])
         expected = {
+            "PF_IMAGE_SHA": "98f3015b037c2a53dff84d12e65bdc6a3769ec19",
             "PF_KERNEL_REPO": "kernel-sunxi-7.x",
-            "PF_KERNEL_SHA": "07bb60764cbc64b5a5d760c34709f07f8259e985",
+            "PF_KERNEL_SHA": "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8",
             "PF_KERNEL_DTB": "sun50i-a133-pocketforge-odyssey.dtb",
             "PF_KERNEL_REQUIRED_MODULES": "powervr",
             "PF_GPU_MODEL": "open",
             "PF_GPU_KM_MODEL": "in-tree-7.x",
             "PF_GPU_KM_REPO": "kernel-sunxi-7.x",
-            "PF_GPU_KM_SHA": "07bb60764cbc64b5a5d760c34709f07f8259e985",
+            "PF_GPU_KM_SHA": "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8",
             "PF_GPU_UM_REPO": "gpu-um-tsp",
             "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
             "PF_LIBSDL3_SHA": "7411a94803c95b2f93a898f3773ffe95dfec4263",
@@ -106,6 +107,13 @@ class FullOpen7BootchainTest(unittest.TestCase):
         self.assertEqual(resolved["gpu"]["model"], "none")
         self.assertEqual(resolved["gpu"]["modules"], [])
         self.assertEqual(resolved["display"]["pipeline"], "none")
+
+    def test_noradio_profile_carries_the_battery_safety_kernel(self):
+        args, _state, missing = profile.build_args("a133-open-7x-gpu-noradio")
+        self.assertEqual(missing, [])
+        safety_kernel = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
+        self.assertEqual(args["PF_KERNEL_SHA"], safety_kernel)
+        self.assertEqual(args["PF_GPU_KM_SHA"], safety_kernel)
 
     def test_existing_a133_bootchain_contracts_are_unchanged(self):
         expected = {

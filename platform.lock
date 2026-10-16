@@ -153,8 +153,10 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # tsp-mc9m.41.1029 Build 11 deliberately rejoins the diagnostic profile to the canonical
 # v184 kernel. Keep the explicit override because owned-image admission requires the
 # resolved no-radio kernel to equal this profile pin even when both values are identical.
+# tsp-mc9m.60.29.34 Build 16 keeps that equality: image#274 installs the same
+# low-battery policy for no-radio, so its kernel must carry #106's alarm capability.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "07bb60764cbc64b5a5d760c34709f07f8259e985"
+kernel = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
 
 [[repos]]
 name = "image"
@@ -643,7 +645,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # tsp-mc9m.41.1029 paired image follow-up: move the load-bearing
                        # Gamescope PVR-cache producer witness to gamescope#22's exact
                        # linear head; package-path and cache-provenance tests move with it.
-sha  = "dd9dae5959e5460e9b4912a3361d8c08b4d023f7"
+                       # tsp-mc9m.60.29.34 Build 16: image#274 adds the fail-closed,
+                       # sysfs-only low-battery shutdown policy and the kernel capability receipt.
+sha  = "98f3015b037c2a53dff84d12e65bdc6a3769ec19"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -824,7 +828,12 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.1029 Build 11): device/a133
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.34 Build 16): device/a133
+                             # 973d40af contains #97/#102 and the complete battery-safety
+                             # series #103-#106: runtime charge/thermal parity, gauge model,
+                             # masked terminal action and low-SOC alarm notifications.
+                             # Steam Link's exported-UAPI producer remains independently
+                             # pinned to byte-compatible Build 11 source 07bb6076 above.
                              # 07bb60764cbc64b5a5d760c34709f07f8259e985 = Build 9's
                              # 45b87a7d plus kernel#93's linear-workflow validation and
                              # kernel#94's render-only virtio_gpu configuration for v184.
@@ -1070,7 +1079,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.41.1029 Build 11): device/a1
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "07bb60764cbc64b5a5d760c34709f07f8259e985"
+sha  = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -1340,7 +1349,10 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # honors the DTB-owned CMA pool. Diagnostic profile overrides above
                               # remain deliberately held. BANNER CHANGE: 2025.10-gdb70249c8b25.
                               # Prior canonical pin (c21fbfb88293b9427b471a0725d1851484a8adba).
-sha  = "db70249c8b25b7c3271cce71a19005b361527aaf"
+                              # tsp-mc9m.60.29.34 Build 16: #56 establishes masked PMIC
+                              # protection/hold policy and #57 adds the fail-closed low-battery
+                              # boot gate. BANNER CHANGE: 2025.10-g72abd96b6b87.
+sha  = "72abd96b6b879638e5df037d2b693ab39b72b41d"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
