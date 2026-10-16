@@ -34,3 +34,11 @@ jobs:
           # to any scanned workflow would skip the guard. Stdlib-only python, no docker.
           scripts/tests/workflow-host-route-test.sh --self-test
           scripts/tests/workflow-host-route-test.sh
+          # Canonical host-route spec port (runtime 0b1b5d09, bead tsp-ihne1.56.5):
+          # vendored-fixture sha256 check, the canonical inventory self-test (97 seeded
+          # red/green cases incl. the `--` dynamic-image rule and seat-host runs-on reds)
+          # and the plain scan over every tracked workflow/template/script (host-route
+          # findings + runs-on eligibility vs the vendored runner-host map).
+          bash tests/test-vendored-sources.sh
+          python3 tests/uinput_inventory.py --self-test
+          python3 tests/uinput_inventory.py
