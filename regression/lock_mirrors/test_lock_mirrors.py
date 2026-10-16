@@ -20,8 +20,9 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "dd9dae5959e5460e9b4912a3361d8c08b4d023f7"
+CURRENT_IMAGE = "98f3015b037c2a53dff84d12e65bdc6a3769ec19"
 CURRENT_UAPI = "07bb60764cbc64b5a5d760c34709f07f8259e985"
+CURRENT_KERNEL = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
 CURRENT_CTS_SOURCE = "067e8832315e79817ede1c4863804e440f5d1c80"
 BUILD9_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 BUILD9_KERNEL = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
@@ -745,6 +746,13 @@ comparison = "equal"
             ),
             "tests/test-steamlink-ffmpeg59-runtime.sh": (
                 f"build11_uapi_sha={CURRENT_UAPI}\n".encode()
+            ),
+            "tests/lib/capture-customize-hook.sh": (
+                f"kernel_sha={CURRENT_KERNEL}\n"
+                f"PF_KERNEL_SHA={CURRENT_KERNEL}\n".encode()
+            ),
+            "tests/test-low-battery-shutdown.sh": (
+                f"alarm_kernel_sha={CURRENT_KERNEL}\n".encode()
             ),
         }
         resolver = FixtureResolver({("image", CURRENT_IMAGE): current_tree})
