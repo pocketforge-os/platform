@@ -375,17 +375,19 @@ class ProfileTest(unittest.TestCase):
         # selected only by the full open-GPU profiles outside this table. Build
         # 15 advances universal PF_IMAGE_SHA and PF_RUNTIME_SHA; launcher and
         # gpu-um remain selected-profile-only inputs outside this table.
+        # The Build 16 UAPI receipt repair advances only the universal image pin
+        # on these non-open profiles.
         expected = {
-            ("a133", "dev"): "a50adc69725886daaf8ce36711a38bc41a885625467d2fddc8b300d08350000c",
-            ("a133", "release"): "0e0a1087e495758351acf2ed582e38601acce75097796e5e63e387921dcb769f",
-            ("a133-open-7x", "dev"): "d312670d9592621ad96e98f53a2139a76ea9f4c4a84a2bf4fa7fabc08076bd34",
-            ("a133-open-7x", "release"): "860c012dcacb10910157207d9693253a45d9f9fff46724c361a2b747ef17a496",
-            ("a133-owned", "dev"): "8a3beefa562e770d49eb879359f65d1ce39137aeb268d3808dcf5f233f4d2ac5",
-            ("a133-owned", "release"): "7fd0e11804ebfdcbff5455b460b8c1e172430d9cb00b26da426c41c5765e4cf9",
-            ("a523", "dev"): "31336fb631a70e81e158ecc4cc7a9ddd0bfcc6c766aaa689ce6e7573286f5114",
-            ("a523", "release"): "c716aa0a9460cadd970e071f7c98ffc7b9648145d4e92b5c2d562caadd81f897",
-            ("sdm845", "dev"): "a46d33062eac0d20d6345df45608d79d503817094ac39b6a835260a9613dbd05",
-            ("sdm845", "release"): "9a0f3e7346fcaa13495218b010aaf5d98e654314e0637dde8ff15b7ae3fde951",
+            ("a133", "dev"): "b74b109e88b7abf0eea557b6cfc0a2adc6c21cb8852bb37ed41a26572936db66",
+            ("a133", "release"): "50a6be195bcfd06bd56a7953b8e8464b3e324886f5a84efe06e3ff56a14c8e16",
+            ("a133-open-7x", "dev"): "b7a3161b2ab71dcfec65ce1a8d59b4021bfef18cdb4384c21c1f9cbced05fee0",
+            ("a133-open-7x", "release"): "88d95b0f881d21876d1763beeb371cce7fb1771c32eea3b25c63cd7c6baffc3f",
+            ("a133-owned", "dev"): "72d8280028616a5ea506860bf91d2bfba06e648650601887e1e9f7ab44ffb85d",
+            ("a133-owned", "release"): "59fb623b0080d7c4d08eed28f348e28c5a72b42dc29565392f6bae7a0dc31805",
+            ("a523", "dev"): "bfcc1b0549179183662d48b3e35b081871f72f643aae91b27d5c380b2237489e",
+            ("a523", "release"): "9f35f8690d5a5a85f07330c795dd2aeba3c796c80bb465b6f7c14def1d50818f",
+            ("sdm845", "dev"): "b8cd0b17a5232f8c04c85f0abb164fcad44425d10c1be1b376c91386c6d8ad64",
+            ("sdm845", "release"): "b4b655b6ece707ad30391abe624882f2f7363f4bebdcdfaa7aa0926fddf89ca1",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -668,7 +670,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "98f3015b037c2a53dff84d12e65bdc6a3769ec19",
+                "PF_IMAGE_SHA": "2ee09df02b99cf9862520351311826b6aaab06e0",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

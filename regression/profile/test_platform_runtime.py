@@ -13,7 +13,7 @@ profile = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(profile)
 
 SELECTED = "a133-open-7x-gpu"
-UAPI_SHA = "07bb60764cbc64b5a5d760c34709f07f8259e985"
+UAPI_SHA = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
 KERNEL_SHA = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
 EXPECTED_ARGS = {
     "PF_STEAMLINK_FFMPEG59_MODE": "v1",
@@ -37,10 +37,9 @@ class PlatformRuntimeTest(unittest.TestCase):
         self.assertEqual(runtime["source_repo"], "kernel-sunxi-7.x")
         self.assertEqual(runtime["source_sha"], UAPI_SHA)
         self.assertEqual(lock["repos"][runtime["source_repo"]]["sha"], KERNEL_SHA)
-        # The exact exported-UAPI witness remains on Build 11 while the boot kernel
-        # advances to Build 16. The source repository is shared; the commits are
-        # intentionally independent pins because the consumed UAPI did not change.
-        self.assertNotEqual(runtime["source_sha"], KERNEL_SHA)
+        # Exported bytes are unchanged, but the producer consumes the boot-kernel
+        # tree and authenticates its exact source receipt.
+        self.assertEqual(runtime["source_sha"], KERNEL_SHA)
 
         args, _, missing = profile.build_args(SELECTED)
         self.assertEqual(missing, [])

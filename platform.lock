@@ -74,13 +74,16 @@ tools_recipe_sha = "ec5b2621f636261978d3bb4fd9843ae22a59c320"
 # tsp-mc9m.41.1029 Build 11: kernel#93 changes CI-only workflow files and kernel#94
 # enables the v184 virtual-GPU config. The 45b87a7d..07bb6076 exported UAPI trees
 # remain byte-identical; move the exact receipt identity with the boot kernel.
+# tsp-mc9m.60.29.34 Build 16: the 07bb6076..973d40af exported arm64 UAPI installs
+# remain byte-identical (996-file manifest d2edfc69), so move the exact producer
+# receipt identity with the Build 16 boot kernel as required by the same contract.
 [platform_runtime.steamlink_ffmpeg59_v1]
 schema_version = 1
 profile         = "a133-open-7x-gpu"
 mode_arg        = "PF_STEAMLINK_FFMPEG59_MODE"
 mode_value      = "v1"
 source_repo     = "kernel-sunxi-7.x"
-source_sha      = "07bb60764cbc64b5a5d760c34709f07f8259e985"
+source_sha      = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
 runtime_path    = "/usr/lib/pocketforge/platform-runtimes/steamlink-ffmpeg59/v1"
 
 [platform_runtime.steamlink_ffmpeg59_v1.build_args]
@@ -90,7 +93,7 @@ PF_FFMPEG_ORIG_SHA256        = "56d4daf10c17330a45c8fe11bc260997677ca2432d3d5951
 PF_FFMPEG_ORIG_ASC_SHA256    = "ee93598ac566d1be4a80801e0a58f91ede2e6a5e9e670f681723b447f23c59d0"
 PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a39512921680090952e1"
 PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
-PF_FFMPEG_UAPI_SHA           = "07bb60764cbc64b5a5d760c34709f07f8259e985"
+PF_FFMPEG_UAPI_SHA           = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
 
 # tsp-mc9m.41.924.24.14: immutable full GLES CTS checklist used only by the
 # opt-in dev test image. Unlike platform_runtime above, this input is already a
@@ -645,9 +648,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # tsp-mc9m.41.1029 paired image follow-up: move the load-bearing
                        # Gamescope PVR-cache producer witness to gamescope#22's exact
                        # linear head; package-path and cache-provenance tests move with it.
-                       # tsp-mc9m.60.29.34 Build 16: image#274 adds the fail-closed,
-                       # sysfs-only low-battery shutdown policy and the kernel capability receipt.
-sha  = "98f3015b037c2a53dff84d12e65bdc6a3769ec19"
+                       # tsp-mc9m.60.29.34 Build 16 UAPI co-pin repair: image#274 plus
+                       # the exact 973d40af Steam Link kernel-UAPI source receipt.
+sha  = "2ee09df02b99cf9862520351311826b6aaab06e0"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -832,8 +835,9 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.34 Build 16): device/a
                              # 973d40af contains #97/#102 and the complete battery-safety
                              # series #103-#106: runtime charge/thermal parity, gauge model,
                              # masked terminal action and low-SOC alarm notifications.
-                             # Steam Link's exported-UAPI producer remains independently
-                             # pinned to byte-compatible Build 11 source 07bb6076 above.
+                             # Steam Link's byte-identical exported-UAPI producer is pinned
+                             # to this exact boot-kernel identity above because its receipt
+                             # authenticates the source tree. Previous UAPI receipt:
                              # 07bb60764cbc64b5a5d760c34709f07f8259e985 = Build 9's
                              # 45b87a7d plus kernel#93's linear-workflow validation and
                              # kernel#94's render-only virtio_gpu configuration for v184.
