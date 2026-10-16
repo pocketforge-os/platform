@@ -27,3 +27,10 @@ jobs:
           git checkout --quiet --detach "$GITHUB_SHA"
           scripts/tests/workflow-fork-guard-test.sh --self-test
           scripts/tests/workflow-fork-guard-test.sh
+          # Host-route guard (incident tsp-ihne1.56.5): this workflow has NO paths filter,
+          # so the static host-route scan runs for every PR — including one that only touches
+          # a DIFFERENT workflow file. Wiring the scan here (not just in the path-filtered
+          # sim-descriptor-gate.yml) closes the fail-open gap where a forbidden route added
+          # to any scanned workflow would skip the guard. Stdlib-only python, no docker.
+          scripts/tests/workflow-host-route-test.sh --self-test
+          scripts/tests/workflow-host-route-test.sh
