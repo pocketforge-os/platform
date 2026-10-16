@@ -108,6 +108,13 @@ class FullOpen7BootchainTest(unittest.TestCase):
         self.assertEqual(resolved["gpu"]["modules"], [])
         self.assertEqual(resolved["display"]["pipeline"], "none")
 
+    def test_noradio_profile_carries_the_battery_safety_kernel(self):
+        args, _state, missing = profile.build_args("a133-open-7x-gpu-noradio")
+        self.assertEqual(missing, [])
+        safety_kernel = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
+        self.assertEqual(args["PF_KERNEL_SHA"], safety_kernel)
+        self.assertEqual(args["PF_GPU_KM_SHA"], safety_kernel)
+
     def test_existing_a133_bootchain_contracts_are_unchanged(self):
         expected = {
             "a133": VENDOR_BOOTCHAIN,
