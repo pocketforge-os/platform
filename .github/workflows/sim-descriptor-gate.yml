@@ -44,7 +44,7 @@
 # build via sim's own pinned git clone of platform @ the PR head sha.
 #
 # RUNNER ROUTING + FORK GUARD — DELIBERATE (build-lab confinement invariant, tsp-20u1). The nested sim
-# needs /dev/uinput + SYS_ADMIN + unconfined seccomp/apparmor (the tsp-qc1.2 verdict; infra-113
+# needs SYS_ADMIN + unconfined seccomp/apparmor for the bwrap nesting (the tsp-qc1.2 verdict; infra-113
 # finding 9 — irreducible, self-hosted only), so this targets the self-hosted builder VM (org runner
 # `mm-build-vm`, label `pf-builder-vm`; a KVM guest on modelmaker) — the infra-113 Option B off-Dell
 # builder end-state, now REALIZED (tsp-65jc.24), which moves this docker = host-root-equivalent
@@ -54,6 +54,13 @@
 # (advisory, so a skip blocks nobody). platform reaches the builder VM through its runner group
 # (build-lab today; moving to a dedicated public-repo-scoped `pf-builder` group in the same bead).
 # Canonical doc: mission-control BUILD_PIPELINE.md "Build-lab confinement invariant".
+#
+# NO HOST INPUT ROUTE (incident tsp-ihne1.56.5). The suites get their input from the sim's OWN
+# control surface: it creates per-run FIFOs inside the run's private output directory and maps them
+# onto the modeled event nodes (sim control/control_surface.py, FifoSynth). Nothing here loads a
+# kernel input module, passes a host input device node, widens the device cgroup for char major 13,
+# or binds the host event directory — those host-global routes let a container reach every seat on
+# the runner, and scripts/tests/workflow-host-route-test.sh fails this repo's CI if they come back.
 
 name: sim descriptor gate
 
@@ -69,6 +76,7 @@ on:
       - 'buildkit/pf-ci-buildkitd.toml'
       - 'scripts/pf-ci-buildx'
       - 'scripts/tests/pf-ci-buildx-test.sh'
+      - 'scripts/tests/workflow-host-route-test.sh'
       - 'core/pf-build.sh'
       - 'core/lib/pf-build-env'
       - 'scripts/tests/pf-build-environment-test.sh'
@@ -133,6 +141,11 @@ jobs:
           }
           bash scripts/tests/pf-ci-buildx-test.sh
           bash scripts/tests/pf-build-environment-test.sh
+          # Static host-route guard (incident tsp-ihne1.56.5): self-test the seeded reds/greens, then
+          # prove no workflow in this repo passes a host input device, binds the host event dir,
+          # widens char major 13, projects a seat variable, or module-loads on the runner.
+          bash scripts/tests/workflow-host-route-test.sh --self-test
+          bash scripts/tests/workflow-host-route-test.sh
           # Pick a Python 3.11+ (tomllib) interpreter — no third-party deps (core/caps.py is stdlib-only).
           PY=""
           for c in python3.12 python3.11 python3; do
@@ -177,9 +190,6 @@ jobs:
       BLOCKING: ${{ needs.descriptor-matrix.outputs.blocking }}
       ADVISORY: ${{ needs.descriptor-matrix.outputs.advisory }}
     steps:
-      - name: Ensure uinput module (host node is required for the nested sim)
-        run: sudo modprobe uinput || true
-
       - name: Clone source-owned builder + sim @ main and build against the PR head
         env:
           GH_TOKEN: ${{ github.token }}
@@ -209,7 +219,12 @@ jobs:
       # --network none on the RUN phase: the headless suite runs entirely from baked, pinned artifacts
       # (no out-of-band input — sim docker/README.md), so denying the run any network shrinks the blast
       # radius of the elevated caps. The caps mirror sim/sim-gate.yml's proven set (the tsp-qc1.2
-      # nesting verdict): /dev/uinput + evdev nodes + SYS_ADMIN + unconfined apparmor/seccomp.
+      # nesting verdict): SYS_ADMIN + unconfined apparmor/seccomp are for the nested bwrap sandbox's
+      # namespaces and mount/pivot_root ONLY. Input never touches the host: the sim control surface
+      # feeds each suite through per-run FIFOs it creates inside the run's private output directory
+      # (sim control/control_surface.py, FifoSynth), mapped onto the modeled event nodes — so no host
+      # input device node, no char-major-13 cgroup widening and no host event-dir bind (incident
+      # tsp-ihne1.56.5; scripts/tests/workflow-host-route-test.sh keeps it that way).
       #
       # Device lists are DATA-DRIVEN from the descriptor-matrix job (platform ci-matrix.toml), NOT a
       # hardcoded list. BLOCKING devices run hard (a failure fails this job); ADVISORY devices are
@@ -222,7 +237,6 @@ jobs:
           for suite in control sensor skin; do
             echo "== check-$suite (blocking): $BLOCKING =="
             docker run --rm --network none \
-              --device /dev/uinput --device-cgroup-rule "c 13:* rmw" -v /dev/input:/dev/input \
               --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
               "$IMG" "check-$suite" $BLOCKING
           done
@@ -234,7 +248,6 @@ jobs:
           for suite in control sensor skin; do
             echo "== check-$suite (advisory): $ADVISORY =="
             docker run --rm --network none \
-              --device /dev/uinput --device-cgroup-rule "c 13:* rmw" -v /dev/input:/dev/input \
               --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
               "$IMG" "check-$suite" $ADVISORY \
               || { rc=1; echo "::warning title=advisory sim descriptor gate::check-$suite FAILED for advisory devices ($ADVISORY) — reported, does not block"; }
