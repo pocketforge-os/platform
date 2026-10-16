@@ -20,7 +20,7 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "061146a8eb0d5a4e863339a58558fb2e931f4287"
+CURRENT_IMAGE = "dd9dae5959e5460e9b4912a3361d8c08b4d023f7"
 CURRENT_UAPI = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 CURRENT_CTS_SOURCE = "067e8832315e79817ede1c4863804e440f5d1c80"
 BUILD9_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
@@ -29,9 +29,9 @@ CURRENT_GAMESCOPE = "0b03a62e720ae93afbd5e59167c8774f8ad74f0c"
 STALE_GAMESCOPE = "0000000000000000000000000000000000000000"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 STALE_UAPI = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
-RUNTIME_SHA = "0b36a9e880d7294677e899b2f6db03262cdc7774"
-LAUNCHER_SHA = "6de0ad32af207ea208ccb29a42b3f3ae4e8d2777"
-PREVIOUS_RUNTIME_SHA = "1dd87ecc2952584a7ef1473c5dcb872662b7c0cb"
+RUNTIME_SHA = "7375a11ab1a45b85ad086f1ba5bb1679bc5fc1c4"
+LAUNCHER_SHA = "e536781107e3fac9c98877e861b6e38a1397f9d9"
+PREVIOUS_RUNTIME_SHA = "0b36a9e880d7294677e899b2f6db03262cdc7774"
 SOURCE_LOCK_PATH = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
 FIXTURES = Path(__file__).with_name("fixtures")
 BASE_COMMIT = "dc4b6a6fc5adf583a4b1697bc8c54a9f1be13803"
@@ -703,9 +703,9 @@ comparison = "equal"
             "build/produce-gamescope-pvr-cache.sh": (
                 f"expected_gamescope_sha={CURRENT_GAMESCOPE}\n".encode()
             ),
-            "build/tests/fixtures/gpu-um-toolchain-1ae75772.Dockerfile": (
+            "build/tests/fixtures/gpu-um-toolchain-87ad7361.Dockerfile": (
                 b"# Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at "
-                b"1ae75772e7f42251062cf660fc13577b8fd60664.\n"
+                b"87ad73611a548e1805f0c21ed083915d79e34c09.\n"
             ),
             ".github/workflows/app-policy-pair.yml": (
                 f"          repository: pocketforge-os/runtime\n"
