@@ -36,11 +36,24 @@
 #                            ($PWD / ${PWD}, exact or as a path prefix). shlex does NOT
 #                            expand variables, so `node=/dev/uinput; docker run --device
 #                            "$node"` is invisible to a literal scan — hence this rule.
-#   unparseable_command      a docker command the tokenizer cannot split (fail closed)
+#                            WHOLE-ARGV expansions: an UNQUOTED $VAR, ${VAR}, $(cmd) or
+#                            `cmd` word anywhere in the Docker OPTION region (any token
+#                            before the image operand, including the image slot and
+#                            consumed flag values) word-splits at runtime and can inject
+#                            ANY option (--privileged, --device, binds, env) past the
+#                            static scan -> denied. Quoted expansions ("$IMG") are one
+#                            word and cannot inject options; unquoted expansions AFTER
+#                            the image operand are container arguments (e.g. the
+#                            $BLOCKING device list), inert for Docker option parsing.
+#   unparseable_command      a docker command the tokenizer cannot split, or whose shell
+#                            word walk and shlex tokenization disagree (fail closed)
 # Full mode additionally asserts the POSITIVE controls on sim-descriptor-gate.yml: the sim
 # suites still run — one BLOCKING and one ADVISORY `for suite in control sensor skin` loop,
-# each suite docker run paired --cap-add SYS_ADMIN with --network none (option/value PAIRS,
-# not free token presence), so the migration cannot silently delete or degrade the suites.
+# each suite docker run paired --cap-add SYS_ADMIN with --network none (option/value PAIRS
+# validated IN THE DOCKER OPTION REGION before the image — the same strings after the image
+# are inert application arguments), with the check-<suite> command and the $BLOCKING/
+# $ADVISORY classification in the container-argument region, so the migration cannot
+# silently delete or degrade the suites.
 #
 # Usage:
 #   scripts/tests/workflow-host-route-test.sh --self-test   # seeded reds + greens, one invocation
@@ -140,6 +153,15 @@ OWNERSHIP_IDIOMS = (
 
 DOCKER_RUN = re.compile(r"\bdocker\s+run\b")
 
+# Docker flags that never take a value. Any OTHER unknown `-flag` consumes the
+# following non-dash word as its value (fail closed: a mis-parsed value could
+# otherwise be mistaken for the image operand and end option parsing too early).
+DOCKER_BOOL_FLAGS = {
+    "--rm", "--privileged", "--init", "--read-only", "--detach", "-d",
+    "--interactive", "-i", "--tty", "-t", "-it", "--publish-all", "-P",
+    "--no-healthcheck", "--sig-proxy",
+}
+
 
 def logical_lines(text):
     """Yield (start_lineno_1based, joined_line) with backslash continuations joined."""
@@ -153,6 +175,80 @@ def logical_lines(text):
             i += 1
         yield start, joined
         i += 1
+
+
+def raw_word_flags(line):
+    """One bool per whitespace-separated shell word: True when the word carries a
+    `$` or backtick OUTSIDE any quotes. Unquoted expansions word-split at runtime,
+    so a single token like $FLAGS or $(route_args) can inject WHOLE docker options;
+    quoted expansions ("$IMG") stay one word and cannot. Aligned 1:1 with the
+    shlex.split() tokens of the same line (callers must verify the lengths)."""
+    flags = []
+    have_word = False
+    unquoted_dyn = False
+    in_single = in_double = esc = False
+    for ch in line:
+        if esc:
+            esc = False
+            continue
+        if in_single:
+            if ch == "'":
+                in_single = False
+            continue
+        if in_double:
+            if ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_double = False
+            continue
+        if ch == "\\":
+            esc = True
+            continue
+        if ch == "'":
+            have_word = True
+            in_single = True
+            continue
+        if ch == '"':
+            have_word = True
+            in_double = True
+            continue
+        if ch.isspace():
+            if have_word:
+                flags.append(unquoted_dyn)
+            have_word = False
+            unquoted_dyn = False
+            continue
+        have_word = True
+        if ch in "$`":
+            unquoted_dyn = True
+    if have_word:
+        flags.append(unquoted_dyn)
+    return flags
+
+
+def docker_regions(tokens):
+    """Split one `docker run` token list into (option_tokens, image_idx, app_tokens).
+    The image is the first positional operand after `docker run`; everything after it
+    is the container command + arguments (inert as far as Docker option parsing goes).
+    image_idx is None when no positional operand exists."""
+    try:
+        start = tokens.index("run", tokens.index("docker"))
+    except ValueError:
+        return tokens, None, []
+    i = start + 1
+    n = len(tokens)
+    while i < n:
+        tok = tokens[i]
+        if tok.startswith("-"):
+            if tok in DOCKER_BOOL_FLAGS or "=" in tok:
+                i += 1
+            elif i + 1 < n and not tokens[i + 1].startswith("-"):
+                i += 2  # flag value (sensitive or unknown)
+            else:
+                i += 1
+            continue
+        return tokens[:i], i, tokens[i + 1:]
+    return tokens, None, []
 
 
 def bind_source_denied(src):
@@ -270,15 +366,34 @@ def scan_text(text):
         except ValueError as exc:
             findings.append(("unparseable_command", lineno, str(exc)))
             continue
+        raws = raw_word_flags(line)
+        if len(raws) != len(tokens):
+            # The quote-aware word walk and shlex disagree -> the argv cannot be
+            # proven safe statically. Fail closed.
+            findings.append(("unparseable_command", lineno,
+                             "word/token misalignment in docker run line"))
+            continue
+        # The Docker option region starts AFTER the `docker run` tokens; a shell
+        # prefix on the same logical line (`for suite ...; do`, `if`, `caps() {`)
+        # is not part of the argv and must not be mistaken for the image operand.
+        try:
+            run_idx = tokens.index("run", tokens.index("docker"))
+        except ValueError:
+            run_idx = None
         i = 0
         n = len(tokens)
+        image_seen = False
         while i < n:
             tok = tokens[i]
             findings.extend(token_findings(tok, lineno))
+            if run_idx is None or i <= run_idx:
+                i += 1
+                continue
             if tok == "--privileged":
                 findings.append(("host_device_wildcard", lineno, tok))
             if tok == "--env-file" or tok.startswith("--env-file="):
                 findings.append(("host_env_file", lineno, tok))
+            consumed = False
             for flag in SENSITIVE_VALUE_FLAGS:
                 if tok == flag:
                     if i + 1 >= n:
@@ -289,11 +404,44 @@ def scan_text(text):
                         # denials, else `--device /dev/uinput` hides in the value slot.
                         findings.extend(token_findings(value, lineno))
                         check_sensitive_value(flag, value, lineno, findings)
+                        if not image_seen and raws[i + 1]:
+                            findings.append(("dynamic_route", lineno,
+                                             "unquoted expansion as the value of "
+                                             f"{tok} can word-split into extra "
+                                             f"docker options: {value}"))
                         i += 1
+                        consumed = True
                     break
                 if tok.startswith(flag + "="):
                     check_sensitive_value(flag, tok.split("=", 1)[1], lineno, findings)
+                    consumed = True  # inline form carries its own value
                     break
+            if consumed:
+                i += 1
+                continue
+            if not image_seen:
+                # Everything before the first positional operand is the Docker
+                # OPTION region. An unquoted expansion here ($FLAGS, ${FLAGS},
+                # $(cmd), `cmd`) word-splits at runtime and can inject ANY option
+                # (--privileged, --device, binds, env) past this static scan.
+                if raws[i]:
+                    findings.append(("dynamic_route", lineno,
+                                     "unquoted shell expansion in the docker option "
+                                     "region can inject arbitrary options at runtime: "
+                                     f"{tok}"))
+                elif tok.startswith("-"):
+                    # Unknown non-boolean flag: its value is the next non-dash word.
+                    if ("=" not in tok and tok not in DOCKER_BOOL_FLAGS
+                            and i + 1 < n and not tokens[i + 1].startswith("-")):
+                        findings.extend(token_findings(tokens[i + 1], lineno))
+                        if raws[i + 1]:
+                            findings.append(("dynamic_route", lineno,
+                                             "unquoted expansion as the value of "
+                                             f"{tok} can word-split into extra "
+                                             f"docker options: {tokens[i + 1]}"))
+                        i += 1
+                else:
+                    image_seen = True  # first positional operand = the image
             i += 1
     return findings
 
@@ -328,7 +476,11 @@ CHECK_SUITE_TOKEN = re.compile(r"check-(?:\$suite|\$?\{?suite\}?|control|sensor|
 def positive_controls_platform(text):
     """The migration keeps the suites: one BLOCKING and one ADVISORY
     `for suite in control sensor skin` loop, each suite docker run carrying the
-    nesting caps and --network none as OPTION/VALUE PAIRS. Returns failure strings."""
+    nesting caps and --network none as OPTION/VALUE PAIRS IN THE DOCKER OPTION
+    REGION (before the image operand — the same strings appended after the image
+    are inert container arguments and must NOT satisfy the control), with the
+    check-<suite> command and the $BLOCKING/$ADVISORY classification in the
+    container-argument region. Returns failure strings."""
     problems = []
     suite_loops = sum(
         1 for _ln, line in logical_lines(text)
@@ -345,18 +497,29 @@ def positive_controls_platform(text):
         if not any(CHECK_SUITE_TOKEN.fullmatch(t) for t in tokens):
             continue
         check_runs += 1
-        if "$BLOCKING" in tokens:
+        opts, image_idx, app = docker_regions(tokens)
+        if image_idx is None:
+            problems.append("positive-control: a suite run has no image operand; "
+                            "the Docker option region cannot be proven")
+            continue
+        if not any(CHECK_SUITE_TOKEN.fullmatch(t) for t in app):
+            problems.append("positive-control: the check-<suite> command is not in "
+                            "the container-argument region of a suite run")
+        if "$BLOCKING" in app:
             kinds.add("blocking")
-        if "$ADVISORY" in tokens:
+        if "$ADVISORY" in app:
             kinds.add("advisory")
-        if not pair_ok(tokens, "--cap-add", "SYS_ADMIN"):
+        if not pair_ok(opts, "--cap-add", "SYS_ADMIN"):
             problems.append("positive-control: a suite run lost the paired "
-                            "`--cap-add SYS_ADMIN` nesting cap")
-        if not pair_ok(tokens, "--network", "none"):
+                            "`--cap-add SYS_ADMIN` nesting cap as a Docker option "
+                            "before the image")
+        if not pair_ok(opts, "--network", "none"):
             problems.append("positive-control: a suite run lost the paired "
-                            "`--network none` isolation")
-        if "--rm" not in tokens:
-            problems.append("positive-control: a suite run lost --rm")
+                            "`--network none` isolation as a Docker option "
+                            "before the image")
+        if "--rm" not in opts:
+            problems.append("positive-control: a suite run lost --rm from the "
+                            "Docker option region")
     if check_runs < 2:
         problems.append(
             f"positive-control: {check_runs} suite `docker run` command(s); expected >= 2 "
@@ -479,6 +642,27 @@ SELF_TEST_FIXTURES = [
     ("red_dynamic_bind_non_workspace",
      'run: |\n  SRC=/opt/pf\n  docker run --rm -v "$SRC/data:/data" "$IMG" cmd\n',
      {"dynamic_route"}),
+    # ---- whole-argv expansion reds: an UNQUOTED expansion in the Docker option
+    # region word-splits at runtime and can inject any option past the static scan.
+    ("red_scalar_expansion_option_region",
+     'run: |\n  FLAGS=\'--privileged --device /dev/uinput\'\n'
+     '  docker run --rm $FLAGS "$IMG" cmd\n',
+     {"dynamic_route"}),
+    ("red_braced_scalar_expansion_option_region",
+     'run: docker run --rm ${FLAGS} "$IMG" cmd\n',
+     {"dynamic_route"}),
+    ("red_cmdsub_option_region",
+     'run: docker run --rm $(route_args) "$IMG" cmd\n',
+     {"dynamic_route"}),
+    ("red_backtick_option_region",
+     'run: docker run --rm `route_args` "$IMG" cmd\n',
+     {"dynamic_route"}),
+    ("red_unquoted_dynamic_image_slot",
+     "run: docker run --rm $IMG_VAR cmd\n",
+     {"dynamic_route"}),
+    ("red_unquoted_expansion_as_unknown_flag_value",
+     'run: docker run --rm --security-opt $OPT "$IMG" cmd\n',
+     {"dynamic_route"}),
     # ---- greens
     ("green_migrated_argv",
      "run: |\n"
@@ -540,6 +724,20 @@ CONTROL_FIXTURES = [
     ("ctrl_red_suite_loop_missing",
      CONTROL_GREEN_TEXT.replace("for suite in control sensor skin; do",
                                 "for s in control; do"),
+     True),
+    # ---- boundary spoofs: the Docker-side requirement strings moved AFTER the
+    # image are inert container arguments and must not satisfy the controls.
+    ("ctrl_red_cap_spoofed_after_image",
+     CONTROL_GREEN_TEXT.replace("--network none --cap-add SYS_ADMIN", "--network none")
+     .replace('"check-$suite" ', '"check-$suite" --cap-add SYS_ADMIN '),
+     True),
+    ("ctrl_red_network_spoofed_after_image",
+     CONTROL_GREEN_TEXT.replace("--rm --network none", "--rm")
+     .replace('"check-$suite" ', '"check-$suite" --network none '),
+     True),
+    ("ctrl_red_rm_spoofed_after_image",
+     CONTROL_GREEN_TEXT.replace("docker run --rm ", "docker run ")
+     .replace('"check-$suite" ', '"check-$suite" --rm '),
      True),
 ]
 
