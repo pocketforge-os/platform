@@ -841,6 +841,13 @@ SELF_TEST_FIXTURES = [
     ("red_quoted_image_var_unsafe_value",
      'run: |\n  IMG=--device=/dev/uinput\n  docker run --rm "$IMG" pocketforge-sim:x cmd\n',
      {"dynamic_route"}),
+    ("red_quoted_flag_name_option_region",
+     'run: docker run --rm "--$OPT" pocketforge-sim:x cmd\n',
+     {"dynamic_route"}),
+    ("red_image_var_unsafe_gh_context",
+     'env:\n  IMG: pocketforge-${{ github.event.pull_request.title }}\n'
+     'run: docker run --rm "$IMG" cmd\n',
+     {"dynamic_route"}),
     # ---- greens
     ("green_proven_image_variable",
      "env:\n"
