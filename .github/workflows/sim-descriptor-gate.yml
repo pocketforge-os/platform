@@ -103,12 +103,10 @@ concurrency:
 # in the data are the per-device blocking/advisory keys the sim/pf-hwprobe required checks consume.
 jobs:
   descriptor-matrix:
-    # Cheap data-derivation + validation on the pf-pr-review VM lane — the org's designed lane for
-    # running untrusted PR code read-only (same routing rationale as skin-drift/abi-drift). It executes
-    # the PR head's core/caps.py (sub-second, side-effect-free). Keep fork-authored code off this
-    # persistent runner even when GitHub's fork approval gate would otherwise permit the run.
+    # Cheap data-derivation + validation on a one-job, credential-free public VM. It executes the PR
+    # head's core/caps.py (sub-second, side-effect-free). The same-repository guard remains explicit.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, pf-pr-review]
+    runs-on: [self-hosted, pf-public-ci]
     outputs:
       blocking: ${{ steps.derive.outputs.blocking }}
       advisory: ${{ steps.derive.outputs.advisory }}
