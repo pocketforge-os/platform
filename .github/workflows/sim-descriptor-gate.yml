@@ -92,7 +92,7 @@ concurrency:
 # The gate is split so
 # the DATA is validated + derived CHEAPLY on every descriptor PR, and only the expensive sim build
 # runs the suites:
-#   1. descriptor-matrix (pf-pr-review VM lane, sub-second): `pf caps matrix validate` fails fast on a
+#   1. descriptor-matrix (pf-public-ci VM lane, sub-second): `pf caps matrix validate` fails fast on a
 #      bad posture / an unclassified device dir / a gating posture with no descriptor; then it derives
 #      the blocking + advisory device lists (job outputs). A NEW descriptor auto-joins as advisory and
 #      is VISIBLE in this job's log with zero workflow edits (infra-113 §8.4 auto-join proof).
