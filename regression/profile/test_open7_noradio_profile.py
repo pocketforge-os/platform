@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "07bb60764cbc64b5a5d760c34709f07f8259e985"
+NORMAL_KERNEL_SHA = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -30,10 +30,12 @@ NORMAL_KERNEL_SHA = "07bb60764cbc64b5a5d760c34709f07f8259e985"
 # Cedrus SRAM/poll fix likewise leaves it held while the canonical pin moves to 671e7090.
 # The PowerVR MMU/freelist and DTB-guard batch again leaves it held while the canonical
 # pin moves to a65b6107; Build 7 and Build 9 likewise leave it held through de8ca3df
-# and 45b87a7d. Build 11 deliberately rejoins it to the canonical v184 kernel while
+# and 45b87a7d. Build 11 deliberately rejoined it to the canonical v184 kernel while
 # preserving the separate lock-owned entry required by the owned-image admission gate.
-NORADIO_KERNEL_SHA = "07bb60764cbc64b5a5d760c34709f07f8259e985"
-NORMAL_UBOOT_SHA = "db70249c8b25b7c3271cce71a19005b361527aaf"
+# Build 16 advances both entries together so image#274 cannot pair its low-battery
+# shutdown policy with a kernel that lacks #106's alarm capability.
+NORADIO_KERNEL_SHA = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
+NORMAL_UBOOT_SHA = "72abd96b6b879638e5df037d2b693ab39b72b41d"
 
 
 def flatten(value: Any, prefix: str = "") -> dict[str, Any]:
@@ -109,7 +111,7 @@ class Open7NoradioProfileTest(unittest.TestCase):
         self.assertEqual(noradio_missing, [])
         self.assertEqual(
             differences(without_platform_runtime(normal_args), noradio_args),
-            # Build 11 rejoins the explicit override to the canonical kernel, so only
+            # Build 16 keeps the explicit override equal to the canonical kernel, so only
             # the diagnostic identity and selected DTB differ.
             {
                 "PF_DEVICE_ID": (NORMAL_DEVICE, NORADIO_DEVICE),
@@ -145,8 +147,8 @@ class Open7NoradioProfileTest(unittest.TestCase):
             document,
         )
         self.assertIn(
-            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; Build 11 deliberately "
-            "rejoins it to the canonical pin.",
+            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; Build 16 keeps it "
+            "equal to the canonical pin.",
             document,
         )
         self.assertNotIn("holds its lock-owned kernel pin at `23cdf7bf`", document)

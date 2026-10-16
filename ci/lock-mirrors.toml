@@ -358,6 +358,42 @@ template = '            == "{value}",'
 reason = "self-test expectation for the input harness gamescope pin"
 
 [[references]]
+id = "low-battery-customize-fixture-receipt"
+platform_field = "repos.kernel-sunxi-7.x.sha"
+aliases = [
+  "profile_pins.a133-open-7x-gpu-noradio.kernel",
+]
+consumer_repo = "image"
+consumer_path = "tests/lib/capture-customize-hook.sh"
+parser = "template"
+template = "kernel_sha={value}"
+reason = "positive low-battery capability receipt fixture"
+
+[[references]]
+id = "low-battery-customize-fixture-build-arg"
+platform_field = "repos.kernel-sunxi-7.x.sha"
+aliases = [
+  "profile_pins.a133-open-7x-gpu-noradio.kernel",
+]
+consumer_repo = "image"
+consumer_path = "tests/lib/capture-customize-hook.sh"
+parser = "template"
+template = "PF_KERNEL_SHA={value}"
+reason = "rootfs build argument paired with the positive low-battery capability receipt fixture"
+
+[[references]]
+id = "low-battery-capability-exact-control"
+platform_field = "repos.kernel-sunxi-7.x.sha"
+aliases = [
+  "profile_pins.a133-open-7x-gpu-noradio.kernel",
+]
+consumer_repo = "image"
+consumer_path = "tests/test-low-battery-shutdown.sh"
+parser = "template"
+template = "{value}"
+reason = "exact #106 positive control paired with descendant, ancestor and unrelated capability cases"
+
+[[references]]
 id = "input-harness-gamescope-selftest-container"
 platform_field = "repos.gamescope.sha"
 consumer_repo = "image"
@@ -431,14 +467,12 @@ id = "steamlink-uapi-runtime-test-build11-control"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
 aliases = [
   "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
-  "profile_pins.a133-open-7x-gpu-noradio.kernel",
-  "repos.kernel-sunxi-7.x.sha",
 ]
 consumer_repo = "image"
 consumer_path = "tests/test-steamlink-ffmpeg59-runtime.sh"
 parser = "template"
 template = 'build11_uapi_sha={value}'
-reason = "Build 11 kernel-UAPI witness shared by the Steam Link source, profile override, and repository pin"
+reason = "Build 11 kernel-UAPI witness retained by the Steam Link source after later boot-kernel pins"
 
 [[references]]
 id = "volatile-root-kernel-pr-provenance"
