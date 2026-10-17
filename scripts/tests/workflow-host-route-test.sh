@@ -32,8 +32,11 @@
 #                            (--device, --device-cgroup-rule, --cap-add, -v/--volume/
 #                            --mount, -e/--env), a dynamic modprobe/sg/permission-command
 #                            argument, when the runtime value cannot be proven safe. The
-#                            only dynamic bind source allowed is the workspace itself
-#                            ($PWD / ${PWD}, exact or as a path prefix). shlex does NOT
+#                            only dynamic bind source allowed is one anchored at a
+#                            runner workspace root ($GITHUB_WORKSPACE / ${GITHUB_WORKSPACE} /
+#                            $RUNNER_TEMP / ${RUNNER_TEMP} / ${{ github.workspace }} /
+#                            ${{ runner.temp }}, exact or as a path prefix; $PWD and $HOME
+#                            are NOT workspace anchors). shlex does NOT
 #                            expand variables, so `node=/dev/uinput; docker run --device
 #                            "$node"` is invisible to a literal scan — hence this rule.
 #                            WHOLE-ARGV expansions: an UNQUOTED $VAR, ${VAR}, $(cmd) or
@@ -123,8 +126,18 @@ BIND_FLAGS = {"-v", "--volume", "--mount"}
 # Docker short options accept ATTACHED values (`-v/dev:/dev` == `-v /dev:/dev`,
 # `-eDISPLAY` == `-e DISPLAY`). They must be split before the deny model runs.
 SHORT_VALUE_FLAGS = ("-v", "-e")
-WORKSPACE_PREFIXES = ("$PWD/", "${PWD}/")
-WORKSPACE_EXACT = ("$PWD", "${PWD}")
+# Amended canonical policy (runtime#150, docs/host-route-policy.md 2.1):
+# a dynamic bind source is allowed only when anchored at a runner workspace root.
+WORKSPACE_PREFIXES = (
+    "$GITHUB_WORKSPACE/", "${GITHUB_WORKSPACE}/",
+    "$RUNNER_TEMP/", "${RUNNER_TEMP}/",
+    "${{ github.workspace }}/", "${{ runner.temp }}/",
+)
+WORKSPACE_EXACT = (
+    "$GITHUB_WORKSPACE", "${GITHUB_WORKSPACE}",
+    "$RUNNER_TEMP", "${RUNNER_TEMP}",
+    "${{ github.workspace }}", "${{ runner.temp }}",
+)
 ARRAY_EXPANSION = re.compile(r"\$\{[A-Za-z_][A-Za-z0-9_]*\[[@*]\]\}")
 DYNAMIC = re.compile(r"[$`]")
 
@@ -894,16 +907,16 @@ SELF_TEST_FIXTURES = [
      "# bound, or module-loaded, and no seat variable is projected (incident tsp-ihne1.56.5).\n",
      set()),
     ("green_workspace_chown_reclaim",
-     'run: docker run --rm -v "$PWD:/w" debian:bookworm chown -R "$(id -u):$(id -g)" /w || true\n',
+     'run: docker run --rm -v "$GITHUB_WORKSPACE:/w" debian:bookworm chown -R "$(id -u):$(id -g)" /w || true\n',
      set()),
      ("green_workspace_child_binds",
       'run: |\n  IMG=pocketforge-sim:plat-ci-0\n'
-      '  docker run --rm --network none -v "$PWD/build:/app-build:ro" '
-      '-v "$PWD/evidence:/evidence" -- "$IMG" shell -lc \'python3 /app-ci/run.py --platform "$PLATFORM"\'\n',
+      '  docker run --rm --network none -v "$GITHUB_WORKSPACE/build:/app-build:ro" '
+      '-v "$GITHUB_WORKSPACE/evidence:/evidence" -- "$IMG" shell -lc \'python3 /app-ci/run.py --platform "$PLATFORM"\'\n',
       set()),
      ("green_attached_workspace_bind",
       'run: |\n  IMG: pocketforge-sim:plat-ci-7\n'
-      '  docker run --rm "-v$PWD/build:/app-build:ro" -- "$IMG" shell -lc "python3 /app-ci/run.py"\n',
+      '  docker run --rm "-v$GITHUB_WORKSPACE/build:/app-build:ro" -- "$IMG" shell -lc "python3 /app-ci/run.py"\n',
       set()),
     ("green_static_benign_bind",
      "run: docker run --rm -v /opt/pf/platform:/platform:ro img cmd\n",
@@ -911,6 +924,16 @@ SELF_TEST_FIXTURES = [
     ("green_cgroup_benign_rule",
      'run: docker run --rm --device-cgroup-rule "c 1:3 rw" img cmd\n',
      set()),
+    # Amended policy (runtime#150): a dynamic bind source is allowed only when
+    # anchored at a runner workspace root ($GITHUB_WORKSPACE, ${GITHUB_WORKSPACE},
+    # $RUNNER_TEMP, ${RUNNER_TEMP}, ${{ github.workspace }}, ${{ runner.temp }});
+    # $PWD and $HOME are NOT workspace anchors and stay red.
+    ("red_pwd_bind_not_workspace_anchored",
+     'run: docker run --rm -v "$PWD/build:/app-build:ro" -- "$IMG" shell\n',
+     {"dynamic_route"}),
+    ("red_home_bind_not_workspace_anchored",
+     'run: docker run --rm -v "$HOME/cache:/cache" -- "$IMG" shell\n',
+     {"dynamic_route"}),
 ]
 
 # Positive-control fixtures: (name, text, expect_problems).
