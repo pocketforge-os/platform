@@ -20,9 +20,9 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "2ee09df02b99cf9862520351311826b6aaab06e0"
-CURRENT_UAPI = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
-CURRENT_KERNEL = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
+CURRENT_IMAGE = "1766dfd9374b5bad2e83665f1347896ec4c53272"
+CURRENT_UAPI = "f5af3e87100e843c394a2eb19d315de866280311"
+CURRENT_KERNEL = "f5af3e87100e843c394a2eb19d315de866280311"
 CURRENT_CTS_SOURCE = "067e8832315e79817ede1c4863804e440f5d1c80"
 BUILD9_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 BUILD9_KERNEL = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
@@ -745,7 +745,7 @@ comparison = "equal"
                 f'make_bundle "${{nameless_archive}}" {CURRENT_CTS_SOURCE} no none\n'.encode()
             ),
             "tests/test-steamlink-ffmpeg59-runtime.sh": (
-                f"build11_uapi_sha={CURRENT_UAPI}\n".encode()
+                f"current_uapi_sha={CURRENT_UAPI}\n".encode()
             ),
             "tests/lib/capture-customize-hook.sh": (
                 f"kernel_sha={CURRENT_KERNEL}\n"
@@ -775,8 +775,8 @@ comparison = "equal"
                 "tests/test-cts-bundle-image.sh",
             ),
             (
-                b"template = 'build11_uapi_sha={value}'",
-                b"template = 'build12_uapi_sha={value}'",
+                b"template = 'current_uapi_sha={value}'",
+                b"template = 'renamed_uapi_sha={value}'",
                 "AMBIGUOUS_HIT",
                 "tests/test-steamlink-ffmpeg59-runtime.sh",
             ),
