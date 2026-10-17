@@ -225,6 +225,8 @@ jobs:
       # (sim control/control_surface.py, FifoSynth), mapped onto the modeled event nodes — so no host
       # input device node, no char-major-13 cgroup widening and no host event-dir bind (incident
       # tsp-ihne1.56.5; scripts/tests/workflow-host-route-test.sh keeps it that way).
+      # `--` before the image ends Docker's option parsing, so the dynamic image operand can never
+      # be re-read as an option at runtime (guard delimiter rule, tsp-ihne1.56.5).
       #
       # Device lists are DATA-DRIVEN from the descriptor-matrix job (platform ci-matrix.toml), NOT a
       # hardcoded list. BLOCKING devices run hard (a failure fails this job); ADVISORY devices are
@@ -238,7 +240,7 @@ jobs:
             echo "== check-$suite (blocking): $BLOCKING =="
             docker run --rm --network none \
               --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
-              "$IMG" "check-$suite" $BLOCKING
+              -- "$IMG" "check-$suite" $BLOCKING
           done
 
       - name: check suites — ADVISORY devices (reported, non-blocking)
@@ -249,7 +251,7 @@ jobs:
             echo "== check-$suite (advisory): $ADVISORY =="
             docker run --rm --network none \
               --cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined \
-              "$IMG" "check-$suite" $ADVISORY \
+              -- "$IMG" "check-$suite" $ADVISORY \
               || { rc=1; echo "::warning title=advisory sim descriptor gate::check-$suite FAILED for advisory devices ($ADVISORY) — reported, does not block"; }
           done
           [ "$rc" = 0 ] && echo "✓ advisory suites passed: $ADVISORY" || echo "advisory suites had failures (non-blocking): $ADVISORY"
