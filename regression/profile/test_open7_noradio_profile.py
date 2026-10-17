@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
+NORMAL_KERNEL_SHA = "f5af3e87100e843c394a2eb19d315de866280311"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -32,10 +32,10 @@ NORMAL_KERNEL_SHA = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
 # pin moves to a65b6107; Build 7 and Build 9 likewise leave it held through de8ca3df
 # and 45b87a7d. Build 11 deliberately rejoined it to the canonical v184 kernel while
 # preserving the separate lock-owned entry required by the owned-image admission gate.
-# Build 16 advances both entries together so image#274 cannot pair its low-battery
-# shutdown policy with a kernel that lacks #106's alarm capability.
-NORADIO_KERNEL_SHA = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
-NORMAL_UBOOT_SHA = "72abd96b6b879638e5df037d2b693ab39b72b41d"
+# Build 17 advances both entries together so reset evidence and panic restart
+# safety apply before either profile can opt into SD UHS.
+NORADIO_KERNEL_SHA = "f5af3e87100e843c394a2eb19d315de866280311"
+NORMAL_UBOOT_SHA = "c37b6ad5a6224875955315443224288ec752e992"
 
 
 def flatten(value: Any, prefix: str = "") -> dict[str, Any]:
@@ -147,8 +147,9 @@ class Open7NoradioProfileTest(unittest.TestCase):
             document,
         )
         self.assertIn(
-            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; Build 16 keeps it "
-            "equal to the canonical pin.",
+            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; Build 17 keeps it "
+            "equal to the canonical pin so reset evidence and panic restart safety "
+            "apply to both profiles.",
             document,
         )
         self.assertNotIn("holds its lock-owned kernel pin at `23cdf7bf`", document)

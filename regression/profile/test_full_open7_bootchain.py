@@ -49,10 +49,10 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_BOOTCHAIN_MODEL": "sunxi-spl-uboot",
             "PF_BOOT_PROTO": "sunxi-spl-booti",
             "PF_UBOOT_REPO": "u-boot-tsp-a133",
-            "PF_UBOOT_SHA": "72abd96b6b879638e5df037d2b693ab39b72b41d",
+            "PF_UBOOT_SHA": "c37b6ad5a6224875955315443224288ec752e992",
             "PF_UBOOT_DEFCONFIG": "tg5040_defconfig",
             "PF_TFA_REPO": "tfa-tsp-a133",
-            "PF_TFA_SHA": "da28d33e2fee80a751d148cba748770ebe25dcbe",
+            "PF_TFA_SHA": "2737a2a84d80341b27fa51c1e4b651c9ad2ad4b2",
             "PF_TFA_PLAT": "sun50i_a133",
             "PF_SPL_OFFSET_KIB": "128",
         }
@@ -75,15 +75,15 @@ class FullOpen7BootchainTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x-gpu")
         self.assertEqual(missing, [])
         expected = {
-            "PF_IMAGE_SHA": "2ee09df02b99cf9862520351311826b6aaab06e0",
+            "PF_IMAGE_SHA": "1766dfd9374b5bad2e83665f1347896ec4c53272",
             "PF_KERNEL_REPO": "kernel-sunxi-7.x",
-            "PF_KERNEL_SHA": "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8",
+            "PF_KERNEL_SHA": "f5af3e87100e843c394a2eb19d315de866280311",
             "PF_KERNEL_DTB": "sun50i-a133-pocketforge-odyssey.dtb",
             "PF_KERNEL_REQUIRED_MODULES": "powervr",
             "PF_GPU_MODEL": "open",
             "PF_GPU_KM_MODEL": "in-tree-7.x",
             "PF_GPU_KM_REPO": "kernel-sunxi-7.x",
-            "PF_GPU_KM_SHA": "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8",
+            "PF_GPU_KM_SHA": "f5af3e87100e843c394a2eb19d315de866280311",
             "PF_GPU_UM_REPO": "gpu-um-tsp",
             "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
             "PF_LIBSDL3_SHA": "7411a94803c95b2f93a898f3773ffe95dfec4263",
@@ -111,7 +111,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
     def test_noradio_profile_carries_the_battery_safety_kernel(self):
         args, _state, missing = profile.build_args("a133-open-7x-gpu-noradio")
         self.assertEqual(missing, [])
-        safety_kernel = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
+        safety_kernel = "f5af3e87100e843c394a2eb19d315de866280311"
         self.assertEqual(args["PF_KERNEL_SHA"], safety_kernel)
         self.assertEqual(args["PF_GPU_KM_SHA"], safety_kernel)
 

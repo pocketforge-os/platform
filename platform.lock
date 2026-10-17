@@ -656,7 +656,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # linear head; package-path and cache-provenance tests move with it.
                        # tsp-mc9m.60.29.34 Build 16 UAPI co-pin repair: image#274 plus
                        # the exact 973d40af Steam Link kernel-UAPI source receipt.
-sha  = "2ee09df02b99cf9862520351311826b6aaab06e0"
+                       # tsp-mc9m.60.29.33.6 Build 17: image#279 moves the low-battery
+                       # capability fixture and Steam Link UAPI receipt to f5af3e87.
+sha  = "1766dfd9374b5bad2e83665f1347896ec4c53272"
 
 [[repos]]
 name = "pf-cursor-theme"
