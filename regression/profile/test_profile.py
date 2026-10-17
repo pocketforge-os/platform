@@ -379,17 +379,19 @@ class ProfileTest(unittest.TestCase):
         # on these non-open profiles.
         # Build 17 advances the universal image pin again; reset-safety kernel
         # and boot-chain pins remain selected by the full Linux 7 profiles.
+        # Image#276 advances that universal pin once more for session authority;
+        # its runtime/launcher co-pins remain selected by open-GPU profiles.
         expected = {
-            ("a133", "dev"): "0a353e4cebfa87448c31c6440bab8677f7672d44a4a93262546b39d0f565f615",
-            ("a133", "release"): "395684540f3bc82d7faba28c8105493265b200c4473c1d39c78003bbdfdb1ef6",
-            ("a133-open-7x", "dev"): "d8d079a21dd2a8020ebcaa5f2f12a21bdab5a9e4c08af217c9cacb69e3d2989f",
-            ("a133-open-7x", "release"): "c246e836a2cc8b33fb8648ec785e41abb95683b46ec23cacb9f63fdf3a59cc37",
-            ("a133-owned", "dev"): "dc1ec62075a4847a003fc6374e5556bb0fb105203b749194f1efd2a920acca8e",
-            ("a133-owned", "release"): "708594391a10173a8b5ad7798474a00ce206e0932bf7647d1baeda48c0020baa",
-            ("a523", "dev"): "1d3a788d64211e4ed4c28d8b5dac9dbe7498b31d586c23a469b94d2780bd918c",
-            ("a523", "release"): "16a03604313dffc8415eb0f9f0bfcb842dc90d940b12c2aee4192930ef818191",
-            ("sdm845", "dev"): "51250c7822a51b151693a49ecc061972f6933c4f571edd99aac1cbf3ec06313c",
-            ("sdm845", "release"): "28dab5a578187695b94de1b456c2d37e83f395d98b90821df126b56d27bd08c6",
+            ("a133", "dev"): "578ef1a534063d11a8f17d7a85d3e9a2169b25c7ec1f6416a45f655f3257ee75",
+            ("a133", "release"): "9d2ff5991b29b3dd55fa2cc130eed02f5ee337fe12f56d9599faf648b0fd8e5f",
+            ("a133-open-7x", "dev"): "78a3cc6a44bc33c2c5985bf956795661facc59e2c26689608169df266a8ae058",
+            ("a133-open-7x", "release"): "fb60502c57e7d02945c0ea1b88b1a6e7ff01346eaa6119c57097e01a2d437c04",
+            ("a133-owned", "dev"): "fe88b22884672224972106055fd1c1727e6d0b01513ac7da7c1431cc67297992",
+            ("a133-owned", "release"): "9722a4ffd756dfcd920c660438ed86dde6c05d6def0b6ac2297c32c4adf841d6",
+            ("a523", "dev"): "f64641ddb7d7032a1708e9b440cd6c671a23813f6ec4ab80d04f8f3d1da9552d",
+            ("a523", "release"): "69d6566c3f97ff1b417911d54273c43a79598e07886aa22acf4773ea69867851",
+            ("sdm845", "dev"): "e67c01d403fad319cc0d2eed4d16b9900fb929a1dd14d07eb249f69301cd0d00",
+            ("sdm845", "release"): "cca85ad8cf61f43b4f3f18d152878dc81c1a880c3c8f216d0c2f06e6ad02f866",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -607,7 +609,7 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "e536781107e3fac9c98877e861b6e38a1397f9d9")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "f26bfd66ab739d06caf4e5347fc4150e2777c1ab")
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
@@ -672,14 +674,14 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "1766dfd9374b5bad2e83665f1347896ec4c53272",
+                "PF_IMAGE_SHA": "9f39c7be08ab61081ac244423eb35b1c586e5e86",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
-        self.assertEqual(args["PF_LAUNCHER_SHA"], "e536781107e3fac9c98877e861b6e38a1397f9d9")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], "f26bfd66ab739d06caf4e5347fc4150e2777c1ab")
         self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
         self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
         self.assertEqual(

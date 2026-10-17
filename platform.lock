@@ -658,7 +658,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # the exact 973d40af Steam Link kernel-UAPI source receipt.
                        # tsp-mc9m.60.29.33.6 Build 17: image#279 moves the low-battery
                        # capability fixture and Steam Link UAPI receipt to f5af3e87.
-sha  = "1766dfd9374b5bad2e83665f1347896ec4c53272"
+                       # image#276 follows that reset-safety generation and pairs its
+                       # session-authority policy with runtime#151 and launcher#169.
+sha  = "9f39c7be08ab61081ac244423eb35b1c586e5e86"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1483,7 +1485,10 @@ sha  = "db8deddc5f0a3f0ff70a6f152d777e30d2e7fc44"
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
-ref  = "main"                 # tsp-mc9m.41.1029 Build 15: runtime main
+ref  = "main"                 # image#276 session-authority pair: runtime#151 merge
+                              # e1aa7e373e39efb48bd4cf0c7a74b310beddf70e is the runtime
+                              # source guarded by image 9f39c7be and launcher f26bfd66.
+                              # Previous Build 15 pin:
                               # 7375a11ab1a45b85ad086f1ba5bb1679bc5fc1c4 adds the bounded
                               # input-coordinator hang sampler on top of the resident-monitor
                               # presentation deadline fix; image dd9dae5959e5460e9b4912a3361d8c08b4d023f7
@@ -1560,12 +1565,16 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 15: runtime main
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "7375a11ab1a45b85ad086f1ba5bb1679bc5fc1c4"
+sha  = "e1aa7e373e39efb48bd4cf0c7a74b310beddf70e"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
 url  = "https://github.com/pocketforge-os/launcher.git"   # top-coord RULING B). The image's `launcher`
-ref  = "main"                 # tsp-mc9m.41.1029 Build 15: launcher#166 merge
+ref  = "main"                 # image#276 session-authority pair: launcher#169 merge
+                              # f26bfd66ab739d06caf4e5347fc4150e2777c1ab revendors runtime
+                              # e1aa7e373e39efb48bd4cf0c7a74b310beddf70e and moves atomically
+                              # with image 9f39c7be08ab61081ac244423eb35b1c586e5e86.
+                              # Previous Build 15 pin:
                               # e536781107e3fac9c98877e861b6e38a1397f9d9 revendors runtime
                               # 7375a11ab1a45b85ad086f1ba5bb1679bc5fc1c4 and moves atomically
                               # with that runtime plus image
@@ -1649,7 +1658,7 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 15: launcher#166 merge
                               # keeping their images byte-identical. Not-per-device (literal-name lookup like
                               # libsdl3/wpa/runtime). SHA = the exact commit the launcher stage drift-checks
                               # (PF_LAUNCHER_SHA); an ancestor of launcher/main @ seed time.
-sha  = "e536781107e3fac9c98877e861b6e38a1397f9d9"
+sha  = "f26bfd66ab739d06caf4e5347fc4150e2777c1ab"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
