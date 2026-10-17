@@ -381,17 +381,19 @@ class ProfileTest(unittest.TestCase):
         # and boot-chain pins remain selected by the full Linux 7 profiles.
         # Image#276 advances that universal pin once more for session authority;
         # its runtime/launcher co-pins remain selected by open-GPU profiles.
+        # Build 18 advances only the universal image pin for the authenticated
+        # power-menu authority; the already-paired runtime/launcher pins stay fixed.
         expected = {
-            ("a133", "dev"): "578ef1a534063d11a8f17d7a85d3e9a2169b25c7ec1f6416a45f655f3257ee75",
-            ("a133", "release"): "9d2ff5991b29b3dd55fa2cc130eed02f5ee337fe12f56d9599faf648b0fd8e5f",
-            ("a133-open-7x", "dev"): "78a3cc6a44bc33c2c5985bf956795661facc59e2c26689608169df266a8ae058",
-            ("a133-open-7x", "release"): "fb60502c57e7d02945c0ea1b88b1a6e7ff01346eaa6119c57097e01a2d437c04",
-            ("a133-owned", "dev"): "fe88b22884672224972106055fd1c1727e6d0b01513ac7da7c1431cc67297992",
-            ("a133-owned", "release"): "9722a4ffd756dfcd920c660438ed86dde6c05d6def0b6ac2297c32c4adf841d6",
-            ("a523", "dev"): "f64641ddb7d7032a1708e9b440cd6c671a23813f6ec4ab80d04f8f3d1da9552d",
-            ("a523", "release"): "69d6566c3f97ff1b417911d54273c43a79598e07886aa22acf4773ea69867851",
-            ("sdm845", "dev"): "e67c01d403fad319cc0d2eed4d16b9900fb929a1dd14d07eb249f69301cd0d00",
-            ("sdm845", "release"): "cca85ad8cf61f43b4f3f18d152878dc81c1a880c3c8f216d0c2f06e6ad02f866",
+            ("a133", "dev"): "bacc665553911b7597ec9713778f7294512e5c45b678f128e8ebf2d0da297bfb",
+            ("a133", "release"): "70aad72d2f6a6e888b41e8ed25c85de615c5d22e949f80ea3a573369ef1da4fc",
+            ("a133-open-7x", "dev"): "dd6d1c0e32c7632ab0766a5f5ca6ec47e73a311a550346a4cea047aeaa05ef9a",
+            ("a133-open-7x", "release"): "b6fbcdbd880efc2665fb5afbd54b3a9f643b841224168b9bb7eca0ed609f9f56",
+            ("a133-owned", "dev"): "eeb4b2fc064fa0173f4c05ea737d877f18ff3bd42bb724f3693677219e490bc2",
+            ("a133-owned", "release"): "f89e04b65602d907c966464be3a3e919cdadeed87a6effab797cdaebd94355e7",
+            ("a523", "dev"): "e79b805232c314b94c7c083ebb77f0cba4b0c1274fd486ebe574649d2be2e8a9",
+            ("a523", "release"): "f648e99e14b1f22ab69af77f2a4345bcda15cd9ccbee0dd8a95c10ba6e87854e",
+            ("sdm845", "dev"): "c9978ac562a0c0e5d476f2877acd34a6b147d181b3ea0562c3273b694ffb7488",
+            ("sdm845", "release"): "8a127815897f41e8aa2c658bfa7369d7e0dde0a6def1f1373f1b5e5dbdf4ff24",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -674,7 +676,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "9f39c7be08ab61081ac244423eb35b1c586e5e86",
+                "PF_IMAGE_SHA": "aaf21ba0216b95258f1f0ad8a22294bb9365a148",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

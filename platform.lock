@@ -660,7 +660,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # capability fixture and Steam Link UAPI receipt to f5af3e87.
                        # image#276 follows that reset-safety generation and pairs its
                        # session-authority policy with runtime#151 and launcher#169.
-sha  = "9f39c7be08ab61081ac244423eb35b1c586e5e86"
+                       # tsp-mc9m.60.29.31 Build 18: image#278 adds the authenticated
+                       # power-menu authority while retaining that exact producer pair.
+sha  = "aaf21ba0216b95258f1f0ad8a22294bb9365a148"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1485,9 +1487,9 @@ sha  = "db8deddc5f0a3f0ff70a6f152d777e30d2e7fc44"
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
-ref  = "main"                 # image#276 session-authority pair: runtime#151 merge
+ref  = "main"                 # image#278 power-menu generation: runtime#151 merge
                               # e1aa7e373e39efb48bd4cf0c7a74b310beddf70e is the runtime
-                              # source guarded by image 9f39c7be and launcher f26bfd66.
+                              # source guarded by image aaf21ba0 and launcher f26bfd66.
                               # Previous Build 15 pin:
                               # 7375a11ab1a45b85ad086f1ba5bb1679bc5fc1c4 adds the bounded
                               # input-coordinator hang sampler on top of the resident-monitor
@@ -1570,10 +1572,10 @@ sha  = "e1aa7e373e39efb48bd4cf0c7a74b310beddf70e"
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
 url  = "https://github.com/pocketforge-os/launcher.git"   # top-coord RULING B). The image's `launcher`
-ref  = "main"                 # image#276 session-authority pair: launcher#169 merge
+ref  = "main"                 # image#278 power-menu generation: launcher#169 merge
                               # f26bfd66ab739d06caf4e5347fc4150e2777c1ab revendors runtime
                               # e1aa7e373e39efb48bd4cf0c7a74b310beddf70e and moves atomically
-                              # with image 9f39c7be08ab61081ac244423eb35b1c586e5e86.
+                              # with image aaf21ba0216b95258f1f0ad8a22294bb9365a148.
                               # Previous Build 15 pin:
                               # e536781107e3fac9c98877e861b6e38a1397f9d9 revendors runtime
                               # 7375a11ab1a45b85ad086f1ba5bb1679bc5fc1c4 and moves atomically
