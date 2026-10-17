@@ -77,13 +77,17 @@ tools_recipe_sha = "ec5b2621f636261978d3bb4fd9843ae22a59c320"
 # tsp-mc9m.60.29.34 Build 16: the 07bb6076..973d40af exported arm64 UAPI installs
 # remain byte-identical (996-file manifest d2edfc69), so move the exact producer
 # receipt identity with the Build 16 boot kernel as required by the same contract.
+# tsp-mc9m.60.29.33.6 Build 17: kernel#111 changes AXP717 reset-marker policy,
+# the UHS-off panic-timeout gate, tests and CI placement only. The 973d40af..f5af3e87
+# include/uapi trees remain 5ccf3d70 and arm64 UAPI remains 92d8ba17, so move the
+# exact producer receipt identity with the reset-safety boot kernel.
 [platform_runtime.steamlink_ffmpeg59_v1]
 schema_version = 1
 profile         = "a133-open-7x-gpu"
 mode_arg        = "PF_STEAMLINK_FFMPEG59_MODE"
 mode_value      = "v1"
 source_repo     = "kernel-sunxi-7.x"
-source_sha      = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
+source_sha      = "f5af3e87100e843c394a2eb19d315de866280311"
 runtime_path    = "/usr/lib/pocketforge/platform-runtimes/steamlink-ffmpeg59/v1"
 
 [platform_runtime.steamlink_ffmpeg59_v1.build_args]
@@ -93,7 +97,7 @@ PF_FFMPEG_ORIG_SHA256        = "56d4daf10c17330a45c8fe11bc260997677ca2432d3d5951
 PF_FFMPEG_ORIG_ASC_SHA256    = "ee93598ac566d1be4a80801e0a58f91ede2e6a5e9e670f681723b447f23c59d0"
 PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a39512921680090952e1"
 PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
-PF_FFMPEG_UAPI_SHA           = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
+PF_FFMPEG_UAPI_SHA           = "f5af3e87100e843c394a2eb19d315de866280311"
 
 # tsp-mc9m.41.924.24.14: immutable full GLES CTS checklist used only by the
 # opt-in dev test image. Unlike platform_runtime above, this input is already a
@@ -158,8 +162,10 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # resolved no-radio kernel to equal this profile pin even when both values are identical.
 # tsp-mc9m.60.29.34 Build 16 keeps that equality: image#274 installs the same
 # low-battery policy for no-radio, so its kernel must carry #106's alarm capability.
+# tsp-mc9m.60.29.33.6 Build 17 keeps the profiles equal again: reset evidence and
+# panic restart safety apply before either profile can opt into SD UHS.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
+kernel = "f5af3e87100e843c394a2eb19d315de866280311"
 
 [[repos]]
 name = "image"
@@ -831,8 +837,10 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.34 Build 16): device/a133
-                             # 973d40af contains #97/#102 and the complete battery-safety
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.33.6 Build 17): device/a133
+                             # f5af3e87 adds #111's AXP717 reset marker and requires
+                             # CONFIG_PANIC_TIMEOUT=5 while UHS remains default-off.
+                             # Previous Build 16 pin 973d40af contains #97/#102 and the complete battery-safety
                              # series #103-#106: runtime charge/thermal parity, gauge model,
                              # masked terminal action and low-SOC alarm notifications.
                              # Steam Link's byte-identical exported-UAPI producer is pinned
@@ -1083,7 +1091,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.34 Build 16): device/a
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "973d40af95f2dc5754bfe57e2b7a9c18fc4e92c8"
+sha  = "f5af3e87100e843c394a2eb19d315de866280311"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -1353,10 +1361,13 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # honors the DTB-owned CMA pool. Diagnostic profile overrides above
                               # remain deliberately held. BANNER CHANGE: 2025.10-gdb70249c8b25.
                               # Prior canonical pin (c21fbfb88293b9427b471a0725d1851484a8adba).
-                              # tsp-mc9m.60.29.34 Build 16: #56 establishes masked PMIC
+                              # tsp-mc9m.60.29.33.6 Build 17: #58 adds the checked AXP717
+                              # reset-class decoder and marker restore in owned SPL.
+                              # BANNER CHANGE: 2025.10-gc37b6ad5a622.
+                              # Previous tsp-mc9m.60.29.34 Build 16: #56 establishes masked PMIC
                               # protection/hold policy and #57 adds the fail-closed low-battery
                               # boot gate. BANNER CHANGE: 2025.10-g72abd96b6b87.
-sha  = "72abd96b6b879638e5df037d2b693ab39b72b41d"
+sha  = "c37b6ad5a6224875955315443224288ec752e992"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
@@ -1364,9 +1375,11 @@ url  = "https://github.com/pocketforge-os/tfa-tsp-a133.git"      # tsp-147u.11/.
 ref  = "main-linear"          # the A133 RVBAR (CPUSUBSYS 0x08100040) — brings up all 4 cores; native PSCI,
                               # no SCP, SUNXI_BL31_IN_DRAM default. Closes the vendor monitor.bin provenance
                               # gap. Validated: "Brought up 4 CPUs" on pf-node-01.
-                              # Build 14 candidate: tfa-tsp-a133#8 adds the AXP717
+                              # tsp-mc9m.60.29.33.6 Build 17: #9 adds the REG42[7]
+                              # reset marker immediately before the checked PMIC restart.
+                              # Previous Build 14 candidate: tfa-tsp-a133#8 adds the AXP717
                               # PMIC restart path required by SD UHS device validation.
-sha  = "da28d33e2fee80a751d148cba748770ebe25dcbe"
+sha  = "2737a2a84d80341b27fa51c1e4b651c9ad2ad4b2"
 
 [[repos]]
 name = "blobs"                # private; preserved vendor originals + apply-*.py + *.SHA256 (text-only after B3)
