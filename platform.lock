@@ -77,17 +77,17 @@ tools_recipe_sha = "ec5b2621f636261978d3bb4fd9843ae22a59c320"
 # tsp-mc9m.60.29.34 Build 16: the 07bb6076..973d40af exported arm64 UAPI installs
 # remain byte-identical (996-file manifest d2edfc69), so move the exact producer
 # receipt identity with the Build 16 boot kernel as required by the same contract.
-# tsp-mc9m.60.29.33.6 Build 17: kernel#111 changes AXP717 reset-marker policy,
-# the UHS-off panic-timeout gate, tests and CI placement only. The 973d40af..f5af3e87
+# tsp-mc9m.60.29.29: kernel#113 removes the unsupported A133 MMC0 PF-selector
+# request that made image c4d74f00 fail after switch_root. The 6be18a3b..3010de56
 # include/uapi trees remain 5ccf3d70 and arm64 UAPI remains 92d8ba17, so move the
-# exact producer receipt identity with the reset-safety boot kernel.
+# exact producer receipt identity with the corrected boot kernel.
 [platform_runtime.steamlink_ffmpeg59_v1]
 schema_version = 1
 profile         = "a133-open-7x-gpu"
 mode_arg        = "PF_STEAMLINK_FFMPEG59_MODE"
 mode_value      = "v1"
 source_repo     = "kernel-sunxi-7.x"
-source_sha      = "6be18a3b4342da7c51dbc0ad132751290d4474f6"
+source_sha      = "3010de56dbd1057513c035fff8623f80596fe9e8"
 runtime_path    = "/usr/lib/pocketforge/platform-runtimes/steamlink-ffmpeg59/v1"
 
 [platform_runtime.steamlink_ffmpeg59_v1.build_args]
@@ -97,7 +97,7 @@ PF_FFMPEG_ORIG_SHA256        = "56d4daf10c17330a45c8fe11bc260997677ca2432d3d5951
 PF_FFMPEG_ORIG_ASC_SHA256    = "ee93598ac566d1be4a80801e0a58f91ede2e6a5e9e670f681723b447f23c59d0"
 PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a39512921680090952e1"
 PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
-PF_FFMPEG_UAPI_SHA           = "6be18a3b4342da7c51dbc0ad132751290d4474f6"
+PF_FFMPEG_UAPI_SHA           = "3010de56dbd1057513c035fff8623f80596fe9e8"
 
 # tsp-mc9m.41.924.24.14: immutable full GLES CTS checklist used only by the
 # opt-in dev test image. Unlike platform_runtime above, this input is already a
@@ -162,10 +162,10 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # resolved no-radio kernel to equal this profile pin even when both values are identical.
 # tsp-mc9m.60.29.34 Build 16 keeps that equality: image#274 installs the same
 # low-battery policy for no-radio, so its kernel must carry #106's alarm capability.
-# tsp-mc9m.60.29.29 keeps the profiles equal again: kernel-sunxi-7.x#112 routes
-# the A133 speaker amplifier from HPOUT, matching the device-proven playback path.
+# tsp-mc9m.60.29.29 keeps the profiles equal again: kernel-sunxi-7.x#113 removes
+# the unsupported A133 MMC0 PF-selector request from both DTBs.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "6be18a3b4342da7c51dbc0ad132751290d4474f6"
+kernel = "3010de56dbd1057513c035fff8623f80596fe9e8"
 
 [[repos]]
 name = "image"
@@ -664,7 +664,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # power-menu authority while retaining that exact producer pair.
                        # tsp-mc9m.60.29.29: image#281 authenticates kernel-sunxi-7.x#112's
                        # exact 6be18a3b Steam Link FFmpeg UAPI source receipt.
-sha  = "4fb6032776a567ae2556205f68fd41375dea7e1c"
+                       # image#282 advances that receipt to kernel-sunxi-7.x#113, whose
+                       # MMC0 pin correction prevents the post-switch_root data errors.
+sha  = "e83caa1bbeed934d85d8e30b45509376556202c8"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -846,8 +848,9 @@ sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
 name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.29): device/a133
-                             # 6be18a3b adds #112's A133 HPOUT-to-speaker-amplifier route.
-                             # Device proof completed PCM playback with IRQ progress and no xruns.
+                             # 3010de56 adds #113's A133 MMC0 pin correction: omit the
+                             # unsupported PF selector at 0x350 while retaining fixed CLDO3 VMMC.
+                             # Previous 6be18a3b adds #112's HPOUT-to-speaker-amplifier route.
                              # Previous Build 17 pin f5af3e87 adds #111's AXP717 reset marker and
                              # requires CONFIG_PANIC_TIMEOUT=5 while UHS remains default-off.
                              # Previous Build 16 pin 973d40af contains #97/#102 and the complete battery-safety
@@ -1101,7 +1104,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.29): device/a133
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "6be18a3b4342da7c51dbc0ad132751290d4474f6"
+sha  = "3010de56dbd1057513c035fff8623f80596fe9e8"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch

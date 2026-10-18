@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "6be18a3b4342da7c51dbc0ad132751290d4474f6"
+NORMAL_KERNEL_SHA = "3010de56dbd1057513c035fff8623f80596fe9e8"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -32,9 +32,9 @@ NORMAL_KERNEL_SHA = "6be18a3b4342da7c51dbc0ad132751290d4474f6"
 # pin moves to a65b6107; Build 7 and Build 9 likewise leave it held through de8ca3df
 # and 45b87a7d. Build 11 deliberately rejoined it to the canonical v184 kernel while
 # preserving the separate lock-owned entry required by the owned-image admission gate.
-# Build 17 advances both entries together so reset evidence and panic restart
-# safety apply before either profile can opt into SD UHS.
-NORADIO_KERNEL_SHA = "6be18a3b4342da7c51dbc0ad132751290d4474f6"
+# Kernel#113 advances both entries together so neither profile programs the
+# unsupported A133 MMC0 PF selector at 0x350.
+NORADIO_KERNEL_SHA = "3010de56dbd1057513c035fff8623f80596fe9e8"
 NORMAL_UBOOT_SHA = "c37b6ad5a6224875955315443224288ec752e992"
 
 
@@ -147,9 +147,9 @@ class Open7NoradioProfileTest(unittest.TestCase):
             document,
         )
         self.assertIn(
-            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; Build 17 keeps it "
-            "equal to the canonical pin so reset evidence and panic restart safety "
-            "apply to both profiles.",
+            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; kernel#113 keeps it "
+            "equal to the canonical pin so neither profile programs the unsupported A133 "
+            "MMC0 PF selector.",
             document,
         )
         self.assertNotIn("holds its lock-owned kernel pin at `23cdf7bf`", document)
