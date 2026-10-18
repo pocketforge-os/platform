@@ -386,17 +386,20 @@ class ProfileTest(unittest.TestCase):
         # Image#281 advances the universal image pin on every profile row. The
         # speaker-route pin also advances the canonical kernel identity on the
         # minimal and open Linux 7 rows without changing other build arguments.
+        # Image#282 advances the universal image pin for kernel#113's exact UAPI
+        # receipt. Kernel#113 advances the canonical kernel identity on the
+        # minimal and open Linux 7 rows; no other build argument changes.
         expected = {
-            ("a133", "dev"): "f633bf5554b6e622f80a09f76e989f76adcd423a0b481ffb604ddbedccb40d49",
-            ("a133", "release"): "97cf7fdaf1ecc96bb058e9d6503c06dbf1b5e8293ef2630ee33a9ad62ef38948",
-            ("a133-open-7x", "dev"): "0ce22a8f6b83c62d55bdb26301e8c9abb2dedae3b8d5e9096dc2d62df2751ec3",
-            ("a133-open-7x", "release"): "58e10eacf5bbc63c3604e8a98e839849fb9af67033527ccfb84b1595d2f61644",
-            ("a133-owned", "dev"): "34376be1b58563e941fc622870dc12ef57380674ec11c2f5bb59b633f410712f",
-            ("a133-owned", "release"): "1f13bd618079aa1c694d2584c4636d53f96e8696e2dcb6f426d26dcc5b3a48ad",
-            ("a523", "dev"): "03736b44a16213beccd108b99c3d6755d3ba6d6fb1f4fd6adde69a2fc20e02a3",
-            ("a523", "release"): "d4f72c8ce890f3a9bee2fbd64151b11c9ada8ccfaa50e087b7aca70b2e6c7e1b",
-            ("sdm845", "dev"): "f08159f2422587e87cddbf5d8214077e5a0aa541fd2107e208f555db70edd95d",
-            ("sdm845", "release"): "83ea98aefd78692a23a1f54ccd6428be8862c60c34b2da8ab4fb7de47ac826c1",
+            ("a133", "dev"): "0cf3eef839a79083f116d714a8b4cbe4e02cd2090ee3df8280582498f0f27787",
+            ("a133", "release"): "8077bbf357b94fd4933b9fb86a5578da62a2b53fedf3b3668f99850265757002",
+            ("a133-open-7x", "dev"): "d66b86c73a2ec48e400308b144b284605b4a10a019924a0537cdd95cfb2ac4ef",
+            ("a133-open-7x", "release"): "c059b20dda7734a64a80df99bcd682bba97b32f59f6dd860793009def0c2a475",
+            ("a133-owned", "dev"): "11f57d489a9e85ee9cbc97e8424c92ecc4577ccc02809522e18380d55a970b46",
+            ("a133-owned", "release"): "c21752910beeb09b4609bd7e9d6058336beaf931dd1b5139f326394ab454eb8b",
+            ("a523", "dev"): "130c96f35caad278f5def98ad1443eb937e97906fb6676014e3a8da551fc8604",
+            ("a523", "release"): "1368ed623152a0723714afd990b3b184dab955a203ad0cd864ab81ca0396a80a",
+            ("sdm845", "dev"): "52576b9476c18b8b57dd78af023adf6ad513a03341e778207934d13291146de9",
+            ("sdm845", "release"): "5096b46aefad526d75e81cba1ccc83437f60787721d53d32dbca310f4cafa90e",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -647,7 +650,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "6be18a3b4342da7c51dbc0ad132751290d4474f6")
+        self.assertEqual(args["PF_KERNEL_SHA"], "3010de56dbd1057513c035fff8623f80596fe9e8")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -664,7 +667,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "6be18a3b4342da7c51dbc0ad132751290d4474f6")
+        self.assertEqual(args["PF_KERNEL_SHA"], "3010de56dbd1057513c035fff8623f80596fe9e8")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
@@ -679,7 +682,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "4fb6032776a567ae2556205f68fd41375dea7e1c",
+                "PF_IMAGE_SHA": "e83caa1bbeed934d85d8e30b45509376556202c8",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
