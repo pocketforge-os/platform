@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "f5af3e87100e843c394a2eb19d315de866280311"
+NORMAL_KERNEL_SHA = "6be18a3b4342da7c51dbc0ad132751290d4474f6"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -34,7 +34,7 @@ NORMAL_KERNEL_SHA = "f5af3e87100e843c394a2eb19d315de866280311"
 # preserving the separate lock-owned entry required by the owned-image admission gate.
 # Build 17 advances both entries together so reset evidence and panic restart
 # safety apply before either profile can opt into SD UHS.
-NORADIO_KERNEL_SHA = "f5af3e87100e843c394a2eb19d315de866280311"
+NORADIO_KERNEL_SHA = "6be18a3b4342da7c51dbc0ad132751290d4474f6"
 NORMAL_UBOOT_SHA = "c37b6ad5a6224875955315443224288ec752e992"
 
 
