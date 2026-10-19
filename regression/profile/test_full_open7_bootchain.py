@@ -6,6 +6,7 @@ import importlib.util
 import io
 import json
 import pathlib
+import re
 import unittest
 from unittest import mock
 
@@ -160,6 +161,28 @@ class FullOpen7BootchainTest(unittest.TestCase):
             encoding="utf-8",
         ) as golden_file:
             self.assertEqual(json.load(golden_file), resolved)
+
+    def test_owned_spl_ledger_image_pin_matches_platform_lock(self):
+        document = (ROOT / "docs/A133-OPEN-7X-OWNED-SPL.md").read_text(
+            encoding="utf-8"
+        )
+        match = re.search(
+            r"^- Image source pin: `([0-9a-f]{40})`",
+            document,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(match, "owned-SPL ledger lacks an image source pin")
+        current = profile.load_lock()["repos"]["image"]["sha"]
+        self.assertEqual(match.group(1), current)
+
+        stale = document.replace(match.group(1), "0" * 40, 1)
+        stale_match = re.search(
+            r"^- Image source pin: `([0-9a-f]{40})`",
+            stale,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(stale_match)
+        self.assertNotEqual(stale_match.group(1), current)
 
 
 if __name__ == "__main__":
