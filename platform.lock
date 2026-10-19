@@ -675,7 +675,10 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # source context required by the Steam Link FFmpeg runtime.
                        # tsp-z8vav Build 20 candidate: image#286 adds the Linux 7
                        # memory policy; image#288 adds the overlay-coverage guard.
-sha  = "0e835bb03ba3b1978fb937feba28fa2abc6cc4ee"
+                       # tsp-z8vav.9: image#289 (b96eafb4) moves the Gamescope producer and
+                       # harness pins to 60d6d0eb, which the lock-mirror gate requires of the
+                       # pinned image consumer.
+sha  = "b96eafb43164133e3879e14b7d04788e6bfd35d7"
 
 [[repos]]
 name = "pf-cursor-theme"
