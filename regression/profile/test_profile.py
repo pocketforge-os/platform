@@ -393,17 +393,19 @@ class ProfileTest(unittest.TestCase):
         # advances only the canonical Linux 7 rows; the Steam Link UAPI receipt
         # remains at the byte-identical producer authenticated by image#283.
         # Image#287 advances only that universal image pin and adds no build arg.
+        # The Build 20 candidate then advances the same pin for image#286's
+        # Linux 7 memory policy and image#288's overlay-coverage guard.
         expected = {
-            ("a133", "dev"): "1fe7c85fcfa7d6caab0ff039f9fd5d73ec6cd1d861067143160340429e599e4a",
-            ("a133", "release"): "14135f667c5322275d727236fa32d3f90d2d8e8c8129d3b0e60128f8ae86cdd1",
-            ("a133-open-7x", "dev"): "66394ebd497f74f3406bd0bde8a66c1cdf8af2663e649e705b2c220871b69967",
-            ("a133-open-7x", "release"): "dc268b949e9fb9040771883c9c8b27f40d9512e08c7cd4d4651f17c63890fb7f",
-            ("a133-owned", "dev"): "140d9e9a818ac9265f52706d521594711f1170702d1fbde59540c65785d22e5f",
-            ("a133-owned", "release"): "a50f5898d5d9334abca47b6954d2d56942b9d6140ad7c6cc824c15d93ad04540",
-            ("a523", "dev"): "8f7ad8527698cd89de0700c3a53b94a32fe19ed4b1645ff1fd4227716d7ff3d6",
-            ("a523", "release"): "4f5e782e06b0787a029010001315477da32020cbf80401f71cbb9110e350db98",
-            ("sdm845", "dev"): "d7274b5b5e3451d4ac3be5a32ff0234e67e777ad4385cddc026092a26678339f",
-            ("sdm845", "release"): "ec9f63f0ae014a0e43a75a3d75d831e708e8f9bfad6b893b3122fcd248bdb0fe",
+            ("a133", "dev"): "5bbc45a610cdacf27070cfc4308c8fc331cac49a41f23641779f936d178d93c3",
+            ("a133", "release"): "196a96ce66e1e090c9a8da23e1f6039a1b9811e44bae68d569c2c69f181c494f",
+            ("a133-open-7x", "dev"): "2df28c9eeef1c51f295d9467cdc8dbecec7be4e24f328e15b297e903d626994a",
+            ("a133-open-7x", "release"): "c767ceab5cc518c9f7592c8168efc62fc9caea56ca0f8cb287705c63e88fb4d1",
+            ("a133-owned", "dev"): "bd0cb80b64d107b35982ac11e0b061495a4f5cd00d1dd8b77663bbf7383efb21",
+            ("a133-owned", "release"): "90b439c089a4cc4e28c89adc1327e328edda76100e20295f07224afc9501baf6",
+            ("a523", "dev"): "f0f3cbb37f883af6396a8370b4e94e71dd72fe5d65e2f8f06f5b11a80ef0aeda",
+            ("a523", "release"): "797fa8c07ee07bb512cbc42210b0ae7996ac0639dc4b6c0e54268b146e5b964c",
+            ("sdm845", "dev"): "be1347c24f52822743930f591bacf7f76eeccb2527c4298d61a960dca6894e6d",
+            ("sdm845", "release"): "0089d377820cd37c169fa81556a27fe99f7f67acf4ffff63250a2e9e987947ba",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -686,7 +688,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "ba03f59b798a3dddc301dd578d79906aa87e127c",
+                "PF_IMAGE_SHA": "0e835bb03ba3b1978fb937feba28fa2abc6cc4ee",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
