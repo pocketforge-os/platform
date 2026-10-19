@@ -18,6 +18,9 @@ bash "$HERE/gamescope-series-witness-test.sh"
 echo "### cloud-init-tsp source staging ###"
 bash "$HERE/cloud-init-staging-test.sh"
 
+echo "### distinct authenticated kernel UAPI source staging ###"
+bash "$HERE/kernel-uapi-staging-test.sh"
+
 echo "### deterministic Gamescope dependency cache ###"
 python3 "$HERE/test_gamescope_dependency_cache.py"
 

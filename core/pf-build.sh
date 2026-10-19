@@ -242,6 +242,12 @@ pf_stage_sources() {
         "uboot|$(v PF_UBOOT_REPO)|$(v PF_UBOOT_SHA)"
         "tfa|$(v PF_TFA_REPO)|$(v PF_TFA_SHA)"
     )
+    # A selected platform runtime may authenticate exported kernel UAPI from a
+    # different exact commit than the boot kernel. Keep that producer archive
+    # separate so downstream receipt verification never has to relabel bytes.
+    if grep -q '^PF_FFMPEG_UAPI_SHA=' <<< "$ba"; then
+        specs+=( "kernel-uapi|$(v PF_KERNEL_REPO)|$(v PF_FFMPEG_UAPI_SHA)|1" )
+    fi
     # PF_CURSOR_THEME_SHA key presence declares that this staging request ships
     # the cursor payload. profile.py emits the key for every OS-image profile,
     # including an empty value when the lock pin is missing, so real builds stay
@@ -336,7 +342,7 @@ pf_stage_sources() {
         # these before building, rejecting a valid-looking arg paired with a
         # different archive.
         case "$logical" in
-            kernel|wpa-supplicant-tsp|cloud-init-tsp|cursor-theme)
+            kernel|kernel-uapi|wpa-supplicant-tsp|cloud-init-tsp|cursor-theme)
                 printf '%s\n' "$sha" > "$dest/.pf-source-revision"
                 chmod 0444 "$dest/.pf-source-revision"
                 ;;
@@ -351,6 +357,9 @@ pf_stage_sources() {
     # The image interface is unconditional even though Poolsuite source is dev-only.
     # Release builds therefore receive a real, empty named context.
     [ -e "$src_dir/poolsuite" ] || create_context_dir "$src_dir/poolsuite"
+    # The image interface is also unconditional for the optional platform
+    # runtime. Profiles that do not select it receive an empty named context.
+    [ -e "$src_dir/kernel-uapi" ] || create_context_dir "$src_dir/kernel-uapi"
     if [ -n "$(v PF_DEVICE_DESCRIPTOR_ID)" ]; then
         pf_stage_device_descriptor "$src_dir" "$(v PF_DEVICE_DESCRIPTOR_ID)" \
             "$(v PF_DEVICE_DESCRIPTOR_SHA256)"
@@ -711,6 +720,7 @@ pf_os_image_dockerbuild() {
     # Source repos as named build contexts (git archive of the lock SHA; staged by pf_stage_sources).
     cmd+=( --build-context "image-src=$src_dir/image"
            --build-context "kernel-src=$src_dir/kernel"
+           --build-context "kernel-uapi-src=$src_dir/kernel-uapi"
            --build-context "gpu-src=$src_dir/gpu"
            --build-context "sdl-src=$src_dir/libsdl3-sunxifb"
            --build-context "wpa-src=$src_dir/wpa-supplicant-tsp"

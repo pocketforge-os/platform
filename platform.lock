@@ -671,7 +671,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # MMC0 pin correction prevents the post-switch_root data errors.
                        # Build 19 image#283 adds the system-volume service and the
                        # A133 audio defaults used by the batched device acceptance.
-sha  = "a3ba66352649d42e6f045a1cd86ead6f27fc930e"
+                       # image#287 adds the distinct authenticated kernel-UAPI
+                       # source context required by the Steam Link FFmpeg runtime.
+sha  = "ba03f59b798a3dddc301dd578d79906aa87e127c"
 
 [[repos]]
 name = "pf-cursor-theme"
