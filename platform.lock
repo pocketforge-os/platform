@@ -673,7 +673,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # A133 audio defaults used by the batched device acceptance.
                        # image#287 adds the distinct authenticated kernel-UAPI
                        # source context required by the Steam Link FFmpeg runtime.
-sha  = "ba03f59b798a3dddc301dd578d79906aa87e127c"
+                       # tsp-z8vav Build 20 candidate: image#286 adds the Linux 7
+                       # memory policy; image#288 adds the overlay-coverage guard.
+sha  = "0e835bb03ba3b1978fb937feba28fa2abc6cc4ee"
 
 [[repos]]
 name = "pf-cursor-theme"
