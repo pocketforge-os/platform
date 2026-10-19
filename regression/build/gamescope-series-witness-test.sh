@@ -125,7 +125,7 @@ expect_reason "patch_ids_drift" "$WITNESS" "$TMP/profile-corrupt.toml" "declared
 
 python3 -B -c 'import pathlib, sys
 text = pathlib.Path(sys.argv[1]).read_text()
-old = "6ebf546f3722516cc3189346bdd09173cab426eee0562cd20eef886ab0f05015"
+old = "8efb6b69d787e9054def5b9e08e2332e14249e69465de80dfcd91a951bb878ca"
 assert text.count(old) == 1, text.count(old)
 pathlib.Path(sys.argv[2]).write_text(text.replace(old, "0" * 64))' \
     "$PROFILE" "$TMP/profile-series.toml"
