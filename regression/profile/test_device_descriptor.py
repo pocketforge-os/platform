@@ -55,6 +55,8 @@ CURSOR_THEME_LINE = re.compile(r"^PF_CURSOR_(?:THEME_SHA|TOOLS_IMAGE|TOOLS_RECIP
 # its buildargs/resolve baselines therefore move while env and unrelated profiles stay fixed.
 # The panel-rotation follow-up appends two admitted Gamescope patch IDs and moves
 # both source digests, so the same three GPU-profile baselines move once more.
+# tsp-z8vav.9 (gamescope#24) appends six admitted Gamescope patch IDs and moves both source
+# digests, so the same three GPU-profile baselines move once more.
 # tsp-mc9m.41.1002 adds the universal PF_CLOUD_INIT_SHA source identity. It is
 # independently covered by cloud-init-staging-test.sh and, like later platform
 # runtime payloads, is removed from this historical descriptor-only baseline.
@@ -76,10 +78,10 @@ PRE_DESCRIPTOR_DIGESTS = {
     ("a133-open-7x", "buildargs release"): "508d6b9703a852606a4c380a6194c303a3b3a03d2dbeb481ad060468dc7b95a5",
     ("a133-open-7x", "env"): "b377507c70e95156b3956597d6f66e582549419cbca9455aeaa512851e4cc018",
     ("a133-open-7x", "resolve"): "e4e792f18991106e2d69f29b3000e0915ff84f44e568ece91859d7bd00128222",
-    ("a133-open-7x-gpu", "buildargs dev"): "3b04bb686b6f47b221cf50090078ec7b024397ca400eb53e8c5fefab1a38920b",
-    ("a133-open-7x-gpu", "buildargs release"): "d0d906437a73797fe74979848c8aae9caad0be5d5a79d49083625dafaf635926",
+    ("a133-open-7x-gpu", "buildargs dev"): "03b999d5a2be795b05cdb5e4bc8fafd2b5a1a243fd7b39ad4bdf02e6d7ef09c3",
+    ("a133-open-7x-gpu", "buildargs release"): "31cb03b5ba94d7adad533d042753a654c3c0bc88fb55f8aad4b0198e25d06807",
     ("a133-open-7x-gpu", "env"): "d8f9bd9b1fc5159735ae4a9fc2ed413bf2db17a46615e49651020d0b1d7a2f3a",
-    ("a133-open-7x-gpu", "resolve"): "e97937b23f80d385be7a2bdbaf236ba22cf5638fadb45f43e4e8a95146a24da9",
+    ("a133-open-7x-gpu", "resolve"): "da080696ce923e9ca9b347284faede9a7fb01886941081f6ce814acc0936f58b",
     ("a133-open-7x-gpu-noradio", "buildargs dev"): "e5475379621696375143c72c96fd372a100c5d8aaeba1ab60255bee424b93c6e",
     ("a133-open-7x-gpu-noradio", "buildargs release"): "e9b99982196e3d48a6d9d9a0de8f62a4813d2f9e31b530c1444b1b27117ade73",
     ("a133-open-7x-gpu-noradio", "env"): "d3efc6a7693b973a9581d5115c61b2cd3b53f8f291b008d930cb72351cdbd5a8",
