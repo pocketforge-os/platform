@@ -389,17 +389,20 @@ class ProfileTest(unittest.TestCase):
         # Image#282 advances the universal image pin for kernel#113's exact UAPI
         # receipt. Kernel#113 advances the canonical kernel identity on the
         # minimal and open Linux 7 rows; no other build argument changes.
+        # Build 19 advances the universal image pin to image#283. Kernel#114
+        # advances only the canonical Linux 7 rows; the Steam Link UAPI receipt
+        # remains at the byte-identical producer authenticated by image#283.
         expected = {
-            ("a133", "dev"): "0cf3eef839a79083f116d714a8b4cbe4e02cd2090ee3df8280582498f0f27787",
-            ("a133", "release"): "8077bbf357b94fd4933b9fb86a5578da62a2b53fedf3b3668f99850265757002",
-            ("a133-open-7x", "dev"): "d66b86c73a2ec48e400308b144b284605b4a10a019924a0537cdd95cfb2ac4ef",
-            ("a133-open-7x", "release"): "c059b20dda7734a64a80df99bcd682bba97b32f59f6dd860793009def0c2a475",
-            ("a133-owned", "dev"): "11f57d489a9e85ee9cbc97e8424c92ecc4577ccc02809522e18380d55a970b46",
-            ("a133-owned", "release"): "c21752910beeb09b4609bd7e9d6058336beaf931dd1b5139f326394ab454eb8b",
-            ("a523", "dev"): "130c96f35caad278f5def98ad1443eb937e97906fb6676014e3a8da551fc8604",
-            ("a523", "release"): "1368ed623152a0723714afd990b3b184dab955a203ad0cd864ab81ca0396a80a",
-            ("sdm845", "dev"): "52576b9476c18b8b57dd78af023adf6ad513a03341e778207934d13291146de9",
-            ("sdm845", "release"): "5096b46aefad526d75e81cba1ccc83437f60787721d53d32dbca310f4cafa90e",
+            ("a133", "dev"): "4120edb9d39c650ff8b1dda66147f909427fd5e30ac12d474a9bf07feb9a5db5",
+            ("a133", "release"): "7724a438d5d41b49a01e0fefdbf8d77a32aa93ce41248b39e6e40e588223707a",
+            ("a133-open-7x", "dev"): "1a7483815d0e4f07ea3e08a06e3ce27db559946b467e10f813189c699dce3687",
+            ("a133-open-7x", "release"): "86c43a257f2ae57a2f378374c17f8c2b4cb0208061172843f6081db0b12f780e",
+            ("a133-owned", "dev"): "bd5a11a7c0edef8149cb82dd85d46f46e108624cb351f0440b4b1fc5c4b6b0e0",
+            ("a133-owned", "release"): "dfd136ce217af0122ddd076a32abac47c5d1571494ba0cd3ffe9346deb190936",
+            ("a523", "dev"): "156ebb590640d68df3c6d3fc103b12ca0029edd3dc4fee0f3b26b7cf865b1b9d",
+            ("a523", "release"): "72342188c41bea1b4105328efec967be372f897d4d2f1934cdbbec44a0c6a8c2",
+            ("sdm845", "dev"): "381ee50721b6b1ddf7eadcbae01d3ce852bfb1321d1a3c0f2de0d01e68b7ff34",
+            ("sdm845", "release"): "6a4f4ad7cecb64bbed0850e9e6933b8ebb3e0dd94e710853fa595deca1a2c636",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -617,7 +620,7 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "f26bfd66ab739d06caf4e5347fc4150e2777c1ab")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "c3f05fc296692cb67c6d490e56c6fe07f8a846c5")
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
@@ -650,7 +653,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "3010de56dbd1057513c035fff8623f80596fe9e8")
+        self.assertEqual(args["PF_KERNEL_SHA"], "b8434263b00f1beeadb5ade16a0b62959d497b1d")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -667,7 +670,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "3010de56dbd1057513c035fff8623f80596fe9e8")
+        self.assertEqual(args["PF_KERNEL_SHA"], "b8434263b00f1beeadb5ade16a0b62959d497b1d")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
@@ -682,14 +685,14 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "e83caa1bbeed934d85d8e30b45509376556202c8",
+                "PF_IMAGE_SHA": "a3ba66352649d42e6f045a1cd86ead6f27fc930e",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
-        self.assertEqual(args["PF_LAUNCHER_SHA"], "f26bfd66ab739d06caf4e5347fc4150e2777c1ab")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], "c3f05fc296692cb67c6d490e56c6fe07f8a846c5")
         self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
         self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
         self.assertEqual(

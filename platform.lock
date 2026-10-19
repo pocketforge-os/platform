@@ -81,6 +81,9 @@ tools_recipe_sha = "ec5b2621f636261978d3bb4fd9843ae22a59c320"
 # request that made image c4d74f00 fail after switch_root. The 6be18a3b..3010de56
 # include/uapi trees remain 5ccf3d70 and arm64 UAPI remains 92d8ba17, so move the
 # exact producer receipt identity with the corrected boot kernel.
+# Build 19: kernel#114 changes only AXP717 charger policy. Its include/uapi and
+# arm64 UAPI trees remain 5ccf3d70 and 92d8ba17. Image#283 still authenticates
+# 3010de56 as the byte-identical UAPI producer, so preserve that exact receipt.
 [platform_runtime.steamlink_ffmpeg59_v1]
 schema_version = 1
 profile         = "a133-open-7x-gpu"
@@ -162,10 +165,10 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # resolved no-radio kernel to equal this profile pin even when both values are identical.
 # tsp-mc9m.60.29.34 Build 16 keeps that equality: image#274 installs the same
 # low-battery policy for no-radio, so its kernel must carry #106's alarm capability.
-# tsp-mc9m.60.29.29 keeps the profiles equal again: kernel-sunxi-7.x#113 removes
-# the unsupported A133 MMC0 PF-selector request from both DTBs.
+# tsp-mc9m.60.29.29 keeps the profiles equal again: kernel-sunxi-7.x#114 preserves
+# firmware's safe PMIC boot policy while failing closed on thermal-setup errors.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "3010de56dbd1057513c035fff8623f80596fe9e8"
+kernel = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
 
 [[repos]]
 name = "image"
@@ -666,7 +669,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # exact 6be18a3b Steam Link FFmpeg UAPI source receipt.
                        # image#282 advances that receipt to kernel-sunxi-7.x#113, whose
                        # MMC0 pin correction prevents the post-switch_root data errors.
-sha  = "e83caa1bbeed934d85d8e30b45509376556202c8"
+                       # Build 19 image#283 adds the system-volume service and the
+                       # A133 audio defaults used by the batched device acceptance.
+sha  = "a3ba66352649d42e6f045a1cd86ead6f27fc930e"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -848,6 +853,8 @@ sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
 name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.29): device/a133
+                             # b8434263 adds #114's AXP717 boot-policy preservation and
+                             # fail-closed thermal-safety initialization.
                              # 3010de56 adds #113's A133 MMC0 pin correction: omit the
                              # unsupported PF selector at 0x350 while retaining fixed CLDO3 VMMC.
                              # Previous 6be18a3b adds #112's HPOUT-to-speaker-amplifier route.
@@ -1104,7 +1111,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.29): device/a133
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "3010de56dbd1057513c035fff8623f80596fe9e8"
+sha  = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -1495,6 +1502,8 @@ sha  = "db8deddc5f0a3f0ff70a6f152d777e30d2e7fc44"
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
 ref  = "main"                 # image#278 power-menu generation: runtime#151 merge
+                              # Build 19: runtime#159 merge 4dbadfd3 makes system-volume
+                              # route transitions fail safe; image#283 guards this exact SHA.
                               # e1aa7e373e39efb48bd4cf0c7a74b310beddf70e is the runtime
                               # source guarded by image aaf21ba0 and launcher f26bfd66.
                               # Previous Build 15 pin:
@@ -1574,12 +1583,14 @@ ref  = "main"                 # image#278 power-menu generation: runtime#151 mer
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "e1aa7e373e39efb48bd4cf0c7a74b310beddf70e"
+sha  = "4dbadfd36f5c08098f45d64fa0d8cbbaa8a9d074"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
 url  = "https://github.com/pocketforge-os/launcher.git"   # top-coord RULING B). The image's `launcher`
 ref  = "main"                 # image#278 power-menu generation: launcher#169 merge
+                              # Build 19: launcher#173 merge c3f05fc2 refreshes the vendored
+                              # runtime scene contract for runtime#159; image#283 guards it.
                               # f26bfd66ab739d06caf4e5347fc4150e2777c1ab revendors runtime
                               # e1aa7e373e39efb48bd4cf0c7a74b310beddf70e and moves atomically
                               # with image aaf21ba0216b95258f1f0ad8a22294bb9365a148.
@@ -1667,7 +1678,7 @@ ref  = "main"                 # image#278 power-menu generation: launcher#169 me
                               # keeping their images byte-identical. Not-per-device (literal-name lookup like
                               # libsdl3/wpa/runtime). SHA = the exact commit the launcher stage drift-checks
                               # (PF_LAUNCHER_SHA); an ancestor of launcher/main @ seed time.
-sha  = "f26bfd66ab739d06caf4e5347fc4150e2777c1ab"
+sha  = "c3f05fc296692cb67c6d490e56c6fe07f8a846c5"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY

@@ -475,6 +475,42 @@ template = 'current_uapi_sha={value}'
 reason = "named current kernel-UAPI witness used by the Steam Link admission controls"
 
 [[references]]
+id = "a133-audio-defaults-kernel-provenance"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+aliases = [
+  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+]
+consumer_repo = "image"
+consumer_path = "device-config/alsa/mixer-defaults.sun4i-codec-7.x"
+parser = "template"
+template = '# {value}): the TSP device tree selects'
+reason = "image#283 source provenance for the A133 mixer defaults"
+
+[[references]]
+id = "a133-audio-controls-kernel-provenance"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+aliases = [
+  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+]
+consumer_repo = "image"
+consumer_path = "tests/fixtures/alsa/sun4i-codec-controls.kernel-sunxi-7.x.tsv"
+parser = "template"
+template = '#   commit: {value}'
+reason = "image#283 ALSA control fixture source provenance"
+
+[[references]]
+id = "a133-audio-controls-rederive-command"
+platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+aliases = [
+  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+]
+consumer_repo = "image"
+consumer_path = "tests/fixtures/alsa/sun4i-codec-controls.kernel-sunxi-7.x.tsv"
+parser = "template"
+template = '# Re-derive: git show {value}:sound/soc/sunxi/sun4i-codec.c'
+reason = "image#283 ALSA control fixture re-derivation provenance"
+
+[[references]]
 id = "volatile-root-kernel-pr-provenance"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.source_sha"
 aliases = [

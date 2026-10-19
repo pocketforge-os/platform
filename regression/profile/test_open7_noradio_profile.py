@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "3010de56dbd1057513c035fff8623f80596fe9e8"
+NORMAL_KERNEL_SHA = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -34,7 +34,7 @@ NORMAL_KERNEL_SHA = "3010de56dbd1057513c035fff8623f80596fe9e8"
 # preserving the separate lock-owned entry required by the owned-image admission gate.
 # Kernel#113 advances both entries together so neither profile programs the
 # unsupported A133 MMC0 PF selector at 0x350.
-NORADIO_KERNEL_SHA = "3010de56dbd1057513c035fff8623f80596fe9e8"
+NORADIO_KERNEL_SHA = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
 NORMAL_UBOOT_SHA = "c37b6ad5a6224875955315443224288ec752e992"
 
 
@@ -147,9 +147,9 @@ class Open7NoradioProfileTest(unittest.TestCase):
             document,
         )
         self.assertIn(
-            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; kernel#113 keeps it "
-            "equal to the canonical pin so neither profile programs the unsupported A133 "
-            "MMC0 PF selector.",
+            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; kernel#114 keeps it "
+            "equal to the canonical pin so both profiles use the same fail-closed "
+            "AXP717 policy.",
             document,
         )
         self.assertNotIn("holds its lock-owned kernel pin at `23cdf7bf`", document)

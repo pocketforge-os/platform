@@ -14,7 +14,7 @@ spec.loader.exec_module(profile)
 
 SELECTED = "a133-open-7x-gpu"
 UAPI_SHA = "3010de56dbd1057513c035fff8623f80596fe9e8"
-KERNEL_SHA = "3010de56dbd1057513c035fff8623f80596fe9e8"
+KERNEL_SHA = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
 EXPECTED_ARGS = {
     "PF_STEAMLINK_FFMPEG59_MODE": "v1",
     "PF_FFMPEG_DEBIAN_VERSION": "7:5.1.8-0+deb12u1",
@@ -37,9 +37,9 @@ class PlatformRuntimeTest(unittest.TestCase):
         self.assertEqual(runtime["source_repo"], "kernel-sunxi-7.x")
         self.assertEqual(runtime["source_sha"], UAPI_SHA)
         self.assertEqual(lock["repos"][runtime["source_repo"]]["sha"], KERNEL_SHA)
-        # Exported bytes are unchanged, but the producer consumes the boot-kernel
-        # tree and authenticates its exact source receipt.
-        self.assertEqual(runtime["source_sha"], KERNEL_SHA)
+        # The PMIC-only boot-kernel advance leaves both exported UAPI trees
+        # unchanged. Keep image#283's authenticated producer receipt exact.
+        self.assertNotEqual(runtime["source_sha"], KERNEL_SHA)
 
         args, _, missing = profile.build_args(SELECTED)
         self.assertEqual(missing, [])
