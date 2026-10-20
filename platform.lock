@@ -682,7 +682,17 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # hermetic open-profile iw package contract; launcher#174 and its
                        # F13 guard remain the same, and runtime remains 4dbadfd3 because
                        # launcher c11bc89b carries no vendored runtime change.
-sha  = "0b7847b5b92731e59da69adafc19f79f4d16048f"
+                       # tsp-mc9m.41.984.54.18.4: advance image from
+                       # 0b7847b5b92731e59da69adafc19f79f4d16048f to
+                       # 4ef1e679ff06f61375796892fc3b770a0a5b89ec. The complete
+                       # image commit range is:
+                       # b1e5fa10130047b9c00688c08193791b5ab3d353 test: cover
+                       #   virtio-gpu child under virtio-mmio
+                       # 809c66424db3bde07c0764429783ab1638819657 fix: detect
+                       #   virtio gpu below virtio-mmio
+                       # 4ef1e679ff06f61375796892fc3b770a0a5b89ec Merge pull request
+                       #   #292 from pocketforge-os/tsp-mc9m.41.984.54.18.4.1
+sha  = "4ef1e679ff06f61375796892fc3b770a0a5b89ec"
 
 [[repos]]
 name = "pf-cursor-theme"
