@@ -696,7 +696,7 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # 4ef1e679 to c024fedb (image#293 Xwayland generation fixes, then
                        # image#295 which moves every exact runtime guard to runtime
                        # 3c90482c: runtime#161 uinput success audit, runtime#162 posture).
-sha  = "c024fedbdcd27d4eafa1c5278136cabe293ec763"
+sha  = "1a2bf056b93b0131f4972240d8569ec4709c32d5"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1529,7 +1529,7 @@ ref  = "pocketforge-main-linear"  # tsp-mc9m.41.1002.7.2 Build 8: cloud-init-tsp
                            # launcher 8209c392 and runtime b289235d therefore remain unchanged.
                            # Previous pin (a85ca5bd72ddf1d5f567f97ae96ebdeb928cd379):
                            # cloud-init-tsp#13, originally paired with image#233.
-sha  = "db8deddc5f0a3f0ff70a6f152d777e30d2e7fc44"
+sha  = "37485a2249d824a89732d1f1cec8d81ad1601fba"
 
 [[repos]]
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
