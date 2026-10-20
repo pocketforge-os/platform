@@ -1531,8 +1531,12 @@ sha  = "db8deddc5f0a3f0ff70a6f152d777e30d2e7fc44"
 name = "runtime"              # E2 runtime SDK + capability-broker workspace (Rust). NOT per-device;
 url  = "https://github.com/pocketforge-os/runtime.git"   # the a133 image's `runtime` Dockerfile.pf
 ref  = "main"                 # image#278 power-menu generation: runtime#151 merge
-                              # Build 19: runtime#159 merge 4dbadfd3 makes system-volume
-                              # route transitions fail safe; image#283 guards this exact SHA.
+                              # tsp-ihne1.56.9 / tsp-mc9m.41.1026.6.2: runtime main 3c90482c
+                              # carries runtime#161 (guarded uinput creators emit one bounded
+                              # success audit record) and runtime#162 (posture); image#295
+                              # guards this exact SHA.
+                              # Previous Build 19 pin: runtime#159 merge 4dbadfd3 makes
+                              # system-volume route transitions fail safe; image#283 guarded it.
                               # e1aa7e373e39efb48bd4cf0c7a74b310beddf70e is the runtime
                               # source guarded by image aaf21ba0 and launcher f26bfd66.
                               # Previous Build 15 pin:
@@ -1612,7 +1616,7 @@ ref  = "main"                 # image#278 power-menu generation: runtime#151 mer
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "4dbadfd36f5c08098f45d64fa0d8cbbaa8a9d074"
+sha  = "3c90482c3933002528b35ea032e0249ec279066e"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
