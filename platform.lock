@@ -678,7 +678,10 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # tsp-z8vav.9: image#289 (b96eafb4) moves the Gamescope producer and
                        # harness pins to 60d6d0eb, which the lock-mirror gate requires of the
                        # pinned image consumer.
-sha  = "b96eafb43164133e3879e14b7d04788e6bfd35d7"
+                       # tsp-mc9m.60.29.31 Build 21: image#290 merge 59bdf73d refreshes
+                       # the exact launcher#174 Quick/BTN_NORTH co-pin; runtime remains
+                       # 4dbadfd3 because launcher c11bc89b carries no vendored runtime.
+sha  = "59bdf73d92123e7efb0418d046b05886c49a9dec"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1693,7 +1696,10 @@ ref  = "main"                 # image#278 power-menu generation: launcher#169 me
                               # keeping their images byte-identical. Not-per-device (literal-name lookup like
                               # libsdl3/wpa/runtime). SHA = the exact commit the launcher stage drift-checks
                               # (PF_LAUNCHER_SHA); an ancestor of launcher/main @ seed time.
-sha  = "c3f05fc296692cb67c6d490e56c6fe07f8a846c5"
+                              # tsp-mc9m.60.29.31 Build 21: launcher#174 merge c11bc89b
+                              # fixes the shipped Quick/BTN_NORTH binding; image#290 merge
+                              # 59bdf73d refreshes its exact F13 guard without a runtime move.
+sha  = "c11bc89b8df758f22cdc8df73e6688c854266e17"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY

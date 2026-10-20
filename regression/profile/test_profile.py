@@ -397,16 +397,16 @@ class ProfileTest(unittest.TestCase):
         # Linux 7 memory policy and image#288's overlay-coverage guard. Image#289 then
         # advances only that pin again, for the Gamescope 60d6d0eb producer/harness pins.
         expected = {
-            ("a133", "dev"): "9bc83b51516003486116e6c1fe46926771c8769e21cdbf34fef9a6e78838f014",
-            ("a133", "release"): "4a1caede3e81c2863573113e46435f43a921307b1102669e3fb1a580d14a2b90",
-            ("a133-open-7x", "dev"): "87ddf841e40b9816aa6694efa9c0e3f6610b1beff7dab768f9e1dbbe5d1600a7",
-            ("a133-open-7x", "release"): "9f3bb6ff9bae77df039f1be94afe1a5c5fbc3adc29889ab9219876a79e554d3e",
-            ("a133-owned", "dev"): "1d796f83e4696a3b76bc20ea5b29a22506625d687e9c835dae654e610a7da03a",
-            ("a133-owned", "release"): "8cfa48a1b95efb29baec21b210c7ff7d2e43ea047d3ae04fa6aadffddbac75cf",
-            ("a523", "dev"): "f996d727775391762a4eac8ca85df1b98c29cd4d5a7904b477bef41c4de5fc2e",
-            ("a523", "release"): "dea3672f99b7d4e052d389a3c95ebaa2efc98f69ffd4822303e171646cabf303",
-            ("sdm845", "dev"): "211807a59c4f2cc9b0e4ad690ef1065152469106015f65e09bf8d6f593b6d9cb",
-            ("sdm845", "release"): "dc3c583aa9cba694560dfef1b480bc4fcfdbaf5b37a08e0719c894bcc9162cae",
+            ("a133", "dev"): "255afd775e27f9200039e979387637af272740ff44230bf592b9c2ec2d90d8cb",
+            ("a133", "release"): "c18dc2adf0420426b3978e18a579df2fcf0b813e43326677db9b0951aceca7b7",
+            ("a133-open-7x", "dev"): "e34d7f3fb14ca89c5df5b2dc2e3ecf7fd9eef12c525f746108a2bea26cdddf2b",
+            ("a133-open-7x", "release"): "ac2f96ca86983cfd178698d8b4abca63b35c36755ea6b8d66976c7e965871cba",
+            ("a133-owned", "dev"): "d285e405072cb4df0879c5e60d062bbf0b9bd46193280df6b755890c24d0bae0",
+            ("a133-owned", "release"): "04062f7a919ec8fb184fb4cdb5af7db95daf96ecf94789aa7ca53e6d7f0191ac",
+            ("a523", "dev"): "5935b5f3239970ac7a9a339f38ea753161a6fee9439ad5b3ad5e4192070d906a",
+            ("a523", "release"): "1178237156c6ba82832757be11b5684ba6c7c8afb43d204d45ca8a1c8de9263e",
+            ("sdm845", "dev"): "923f7fa660b07c686c484da2a043b3334932e2cbca7170799fec291b4404cc00",
+            ("sdm845", "release"): "029c62b08c2cc51fdb51381773abc9cbdd05d9896ee959f501aafb24115deeb2",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -624,7 +624,7 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "c3f05fc296692cb67c6d490e56c6fe07f8a846c5")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "c11bc89b8df758f22cdc8df73e6688c854266e17")
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
@@ -689,14 +689,14 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "b96eafb43164133e3879e14b7d04788e6bfd35d7",
+                "PF_IMAGE_SHA": "59bdf73d92123e7efb0418d046b05886c49a9dec",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
-        self.assertEqual(args["PF_LAUNCHER_SHA"], "c3f05fc296692cb67c6d490e56c6fe07f8a846c5")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], "c11bc89b8df758f22cdc8df73e6688c854266e17")
         self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
         self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
         self.assertEqual(
