@@ -699,7 +699,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # Platform#372 then advances through image#294's render-only Venus
                        # surfaceless EGL/provider-verifier fix and image#296's first-run
                        # prefs/schema fix; image#296's first parent is image#294.
-sha  = "beb5914e874e64fae37fe5adbe69a2d41323e618"
+                       # Image#298 fixes the cloud-init stage to carry the image#296
+                       # prefs schema, XKB checker, and first-boot unit inputs.
+sha  = "d4165584de443151dea3e81873e691383a58bf10"
 
 [[repos]]
 name = "pf-cursor-theme"
