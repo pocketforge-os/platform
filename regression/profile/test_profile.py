@@ -326,6 +326,9 @@ class ProfileTest(unittest.TestCase):
         # Image#210 moves PF_IMAGE_SHA globally; its kernel#84 dependency additionally
         # moves PF_KERNEL_SHA for canonical open-7x profiles and the selected Steam Link
         # UAPI witness, while the no-radio kernel override remains frozen.
+        # tsp-ihne1.56.9 / tsp-mc9m.41.1026.6.2: runtime 4dbadfd3 -> 3c90482c (runtime#161, #162) and
+        # image 4ef1e679 -> c024fedb (image#293, #295) move only PF_RUNTIME_SHA and PF_IMAGE_SHA on every
+        # row (old-vs-new build_args payload diff of all ten rows shows no other key, state or missing change).
         # Build 5 includes image#211/#212 and kernel#85: PF_IMAGE_SHA moves globally;
         # canonical open-7x kernel/UAPI identities move while no-radio remains frozen.
         # Build 6 image#213 again moves PF_IMAGE_SHA globally; kernel#86 changes only
@@ -402,16 +405,16 @@ class ProfileTest(unittest.TestCase):
         # universal pin for virtio-gpu child detection below virtio-mmio; no other
         # build argument changes.
         expected = {
-            ("a133", "dev"): "67540263e35e71d5259b7677e19532f86af3744ce7980579c99eb5a75c471543",
-            ("a133", "release"): "5e44d64ffe29266b45f183cc5f99a21734f0d23cc4e96a2a999d2c3f6e979f5a",
-            ("a133-open-7x", "dev"): "25037ffd7ce7f6cf70e90b4d04e43d49447fa3cb1a20ac0897f03ea5850fc454",
-            ("a133-open-7x", "release"): "d1cf66f05b31a4f3fdf2c6fb841e71fd0f254bdb9933bc7569ac3b9aec66b17d",
-            ("a133-owned", "dev"): "5bc066a5e8d82f4fd356348346f00943ce7022f5c01040825ed3b3aa95237677",
-            ("a133-owned", "release"): "b7546c3822eaede5a585f1be09194039d801745248ead6003c96d2e1443ae1e1",
-            ("a523", "dev"): "1e94d09c93d84cd508b74503477e19a0d52c0eedc34028606bcbc46124f126ae",
-            ("a523", "release"): "45b91abfb7677b1d252e8fb92c2514d171efd3c958db853c57bb99e2f23df29a",
-            ("sdm845", "dev"): "e10b1d3970cc9ef65b33a69dd57e1057e437fa3e5e3308a6ad1d9fa0739d8f1a",
-            ("sdm845", "release"): "24f3198999bfdc69f312372272c28271edcfacb357deb7504c89c4c3d6219a1d",
+            ("a133", "dev"): "7970c093dd94a1efa54e66aeafa9d1fc3a5dbd4bf5f402b7f0ee117f0c150833",
+            ("a133", "release"): "47b1691550f681f4597ad1f269cd35c351f032b525d3b1d2e60f8058a5c8a023",
+            ("a133-open-7x", "dev"): "7427ce27b9ae6b58a35109bfed60436ca015977e25d40b70ded40462a7326fd9",
+            ("a133-open-7x", "release"): "cd274351eb44515e2242240cc790a83595bd332170c20dd78af3a0ff684cec19",
+            ("a133-owned", "dev"): "73e4ceba34c38bb41f8be152c9a5e3bba4d429c983ffad184af6f5b52abb1f1f",
+            ("a133-owned", "release"): "637f9004879255671529fa071f6fcdbf8ffee61b412c03fdd0f8ab5940b49021",
+            ("a523", "dev"): "6fe08a07a0a5139da2fc9e49235e99764da3f7c794001e615aaa51fc09caeb81",
+            ("a523", "release"): "c41b6b602b89a96429699f2dff8b696620618a8cc6fc362ae4210ecab01df54a",
+            ("sdm845", "dev"): "0086c4d8cd690113f7072c9ffa4ab0391fe47f9ffa6a4bc1929c99a07eefb18d",
+            ("sdm845", "release"): "3f5200e4899ec4ea161c84669831c22bb79904efba5894f0031d116d3c7fac47",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -694,7 +697,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "4ef1e679ff06f61375796892fc3b770a0a5b89ec",
+                "PF_IMAGE_SHA": "c024fedbdcd27d4eafa1c5278136cabe293ec763",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
