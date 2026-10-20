@@ -692,7 +692,11 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        #   virtio gpu below virtio-mmio
                        # 4ef1e679ff06f61375796892fc3b770a0a5b89ec Merge pull request
                        #   #292 from pocketforge-os/tsp-mc9m.41.984.54.18.4.1
-sha  = "4ef1e679ff06f61375796892fc3b770a0a5b89ec"
+                       # tsp-ihne1.56.9 / tsp-mc9m.41.1026.6.2: advance image from
+                       # 4ef1e679 to c024fedb (image#293 Xwayland generation fixes, then
+                       # image#295 which moves every exact runtime guard to runtime
+                       # 3c90482c: runtime#161 uinput success audit, runtime#162 posture).
+sha  = "c024fedbdcd27d4eafa1c5278136cabe293ec763"
 
 [[repos]]
 name = "pf-cursor-theme"
