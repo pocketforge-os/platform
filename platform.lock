@@ -702,8 +702,11 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # Image#298 fixes the cloud-init stage to carry the image#296
                        # prefs schema, XKB checker, and first-boot unit inputs.
                        # Image#299 (merge aabc9a0e5d7a56d215e84ffe6605a8f5f4b37d23) moves the launcher guard, app-policy
-                       # pair workflow and launcher-pin tests to launcher#175 (3c67ac7c).
-sha  = "aabc9a0e5d7a56d215e84ffe6605a8f5f4b37d23"
+                       # pair workflow and launcher-pin tests to launcher#175 (3c67ac7c). Image#300
+                       # (merge f5ac1c98197c686a2fdfcf6ac69b629990878433; fix 087b9f0)
+                       # adds LIBGL_ALWAYS_SOFTWARE to the render-only Zink probe so Mesa's
+                       # surfaceless Venus path selects the software Vulkan device.
+sha  = "f5ac1c98197c686a2fdfcf6ac69b629990878433"
 
 [[repos]]
 name = "pf-cursor-theme"
