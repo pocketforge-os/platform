@@ -434,17 +434,19 @@ class ProfileTest(unittest.TestCase):
         # growth with fail-closed staging admission; no other payload field changes.
         # Image#311 advances PF_IMAGE_SHA and PF_RUNTIME_SHA on every row and
         # PF_LAUNCHER_SHA on open profiles as one guarded application-policy pair.
+        # Image#313 advances only PF_IMAGE_SHA for the bounded open-GPU gate
+        # deadline; every other build argument, state, and missing pin is unchanged.
         expected = {
-            ("a133", "dev"): "959d7b9a3038f9d0e3eb65352b6c788f85344ca19ff386e14ae4ce05b319d92c",
-            ("a133", "release"): "73cc6957be8fcf9cb7cff46c5ac7caa976be026c088fc3748019b79eb13171c6",
-            ("a133-open-7x", "dev"): "6422c25c4d78b4089a621bd8e89c3ac93401521c4b8f9e2ca80845ed74ca33ae",
-            ("a133-open-7x", "release"): "69a2b13f3008a0b618968e3c908bfbc8d922ce8a3ed4f3400ac616ee557d7f67",
-            ("a133-owned", "dev"): "fb2dff01ac10e06c663c81c173bfceaa5d55bff71d9717d169fcd57c401f5ae5",
-            ("a133-owned", "release"): "b7fa0dcf8d29c633610f40bff74513e9924a8bdca1b23a574a7b0c32af318f0f",
-            ("a523", "dev"): "d3511eac7d33f91eecaf33f199eddfa4abcef8048478cd40404ca1093598bcd1",
-            ("a523", "release"): "1dd1544679d69a2238b50df42e9f94f4e7d09b8981b6e05405f3648783a21b36",
-            ("sdm845", "dev"): "409fe1573ce2caff9c744849b6f52b86af1e7e2918e9e9f42dc839788780b40a",
-            ("sdm845", "release"): "ec679a9d02a30486f20047a2ec385a5faad13a6589be80c0ec73b311d3ac0261",
+            ("a133", "dev"): "967937ccc6dc477f470e3f82b25daa87297e1c158013490e8ec4b3c4f085779e",
+            ("a133", "release"): "ac6202e4d4afc8231fa6b9d372c98f40c289059e2c1a7c42d0e2283e74cb27ec",
+            ("a133-open-7x", "dev"): "6de67651937b49c7b4f2f19593d9fab3bad95f11384d89192ad307c1d6534f1a",
+            ("a133-open-7x", "release"): "cc21ac1f1514c809a8b987445254ed140f155cddeb92117b04b5ffac54bcf928",
+            ("a133-owned", "dev"): "8a15f08ad5c4b66831ccc747960a723e42112998ee2b478af0c3bb7a7a1a20cc",
+            ("a133-owned", "release"): "fa1a2f259a5c544e9de5317945a7f9b1ec6e3686557301a5ae18f96c84ecd753",
+            ("a523", "dev"): "ccfe056012c46a7d854d0f6063718f229a19d1a3dc42482b83a73a3d076b30ea",
+            ("a523", "release"): "1f59037f7415818fdc633851f53fa4bb384f3ea8244b2bc5122847e7f1991453",
+            ("sdm845", "dev"): "8d96865babf904b219f054e9936131c7dca2df6f726cfd36840f2f24e669894d",
+            ("sdm845", "release"): "e55706ab985529fb179ae4b1ed4597230bc8305174e86e5bac97cb04243a4959",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -727,7 +729,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "f25e2211095073a8bd8263c89c84fe5e04012b46",
+                "PF_IMAGE_SHA": "24cc5c83d7cc7207f69c05369c2b8c70d7e4d166",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
