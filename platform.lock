@@ -718,7 +718,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # fix; launcher#176 remains unchanged.
                        # Build 32: image#308 fixes the self-flash v3 initrd gate for a
                        # freshly written layout; runtime#170 and launcher#176 remain unchanged.
-sha  = "6abd7cf1f23491ab15ff4220a7799d1c113e7b62"
+                       # Image#309 adds the QEMU-safe low-battery unit condition; the
+                       # runtime#170 and launcher#176 pins remain unchanged.
+sha  = "8acf11b2ecbbe04b40dc2c627fc4a47e64364b6a"
 
 [[repos]]
 name = "pf-cursor-theme"
