@@ -20,10 +20,11 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "f5ac1c98197c686a2fdfcf6ac69b629990878433"
+CURRENT_IMAGE = "ea03fbe62b54a00e3bf94e26ab20cb7f69c03629"
 CURRENT_UAPI = "3010de56dbd1057513c035fff8623f80596fe9e8"
 CURRENT_KERNEL = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
 CURRENT_CTS_SOURCE = "067e8832315e79817ede1c4863804e440f5d1c80"
+CURRENT_CTS_BUNDLE = "544702ae2b495908bac41546c2d2768c4858ecc40bcb41a3120c32829d7e4c86"
 BUILD9_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 BUILD9_KERNEL = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 CURRENT_GAMESCOPE = "60d6d0ebbb2285dd8e19d66e8760c6066b60d25e"
@@ -753,6 +754,9 @@ comparison = "equal"
             ),
             "tests/test-low-battery-shutdown.sh": (
                 f"alarm_kernel_sha={CURRENT_KERNEL}\n".encode()
+            ),
+            "docs/SELF-FLASH-V3.md": (
+                f"measured CTS archive SHA-256 `{CURRENT_CTS_BUNDLE}`\n".encode()
             ),
         }
         resolver = FixtureResolver({("image", CURRENT_IMAGE): current_tree})

@@ -706,7 +706,11 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # (merge f5ac1c98197c686a2fdfcf6ac69b629990878433; fix 087b9f0)
                        # adds LIBGL_ALWAYS_SOFTWARE to the render-only Zink probe so Mesa's
                        # surfaceless Venus path selects the software Vulkan device.
-sha  = "f5ac1c98197c686a2fdfcf6ac69b629990878433"
+                       # Image#301 (merge ea03fbe62b54a00e3bf94e26ab20cb7f69c03629;
+                       # first parent f5ac1c98197c686a2fdfcf6ac69b629990878433) adds the
+                       # self-flash v3 capped-growth tail reservation and initrd transaction,
+                       # eligibility, and receipt path.
+sha  = "ea03fbe62b54a00e3bf94e26ab20cb7f69c03629"
 
 [[repos]]
 name = "pf-cursor-theme"
