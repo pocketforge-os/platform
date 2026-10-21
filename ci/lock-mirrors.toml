@@ -748,6 +748,15 @@ template = 'runtime_sha={value}'
 reason = "test expectation for the declared production mirror"
 
 [[references]]
+id = "runtime-session-input-router-test"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-session-input-router.py"
+parser = "template"
+template = 'assert runtime_pins == ["{value}"], runtime_pins'
+reason = "session-router test expectation for the declared production mirror"
+
+[[references]]
 id = "steamlink-uapi-test"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
 consumer_repo = "image"

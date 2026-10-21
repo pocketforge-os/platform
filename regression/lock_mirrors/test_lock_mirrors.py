@@ -20,7 +20,7 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "0206951bd085f6fbea715b7361e2d24b8c841164"
+CURRENT_IMAGE = "1c0b0b0721e114993160778679fd645d8a48c828"
 CURRENT_UAPI = "3010de56dbd1057513c035fff8623f80596fe9e8"
 CURRENT_KERNEL = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
 CURRENT_CTS_SOURCE = "067e8832315e79817ede1c4863804e440f5d1c80"
@@ -31,9 +31,9 @@ CURRENT_GAMESCOPE = "60d6d0ebbb2285dd8e19d66e8760c6066b60d25e"
 STALE_GAMESCOPE = "0000000000000000000000000000000000000000"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 STALE_UAPI = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
-RUNTIME_SHA = "43eb64914d44ae905aa69b20205b436083c8d72e"
+RUNTIME_SHA = "a64273cab3a67b2706af502c28412e8435d6df5c"
 LAUNCHER_SHA = "deac3cf621ec5eebec05e2811c960cd890f7c5c7"
-PREVIOUS_RUNTIME_SHA = "3c90482c3933002528b35ea032e0249ec279066e"
+PREVIOUS_RUNTIME_SHA = "43eb64914d44ae905aa69b20205b436083c8d72e"
 SOURCE_LOCK_PATH = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
 FIXTURES = Path(__file__).with_name("fixtures")
 BASE_COMMIT = "dc4b6a6fc5adf583a4b1697bc8c54a9f1be13803"
@@ -754,6 +754,9 @@ comparison = "equal"
             ),
             "tests/test-low-battery-shutdown.sh": (
                 f"alarm_kernel_sha={CURRENT_KERNEL}\n".encode()
+            ),
+            "tests/test-session-input-router.py": (
+                f'assert runtime_pins == ["{RUNTIME_SHA}"], runtime_pins\n'.encode()
             ),
             "docs/SELF-FLASH-V3.md": (
                 f"measured CTS archive SHA-256 `{CURRENT_CTS_BUNDLE}`\n".encode()
