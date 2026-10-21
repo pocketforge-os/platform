@@ -720,7 +720,11 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # freshly written layout; runtime#170 and launcher#176 remain unchanged.
                        # Image#309 adds the QEMU-safe low-battery unit condition; the
                        # runtime#170 and launcher#176 pins remain unchanged.
-sha  = "8acf11b2ecbbe04b40dc2c627fc4a47e64364b6a"
+                       # Image#310 makes self-flash v3 growth best-effort for login,
+                       # while preserving fail-closed staging admission.
+                       # Image#311 advances the image-owned runtime/launcher pair
+                       # references to runtime 611fb74f and launcher 0165f786.
+sha  = "f25e2211095073a8bd8263c89c84fe5e04012b46"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1651,7 +1655,9 @@ ref  = "main"                 # image#278 power-menu generation: runtime#151 mer
                               # Build 31: runtime#170 head 1a687170 fixes the musl/aarch64
                               # session IPC compilation failure; its tree is identical to
                               # merge 7542da6c, and launcher#176 remains unchanged.
-sha  = "1a6871707b5f9c1ec5fdfbd438b75c8b775ded70"
+                              # Image#311 requires runtime 611fb74f and launcher 0165f786
+                              # as one guarded application-policy pair.
+sha  = "611fb74f19959b3b8cfe4044d1ae19082bc95f1d"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
@@ -1753,7 +1759,8 @@ ref  = "main"                 # image#278 power-menu generation: launcher#169 me
                               # prefs seed, gates first-run rows per seed and never exits on
                               # a bad seed/prefs file; no runtime move. Co-pinned with image#299.
                               # tsp-mc9m.60.29.47 Build 29: launcher#176; co-pinned with runtime#168 and image#302/#296/#294.
-sha  = "deac3cf621ec5eebec05e2811c960cd890f7c5c7"
+                              # Image#311 co-pins launcher 0165f786 with runtime 611fb74f.
+sha  = "0165f7863c5bebe1bc1faf4322acbb6c9ae1038d"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
