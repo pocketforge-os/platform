@@ -76,7 +76,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x-gpu")
         self.assertEqual(missing, [])
         expected = {
-            "PF_IMAGE_SHA": "c7ea4478ad3682ee57d282e17266c4e8ecfb1c9e",
+            "PF_IMAGE_SHA": "f25e2211095073a8bd8263c89c84fe5e04012b46",
             "PF_KERNEL_REPO": "kernel-sunxi-7.x",
             "PF_KERNEL_SHA": "b8434263b00f1beeadb5ade16a0b62959d497b1d",
             "PF_KERNEL_DTB": "sun50i-a133-pocketforge-odyssey.dtb",
@@ -90,7 +90,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_LIBSDL3_SHA": "7411a94803c95b2f93a898f3773ffe95dfec4263",
             "PF_DISPLAY_PIPELINE": "fbdev",
             "PF_LAUNCHER_REPO": "launcher",
-            "PF_LAUNCHER_SHA": "deac3cf621ec5eebec05e2811c960cd890f7c5c7",
+            "PF_LAUNCHER_SHA": "0165f7863c5bebe1bc1faf4322acbb6c9ae1038d",
             "PF_RECOVERY_REPO": "recovery",
             "PF_RECOVERY_SHA": "443a84e47c96d83de967948844d8e5eaa41d7413",
             "PF_BLOBS_SHA": "02ad8b7158ae39797f2693607ea9f2e6975f9ffd",
