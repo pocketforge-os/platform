@@ -430,17 +430,19 @@ class ProfileTest(unittest.TestCase):
         # self-flash v3 layout fix; runtime#170 and launcher#176 remain unchanged.
         # Image#309 advances only PF_IMAGE_SHA for the QEMU-safe low-battery unit
         # condition; the rendered payload diff shows no other key, state, or missing-pin change.
+        # Image#310 likewise advances only PF_IMAGE_SHA for non-blocking self-flash v3
+        # growth with fail-closed staging admission; no other payload field changes.
         expected = {
-            ("a133", "dev"): "1bd549370442d2fe7862b2b1e95456a65b3884f756cd7075788102a626e5ce6a",
-            ("a133", "release"): "1a6b7496d70052da89d96d2aec99daf87a4eed596ec58d7fb5f144971b34d2fc",
-            ("a133-open-7x", "dev"): "9d9926b9da5363efbd68cde48114a7834bafd74e558db733136fc4b6204b87d5",
-            ("a133-open-7x", "release"): "f7690e4fbf2f42c4cb1e65e56bdd2ea35c3b5d7ecdd3c6e8862099d3f9059000",
-            ("a133-owned", "dev"): "3d973b6ff46ef46963d3a574187032ee5c4314879a09afd548a9e529bf424cf0",
-            ("a133-owned", "release"): "bed3345529a4be784df64ab03f0b051c2a3188df5afb72f12d3d69d5fa7b0ac7",
-            ("a523", "dev"): "230fcc2dd02a8e4ca25ebacbdd832645b697448260db22d55b57bab72df11580",
-            ("a523", "release"): "bf5b8ba49f69eaaa4d4e569bbc0dc653075178a40068043883840df4375fec2f",
-            ("sdm845", "dev"): "c9e769885457db367a3f5e2c882362117fa384e4022aaf60048a8d15e391138d",
-            ("sdm845", "release"): "a44c5bf396a721e5a897030f0f6d66a68ec4638c63377b65f9c806556d3ba4ab",
+            ("a133", "dev"): "3e83d1ffe886a862021f39faf5357a7421d64f0e607c9505684e7f92a692df20",
+            ("a133", "release"): "eb42b07106634d1109e2cc13603f689a8d0c028c2301100c7faca2b562715bf1",
+            ("a133-open-7x", "dev"): "65652b553e20801bb10a4ef5211d5e59410e68c867b15f0ede68cd9b2d50b209",
+            ("a133-open-7x", "release"): "5b78f27ac7575d4361b90dd6417e92be94c3c754c189ab6c9568741f50b4c179",
+            ("a133-owned", "dev"): "9443d622f8bf0664ddaa31731997c0b983990b594b792a780e9b9dd92509308a",
+            ("a133-owned", "release"): "416ea661d4e3e6314c4100d7d695e8ad69041cf0ee79078484b33d65406d5977",
+            ("a523", "dev"): "62bd914d595c775d2d7a7ebadd01e35f53265082eac895dfc72aef07cea30841",
+            ("a523", "release"): "b52eb2407021017ee2e5f075fd5a380b4f8fdaae2ceb062969675753dab61e56",
+            ("sdm845", "dev"): "603414261cd0b20b2a0a63b9ea9ca9b1be5a4fbac237c4d6a887886cf44da6e2",
+            ("sdm845", "release"): "3274fc14047ae03b787d64505a714d5f8e1646d7710670ff46c965c2fc38420a",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -723,7 +725,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "8acf11b2ecbbe04b40dc2c627fc4a47e64364b6a",
+                "PF_IMAGE_SHA": "c7ea4478ad3682ee57d282e17266c4e8ecfb1c9e",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

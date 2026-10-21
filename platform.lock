@@ -720,7 +720,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # freshly written layout; runtime#170 and launcher#176 remain unchanged.
                        # Image#309 adds the QEMU-safe low-battery unit condition; the
                        # runtime#170 and launcher#176 pins remain unchanged.
-sha  = "8acf11b2ecbbe04b40dc2c627fc4a47e64364b6a"
+                       # Image#310 makes self-flash v3 growth best-effort for login,
+                       # while preserving fail-closed staging admission.
+sha  = "c7ea4478ad3682ee57d282e17266c4e8ecfb1c9e"
 
 [[repos]]
 name = "pf-cursor-theme"
