@@ -710,8 +710,10 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # first parent f5ac1c98197c686a2fdfcf6ac69b629990878433) adds the
                        # self-flash v3 capped-growth tail reservation and initrd transaction,
                        # eligibility, and receipt path.
-                       # tsp-mc9m.60.29.47 Build 29 retry: image#305 fixes producer-audit parsing of apostrophes; retains image#304/#302/#296/#294 and the runtime#168/launcher#176 co-pin.
-sha  = "0206951bd085f6fbea715b7361e2d24b8c841164"
+                       # tsp-mc9m.60.29.48 Build 30: image#297 adds the headphone-jack
+                       # udev rule and image#303 adds the session router; co-pinned with
+                       # runtime#169 head a64273ca while launcher#176 remains unchanged.
+sha  = "1c0b0b0721e114993160778679fd645d8a48c828"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1635,8 +1637,11 @@ ref  = "main"                 # image#278 power-menu generation: runtime#151 mer
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-                              # tsp-mc9m.60.29.47 Build 29: runtime#168; co-pinned with launcher#176 and image#302/#296/#294.
-sha  = "43eb64914d44ae905aa69b20205b436083c8d72e"
+                              # tsp-mc9m.60.29.48 Build 30: runtime#169 head a64273ca
+                              # supplies the session-router half paired with image#303;
+                              # its tree is identical to merge 1ba8c341, and launcher#176
+                              # remains unchanged.
+sha  = "a64273cab3a67b2706af502c28412e8435d6df5c"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
