@@ -426,17 +426,19 @@ class ProfileTest(unittest.TestCase):
         # session router and runtime#169 head; launcher#176 remains unchanged.
         # Build 31 advances those same two pins for image#307 and runtime#170's
         # musl/aarch64 session IPC compile fix; launcher#176 remains unchanged.
+        # Build 32 advances only PF_IMAGE_SHA for image#308's freshly written
+        # self-flash v3 layout fix; runtime#170 and launcher#176 remain unchanged.
         expected = {
-            ("a133", "dev"): "14faf5743a7606c3ce0d69f01b21ad464091d0b30b312a023ccef7e76f5c2ffd",
-            ("a133", "release"): "1e01dde24d9b9cd70656477bc0dab399677edded8621937f51778f5fec9ebbba",
-            ("a133-open-7x", "dev"): "58029c7a246529ac670c9ff4c741eec5d949d3c1cea0f011ceada18f2659b3b8",
-            ("a133-open-7x", "release"): "7d90c4ecccca9a9a3da186f91b7b83726ee46b09fade1bcf6afd57a1c14eca37",
-            ("a133-owned", "dev"): "83bb9b77dbc0a37dd3464687445dbf0c533a61e7018ba5d93793b9659e7c3753",
-            ("a133-owned", "release"): "38682d6c1770f54aa923bb2806077233a351d2b784620d9d99b24e6f85c452ba",
-            ("a523", "dev"): "42d459dcb1c1435b16d3cfbd1cc673d681a74ecc700e5eb421ec2acb2efbd8bb",
-            ("a523", "release"): "183fb25b16bfac72c6ba51502f4e855b7b9650af4502c79e1901ff6ec264ffa1",
-            ("sdm845", "dev"): "940863f796052daff8ac3927ef63c407cf786de51b8474268ff3921f522ed2b6",
-            ("sdm845", "release"): "c33882a7d79cc945448b2d64545c909b17758aebbcc59048e41f6484bdfc5117",
+            ("a133", "dev"): "51f83a181fe9bbfce54bcdc30903734c3b9fb8f8aa7ed762edb3cce22187afa9",
+            ("a133", "release"): "ac5285f43c37b41cbbbfb47fefe803aa957b83de4af8dfc26c2ea13fbb4a14d1",
+            ("a133-open-7x", "dev"): "eea77d70600ddd2d7e2a54df07c117b7bc2bf60ebcecb9b521a64dd5583778f5",
+            ("a133-open-7x", "release"): "3a8afd1191dfe8bff147abfca4b35a50ff00f8fbf36cbecef6203514fa4199db",
+            ("a133-owned", "dev"): "83d9757cacff0364264dcea41258aa83832c9ce8753280c60093974ff75e67db",
+            ("a133-owned", "release"): "01ad2c5805efd9663a20fab0bcecd6e7641c9c026dfef00e7b77c834e7add53c",
+            ("a523", "dev"): "f522ee9518747820dbb3b488b401197c96d5a4f3b91eb5bb585768c9bcd9dbf2",
+            ("a523", "release"): "08dbdeab424537eec0c6ff9fbf4fffc71dd1b69022eacadc7512a1cb42b41e9a",
+            ("sdm845", "dev"): "dbed3b13fb8621f4ec339abe4ffc3b20e1eb46a9e9a1efefc18a09532633c674",
+            ("sdm845", "release"): "ca55d9eac714b20456c628691a7d0ebf76425f7d48427ff9ad8ec2cbd5b16ecf",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -719,7 +721,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "d6da6a7ec26ab8852e66d8e8c1e0b5ca775b0e9f",
+                "PF_IMAGE_SHA": "6abd7cf1f23491ab15ff4220a7799d1c113e7b62",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
