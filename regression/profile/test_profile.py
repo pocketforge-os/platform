@@ -410,17 +410,19 @@ class ProfileTest(unittest.TestCase):
         # Image#298 advances only PF_IMAGE_SHA for the cloud-init-stage input
         # fix; the rendered payload diff shows no other key, state, or missing-pin
         # change.
+        # Image#299 (launcher#175 pin) likewise advances only PF_IMAGE_SHA on every row;
+        # the old-vs-new payload diff shows no other key, state, or missing-pin change.
         expected = {
-            ("a133", "dev"): "e72b7171be9a6b95d87471ef2e965dbb63b606d6baf1b8e2b3727dfab8e63ee2",
-            ("a133", "release"): "49a9195454cc93e6eecfb50fcd4f5fdbd5511e9b75f703596bd8fc8ce5aa2d4a",
-            ("a133-open-7x", "dev"): "4a832e7d0496e6d0d7cf63da7b4e1c21466ac22670f716c3674a88bc0e19dd69",
-            ("a133-open-7x", "release"): "9c08732456e57c2133cf2d7cd4e622893eaca050851a1f3c726960ce74e408d2",
-            ("a133-owned", "dev"): "d0779b2584d73fd902dfca056b04a05ce5a9a2549e6d65793b34f9a3d8a63fc1",
-            ("a133-owned", "release"): "28a3f5adf918906ca04b04096943d9bcbac5a828b5f9b3d0a4dd87b5c203d082",
-            ("a523", "dev"): "d2b65203819c7496e0ee108f9f8aa702462945f7d06dc67319fa6384d8a2f81a",
-            ("a523", "release"): "c2e3d2a85e4df5e1907833469657abbbf2b88e289bf7b92151d898269e7ad0e8",
-            ("sdm845", "dev"): "354c6ff31cf5d3ff6cbeb1911722a5b5370528a1c6d66539aad6e9fdfb307ad4",
-            ("sdm845", "release"): "85b3b33bc5716200cd3e117a7eb2c3137cb03b365a439c4aebb902cd2ce77372",
+            ("a133", "dev"): "e03fd5a2befdbbaf314066b604b82ea377c2fb60e539e2fe7233fa17f0f81952",
+            ("a133", "release"): "4195145c3ad9da31e246017de19041423a9fd97f679765c7ffc965edb9815e23",
+            ("a133-open-7x", "dev"): "1f2159269068bbe25b4743a52c21ab70f23eda3799a2132bd6f18b264fc58c84",
+            ("a133-open-7x", "release"): "7697b462b57b752ebb269e505f2c2a6eaf10921e49d11728ab1087ca6e4e4da4",
+            ("a133-owned", "dev"): "a8394991480899e964db48af64f1cf0a0bbb751721af519929da9d63063d3281",
+            ("a133-owned", "release"): "9eef18dc70ba532884cdf57b3e1b92023c5715c7e6bf372050e771eeba9325c7",
+            ("a523", "dev"): "179782406f4f56a8c50a7c639bc5805f3d2d77d5dbcc00976fc51e4a70ed13a2",
+            ("a523", "release"): "7fbc43f2980cc211004d58a04d1d6f273702bebbc181ef3845d2cb35f40d3ecc",
+            ("sdm845", "dev"): "c6642febd6f2aeef4c1a8bcce7f968497a4e402b050aed4ea228a363c4c0f040",
+            ("sdm845", "release"): "bc212ac6b188e877b6bbb29acc5fb9fd20a1dcc3eea212b8c504d02bfa8151bb",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -638,7 +640,7 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "c11bc89b8df758f22cdc8df73e6688c854266e17")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "3c67ac7c30741fa9e5d9675b34de12592a0e19dd")
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
@@ -703,14 +705,14 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "d4165584de443151dea3e81873e691383a58bf10",
+                "PF_IMAGE_SHA": "aabc9a0e5d7a56d215e84ffe6605a8f5f4b37d23",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
-        self.assertEqual(args["PF_LAUNCHER_SHA"], "c11bc89b8df758f22cdc8df73e6688c854266e17")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], "3c67ac7c30741fa9e5d9675b34de12592a0e19dd")
         self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
         self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
         self.assertEqual(
