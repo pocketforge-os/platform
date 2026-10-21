@@ -716,7 +716,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # Build 31: image#307 pairs the musl/aarch64 session IPC compile
                        # fix with runtime#170 and includes image#306's initrd find-delete
                        # fix; launcher#176 remains unchanged.
-sha  = "d6da6a7ec26ab8852e66d8e8c1e0b5ca775b0e9f"
+                       # Build 32: image#308 fixes the self-flash v3 initrd gate for a
+                       # freshly written layout; runtime#170 and launcher#176 remain unchanged.
+sha  = "6abd7cf1f23491ab15ff4220a7799d1c113e7b62"
 
 [[repos]]
 name = "pf-cursor-theme"
