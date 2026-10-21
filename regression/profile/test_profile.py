@@ -428,17 +428,19 @@ class ProfileTest(unittest.TestCase):
         # musl/aarch64 session IPC compile fix; launcher#176 remains unchanged.
         # Build 32 advances only PF_IMAGE_SHA for image#308's freshly written
         # self-flash v3 layout fix; runtime#170 and launcher#176 remain unchanged.
+        # Image#309 advances only PF_IMAGE_SHA for the QEMU-safe low-battery unit
+        # condition; the rendered payload diff shows no other key, state, or missing-pin change.
         expected = {
-            ("a133", "dev"): "51f83a181fe9bbfce54bcdc30903734c3b9fb8f8aa7ed762edb3cce22187afa9",
-            ("a133", "release"): "ac5285f43c37b41cbbbfb47fefe803aa957b83de4af8dfc26c2ea13fbb4a14d1",
-            ("a133-open-7x", "dev"): "eea77d70600ddd2d7e2a54df07c117b7bc2bf60ebcecb9b521a64dd5583778f5",
-            ("a133-open-7x", "release"): "3a8afd1191dfe8bff147abfca4b35a50ff00f8fbf36cbecef6203514fa4199db",
-            ("a133-owned", "dev"): "83d9757cacff0364264dcea41258aa83832c9ce8753280c60093974ff75e67db",
-            ("a133-owned", "release"): "01ad2c5805efd9663a20fab0bcecd6e7641c9c026dfef00e7b77c834e7add53c",
-            ("a523", "dev"): "f522ee9518747820dbb3b488b401197c96d5a4f3b91eb5bb585768c9bcd9dbf2",
-            ("a523", "release"): "08dbdeab424537eec0c6ff9fbf4fffc71dd1b69022eacadc7512a1cb42b41e9a",
-            ("sdm845", "dev"): "dbed3b13fb8621f4ec339abe4ffc3b20e1eb46a9e9a1efefc18a09532633c674",
-            ("sdm845", "release"): "ca55d9eac714b20456c628691a7d0ebf76425f7d48427ff9ad8ec2cbd5b16ecf",
+            ("a133", "dev"): "1bd549370442d2fe7862b2b1e95456a65b3884f756cd7075788102a626e5ce6a",
+            ("a133", "release"): "1a6b7496d70052da89d96d2aec99daf87a4eed596ec58d7fb5f144971b34d2fc",
+            ("a133-open-7x", "dev"): "9d9926b9da5363efbd68cde48114a7834bafd74e558db733136fc4b6204b87d5",
+            ("a133-open-7x", "release"): "f7690e4fbf2f42c4cb1e65e56bdd2ea35c3b5d7ecdd3c6e8862099d3f9059000",
+            ("a133-owned", "dev"): "3d973b6ff46ef46963d3a574187032ee5c4314879a09afd548a9e529bf424cf0",
+            ("a133-owned", "release"): "bed3345529a4be784df64ab03f0b051c2a3188df5afb72f12d3d69d5fa7b0ac7",
+            ("a523", "dev"): "230fcc2dd02a8e4ca25ebacbdd832645b697448260db22d55b57bab72df11580",
+            ("a523", "release"): "bf5b8ba49f69eaaa4d4e569bbc0dc653075178a40068043883840df4375fec2f",
+            ("sdm845", "dev"): "c9e769885457db367a3f5e2c882362117fa384e4022aaf60048a8d15e391138d",
+            ("sdm845", "release"): "a44c5bf396a721e5a897030f0f6d66a68ec4638c63377b65f9c806556d3ba4ab",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -721,7 +723,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "6abd7cf1f23491ab15ff4220a7799d1c113e7b62",
+                "PF_IMAGE_SHA": "8acf11b2ecbbe04b40dc2c627fc4a47e64364b6a",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
