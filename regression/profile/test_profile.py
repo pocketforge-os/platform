@@ -412,17 +412,20 @@ class ProfileTest(unittest.TestCase):
         # change.
         # Image#299 (launcher#175 pin) likewise advances only PF_IMAGE_SHA on every row;
         # the old-vs-new payload diff shows no other key, state, or missing-pin change.
+        # Image#300 (render-only Venus Zink software-device selection) likewise advances
+        # only PF_IMAGE_SHA on every row; the old-vs-new payload diff shows no other key,
+        # state or missing-pin change.
         expected = {
-            ("a133", "dev"): "e03fd5a2befdbbaf314066b604b82ea377c2fb60e539e2fe7233fa17f0f81952",
-            ("a133", "release"): "4195145c3ad9da31e246017de19041423a9fd97f679765c7ffc965edb9815e23",
-            ("a133-open-7x", "dev"): "1f2159269068bbe25b4743a52c21ab70f23eda3799a2132bd6f18b264fc58c84",
-            ("a133-open-7x", "release"): "7697b462b57b752ebb269e505f2c2a6eaf10921e49d11728ab1087ca6e4e4da4",
-            ("a133-owned", "dev"): "a8394991480899e964db48af64f1cf0a0bbb751721af519929da9d63063d3281",
-            ("a133-owned", "release"): "9eef18dc70ba532884cdf57b3e1b92023c5715c7e6bf372050e771eeba9325c7",
-            ("a523", "dev"): "179782406f4f56a8c50a7c639bc5805f3d2d77d5dbcc00976fc51e4a70ed13a2",
-            ("a523", "release"): "7fbc43f2980cc211004d58a04d1d6f273702bebbc181ef3845d2cb35f40d3ecc",
-            ("sdm845", "dev"): "c6642febd6f2aeef4c1a8bcce7f968497a4e402b050aed4ea228a363c4c0f040",
-            ("sdm845", "release"): "bc212ac6b188e877b6bbb29acc5fb9fd20a1dcc3eea212b8c504d02bfa8151bb",
+            ("a133", "dev"): "72603cc17f4bb75d5299b855d8ff31747bd96791743f225ecd9f7865b99ea282",
+            ("a133", "release"): "5209d9138b705c7362b69b167cd8d23d58b42eadc742ccfcb3f57439de3a42ab",
+            ("a133-open-7x", "dev"): "c0ae7c6c26d21eca42369873656187a897c5ec6f361b08b90e298782c411906a",
+            ("a133-open-7x", "release"): "f6f251f2421f0dc59c043b7532e3131e8afab04a700f26dba74200bc56b890bd",
+            ("a133-owned", "dev"): "56822e6ca215028f31b6d133ced18a34e577f4a8c76aba4126a6130a1bcc22fb",
+            ("a133-owned", "release"): "9d1b3d6146c216b17ce1b329c2729b910efba6c24bea3374308d472366d30398",
+            ("a523", "dev"): "3e825ccf437388323eaa68aea8fae4b55b41befdb71adc4b95a90904b1149396",
+            ("a523", "release"): "6b6c060ed398adf21ab4153b88c15770dd8f4719819ffcd778d397d7b0abffcb",
+            ("sdm845", "dev"): "f348dcd0dcaa124724997815534a84b8a3a304f117e60aabe47f7ccdd808384a",
+            ("sdm845", "release"): "399abb973b541ed26ba133af76fd00dbd04e7a2afc9e9f36cb1552dea098f411",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -705,7 +708,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "aabc9a0e5d7a56d215e84ffe6605a8f5f4b37d23",
+                "PF_IMAGE_SHA": "f5ac1c98197c686a2fdfcf6ac69b629990878433",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
