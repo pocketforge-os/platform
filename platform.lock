@@ -724,7 +724,7 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # while preserving fail-closed staging admission.
                        # Image#311 advances the image-owned runtime/launcher pair
                        # references to runtime 611fb74f and launcher 0165f786.
-sha  = "f25e2211095073a8bd8263c89c84fe5e04012b46"
+sha  = "24cc5c83d7cc7207f69c05369c2b8c70d7e4d166"
 
 [[repos]]
 name = "pf-cursor-theme"
