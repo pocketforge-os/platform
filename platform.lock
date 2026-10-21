@@ -713,7 +713,10 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # tsp-mc9m.60.29.48 Build 30: image#297 adds the headphone-jack
                        # udev rule and image#303 adds the session router; co-pinned with
                        # runtime#169 head a64273ca while launcher#176 remains unchanged.
-sha  = "1c0b0b0721e114993160778679fd645d8a48c828"
+                       # Build 31: image#307 pairs the musl/aarch64 session IPC compile
+                       # fix with runtime#170 and includes image#306's initrd find-delete
+                       # fix; launcher#176 remains unchanged.
+sha  = "d6da6a7ec26ab8852e66d8e8c1e0b5ca775b0e9f"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1641,7 +1644,10 @@ ref  = "main"                 # image#278 power-menu generation: runtime#151 mer
                               # supplies the session-router half paired with image#303;
                               # its tree is identical to merge 1ba8c341, and launcher#176
                               # remains unchanged.
-sha  = "a64273cab3a67b2706af502c28412e8435d6df5c"
+                              # Build 31: runtime#170 head 1a687170 fixes the musl/aarch64
+                              # session IPC compilation failure; its tree is identical to
+                              # merge 7542da6c, and launcher#176 remains unchanged.
+sha  = "1a6871707b5f9c1ec5fdfbd438b75c8b775ded70"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
