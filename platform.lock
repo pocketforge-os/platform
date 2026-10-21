@@ -710,8 +710,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # first parent f5ac1c98197c686a2fdfcf6ac69b629990878433) adds the
                        # self-flash v3 capped-growth tail reservation and initrd transaction,
                        # eligibility, and receipt path.
-                       # tsp-mc9m.60.29.47 Build 29: image#304/#302/#296/#294; co-pinned with runtime#168 and launcher#176.
-sha  = "8566c47ea6561b18cd436c7941fa846e47b67efd"
+                       # tsp-mc9m.60.29.47 Build 29 retry: image#305 fixes producer-audit parsing of apostrophes; retains image#304/#302/#296/#294 and the runtime#168/launcher#176 co-pin.
+sha  = "0206951bd085f6fbea715b7361e2d24b8c841164"
 
 [[repos]]
 name = "pf-cursor-theme"
