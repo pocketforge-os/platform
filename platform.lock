@@ -710,8 +710,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # first parent f5ac1c98197c686a2fdfcf6ac69b629990878433) adds the
                        # self-flash v3 capped-growth tail reservation and initrd transaction,
                        # eligibility, and receipt path.
-                       # tsp-mc9m.60.29.47 Build 29: image#302/#296/#294; co-pinned with runtime#168 and launcher#176.
-sha  = "ced9ea247fdea1702388e519e8ca8c34ca27557d"
+                       # tsp-mc9m.60.29.47 Build 29: image#304/#302/#296/#294; co-pinned with runtime#168 and launcher#176.
+sha  = "8566c47ea6561b18cd436c7941fa846e47b67efd"
 
 [[repos]]
 name = "pf-cursor-theme"
