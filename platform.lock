@@ -710,7 +710,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # first parent f5ac1c98197c686a2fdfcf6ac69b629990878433) adds the
                        # self-flash v3 capped-growth tail reservation and initrd transaction,
                        # eligibility, and receipt path.
-sha  = "ea03fbe62b54a00e3bf94e26ab20cb7f69c03629"
+                       # tsp-mc9m.60.29.47 Build 29: image#302/#296/#294; co-pinned with runtime#168 and launcher#176.
+sha  = "ced9ea247fdea1702388e519e8ca8c34ca27557d"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1634,7 +1635,8 @@ ref  = "main"                 # image#278 power-menu generation: runtime#151 mer
                               # Prior: tsp-e1b.11 +runtime#29 (7cafa5d — the pre-fix glyph-keyed decoder;
                               # FIRST runtime-layer component packaged into the image, established the
                               # runtime->image cross-build path. Superseded by the #33 fix above).
-sha  = "3c90482c3933002528b35ea032e0249ec279066e"
+                              # tsp-mc9m.60.29.47 Build 29: runtime#168; co-pinned with launcher#176 and image#302/#296/#294.
+sha  = "43eb64914d44ae905aa69b20205b436083c8d72e"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
@@ -1735,7 +1737,8 @@ ref  = "main"                 # image#278 power-menu generation: launcher#169 me
                               # tsp-ihne1.62.2: launcher#175 merge 3c67ac7c attaches the
                               # prefs seed, gates first-run rows per seed and never exits on
                               # a bad seed/prefs file; no runtime move. Co-pinned with image#299.
-sha  = "3c67ac7c30741fa9e5d9675b34de12592a0e19dd"
+                              # tsp-mc9m.60.29.47 Build 29: launcher#176; co-pinned with runtime#168 and image#302/#296/#294.
+sha  = "deac3cf621ec5eebec05e2811c960cd890f7c5c7"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
