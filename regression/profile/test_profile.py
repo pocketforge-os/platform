@@ -415,17 +415,20 @@ class ProfileTest(unittest.TestCase):
         # Image#300 (render-only Venus Zink software-device selection) likewise advances
         # only PF_IMAGE_SHA on every row; the old-vs-new payload diff shows no other key,
         # state or missing-pin change.
+        # Image#301 (self-flash v3 capped-growth tail reservation and initrd transaction)
+        # likewise advances only PF_IMAGE_SHA on every row; the old-vs-new canonical
+        # payload comparison shows no other key, state, or missing-pin change.
         expected = {
-            ("a133", "dev"): "72603cc17f4bb75d5299b855d8ff31747bd96791743f225ecd9f7865b99ea282",
-            ("a133", "release"): "5209d9138b705c7362b69b167cd8d23d58b42eadc742ccfcb3f57439de3a42ab",
-            ("a133-open-7x", "dev"): "c0ae7c6c26d21eca42369873656187a897c5ec6f361b08b90e298782c411906a",
-            ("a133-open-7x", "release"): "f6f251f2421f0dc59c043b7532e3131e8afab04a700f26dba74200bc56b890bd",
-            ("a133-owned", "dev"): "56822e6ca215028f31b6d133ced18a34e577f4a8c76aba4126a6130a1bcc22fb",
-            ("a133-owned", "release"): "9d1b3d6146c216b17ce1b329c2729b910efba6c24bea3374308d472366d30398",
-            ("a523", "dev"): "3e825ccf437388323eaa68aea8fae4b55b41befdb71adc4b95a90904b1149396",
-            ("a523", "release"): "6b6c060ed398adf21ab4153b88c15770dd8f4719819ffcd778d397d7b0abffcb",
-            ("sdm845", "dev"): "f348dcd0dcaa124724997815534a84b8a3a304f117e60aabe47f7ccdd808384a",
-            ("sdm845", "release"): "399abb973b541ed26ba133af76fd00dbd04e7a2afc9e9f36cb1552dea098f411",
+            ("a133", "dev"): "f53293d7c02d1815e6429015733619653b239d7438ad9302a18aec58c3637245",
+            ("a133", "release"): "3d5cce8dce795029e3a06ed25e73f17b48779832800212f68486178f398109c3",
+            ("a133-open-7x", "dev"): "4ba28e880b4a696adc199bdb4d7e1cdb51d2c6da489f81639f2081d2ecee7066",
+            ("a133-open-7x", "release"): "0ea64990c858dca229928c79b214bbd0e441c4460bfb16da24b9ec56f02ddc69",
+            ("a133-owned", "dev"): "9e2fa32233005ea0006b86322f0865f2bac4067e5fce54519bb434444736d183",
+            ("a133-owned", "release"): "abcea02dc9d0324acfd50c955e1eef37e9b6dcd724912b6162a245a76aecbf51",
+            ("a523", "dev"): "f012fd5ca48542724a52ddac6f4104bbaa67976659d08f0cce7c8737e17a2c77",
+            ("a523", "release"): "7763bed68aa98e5a700f13421ed0c0e23422c655a4ee81c6b839e960adf78a17",
+            ("sdm845", "dev"): "7e3f337e0a7412a52ebe98d037b4c262b58fd759d6d49edeaf731fd630e3dc9f",
+            ("sdm845", "release"): "c3d671bbf661b9f211b736a85c4a310d61bc65818768611e712367d3b76c4fd7",
         }
         for key, digest in expected.items():
             dev_id, variant = key
