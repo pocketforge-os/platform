@@ -3,6 +3,9 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
 
+echo "### pipefail-safe quiet-grep assertions ###"
+bash "$HERE/pipefail-grep-test.sh"
+
 echo "### stale-mirror SOURCE_DATE_EPOCH gate (tsp-hbpd) ###"
 bash "$HERE/epoch-test.sh"
 
