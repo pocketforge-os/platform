@@ -29,11 +29,9 @@
 #
 # RUNNER ROUTING - DELIBERATE (tsp-mc9m.41.984.47.30.3). This public-repository gate targets
 # the credential-free, LAN-fenced public runner lane by its specific `pf-public-ci` label,
-# never generic `[self-hosted, Linux, X64]` labels. The check is sub-second and side-effect-free. The
-# earlier generic labels only reached this lane via the Default runner group's visibility=all;
-# label-specific targeting keeps this REQUIRED check pinned to the lane it is proven on
-# (consistently green on pf-review-vm-{1,2,3}) instead of whatever runner matches generic
-# labels next.
+# never generic `[self-hosted, Linux, X64]` labels. The check is sub-second and side-effect-free;
+# label-specific targeting keeps this REQUIRED check pinned to the public lane as fleet topology
+# evolves.
 
 name: ABI drift gate
 
