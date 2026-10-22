@@ -61,6 +61,19 @@ def is_self_hosted(runs_on):
     return "self-hosted" in labels
 
 
+LEGACY_PRIVATE_LABELS = {"pf-pr-review", "pf-ci", "pf-ci-container", "pf-docker"}
+
+
+def legacy_private_labels(runs_on):
+    if isinstance(runs_on, str):
+        labels = [runs_on]
+    elif isinstance(runs_on, list) and all(isinstance(label, str) for label in runs_on):
+        labels = runs_on
+    else:
+        raise ValueError("runs-on must be a string or string sequence")
+    return sorted(LEGACY_PRIVATE_LABELS.intersection(labels))
+
+
 def expression_text(value):
     if not isinstance(value, str):
         raise ValueError("job if must be a string")
@@ -214,12 +227,19 @@ def inspect_workflows(workflow_dir):
             failures.append(f"{workflow}: {exc}")
             continue
 
-        if "pull_request" not in events:
-            continue
         for job_name, job in jobs.items():
             try:
                 if not isinstance(job_name, str) or not isinstance(job, dict):
                     raise ValueError("job definition must be a mapping")
+                if "runs-on" in job:
+                    legacy = legacy_private_labels(job["runs-on"])
+                    if legacy:
+                        failures.append(
+                            f"{workflow}: job {job_name}: public repository workflow uses "
+                            f"legacy private runner labels {legacy}"
+                        )
+                if "pull_request" not in events:
+                    continue
                 if "runs-on" not in job or not is_self_hosted(job["runs-on"]):
                     continue
                 checked += 1
@@ -265,7 +285,43 @@ def run_self_test():
             f"SELF-TEST FAIL: checked={checked}; expected failures={sorted(expected_failures)}; "
             f"actual failures={sorted(failed_jobs)}"
         )
+
+    routing_cases = {
+        "public": ("[self-hosted, pf-public-ci]", True),
+        "review": ("[self-hosted, pf-pr-review]", False),
+        "ci": ("[self-hosted, pf-ci]", False),
+        "container": ("[self-hosted, pf-ci-container]", False),
+        "docker": ("[self-hosted, pf-docker]", False),
+    }
+    with tempfile.TemporaryDirectory(prefix="workflow-public-routing-") as temporary:
+        workflow_dir = pathlib.Path(temporary)
+        jobs = []
+        for name, (runs_on, _) in routing_cases.items():
+            jobs.append(
+                f"  {name}:\n"
+                f"    runs-on: {runs_on}\n"
+                "    steps: []\n"
+            )
+        (workflow_dir / "fixture.yml").write_text(
+            "on: push\njobs:\n" + "".join(jobs),
+            encoding="utf-8",
+        )
+        routing_failures, _ = inspect_workflows(workflow_dir)
+    failed_routing_jobs = {
+        failure.split("job ", 1)[1].split(":", 1)[0]
+        for failure in routing_failures
+    }
+    expected_routing_failures = {
+        name for name, (_, accepted) in routing_cases.items() if not accepted
+    }
+    if failed_routing_jobs != expected_routing_failures:
+        raise SystemExit(
+            "SELF-TEST FAIL: public routing controls mismatch; "
+            f"expected failures={sorted(expected_routing_failures)}; "
+            f"actual failures={sorted(failed_routing_jobs)}"
+        )
     print("SELF-TEST PASS: widening OR branches rejected; canonical, constraining AND, and non-PR predicates accepted")
+    print("SELF-TEST PASS: pf-public-ci accepted; every legacy private runner label rejected")
 
 
 if sys.argv[2] == "--self-test":
