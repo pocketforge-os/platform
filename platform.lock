@@ -740,8 +740,15 @@ sha  = "c5783fbb7d9d89c82bc1b4757c303e267b6cd104"
 [[repos]]
 name = "gamescope"
 url  = "https://github.com/pocketforge-os/gamescope.git"
-ref  = "pocketforge-linear" # tsp-z8vav.9 Xwayland fix: gamescope#24 merged at 60d6d0eb (81 non-merge commits, zero merges
-                        # over base bb2ddfc8): the timerfd-idle fix (06d81081) and the Xwayland terminate delay with its
+ref  = "pocketforge-linear" # tsp-mc9m.41.1026.10 idle-power follow-up: gamescope#25 merged at cf4475a7
+                        # (83 non-merge commits, zero merges over base bb2ddfc8). Eager Vulkan pipeline compilation is
+                        # opt-in; demand compilation remains the default and the existing timerfd fix is retained.
+                        # patch_ids_sha256 38384ded0c64ebbd6cf87abc68ddb0fea5a01ab925e98eb16ecdc7676176236e;
+                        # format-patch digest fd494f9dcd4d40485c81747b15f79216a374db27f2c0f0efe2e2aac51878b562;
+                        # source tree 84c3b6fbb7ffd3799d17544170d9df82f3b6cd00538cd39fc1cb06221ef09678,
+                        # measured by the committed admission/materialization path against the unchanged dependency closure.
+                        # Previous pin: tsp-z8vav.9 Xwayland fix: gamescope#24 merged at 60d6d0eb (81 non-merge commits,
+                        # zero merges over base bb2ddfc8): the timerfd-idle fix (06d81081) and the Xwayland terminate delay with its
                         # fail-closed check. patch_ids_sha256 c8c5266f79d5d519c2ca4fc5fddaace921ad963867a75329ed14f6cf0cdcee24;
                         # format-patch digest 8efb6b69d787e9054def5b9e08e2332e14249e69465de80dfcd91a951bb878ca;
                         # source tree 0039430574908031f17d7529577e5b627df9defe66fbc633912c22f5dc30a749
@@ -795,7 +802,7 @@ ref  = "pocketforge-linear" # tsp-z8vav.9 Xwayland fix: gamescope#24 merged at 6
                         # (tsp-op5a.440.1.1,
                         # 4232739e75c95113871e260967e8b4ff995ea897): branch-only integration
                         # candidate.
-sha  = "60d6d0ebbb2285dd8e19d66e8760c6066b60d25e"
+sha  = "cf4475a73409295b06ec352f18497fef23422a72"
 dependency_manifest_sha256 = "5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6"
 
 [[repos]]
