@@ -30,8 +30,28 @@ import sys
 
 regression = pathlib.Path(sys.argv[1])
 this_test = pathlib.Path(sys.argv[2]).resolve()
-unsafe = re.compile(r"\|\s*grep\s+(?:-[^\s]*q\b|--quiet\b)")
+grep_pipeline = re.compile(r"\|&?\s*grep\b(?P<args>[^|;&]*)")
+quiet_option = re.compile(r"(?<!\S)(?:--quiet|-[^- \t]*q[^ \t]*)(?=\s|$)")
 findings = []
+
+
+def is_unsafe(line):
+    return any(quiet_option.search(match.group("args"))
+               for match in grep_pipeline.finditer(line))
+
+
+for case in (
+        "producer | grep -qF pattern",
+        "producer | grep -F --quiet pattern",
+        "producer |& grep -q pattern"):
+    if not is_unsafe(case):
+        raise SystemExit(f"FAIL: scanner missed forced unsafe case: {case}")
+
+for case in (
+        "grep -q pattern < materialized-output",
+        "producer | grep -F pattern"):
+    if is_unsafe(case):
+        raise SystemExit(f"FAIL: scanner rejected safe control: {case}")
 
 for path in sorted(regression.rglob("*.sh")):
     if path.resolve() == this_test:
@@ -41,7 +61,7 @@ for path in sorted(regression.rglob("*.sh")):
         continue
     normalized = re.sub(r"\\\n[ \t]*", " ", source)
     for line_no, line in enumerate(normalized.splitlines(), 1):
-        if unsafe.search(line):
+        if is_unsafe(line):
             findings.append(f"{path.relative_to(regression.parent)}:{line_no}:{line.strip()}")
 
 if findings:
