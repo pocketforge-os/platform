@@ -22,9 +22,8 @@
 # Python 3.11+ interpreter available. The suites are stdlib-only; the docker-touching build
 # gates grep shipped sources or fake docker, so no docker is needed on pf-review-vm-1.
 #
-# RUNNER ROUTING - the pf-pr-review lane by its specific `pf-pr-review` label, matching the
-# other read-only PR gates: the review VMs are the org's designed lane for running untrusted
-# PR code read-only.
+# RUNNER ROUTING - the credential-free public lane by its specific `pf-public-ci` label,
+# matching the other read-only public-repository PR gates.
 #
 # NO timeout-minutes - the suites take seconds; the owner's 60-minute design guard is untouched.
 
@@ -43,7 +42,7 @@ jobs:
   check:
     name: pf-regression-suites
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, pf-pr-review]
+    runs-on: [self-hosted, pf-public-ci]
     steps:
       - name: checkout the tested ref + check exact consumers + run offline regressions
         env:
