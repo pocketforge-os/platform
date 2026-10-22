@@ -438,17 +438,19 @@ class ProfileTest(unittest.TestCase):
         # deadline; every other build argument, state, and missing pin is unchanged.
         # Build 36 advances PF_KERNEL_SHA for the Linux 7 profiles while leaving
         # every other build argument, state, and missing pin unchanged.
+        # Image#314 advances only PF_IMAGE_SHA for the Gamescope resident-hold
+        # ordering fix; every other build argument, state, and missing pin is unchanged.
         expected = {
-            ("a133", "dev"): "967937ccc6dc477f470e3f82b25daa87297e1c158013490e8ec4b3c4f085779e",
-            ("a133", "release"): "ac6202e4d4afc8231fa6b9d372c98f40c289059e2c1a7c42d0e2283e74cb27ec",
-            ("a133-open-7x", "dev"): "6f90b965c699656cc095403ab06907eea4074a85e622aece8f1efa0ee707e04d",
-            ("a133-open-7x", "release"): "31b665e144205d5c4a07ce54b4f22b2bc97965fc503bae0e6866cd84a4dfa8f6",
-            ("a133-owned", "dev"): "8a15f08ad5c4b66831ccc747960a723e42112998ee2b478af0c3bb7a7a1a20cc",
-            ("a133-owned", "release"): "fa1a2f259a5c544e9de5317945a7f9b1ec6e3686557301a5ae18f96c84ecd753",
-            ("a523", "dev"): "ccfe056012c46a7d854d0f6063718f229a19d1a3dc42482b83a73a3d076b30ea",
-            ("a523", "release"): "1f59037f7415818fdc633851f53fa4bb384f3ea8244b2bc5122847e7f1991453",
-            ("sdm845", "dev"): "8d96865babf904b219f054e9936131c7dca2df6f726cfd36840f2f24e669894d",
-            ("sdm845", "release"): "e55706ab985529fb179ae4b1ed4597230bc8305174e86e5bac97cb04243a4959",
+            ("a133", "dev"): "209dc5906d75fcf78bac1c3f6a5e8dd154c87962ce81b69a7b9d8aa9c871a5bf",
+            ("a133", "release"): "952a86bcd85ae3535a28356d5aabc013e663e430106f1e36693bbd6c85816d96",
+            ("a133-open-7x", "dev"): "9ee28004028477064ec66e9241fdd761969b3364ad4887a7aac5d918a4d10003",
+            ("a133-open-7x", "release"): "6a3fc7d457a47141caf8b7b4911416d8fd93287d15f63bd75a76275537876891",
+            ("a133-owned", "dev"): "792bf42dc5130d4189de87dc5fb5fd051dc8ff68b3611dab7d42b73aa8e34326",
+            ("a133-owned", "release"): "48375ff64b7b4db5f23df578e21523a08a6e9879585bd80c0c756f0a145b57bc",
+            ("a523", "dev"): "e86a0ca5956ec978c37fc9885d02637cd5161492678cd3f5fc2bf9a00d3c2721",
+            ("a523", "release"): "f44d300c48bf2aed82b81c24970a049dc2e53a6f76dd6cf9c8657398c5c97804",
+            ("sdm845", "dev"): "dfbfaa53d584e986803810202c05b9dc89556a6168552560ede18b454948be32",
+            ("sdm845", "release"): "374cd438e22103e0fb6b9b6228592847e5d4e466c5d548727fac721347dcfb5a",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -731,7 +733,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "24cc5c83d7cc7207f69c05369c2b8c70d7e4d166",
+                "PF_IMAGE_SHA": "922c0a7259f6141e4b4c2b5c1d5e1c0af4ed2726",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
