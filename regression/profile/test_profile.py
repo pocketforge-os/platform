@@ -443,16 +443,16 @@ class ProfileTest(unittest.TestCase):
         # Image#315 likewise advances only PF_IMAGE_SHA to synchronize the
         # Gamescope producer, package, harness, and cache-test mirrors.
         expected = {
-            ("a133", "dev"): "5439125f981da09cb10a0836f9fef4f9997aacdecf22b7bd5e74e66bcbc529bf",
-            ("a133", "release"): "bcea074095c2b4db6ab7184e058dc95d9063ea44189fcf7ebdd5b45f97e36bd9",
-            ("a133-open-7x", "dev"): "c291d1d05fc15bb9ee5bb4d5cbe12a1b35752e68f42552df791b45159c62502e",
-            ("a133-open-7x", "release"): "28c38316c2fb1ef4887eae68da0d4ef894d4e18a2fc659fd3eecb6c3acd70443",
-            ("a133-owned", "dev"): "0333b33186430cd92736aa64699da19c10dd5c9435bfe6e60cf516de43564b32",
-            ("a133-owned", "release"): "55032a763b7d06ee94dc8aa6e4a8332d56bf0bee1c10b4f2372fe57ea4e72246",
-            ("a523", "dev"): "b34b7ac1ff2798fa668a1fc76d429c856607f9dbcf73fc74e9ba3ab7fa16da83",
-            ("a523", "release"): "a74e4d4121421233e96511bc5e1175718f0c8645ea77900a39dae1934fbbec1d",
-            ("sdm845", "dev"): "b811b591da29b9c70f20a8da52915ca9d52b40c131cb5fc4c339d8c304bfc2de",
-            ("sdm845", "release"): "15824e1c8c7bfc2d738ce34681abf5e01f821c1ac424c8b7e7f2e4b36a22381e",
+            ("a133", "dev"): "6d54297f1b61976553d20435da72f862bf956075bcdc778fe3e49c4d864f05ca",
+            ("a133", "release"): "8249471fa8d273b46f957acc3200037ea2a061a35e6c170d6032c8bed1577e00",
+            ("a133-open-7x", "dev"): "ed8696349bc82cb178908a063ae36218e9c544fce80b1d898c38bfa41e5b43d2",
+            ("a133-open-7x", "release"): "1e4116f5ff5f81f39b79e9a3c1736238b33872eec1cf38556d3d43ed782b8124",
+            ("a133-owned", "dev"): "5a260201dba2ab8186e75c5b8042eb01b824f9f792074b27bdb69edb82baa0be",
+            ("a133-owned", "release"): "14e822f3740bac57c345f8e39f5a49d3f8753c664f5cbd45ac547f377fb48d98",
+            ("a523", "dev"): "65d2dbec65f765f079022dc3e239942cf405f5c1b8d6b7318472bd40ae90f183",
+            ("a523", "release"): "344ed3ac4772515876a8c1527a0d6b22eaf3d9930e365aed24eca506f9197fbc",
+            ("sdm845", "dev"): "6deb930097f62efafaa4956a085b5b71716dea9f25aa99075d6d6e00b52e170f",
+            ("sdm845", "release"): "ab40aaf6861281796cc8d0df119766354efbba6c730c25377d7efc5506629a1a",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -735,7 +735,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "7484d6fc60b577d5f3ff2f9112f2a99f2a2ce303",
+                "PF_IMAGE_SHA": "40dc0fcb094bcd7fbc004d7b48ccd295447df4c5",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
