@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
+NORMAL_KERNEL_SHA = "70bed1ace15d3fb14a895e2fb21a777e93587b12"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -32,9 +32,10 @@ NORMAL_KERNEL_SHA = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
 # pin moves to a65b6107; Build 7 and Build 9 likewise leave it held through de8ca3df
 # and 45b87a7d. Build 11 deliberately rejoined it to the canonical v184 kernel while
 # preserving the separate lock-owned entry required by the owned-image admission gate.
-# Kernel#113 advances both entries together so neither profile programs the
-# unsupported A133 MMC0 PF selector at 0x350.
-NORADIO_KERNEL_SHA = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
+# Kernel#113 advanced both entries together so neither profile programmed the
+# unsupported A133 MMC0 PF selector at 0x350. Build 36 keeps them equal through
+# the eMMC read-only, speaker PA GPIO, and squashfs kernel batch.
+NORADIO_KERNEL_SHA = "70bed1ace15d3fb14a895e2fb21a777e93587b12"
 NORMAL_UBOOT_SHA = "c37b6ad5a6224875955315443224288ec752e992"
 
 
@@ -147,9 +148,9 @@ class Open7NoradioProfileTest(unittest.TestCase):
             document,
         )
         self.assertIn(
-            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; kernel#114 keeps it "
-            "equal to the canonical pin so both profiles use the same fail-closed "
-            "AXP717 policy.",
+            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; Build 36 keeps it "
+            "equal to the canonical pin through the eMMC, speaker PA GPIO, and "
+            "squashfs kernel batch.",
             document,
         )
         self.assertNotIn("holds its lock-owned kernel pin at `23cdf7bf`", document)

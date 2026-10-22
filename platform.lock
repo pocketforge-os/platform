@@ -167,8 +167,10 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # low-battery policy for no-radio, so its kernel must carry #106's alarm capability.
 # tsp-mc9m.60.29.29 keeps the profiles equal again: kernel-sunxi-7.x#114 preserves
 # firmware's safe PMIC boot policy while failing closed on thermal-setup errors.
+# tsp-mc9m.60.29.49 Build 36 keeps both profiles equal while carrying #115's permanent
+# read-only eMMC policy, #116/#117's A133 speaker PA GPIO fix, and #119's squashfs support.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
+kernel = "70bed1ace15d3fb14a895e2fb21a777e93587b12"
 
 [[repos]]
 name = "image"
@@ -913,7 +915,10 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.29): device/a133
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.49 Build 36): device/a133
+                             # 70bed1ac advances 15 commits: #115 adds permanent read-only
+                             # eMMC policy, #116/#117 fix the A133 speaker PA GPIO, and #119
+                             # enables built-in squashfs with zstd decompression.
                              # b8434263 adds #114's AXP717 boot-policy preservation and
                              # fail-closed thermal-safety initialization.
                              # 3010de56 adds #113's A133 MMC0 pin correction: omit the
@@ -1172,7 +1177,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.29): device/a133
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "b8434263b00f1beeadb5ade16a0b62959d497b1d"
+sha  = "70bed1ace15d3fb14a895e2fb21a777e93587b12"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
