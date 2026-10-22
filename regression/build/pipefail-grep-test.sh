@@ -40,17 +40,24 @@ def is_unsafe(line):
                for match in grep_pipeline.finditer(line))
 
 
+def normalized_lines(source):
+    source = re.sub(r"\\\n[ \t]*", " ", source)
+    source = re.sub(r"(\|&?)[ \t]*\n[ \t]*", r"\1 ", source)
+    return source.splitlines()
+
+
 for case in (
         "producer | grep -qF pattern",
         "producer | grep -F --quiet pattern",
-        "producer |& grep -q pattern"):
-    if not is_unsafe(case):
+        "producer |& grep -q pattern",
+        "producer |\n    grep -q pattern"):
+    if not any(is_unsafe(line) for line in normalized_lines(case)):
         raise SystemExit(f"FAIL: scanner missed forced unsafe case: {case}")
 
 for case in (
         "grep -q pattern < materialized-output",
         "producer | grep -F pattern"):
-    if is_unsafe(case):
+    if any(is_unsafe(line) for line in normalized_lines(case)):
         raise SystemExit(f"FAIL: scanner rejected safe control: {case}")
 
 for path in sorted(regression.rglob("*.sh")):
@@ -59,8 +66,7 @@ for path in sorted(regression.rglob("*.sh")):
     source = path.read_text(encoding="utf-8")
     if not re.search(r"^set\s+[^\n]*pipefail", source, re.MULTILINE):
         continue
-    normalized = re.sub(r"\\\n[ \t]*", " ", source)
-    for line_no, line in enumerate(normalized.splitlines(), 1):
+    for line_no, line in enumerate(normalized_lines(source), 1):
         if is_unsafe(line):
             findings.append(f"{path.relative_to(regression.parent)}:{line_no}:{line.strip()}")
 
