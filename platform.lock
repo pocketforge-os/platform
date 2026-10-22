@@ -729,7 +729,7 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # Image#314 activates the Gamescope resident hold before the
                        # StopWhenUnneeded session target; runtime#170 and launcher#176
                        # remain unchanged.
-sha  = "922c0a7259f6141e4b4c2b5c1d5e1c0af4ed2726"
+sha  = "7484d6fc60b577d5f3ff2f9112f2a99f2a2ce303"
 
 [[repos]]
 name = "pf-cursor-theme"
