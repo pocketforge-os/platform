@@ -27,14 +27,11 @@
 # plain `git` + the ephemeral `github.token`, and runs `pf abi check` with the first Python 3.11+
 # interpreter it finds (abi_view.py needs tomllib; no third-party deps).
 #
-# RUNNER ROUTING - DELIBERATE (tsp-ikk0.22). This gate targets the pf-review-vm lane by its
-# specific `pf-pr-review` label, NOT generic `[self-hosted, Linux, X64]` labels. The review VMs
-# are the org's designed lane for running untrusted PR code read-only — exactly what this job
-# does — and the check is sub-second and side-effect-free, so the lane load is negligible. The
-# earlier generic labels only reached this lane via the Default runner group's visibility=all;
-# label-specific targeting keeps this REQUIRED check pinned to the lane it is proven on
-# (consistently green on pf-review-vm-{1,2,3}) instead of whatever runner matches generic
-# labels next.
+# RUNNER ROUTING - DELIBERATE (tsp-mc9m.41.984.47.30.3). This public-repository gate targets
+# the credential-free, LAN-fenced public runner lane by its specific `pf-public-ci` label,
+# never generic `[self-hosted, Linux, X64]` labels. The check is sub-second and side-effect-free;
+# label-specific targeting keeps this REQUIRED check pinned to the public lane as fleet topology
+# evolves.
 
 name: ABI drift gate
 
@@ -51,7 +48,7 @@ jobs:
   check:
     name: pf-abi-drift
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, pf-pr-review]
+    runs-on: [self-hosted, pf-public-ci]
     steps:
       - name: checkout the PR ref + pf abi check
         env:

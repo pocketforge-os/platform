@@ -8,7 +8,7 @@
 # and invalidate (or genuinely renew) physical qualification.
 #
 # The job intentionally uses no marketplace actions.  It runs the PR's
-# stdlib-only validator/tests on the pf-pr-review lane and never renders
+# stdlib-only validator/tests on the credential-free pf-public-ci lane and never renders
 # OpenSCAD, reads owner photos, or writes repository files.
 
 name: fixture contract gate
@@ -34,7 +34,7 @@ jobs:
   validate:
     name: fixture-contract
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, pf-pr-review]
+    runs-on: [self-hosted, pf-public-ci]
     steps:
       - name: Validate contracts, reproduce the dependency snapshot, and compare the PR base
         env:

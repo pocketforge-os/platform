@@ -12,7 +12,7 @@ permissions:
 jobs:
   validate:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, pf-pr-review]
+    runs-on: [self-hosted, pf-public-ci]
     steps:
       - name: checkout the tested ref and validate self-hosted job fork guards
         env:

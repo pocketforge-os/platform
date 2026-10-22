@@ -7,7 +7,7 @@
 # buildargs/env/resolve output is byte-identical to the pre-descriptor platform main.
 #
 # Same shape as abi-drift: no marketplace actions (org sha_pinning_required), plain git +
-# the ephemeral token, the pf-pr-review lane, stdlib-only Python 3.11+ (tomllib). Not a
+# the ephemeral token, the credential-free pf-public-ci lane, stdlib-only Python 3.11+ (tomllib). Not a
 # required check, so a `paths:` filter is safe here.
 
 name: device descriptor staging
@@ -45,7 +45,7 @@ jobs:
   check:
     name: device-descriptor-staging
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, pf-pr-review]
+    runs-on: [self-hosted, pf-public-ci]
     steps:
       - name: checkout the tested ref + run the descriptor staging tests
         env:
