@@ -26,8 +26,8 @@ for args in "$a523_args" "$closed_args"; do
 done
 # The context is passed only when the descriptor build arg is present.
 grep -q -- '--build-context "platform-inputs-src=$src_dir/platform-inputs"' <<< "$docker_body"
-grep -B4 -- '--build-context "platform-inputs-src=' <<< "$docker_body" \
-    | grep -q 's/^PF_DEVICE_DESCRIPTOR_ID=//p'
+descriptor_context="$(grep -B4 -- '--build-context "platform-inputs-src=' <<< "$docker_body")"
+grep -q 's/^PF_DEVICE_DESCRIPTOR_ID=//p' <<< "$descriptor_context"
 
 extract() { sed -n "/^$1()/,/^}/p" "$BUILD"; }
 eval "$(extract pf_find_git_source)"

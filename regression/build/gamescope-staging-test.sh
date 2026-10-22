@@ -16,7 +16,8 @@ grep -Fxq 'PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256=5bb3f5892353fc703e39353679668
 grep -Fxq 'PF_GAMESCOPE_SOURCE_TREE_SHA256=84c3b6fbb7ffd3799d17544170d9df82f3b6cd00538cd39fc1cb06221ef09678' <<<"${selected_args}"
 
 for device in a133 a133-open a523 a133-open-7x-gpu-noradio a133-open-7x-gpu-spl-trace; do
-    if python3 "${ROOT}/core/profile.py" buildargs "${device}" | grep -q '^PF_GAMESCOPE_'; then
+    device_args="$(python3 "${ROOT}/core/profile.py" buildargs "${device}")"
+    if grep -q '^PF_GAMESCOPE_' <<<"${device_args}"; then
         echo "FAIL: unrelated profile ${device} selected Gamescope" >&2
         exit 1
     fi

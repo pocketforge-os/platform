@@ -116,7 +116,8 @@ if grep -Eq '[a-z_]*sde="\$\(pf_commit_epoch ' "$ROOT/core/pf-build.sh"; then
     echo "FAIL: an epoch call site regressed to bare pf_commit_epoch (silent-omission path)"; exit 1
 fi
 # pf_stage_sources must use the same pf_ensure_commit ladder (single fetch ladder, no drift).
-sed -n '/^pf_stage_sources()/,/^}/p' "$ROOT/core/pf-build.sh" | grep -q 'pf_ensure_commit ' \
+stage_sources_body="$(sed -n '/^pf_stage_sources()/,/^}/p' "$ROOT/core/pf-build.sh")"
+grep -q 'pf_ensure_commit ' <<< "$stage_sources_body" \
     || { echo "FAIL: pf_stage_sources no longer shares the pf_ensure_commit fetch ladder"; exit 1; }
 for arg in \
     PF_KERNEL_SOURCE_DATE_EPOCH PF_GPU_UM_SOURCE_DATE_EPOCH \
