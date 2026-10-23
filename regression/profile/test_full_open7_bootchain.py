@@ -50,7 +50,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_BOOTCHAIN_MODEL": "sunxi-spl-uboot",
             "PF_BOOT_PROTO": "sunxi-spl-booti",
             "PF_UBOOT_REPO": "u-boot-tsp-a133",
-            "PF_UBOOT_SHA": "c37b6ad5a6224875955315443224288ec752e992",
+            "PF_UBOOT_SHA": "1c04d7f5c98bd203a556b308e0001c76c261e90e",
             "PF_UBOOT_DEFCONFIG": "tg5040_defconfig",
             "PF_TFA_REPO": "tfa-tsp-a133",
             "PF_TFA_SHA": "2737a2a84d80341b27fa51c1e4b651c9ad2ad4b2",

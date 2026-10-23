@@ -36,7 +36,7 @@ NORMAL_KERNEL_SHA = "70bed1ace15d3fb14a895e2fb21a777e93587b12"
 # unsupported A133 MMC0 PF selector at 0x350. Build 36 keeps them equal through
 # the eMMC read-only, speaker PA GPIO, and squashfs kernel batch.
 NORADIO_KERNEL_SHA = "70bed1ace15d3fb14a895e2fb21a777e93587b12"
-NORMAL_UBOOT_SHA = "c37b6ad5a6224875955315443224288ec752e992"
+NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
 
 
 def flatten(value: Any, prefix: str = "") -> dict[str, Any]:
