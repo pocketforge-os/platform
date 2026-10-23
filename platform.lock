@@ -1448,7 +1448,7 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # Previous tsp-mc9m.60.29.34 Build 16: #56 establishes masked PMIC
                               # protection/hold policy and #57 adds the fail-closed low-battery
                               # boot gate. BANNER CHANGE: 2025.10-g72abd96b6b87.
-sha  = "c37b6ad5a6224875955315443224288ec752e992"
+sha  = "db70249c8b25b7c3271cce71a19005b361527aaf"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
@@ -1460,7 +1460,7 @@ ref  = "main-linear"          # the A133 RVBAR (CPUSUBSYS 0x08100040) — brings
                               # reset marker immediately before the checked PMIC restart.
                               # Previous Build 14 candidate: tfa-tsp-a133#8 adds the AXP717
                               # PMIC restart path required by SD UHS device validation.
-sha  = "2737a2a84d80341b27fa51c1e4b651c9ad2ad4b2"
+sha  = "da28d33e2fee80a751d148cba748770ebe25dcbe"
 
 [[repos]]
 name = "blobs"                # private; preserved vendor originals + apply-*.py + *.SHA256 (text-only after B3)
