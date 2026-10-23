@@ -2,8 +2,8 @@
 # docker/Dockerfile.ge8300-mesa-cross at 87ad73611a548e1805f0c21ed083915d79e34c09. Do NOT add
 ARG PF_CURSOR_TOOLS_IMAGE=10.0.32.86:5555/pocketforge/ci-tools@sha256:2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862
 ARG PF_CURSOR_TOOLS_RECIPE_SHA=ec5b2621f636261978d3bb4fd9843ae22a59c320
-[ "${PF_RUNTIME_SHA}" = "611fb74f19959b3b8cfe4044d1ae19082bc95f1d" ] || { echo "FATAL: runtime pin drift: ${PF_RUNTIME_SHA}"; exit 1; }
+[ "${PF_RUNTIME_SHA}" = "e6d3290c60581695f5a113e245e3ab17cbf6f33c" ] || { echo "FATAL: runtime pin drift: ${PF_RUNTIME_SHA}"; exit 1; }
 ARG PF_RECOVERY_SHA=443a84e47c96d83de967948844d8e5eaa41d7413
 [ "${PF_RECOVERY_SHA}" = "443a84e47c96d83de967948844d8e5eaa41d7413" ] || {
-[ "${PF_LAUNCHER_SHA}" = "0165f7863c5bebe1bc1faf4322acbb6c9ae1038d" ] || { echo "FATAL: F13 launcher pin drift: ${PF_LAUNCHER_SHA}"; exit 1; }
+[ "${PF_LAUNCHER_SHA}" = "f6710cb52bcd9f0fa88fb9d0361e7f0578106890" ] || { echo "FATAL: F13 launcher pin drift: ${PF_LAUNCHER_SHA}"; exit 1; }
 ARG PF_RECOVERY_SHA=443a84e47c96d83de967948844d8e5eaa41d7413
