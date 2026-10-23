@@ -731,7 +731,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # remain unchanged.
                        # tsp-0qwbh.13: image#319 carries the native-Wayland app
                        # environment contract and guards runtime#172/launcher#178.
-sha  = "be1db6389b0a031c3571dc025a32da7303ffe267"
+                       # tsp-mc9m.41.1032.5: image#320 fixes self-flash v3 card
+                       # identity discovery while retaining its capped root grow.
+sha  = "be251ecc72b9f79a746e7f5f94d55d4492bf371e"
 
 [[repos]]
 name = "pf-cursor-theme"
