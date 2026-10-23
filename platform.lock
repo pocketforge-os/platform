@@ -1463,7 +1463,8 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # Previous tsp-mc9m.60.29.34 Build 16: #56 establishes masked PMIC
                               # protection/hold policy and #57 adds the fail-closed low-battery
                               # boot gate. BANNER CHANGE: 2025.10-g72abd96b6b87.
-sha  = "c37b6ad5a6224875955315443224288ec752e992"
+                              # tsp-mc9m.37: u-boot-tsp-a133#59 adds bounded AXP717 BOOT GATE input logging.
+sha  = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
