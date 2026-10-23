@@ -450,17 +450,19 @@ class ProfileTest(unittest.TestCase):
         # the resident X11 authorization monitor remains active.
         # Image#322 advances only PF_IMAGE_SHA for bounded early-boot MMC
         # identity readiness retries in the capped root-grow path.
+        # Image#323 advances only PF_IMAGE_SHA to exclude eMMC hardware boot
+        # and RPMB areas from fail-closed user-area discovery.
         expected = {
-            ("a133", "dev"): "243493f7d937bf4baaed12a1fd277c79cf311f847b27343111444845b6822f69",
-            ("a133", "release"): "2238c658ec759dc2cbccf2ea32f224e9c7c5f80093eda4421b8f438ad6d1cf41",
-            ("a133-open-7x", "dev"): "f8767ec18c8572cbbebe363b213f9d864fb4484d63c3a02963a213e68a9aa143",
-            ("a133-open-7x", "release"): "0ff00a3c91d39823a27610cc0b2769eca2ea9ce62cf2ff060925959840ca467e",
-            ("a133-owned", "dev"): "e310cdb20a5ad0207276f4df493821f4361744329fa8d6e1b567cdadf7fc9c05",
-            ("a133-owned", "release"): "27c15894904d342eca0bd65dd2c23f7fa2b45f24eee9cbac7d1d5ae4f2703741",
-            ("a523", "dev"): "766d6829a43d00d919889031cd2fb62ce800de4b1c3e43368f1b3df728946745",
-            ("a523", "release"): "8a51f709e1fb8a29baa7ca353d41a50d2252149df99a42c21fedf87d7add65e6",
-            ("sdm845", "dev"): "96dc39f99e6f1cd94f4817744b470e2d5be4139985ff0f4b58cb30764efb5f98",
-            ("sdm845", "release"): "7ed7f5eee4e67fed8bb2239dcf839ce55139c2753ce5f2691c729622005a42bb",
+            ("a133", "dev"): "19f9ecde56df842bbcd539ea62370db58e91b6cb5cb7d312dd5650c7d9fdffc6",
+            ("a133", "release"): "646c1aab3be4fa0c72bd96f840e63801bdbec1ca8f56c932ddddc88cc4d1e9aa",
+            ("a133-open-7x", "dev"): "7a4b332d9660226d92b876a0cfb52731859934782b38da351120e48559fc4bb5",
+            ("a133-open-7x", "release"): "4a3a3a41ae035cc7ba996709f0727e6c6730b64869a3e2b13fbe30784e2f2839",
+            ("a133-owned", "dev"): "91988adfd80602691ecb1e0ea00e9f942cd57bd773a2a216b3718c84db7f2047",
+            ("a133-owned", "release"): "858f62e86e9d6f7d094b00c8977b5aa98cb694c86d8364c4320d594bc031eca6",
+            ("a523", "dev"): "1e3e0433176108a8a308466cfa4f43c603cbb2216811cf2b6c99e5879e8690cc",
+            ("a523", "release"): "2a64fe7a4d3472a79ed43dde0a89acf599188755be6054b192eeb64645bfd22e",
+            ("sdm845", "dev"): "035310bd964c6aa3c50b8bf94003e227cccb7d84221f55ae4fee9b109aa69851",
+            ("sdm845", "release"): "e643f2407a10029c426a0a26a1560e2b4eeafb1c513f87a9b3952626f9653020",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -743,7 +745,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "ce64596b0f73b6232fdeee091eb4e1d71108db75",
+                "PF_IMAGE_SHA": "3d0611a89dd1d0fdcf3085c17bfce5803ebdfd9e",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
