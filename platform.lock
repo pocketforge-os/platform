@@ -737,7 +737,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # readiness markers before the resident monitor blocks.
                        # tsp-mc9m.41.1032.5: image#322 bounds early-boot MMC identity
                        # readiness retries so capped root growth can start reliably.
-sha  = "ce64596b0f73b6232fdeee091eb4e1d71108db75"
+                       # tsp-mc9m.41.1032.5: image#323 excludes eMMC hardware boot and
+                       # RPMB areas from user-area discovery while remaining fail-closed.
+sha  = "3d0611a89dd1d0fdcf3085c17bfce5803ebdfd9e"
 
 [[repos]]
 name = "pf-cursor-theme"
