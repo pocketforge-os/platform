@@ -242,10 +242,9 @@ skin_part = "trig_r"
 # Build 9 input receipt (tsp-h5ed.46.25, 2026-10-13): live-window generation
 # 9179d1446ad98af5c5387ab25435f0fe, raw image
 # 406aba39e725f3c65a396ac2f8a0a1b0e96f9cacd9b245bc5d5bb543994b1255, runtime FDT
-# 35945342b75c7002b5b5c39f4b5b38d0696691a8563034ce53feb06579d122a5. The runtime DT has
-# `/soc/lradc@5070800` status=disabled and the evdev inventory has no volume-key node. Therefore
-# the VOL± rows below retain their historical stock-OS source; this descriptor does not invent a
-# Build 9 source. The kernel/DT regression is tracked by the owning lane.
+# 35945342b75c7002b5b5c39f4b5b38d0696691a8563034ce53feb06579d122a5. The runtime DT in that
+# receipt had `/soc/lradc@5070800` status=disabled. A later LRADC-enabled image receipt is
+# recorded on each VOL± row below.
 #
 # Volume rocker — VOL+ / VOL- (tsp-bwrg.16). These are REAL physical controls, but they do NOT
 # live on the gamepad node. The older kernel-4.9 PocketForge image exposed the chassis rocker on
@@ -253,7 +252,8 @@ skin_part = "trig_r"
 # on silicon by tsp-ozbp.2's VOL± negative control (pressing VOL± fired 117 event0 KEY_VOLUME*
 # events, zero UART bytes). The gamepad node "TRIMUI Player1" does NOT advertise 114/115 at all
 # (word1 of its KEY bitmap is zero), which is why the single-`--source` collector could never
-# capture them — the structural miss this bead exists to fix.
+# capture them — the structural miss this bead exists to fix. The LRADC-enabled receipt below
+# supersedes the stock node name for the PocketForge descriptor.
 #
 # class = "system" (NOT the default "gamepad"): the E2 broker must never hand VOL± to an app as a
 # bindable control (they are ambient system authority — volume is a platform/settings concern).
@@ -261,7 +261,7 @@ skin_part = "trig_r"
 # the whole device, gate access in the broker (owner ruling 2026-07-27, on this bead). Because
 # class=system, caps.py's SDL emit skips them — no `sdl_guid` gamepad binding is ever synthesised
 # for the volume rocker.
-# source = "sunxi-keyboard" — the evdev NODE these live on. Every other input here omits `source`
+# source names the evdev NODE these live on. Every other input here omits `source`
 # and defaults to the primary gamepad node (identity.match.evdev_name = "TRIMUI Player1"); VOL±
 # name their real node explicitly so the multi-source collector reads event0 for them, not event2.
 # NOTE `event1` (audiocodec Audio Jack) ALSO advertises 114/115 — the inline-remote keys of a wired
@@ -276,7 +276,11 @@ kind = "button"
 ev_type = "EV_KEY"
 code = "KEY_VOLUMEUP"
 class = "system"
-source = "sunxi-keyboard"
+# Historical stock-OS source: sunxi-keyboard.
+# Receipt: bead tsp-h5ed.46.46, comment 2026-10-22 05:52, image raw sha256
+# 39384f905bd6d8e338108fa70b4457405da07545a2bb73db3b0c50e0abff1f72.
+# Receipt node: N: Name="5070800.lradc"; P: Phys=sun4i_lradc/input0.
+source = "5070800.lradc"
 skin_part = "btn_vol_up"
 [[inputs]]
 id = "vol_down"
@@ -284,7 +288,11 @@ kind = "button"
 ev_type = "EV_KEY"
 code = "KEY_VOLUMEDOWN"
 class = "system"
-source = "sunxi-keyboard"
+# Historical stock-OS source: sunxi-keyboard.
+# Receipt: bead tsp-h5ed.46.46, comment 2026-10-22 05:52, image raw sha256
+# 39384f905bd6d8e338108fa70b4457405da07545a2bb73db3b0c50e0abff1f72.
+# Receipt node: N: Name="5070800.lradc"; P: Phys=sun4i_lradc/input0.
+source = "5070800.lradc"
 skin_part = "btn_vol_down"
 
 # Build 9 exposes KEY_POWER (cap_key bit 116) on event0 named verbatim `axp20x-pek`, with

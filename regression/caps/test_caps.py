@@ -306,7 +306,8 @@ def main():
               all(f in caps.SDL_FIELDS for f in m))
 
     # --- SPIKE-0 probe-diff (asymmetric rule) against a synthetic xpad capture ---
-    def xpad_capture(home=True, drop=None, absx_min=0, power_keys=None):
+    def xpad_capture(home=True, drop=None, absx_min=0, power_keys=None,
+                     keyboard_name="sunxi-keyboard"):
         # BTN_TL2/BTN_TR2 = the DIGITAL L2/R2 the node advertises (tsp-5p1). The X360-presented
         # ABS_Z/ABS_RZ axes below stay too -> they're now an unused advertised superset (INFO).
         keys = ["BTN_A", "BTN_B", "BTN_C", "BTN_X", "BTN_Y", "BTN_Z", "BTN_TL", "BTN_TR",
@@ -325,11 +326,11 @@ def main():
         absd["ABS_HAT0Y"] = {"min": -1, "max": 1, "fuzz": 0, "flat": 0, "resolution": 0}
         pad = {"path": "/dev/input/event3", "name": "TRIMUI Player1", "vendor": "045e",
                "product": "028e", "ev": ["EV_SYN", "EV_KEY", "EV_ABS"], "keys": keys, "abs": absd}
-        # The LRADC sunxi-keyboard node (event0) carries the SYSTEM keys: VOL± always (both
-        # descriptors now claim them, class=system source=sunxi-keyboard, tsp-bwrg.16), plus
+        # The LRADC node (event0) carries the SYSTEM keys: VOL± always (the a523 synthetic
+        # descriptor uses its stock source; a133's receipt-backed source is 5070800.lradc), plus
         # KEY_HOMEPAGE on the a523 (`home=True`). This is the node the gamepad node does NOT carry
         # 114/115 on — the whole point of the multi-node model.
-        kbd = {"path": "/dev/input/event0", "name": "sunxi-keyboard",
+        kbd = {"path": "/dev/input/event0", "name": keyboard_name,
                "keys": (["KEY_HOMEPAGE"] if home else []) + ["KEY_VOLUMEUP", "KEY_VOLUMEDOWN"]}
         nodes = [kbd, pad]
         if power_keys is not None:
@@ -337,28 +338,29 @@ def main():
                              "keys": list(power_keys)})
         return {"nodes": nodes}
 
-    e, w, i = caps.probe_diff("a133", xpad_capture())
+    a133_capture = lambda **kwargs: xpad_capture(keyboard_name="5070800.lradc", **kwargs)
+    e, w, i = caps.probe_diff("a133", a133_capture())
     check("probe-diff a133: absent cross-image power source is one explicit error",
           len(e) == 1 and "axp20x-pek" in e[0] and "unverified" in e[0])
     check("probe-diff a133: HID superset reported as INFO", any("superset" in x for x in i))
     # Cross-image absence is UNKNOWN, but the evidence gate must still fail closed. Prove
     # the CLI cannot print OK / return success for that incomplete verification.
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as capture_file:
-        json.dump(xpad_capture(), capture_file)
+        json.dump(a133_capture(), capture_file)
         capture_file.flush()
         r = subprocess.run([os.path.join(ROOT, "pf"), "caps", "probe-diff",
                             "--device", "a133", "--probe", capture_file.name],
                            capture_output=True, text=True)
     check("probe-diff a133: absent source makes CLI fail closed",
           r.returncode == 1 and "unverified" in r.stdout and "OK" not in r.stdout)
-    e, w, i = caps.probe_diff("a133", xpad_capture(power_keys=["KEY_POWER"]))
+    e, w, i = caps.probe_diff("a133", a133_capture(power_keys=["KEY_POWER"]))
     check("probe-diff a133: named power source advertising KEY_POWER passes", e == [])
-    e, w, i = caps.probe_diff("a133", xpad_capture(power_keys=[]))
+    e, w, i = caps.probe_diff("a133", a133_capture(power_keys=[]))
     check("probe-diff a133: present named power source missing KEY_POWER -> ERROR",
           any("axp20x-pek" in x and "KEY_POWER" in x for x in e))
-    e, w, i = caps.probe_diff("a133", xpad_capture(drop="BTN_A"))
+    e, w, i = caps.probe_diff("a133", a133_capture(drop="BTN_A"))
     check("probe-diff a133: descriptor code not advertised -> ERROR", any("BTN_A" in x for x in e))
-    e, w, i = caps.probe_diff("a133", xpad_capture(absx_min=-1000))
+    e, w, i = caps.probe_diff("a133", a133_capture(absx_min=-1000))
     check("probe-diff a133: absinfo mismatch -> WARN (reconcile)", any("reconcile" in x for x in w))
     e, w, i = caps.probe_diff("a523", xpad_capture(home=True))
     check("probe-diff a523: home on keyboard node -> no error", e == [])
