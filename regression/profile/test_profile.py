@@ -454,17 +454,19 @@ class ProfileTest(unittest.TestCase):
         # and RPMB areas from fail-closed user-area discovery.
         # Image#324 advances only PF_IMAGE_SHA to normalize configure's volatile
         # PPID assignment in the steamlink-ffmpeg59 provenance reports.
+        # Image#325 advances only PF_IMAGE_SHA for the self-flash-v3 selected-card
+        # identity gate and pinned-descriptor transaction fix.
         expected = {
-            ("a133", "dev"): "e33ee442375e64216797f3328f32ec9f418c431f57532911cc607830a491c3db",
-            ("a133", "release"): "6bee68c40d0865cf94809e4a890fe1a958fde3cbd4acb41b5a02622aa81151a3",
-            ("a133-open-7x", "dev"): "a9eea1ff74b37e1d0b89042f81031f721c4f2b0610dd204eff6a6acee4f1eea8",
-            ("a133-open-7x", "release"): "24df9e1ebc9d9320d3d8b96d0d610a735a08ba7af3e602819aa039a36aff2556",
-            ("a133-owned", "dev"): "53b0f674af89fc33d7898f79cefcbfbb3bf974fce98b7d56bf72e765576157cc",
-            ("a133-owned", "release"): "956885a21d610dfabb7f1e5fd89735ea0c73c55b01a9e025d45e6a6bee846ea0",
-            ("a523", "dev"): "13b26bd922937170da2a2a89439c7369ed4766958ad5610ac8ba7bf60ec3d303",
-            ("a523", "release"): "014d83292376431527b36b1e885d0b645ad9685f745d117086c70363677dbfa6",
-            ("sdm845", "dev"): "f55667cb374469388d614909bcdb33c4dfcc986d56d2c4d53d626dd614377223",
-            ("sdm845", "release"): "96449c612c28172ee7ccc131a9a2010a6d92ef95601c7d58b5b67173b2638752",
+            ("a133", "dev"): "208d75bc62220433c5fb827f1dd1cc48b8a074ffb4598e9b229d8270ab2ffb47",
+            ("a133", "release"): "eb8e5256146eac7dc57a1caa393921ce31b9e0acb3363169b3d1dca297d677b7",
+            ("a133-open-7x", "dev"): "c0347d3880c5b4460f6dd418a795615add9eb5eca9bcf4bf8e4a2473085cebdc",
+            ("a133-open-7x", "release"): "79e293c84be86e101c5b544be27e5690c7df732e05208edc132fc81a196cc89c",
+            ("a133-owned", "dev"): "995ae253f687871eed9b31dbac337c8be910e905c188e528089f0837fe5530ea",
+            ("a133-owned", "release"): "b584e3c50a0e9b36fe6d0b64bb88004ec3e76b99bd0b27c216f003c3eba370a5",
+            ("a523", "dev"): "8d26c84555fcb5b99099c1b80398b85671b6d9219572dacc60eb8dc4703dca22",
+            ("a523", "release"): "21e12dfecd73667d491602ace16a600d0c0278bb6261685e6d3e02a5c7687eae",
+            ("sdm845", "dev"): "79ca976ccad5ab577c12fc887f1844628691b7d38d04241140aff34e8915c60c",
+            ("sdm845", "release"): "a376c1e5c1f39a9f3d419d28c17aff62145201566d5b7d6eb41a9695a6c014ac",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -747,7 +749,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "5291ea14f7f72a5b1e284eef729940fc26f33205",
+                "PF_IMAGE_SHA": "64e32bd382652f5c657f3e4cf8a503e52c352872",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

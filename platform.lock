@@ -741,7 +741,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # RPMB areas from user-area discovery while remaining fail-closed.
                        # tsp-mc9m.41.995.100.1: image#324 normalizes configure's volatile
                        # PPID assignment in both steamlink-ffmpeg59 provenance reports.
-sha  = "5291ea14f7f72a5b1e284eef729940fc26f33205"
+                       # tsp-mc9m.41.1018.12.36: image#325 makes the admitted self-flash-v3
+                       # card identity authoritative through its destructive write and FAT access.
+sha  = "64e32bd382652f5c657f3e4cf8a503e52c352872"
 
 [[repos]]
 name = "pf-cursor-theme"
