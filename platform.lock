@@ -739,7 +739,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # readiness retries so capped root growth can start reliably.
                        # tsp-mc9m.41.1032.5: image#323 excludes eMMC hardware boot and
                        # RPMB areas from user-area discovery while remaining fail-closed.
-sha  = "3d0611a89dd1d0fdcf3085c17bfce5803ebdfd9e"
+                       # tsp-mc9m.41.995.100.1: image#324 normalizes configure's volatile
+                       # PPID assignment in both steamlink-ffmpeg59 provenance reports.
+sha  = "5291ea14f7f72a5b1e284eef729940fc26f33205"
 
 [[repos]]
 name = "pf-cursor-theme"
