@@ -31,9 +31,9 @@ class A133Build9SystemKeysTest(unittest.TestCase):
             },
         )
 
-    def test_volume_rows_keep_stock_os_source(self) -> None:
-        self.assertEqual(self.inputs["vol_up"]["source"], "sunxi-keyboard")
-        self.assertEqual(self.inputs["vol_down"]["source"], "sunxi-keyboard")
+    def test_volume_rows_match_lradc_receipt(self) -> None:
+        self.assertEqual(self.inputs["vol_up"]["source"], "5070800.lradc")
+        self.assertEqual(self.inputs["vol_down"]["source"], "5070800.lradc")
 
     def test_build9_provenance_is_recorded(self) -> None:
         required_evidence = (
@@ -53,6 +53,17 @@ class A133Build9SystemKeysTest(unittest.TestCase):
             "H616 Audio Codec Headphone Jack",
         )
         for evidence in required_evidence:
+            with self.subTest(evidence=evidence):
+                self.assertIn(evidence, self.text)
+
+    def test_lradc_receipt_provenance_is_recorded(self) -> None:
+        for evidence in (
+            "bead tsp-h5ed.46.46",
+            "comment 2026-10-22 05:52",
+            "39384f905bd6d8e338108fa70b4457405da07545a2bb73db3b0c50e0abff1f72",
+            'N: Name="5070800.lradc"',
+            "P: Phys=sun4i_lradc/input0",
+        ):
             with self.subTest(evidence=evidence):
                 self.assertIn(evidence, self.text)
 
