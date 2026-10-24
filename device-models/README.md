@@ -39,6 +39,11 @@ vertical-handheld source model. It preserves the owner-measured stepped
 envelope and exposes all eighteen visible physical controls across front, rear
 shoulder-shelf, and side review views; descriptor and runtime-skin integration
 remain a separate post-approval task.
+The [`powkiddy-x55/`](powkiddy-x55/README.md) package is the independent X55
+landscape-handheld source model. Its first-pass continuous rear grip and
+shoulder surfaces reconcile the published maximum envelope, owner-traced face,
+and public multi-angle evidence; caliper corrections and runtime integration
+remain behind explicit owner approval.
 
 ## From measurements to a device, in order
 
@@ -199,6 +204,16 @@ before runtime-skin integration.
 
 Other agents can follow the same `SKILL.md`, its evidence checklist, and its
 deterministic validator directly.
+
+Model iteration is explicitly render-inspect-correct. After each coherent
+geometry change, render only the affected fixed cameras, open every output PNG
+with a vision-capable viewer, record concrete pixel-visible discrepancies,
+apply one relationship change, and inspect the same cameras again.
+Orthographic views constrain silhouette and placement; fixed three-quarter or
+grazing views expose curved-surface continuity but are not measurement
+projections. A successful OpenSCAD export or stable hash never substitutes for
+visual inspection. Re-run all six fixed orthographic views periodically and
+before owner sign-off.
 
 ## Fixture contracts — the manufacturing handoff
 
