@@ -14,7 +14,7 @@ spec.loader.exec_module(profile)
 
 SELECTED = "a133-open-7x-gpu"
 UAPI_SHA = "3010de56dbd1057513c035fff8623f80596fe9e8"
-KERNEL_SHA = "70bed1ace15d3fb14a895e2fb21a777e93587b12"
+KERNEL_SHA = "0f3d791e4aec30d16ace01a866772cf2a682cdf6"
 EXPECTED_ARGS = {
     "PF_STEAMLINK_FFMPEG59_MODE": "v1",
     "PF_FFMPEG_DEBIAN_VERSION": "7:5.1.8-0+deb12u1",
@@ -37,7 +37,7 @@ class PlatformRuntimeTest(unittest.TestCase):
         self.assertEqual(runtime["source_repo"], "kernel-sunxi-7.x")
         self.assertEqual(runtime["source_sha"], UAPI_SHA)
         self.assertEqual(lock["repos"][runtime["source_repo"]]["sha"], KERNEL_SHA)
-        # The Build 36 boot-kernel batch leaves both exported UAPI trees unchanged.
+        # The kernel#122 boot-kernel bump leaves both exported UAPI trees unchanged.
         # Keep image#283's authenticated producer receipt exact.
         self.assertNotEqual(runtime["source_sha"], KERNEL_SHA)
 

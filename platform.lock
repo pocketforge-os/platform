@@ -169,8 +169,11 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # firmware's safe PMIC boot policy while failing closed on thermal-setup errors.
 # tsp-mc9m.60.29.49 Build 36 keeps both profiles equal while carrying #115's permanent
 # read-only eMMC policy, #116/#117's A133 speaker PA GPIO fix, and #119's squashfs support.
+# tsp-h5ed.46.61 keeps both profiles equal: kernel-sunxi-7.x#122 requires built-in
+# CONFIG_VIRTIO_CONSOLE for pfvd's machine-owned virtio-serial transport. The intervening
+# #120 DSI/panel change is fully reverted by #121, so there is no net physical-hardware delta.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "70bed1ace15d3fb14a895e2fb21a777e93587b12"
+kernel = "0f3d791e4aec30d16ace01a866772cf2a682cdf6"
 
 [[repos]]
 name = "image"
@@ -939,8 +942,12 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.49 Build 36): device/a133
-                             # 70bed1ac advances 15 commits: #115 adds permanent read-only
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-h5ed.46.61): device/a133
+                             # 0f3d791e advances #122's built-in CONFIG_VIRTIO_CONSOLE for
+                             # pfvd. #120's DSI/panel change is fully reverted by #121.
+                             # Exported UAPI trees remain byte-identical, so image#283's
+                             # authenticated 3010de56 Steam Link receipt stays unchanged.
+                             # Previous Build 36 pin 70bed1ac advances 15 commits: #115 adds permanent read-only
                              # eMMC policy, #116/#117 fix the A133 speaker PA GPIO, and #119
                              # enables built-in squashfs with zstd decompression.
                              # b8434263 adds #114's AXP717 boot-policy preservation and
@@ -1201,7 +1208,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.49 Build 36): device/a
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "70bed1ace15d3fb14a895e2fb21a777e93587b12"
+sha  = "0f3d791e4aec30d16ace01a866772cf2a682cdf6"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
