@@ -76,15 +76,15 @@ class FullOpen7BootchainTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x-gpu")
         self.assertEqual(missing, [])
         expected = {
-            "PF_IMAGE_SHA": "64e32bd382652f5c657f3e4cf8a503e52c352872",
+            "PF_IMAGE_SHA": "49d2e01a88ea9849197ff8f8fa2dd6dc61684074",
             "PF_KERNEL_REPO": "kernel-sunxi-7.x",
-            "PF_KERNEL_SHA": "0f3d791e4aec30d16ace01a866772cf2a682cdf6",
+            "PF_KERNEL_SHA": "f7184e8dd6b6ae4526379b8123742e34debc0352",
             "PF_KERNEL_DTB": "sun50i-a133-pocketforge-odyssey.dtb",
             "PF_KERNEL_REQUIRED_MODULES": "powervr",
             "PF_GPU_MODEL": "open",
             "PF_GPU_KM_MODEL": "in-tree-7.x",
             "PF_GPU_KM_REPO": "kernel-sunxi-7.x",
-            "PF_GPU_KM_SHA": "0f3d791e4aec30d16ace01a866772cf2a682cdf6",
+            "PF_GPU_KM_SHA": "f7184e8dd6b6ae4526379b8123742e34debc0352",
             "PF_GPU_UM_REPO": "gpu-um-tsp",
             "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
             "PF_LIBSDL3_SHA": "7411a94803c95b2f93a898f3773ffe95dfec4263",
@@ -112,7 +112,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
     def test_noradio_profile_carries_the_battery_safety_kernel(self):
         args, _state, missing = profile.build_args("a133-open-7x-gpu-noradio")
         self.assertEqual(missing, [])
-        safety_kernel = "0f3d791e4aec30d16ace01a866772cf2a682cdf6"
+        safety_kernel = "f7184e8dd6b6ae4526379b8123742e34debc0352"
         self.assertEqual(args["PF_KERNEL_SHA"], safety_kernel)
         self.assertEqual(args["PF_GPU_KM_SHA"], safety_kernel)
 
