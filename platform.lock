@@ -172,8 +172,10 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # tsp-h5ed.46.61 keeps both profiles equal: kernel-sunxi-7.x#122 requires built-in
 # CONFIG_VIRTIO_CONSOLE for pfvd's machine-owned virtio-serial transport. The intervening
 # #120 DSI/panel change is fully reverted by #121, so there is no net physical-hardware delta.
+# tsp-98733d6399be82e4f00c.5.3 Build 46 keeps both profiles equal while adding
+# kernel-sunxi-7.x#123's device-booted frame-boundary DSI stop and staged D-PHY shutdown.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "0f3d791e4aec30d16ace01a866772cf2a682cdf6"
+kernel = "f7184e8dd6b6ae4526379b8123742e34debc0352"
 
 [[repos]]
 name = "image"
@@ -746,7 +748,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # PPID assignment in both steamlink-ffmpeg59 provenance reports.
                        # tsp-mc9m.41.1018.12.36: image#325 makes the admitted self-flash-v3
                        # card identity authoritative through its destructive write and FAT access.
-sha  = "64e32bd382652f5c657f3e4cf8a503e52c352872"
+                       # Build 46: image#326 selects the KMS DRM node for the input harness;
+                       # image#327 keeps the Xwayland socket private and generation-bound.
+sha  = "49d2e01a88ea9849197ff8f8fa2dd6dc61684074"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -942,9 +946,11 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-h5ed.46.61): device/a133
-                             # 0f3d791e advances #122's built-in CONFIG_VIRTIO_CONSOLE for
-                             # pfvd. #120's DSI/panel change is fully reverted by #121.
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3 Build 46): device/a133
+                             # f7184e8d advances #123's device-booted frame-boundary DSI
+                             # stop and staged D-PHY shutdown. The G1 prepare sequence is unchanged.
+                             # Previous 0f3d791e advances #122's built-in CONFIG_VIRTIO_CONSOLE
+                             # for pfvd. #120's DSI/panel change is fully reverted by #121.
                              # Exported UAPI trees remain byte-identical, so image#283's
                              # authenticated 3010de56 Steam Link receipt stays unchanged.
                              # Previous Build 36 pin 70bed1ac advances 15 commits: #115 adds permanent read-only
@@ -1208,7 +1214,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-h5ed.46.61): device/a133
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "0f3d791e4aec30d16ace01a866772cf2a682cdf6"
+sha  = "f7184e8dd6b6ae4526379b8123742e34debc0352"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
