@@ -755,7 +755,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # tsp-ihne1.56.9: image#330 pins the audited runtime#175 and
                        # launcher#179 pair, including the broker-only fail-closed policy.
                        # Build 47: image#331 authorizer X11 projection
-sha  = "4a9b91fb0df1b8178d173ce41b8f1996d56465e5"
+                       # tsp-mc9m.60.29.32: image#328 merges the DRI3 app-platform
+                       # runtime closure and canonical content-addressed identity fix.
+sha  = "2f3d829347afd014a16db3d9333903b24bfdc4bb"
 
 [[repos]]
 name = "pf-cursor-theme"
