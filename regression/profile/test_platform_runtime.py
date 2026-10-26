@@ -14,7 +14,7 @@ spec.loader.exec_module(profile)
 
 SELECTED = "a133-open-7x-gpu"
 UAPI_SHA = "3010de56dbd1057513c035fff8623f80596fe9e8"
-KERNEL_SHA = "f7184e8dd6b6ae4526379b8123742e34debc0352"
+KERNEL_SHA = "d5fbc1a9d1dbc75e8050571249679fc1537eafe5"
 EXPECTED_ARGS = {
     "PF_STEAMLINK_FFMPEG59_MODE": "v1",
     "PF_FFMPEG_DEBIAN_VERSION": "7:5.1.8-0+deb12u1",
@@ -37,7 +37,7 @@ class PlatformRuntimeTest(unittest.TestCase):
         self.assertEqual(runtime["source_repo"], "kernel-sunxi-7.x")
         self.assertEqual(runtime["source_sha"], UAPI_SHA)
         self.assertEqual(lock["repos"][runtime["source_repo"]]["sha"], KERNEL_SHA)
-        # The kernel#123 display lifecycle bump leaves both exported UAPI trees unchanged.
+        # The kernel#124 LEDC suspend-wait bump leaves both exported UAPI trees unchanged.
         # Keep image#283's authenticated producer receipt exact.
         self.assertNotEqual(runtime["source_sha"], KERNEL_SHA)
 
