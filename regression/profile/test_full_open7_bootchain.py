@@ -77,6 +77,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
         self.assertEqual(missing, [])
         expected = {
             "PF_IMAGE_SHA": "811d77cdcb3992f51eaa7d37f7471d5ca1ecb2c4",
+            "PF_RUNTIME_SHA": "1640d5ec5b0a02b27a51615f176fae9aef784311",
             "PF_KERNEL_REPO": "kernel-sunxi-7.x",
             "PF_KERNEL_SHA": "f7184e8dd6b6ae4526379b8123742e34debc0352",
             "PF_KERNEL_DTB": "sun50i-a133-pocketforge-odyssey.dtb",
