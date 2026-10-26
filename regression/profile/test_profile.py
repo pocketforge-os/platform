@@ -459,19 +459,21 @@ class ProfileTest(unittest.TestCase):
         # Image#330 advances PF_IMAGE_SHA and PF_RUNTIME_SHA for the audited broker
         # policy pair; launcher remains absent from every non-open row in this table.
         # Image#331 advances PF_IMAGE_SHA for generation-bound X11 authorizer projection.
+        # Image#332 advances only PF_IMAGE_SHA for Xwayland GPU providers and the
+        # Gamescope PowerVR Vulkan opt-in.
         # Kernel#125 advances PF_KERNEL_SHA only on the Linux 7 rows; its DSI HS
         # start-order delta leaves every other build argument, state, and missing pin unchanged.
         expected = {
-            ("a133", "dev"): "3b82f9220c4a532123f4ec3b8e9696a34aedf58d4b7cce94baf3fc585d0e6a47",
-            ("a133", "release"): "18c4335f046a9eca516138c40088442c7713e59fb87754283d86152d0bf5fb83",
-            ("a133-open-7x", "dev"): "9bc2c82cf15e194adfa46a2a7f43936ade96815ee654410fb3626b269d3501d7",
-            ("a133-open-7x", "release"): "06d12008c6aa9b032ff6b02da88cfc159d693f10ae7d32be2cb7232f8d57d2ef",
-            ("a133-owned", "dev"): "c54391305d79ff281e23b12ec65c6938a92b2f9b5daec20779afc7a0b73940dc",
-            ("a133-owned", "release"): "a5c4b05ed58343fc0abcaba5f79aacbe309cf497c7296d40c8621df92e01fbc4",
-            ("a523", "dev"): "d95b10a0dec662529d2e7ae8898a38b6673f49b795b535aa75dffb8574a8aea4",
-            ("a523", "release"): "c6ea075a9ac5e44d789da0b67ac76a5ef9842d288c0b6a5778b6c8355459c347",
-            ("sdm845", "dev"): "662f849450925c48a1c428f9197bde0baa0e18ba11fd2c46d9f73ba405a012c3",
-            ("sdm845", "release"): "6de5997bb9d94165b0080d0eed4d41dd1cb7de90076a2bc9269a2a12237a68ba",
+            ("a133", "dev"): "01d5508bdd24f7b201420581e362ef4f7c12587f45ee1f1d89b211657e31a651",
+            ("a133", "release"): "33b7325ea457a84b3072faf5dd2ae540766351fad7f0c3b86b5b5ba076cc53a4",
+            ("a133-open-7x", "dev"): "a8220bfcba80288c761c04690c6b3663a2a25bc12db77b1c1a0bd2e11fe974e0",
+            ("a133-open-7x", "release"): "2093660227709a6f21586c152ef60877c537f94a2570383a0a77b3104b387dbb",
+            ("a133-owned", "dev"): "cc14e42c39050bdd4005eb0ac51b80ac84a889d6b010cf6264ac8af9e4b0658b",
+            ("a133-owned", "release"): "f18e03b1ccc6f90531c5e28327c5b41eec9dd188122fa03e4f0d0c5dfc013158",
+            ("a523", "dev"): "3c66bd9507c060e2d7deb9a905f81d504d095751c26c9a7e65decc091140deb6",
+            ("a523", "release"): "986ec98565eca07b818db0f2d87c1ccb923acebdfe55181ceeab587c73a9662b",
+            ("sdm845", "dev"): "2b12987a513d7a9f124a55136b4573e43c3dc4a996741a8d1fc6dbab594caf99",
+            ("sdm845", "release"): "291972d290dc1e9c7213fb347ec29235671c469a1322610d52756aef783af72a",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -754,7 +756,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "2f3d829347afd014a16db3d9333903b24bfdc4bb",
+                "PF_IMAGE_SHA": "95f01628de8aff67812d01bcbf6aeb839de509b6",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
