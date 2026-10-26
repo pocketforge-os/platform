@@ -759,7 +759,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # Build 47: image#331 authorizer X11 projection
                        # tsp-mc9m.60.29.32: image#328 merges the DRI3 app-platform
                        # runtime closure and canonical content-addressed identity fix.
-sha  = "2f3d829347afd014a16db3d9333903b24bfdc4bb"
+                       # Build 48: image#332 supplies Xwayland GPU providers and the
+                       # Gamescope PowerVR Vulkan opt-in; platform_runtime is unchanged.
+sha  = "95f01628de8aff67812d01bcbf6aeb839de509b6"
 
 [[repos]]
 name = "pf-cursor-theme"
