@@ -176,8 +176,10 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # kernel-sunxi-7.x#123's device-booted frame-boundary DSI stop and staged D-PHY shutdown.
 # Build 47 keeps both profiles equal while adding kernel-sunxi-7.x#124's bounded
 # LEDC suspend wait. Its driver-only delta leaves exported UAPI unchanged.
+# The next image keeps both profiles equal while adding kernel-sunxi-7.x#125's
+# post-panel-enable DSI HS clock start; #125 otherwise preserves Build 47.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "d5fbc1a9d1dbc75e8050571249679fc1537eafe5"
+kernel = "c9939136bff2f924c99864d4eb66e301b99a1ef2"
 
 [[repos]]
 name = "image"
@@ -953,8 +955,10 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.10.1 Build 47): device/a133
-                             # d5fbc1a9 advances #124's bounded LEDC suspend wait. The delta
+name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device/a133
+                             # c9939136 advances #125's post-panel-enable DSI HS clock start.
+                             # The exact delta is #125's two commits plus its merge commit.
+                             # Previous d5fbc1a9 advances #124's bounded LEDC suspend wait. Its delta
                              # touches only drivers/leds/leds-sun50i-a100.c; exported UAPI is
                              # unchanged, so the platform_runtime producer receipt stays unchanged.
                              # Previous f7184e8d advances #123's device-booted frame-boundary DSI
@@ -1224,7 +1228,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-mc9m.60.29.10.1 Build 47): device
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "d5fbc1a9d1dbc75e8050571249679fc1537eafe5"
+sha  = "c9939136bff2f924c99864d4eb66e301b99a1ef2"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
