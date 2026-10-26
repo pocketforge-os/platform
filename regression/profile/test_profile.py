@@ -462,16 +462,16 @@ class ProfileTest(unittest.TestCase):
         # Kernel#125 advances PF_KERNEL_SHA only on the Linux 7 rows; its DSI HS
         # start-order delta leaves every other build argument, state, and missing pin unchanged.
         expected = {
-            ("a133", "dev"): "d70b47fdbf5cc7628d2df2e3fbc9709cc26b86b9f1e30dbfe27713cc98f1aa81",
-            ("a133", "release"): "d4d6a714061052cd7f8365d7660a10fa286d5053429f4a1dfd7d102afc701ad1",
-            ("a133-open-7x", "dev"): "b9460c1b26a2a58a815db60b60b56c8360dae9c6aeb771bf37ef4d5d4bf5b5fa",
-            ("a133-open-7x", "release"): "971e07d68fab37b236eb653a51d503bcd3327dc690cf3052a0bc9dcc570916ab",
-            ("a133-owned", "dev"): "80278cc7e1893d74fc85d05a1895afeba695ba760bf505b78cc8ccab6e176772",
-            ("a133-owned", "release"): "a789fbf73fa04cbf608a18e62500e914b56474f15af44c5a4f9e70d2a779519a",
-            ("a523", "dev"): "8f0938b5d9f8d61639a4caff4063d4abad55ab2808816763abc7e0b8ddfd3409",
-            ("a523", "release"): "474c382b25013ee8945a70e9da003ad3553553a2258270bb2e37bad3e588cca2",
-            ("sdm845", "dev"): "0bcddbfcbfdfc27f7f043a0928ad4e6d71fc542be2cc5ccd5c2af992a88ddf69",
-            ("sdm845", "release"): "5c09147f2a222315376d9e88edd5268d1ab54d2f11b1a69a5293c6d7af01ed37",
+            ("a133", "dev"): "3b82f9220c4a532123f4ec3b8e9696a34aedf58d4b7cce94baf3fc585d0e6a47",
+            ("a133", "release"): "18c4335f046a9eca516138c40088442c7713e59fb87754283d86152d0bf5fb83",
+            ("a133-open-7x", "dev"): "9bc2c82cf15e194adfa46a2a7f43936ade96815ee654410fb3626b269d3501d7",
+            ("a133-open-7x", "release"): "06d12008c6aa9b032ff6b02da88cfc159d693f10ae7d32be2cb7232f8d57d2ef",
+            ("a133-owned", "dev"): "c54391305d79ff281e23b12ec65c6938a92b2f9b5daec20779afc7a0b73940dc",
+            ("a133-owned", "release"): "a5c4b05ed58343fc0abcaba5f79aacbe309cf497c7296d40c8621df92e01fbc4",
+            ("a523", "dev"): "d95b10a0dec662529d2e7ae8898a38b6673f49b795b535aa75dffb8574a8aea4",
+            ("a523", "release"): "c6ea075a9ac5e44d789da0b67ac76a5ef9842d288c0b6a5778b6c8355459c347",
+            ("sdm845", "dev"): "662f849450925c48a1c428f9197bde0baa0e18ba11fd2c46d9f73ba405a012c3",
+            ("sdm845", "release"): "6de5997bb9d94165b0080d0eed4d41dd1cb7de90076a2bc9269a2a12237a68ba",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -754,7 +754,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "4a9b91fb0df1b8178d173ce41b8f1996d56465e5",
+                "PF_IMAGE_SHA": "2f3d829347afd014a16db3d9333903b24bfdc4bb",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
