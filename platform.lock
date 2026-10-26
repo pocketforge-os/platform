@@ -752,7 +752,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # image#327 keeps the Xwayland socket private and generation-bound.
                        # tsp-ihne1.56.9: image#330 pins the audited runtime#175 and
                        # launcher#179 pair, including the broker-only fail-closed policy.
-sha  = "811d77cdcb3992f51eaa7d37f7471d5ca1ecb2c4"
+                       # Build 47: image#331 authorizer X11 projection
+sha  = "4a9b91fb0df1b8178d173ce41b8f1996d56465e5"
 
 [[repos]]
 name = "pf-cursor-theme"
