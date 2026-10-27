@@ -463,13 +463,13 @@ class ProfileTest(unittest.TestCase):
         # Gamescope PowerVR Vulkan opt-in.
         # Image#333 advances only PF_IMAGE_SHA to scope the provider-manifest
         # uniqueness check to loader-visible discovery paths.
-        # Kernel#125 advances PF_KERNEL_SHA only on the Linux 7 rows; its DSI HS
-        # start-order delta leaves every other build argument, state, and missing pin unchanged.
+        # Kernel#126 advances PF_KERNEL_SHA only on the Linux 7 rows; its retained-panel
+        # lifecycle leaves every other build argument, state, and missing pin unchanged.
         expected = {
             ("a133", "dev"): "734003b74f3ac2c465631bfa563fa019923b11b0a1b661ec35fab445c43943b6",
             ("a133", "release"): "0f2be4f32f0ff4ba98dd731c6cfab99d8d04c742c500ab99859059384ee24c8c",
-            ("a133-open-7x", "dev"): "2357fa066b8fb1050a178d7261be3f00994372ee78da317713baeb355522e503",
-            ("a133-open-7x", "release"): "ef85b4eaa628d06562f7fcbfc01da009620f2f7ed9945cd3dd470b809456090a",
+            ("a133-open-7x", "dev"): "0183c11cea1a9b15e31579d05307b751a9a70f1c348b11b096a6bf5a2e47df23",
+            ("a133-open-7x", "release"): "445ed37f4c0a64f1826b3b56eebb59f30b87ba1a346110be13c014a497eb1546",
             ("a133-owned", "dev"): "1345501636b5a64254ac394c2f3efcc8d8306095471c88612f9578d2cadd7e86",
             ("a133-owned", "release"): "da3fcb320a418bc6ba7346e7dbc8c20404133b420bc7e7cafbbd80c6fa25b185",
             ("a523", "dev"): "a12db064d042ed524e41e104f3cf9d6d3e86e937a9ac444616a7d70cc87842b0",
@@ -726,7 +726,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "c9939136bff2f924c99864d4eb66e301b99a1ef2")
+        self.assertEqual(args["PF_KERNEL_SHA"], "19f7cbdc61dd45c697832925be901f380c8c8c75")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -743,7 +743,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "c9939136bff2f924c99864d4eb66e301b99a1ef2")
+        self.assertEqual(args["PF_KERNEL_SHA"], "19f7cbdc61dd45c697832925be901f380c8c8c75")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
