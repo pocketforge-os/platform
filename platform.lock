@@ -176,10 +176,11 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # kernel-sunxi-7.x#123's device-booted frame-boundary DSI stop and staged D-PHY shutdown.
 # Build 47 keeps both profiles equal while adding kernel-sunxi-7.x#124's bounded
 # LEDC suspend wait. Its driver-only delta leaves exported UAPI unchanged.
-# The next image keeps both profiles equal while adding kernel-sunxi-7.x#125's
-# post-panel-enable DSI HS clock start; #125 otherwise preserves Build 47.
+# Build 48 keeps both profiles equal while adding kernel-sunxi-7.x#125's
+# post-panel-enable DSI HS clock start. The next image advances both through
+# kernel-sunxi-7.x#126's retained-panel lifecycle for transient ACTIVE=0.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "c9939136bff2f924c99864d4eb66e301b99a1ef2"
+kernel = "19f7cbdc61dd45c697832925be901f380c8c8c75"
 
 [[repos]]
 name = "image"
@@ -958,8 +959,11 @@ sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
 name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device/a133
-                             # c9939136 advances #125's post-panel-enable DSI HS clock start.
-                             # The exact delta is #125's two commits plus its merge commit.
+                             # 19f7cbdc advances #126's retained-panel lifecycle across transient
+                             # ACTIVE=0, including ordered whole-device teardown and error cleanup.
+                             # The exact delta is #126's seven commits plus its merge commit.
+                             # Previous c9939136 advances #125's post-panel-enable DSI HS clock start.
+                             # Its exact delta is #125's two commits plus its merge commit.
                              # Previous d5fbc1a9 advances #124's bounded LEDC suspend wait. Its delta
                              # touches only drivers/leds/leds-sun50i-a100.c; exported UAPI is
                              # unchanged, so the platform_runtime producer receipt stays unchanged.
@@ -1230,7 +1234,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "c9939136bff2f924c99864d4eb66e301b99a1ef2"
+sha  = "19f7cbdc61dd45c697832925be901f380c8c8c75"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch

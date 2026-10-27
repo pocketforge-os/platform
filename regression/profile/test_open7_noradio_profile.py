@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "c9939136bff2f924c99864d4eb66e301b99a1ef2"
+NORMAL_KERNEL_SHA = "19f7cbdc61dd45c697832925be901f380c8c8c75"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -36,8 +36,9 @@ NORMAL_KERNEL_SHA = "c9939136bff2f924c99864d4eb66e301b99a1ef2"
 # unsupported A133 MMC0 PF selector at 0x350. Build 36 keeps them equal through
 # the eMMC read-only, speaker PA GPIO, and squashfs kernel batch. Kernel#122 keeps
 # them equal for the built-in virtio console; #120's hardware change is reverted by #121.
-# Build 47 advances both to #124's bounded LEDC suspend wait.
-NORADIO_KERNEL_SHA = "c9939136bff2f924c99864d4eb66e301b99a1ef2"
+# Build 47 advances both to #124's bounded LEDC suspend wait; #125 starts the
+# DSI HS clock after panel enable, and #126 retains panel power across ACTIVE=0.
+NORADIO_KERNEL_SHA = "19f7cbdc61dd45c697832925be901f380c8c8c75"
 NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
 
 
@@ -151,7 +152,7 @@ class Open7NoradioProfileTest(unittest.TestCase):
         )
         self.assertIn(
             f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; the next image keeps it "
-            "equal to the canonical pin through kernel#125's post-panel-enable DSI HS clock start.",
+            "equal to the canonical pin through kernel#126's retained-panel lifecycle.",
             document,
         )
         self.assertNotIn("holds its lock-owned kernel pin at `23cdf7bf`", document)
