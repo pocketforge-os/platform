@@ -473,7 +473,8 @@ class ProfileTest(unittest.TestCase):
         # GE8300 DRM nodes and alias the Xwayland GLX powervr vendor to Mesa.
         # Image#340 advances only PF_IMAGE_SHA to unset SOURCE_DATE_EPOCH for the
         # app-root mksquashfs calls, which already pin -all-time 0 -mkfs-time 0.
-        # Image#339 advances only PF_IMAGE_SHA to pin the launcher D-pad focus fix.
+        # Image#339 advances PF_IMAGE_SHA and co-pins PF_LAUNCHER_SHA to launcher#180
+        # reviewed head e6bb7b43 for the D-pad focus fix.
         # Kernel#126 advances PF_KERNEL_SHA only on the Linux 7 rows; its retained-panel
         # lifecycle leaves every other build argument, state, and missing pin unchanged.
         expected = {
@@ -704,7 +705,7 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "fb570a088e69921d5d2442c63ae5f97f68a3e1f0")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "e6bb7b43cb7372f4b7a744a0033b260aacc90420")
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
@@ -776,7 +777,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
-        self.assertEqual(args["PF_LAUNCHER_SHA"], "fb570a088e69921d5d2442c63ae5f97f68a3e1f0")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], "e6bb7b43cb7372f4b7a744a0033b260aacc90420")
         self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
         self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
         self.assertEqual(

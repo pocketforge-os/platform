@@ -1840,7 +1840,10 @@ ref  = "main"                 # image#278 power-menu generation: launcher#169 me
                               # it is an ancestor of merge 950f121f with the same tree.
                               # tsp-ihne1.56.9: launcher#179 merge fb570a08 revendors
                               # runtime#175 merge 1640d5ec; image#330 guards this pair.
-sha  = "fb570a088e69921d5d2442c63ae5f97f68a3e1f0"
+                              # tsp-mc9m.60.29.31.3: image#339 co-pins launcher#180 reviewed
+                              # head e6bb7b43 (D-pad focus fix); it is the parent of merge
+                              # 02c56c3d with the same tree. Runtime stays 1640d5ec.
+sha  = "e6bb7b43cb7372f4b7a744a0033b260aacc90420"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
