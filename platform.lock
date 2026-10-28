@@ -763,7 +763,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # Build 48 retry: image#333 scopes provider-manifest uniqueness to
                        # loader-visible paths; image#334 passes the PowerVR Vulkan opt-in
                        # into generated Debian 13 application runtime services.
-sha  = "8ad7c7af7c18f70850c26d56d1826fa6707db9ff"
+                       # tsp-mc9m.41.996.4: image#335 adds the signed Steam Link first-run
+                       # fetch and launches its atomically installed Debian 13 app root.
+sha  = "db1123c2d392e3d7b4d28c31d2b9bd0e7f0e5ec8"
 
 [[repos]]
 name = "pf-cursor-theme"
