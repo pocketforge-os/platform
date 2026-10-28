@@ -773,7 +773,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # app-root mksquashfs calls, which pin -all-time 0 -mkfs-time 0.
                        # tsp-mc9m.60.29.31.3: image#339 pins the launcher D-pad focus
                        # fix (launcher#180 e6bb7b43) into the open A133 launcher build.
-sha  = "56341ccaaa90a3c955e78f445ee23cadfaeec2c8"
+                       # tsp-mc9m.41.996.4: image#341 omits the unavailable G1 audio-sockets
+                       # route that the Steam Link app-root renderer refused as empty.
+sha  = "ef686c70bd4ece77e4d14314eb544313c4237355"
 
 [[repos]]
 name = "pf-cursor-theme"

@@ -475,19 +475,21 @@ class ProfileTest(unittest.TestCase):
         # app-root mksquashfs calls, which already pin -all-time 0 -mkfs-time 0.
         # Image#339 advances PF_IMAGE_SHA and co-pins PF_LAUNCHER_SHA to launcher#180
         # reviewed head e6bb7b43 for the D-pad focus fix.
+        # Image#341 advances only PF_IMAGE_SHA to omit the unavailable G1 audio-sockets
+        # route that the Steam Link app-root renderer refused as an empty array.
         # Kernel#126 advances PF_KERNEL_SHA only on the Linux 7 rows; its retained-panel
         # lifecycle leaves every other build argument, state, and missing pin unchanged.
         expected = {
-            ("a133", "dev"): "82cc72b284b38af03b32a7a350921edd35aa3b472d09aaff3ecbabe2d7f6ce23",
-            ("a133", "release"): "36f013e4ff2cb7edbe4a4088ffae2d858a6dade2152f4ae366ed463f50660271",
-            ("a133-open-7x", "dev"): "6d0e3d31c73030565a87123dd3027db175520ccf1ae8fd6a72a064ccd6f8cd28",
-            ("a133-open-7x", "release"): "26ecceb0a0e6c5ea5a861a06a83a3cfc3913a1313b3b6f195754a167ff27068d",
-            ("a133-owned", "dev"): "8b7c0b6492c37cbf6fa8354141c708dcfffa6330eec6111651bd7ba511abbe15",
-            ("a133-owned", "release"): "e08a88d645d7538857913dbdd9bdd17cf0bf9dd9c8c3860078f0854270c0669c",
-            ("a523", "dev"): "9af7727dea4a0fd694bac2f840fec7c6b50427cafe70555d7a81cec6c6e59a5d",
-            ("a523", "release"): "56a281f39648edb1bcf050349ed31551005aed81a6d052887215ca7502198be4",
-            ("sdm845", "dev"): "aeaf0bf6c5b8d4cfd286fc3f4b3e78b142f811951e7adb913be33ed885747403",
-            ("sdm845", "release"): "28d0996fd7fdce71e28ec14f4f9310483b42cbb69c20069b69b6c7889156e292",
+            ("a133", "dev"): "9a53ea14cc117f331444b4f9d81fa0464ca3a6216723ce0d2a370b24d461826f",
+            ("a133", "release"): "98fbf6ad6c23098c6ad106dd6067072ccdc80003b2a28962ac6224e52662846d",
+            ("a133-open-7x", "dev"): "8ac96ac40a5ced9ebc1a1a072da92351a0f9a5a83d0fe1b2e71346b996d70ecf",
+            ("a133-open-7x", "release"): "48b0ab311b3a0151bbfea5a0e6c796bbd046ed03fcd507d90dd5541d25b109ea",
+            ("a133-owned", "dev"): "053b867945d6caecbc3491bd3860323b5b811fb83a4763d57f7ecd5fe6bd80d6",
+            ("a133-owned", "release"): "ae8715c3757f354c107e1477ab4e5a03306b473811ba64f3c7c958bde99c85af",
+            ("a523", "dev"): "ed3bfac4821e680e4204ff6dedda4c20607cecf766959edc376c3e8a9bcb09f5",
+            ("a523", "release"): "e851657481e138c4cbaf4feca7a696c9a551da1b81e60f4cb2d30dde7c606978",
+            ("sdm845", "dev"): "4198d7797f0587d9d57387af048142163552a2cbcab20103bb44849aef6cd47e",
+            ("sdm845", "release"): "20742c7679ceb50e3ac0f1c6e6568c0f63423d99d9e13de50ffac1d2ddad76b7",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -770,7 +772,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "56341ccaaa90a3c955e78f445ee23cadfaeec2c8",
+                "PF_IMAGE_SHA": "ef686c70bd4ece77e4d14314eb544313c4237355",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
