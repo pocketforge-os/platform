@@ -765,7 +765,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # into generated Debian 13 application runtime services.
                        # tsp-mc9m.41.996.4: image#335 adds the signed Steam Link first-run
                        # fetch and launches its atomically installed Debian 13 app root.
-sha  = "db1123c2d392e3d7b4d28c31d2b9bd0e7f0e5ec8"
+                       # tsp-mc9m.41.996.4: image#336 adds squashfs-tools to the hermetic
+                       # build container so that the app root can be assembled.
+sha  = "46e3c6a76ab8d79ddaf9f6b339171a2ec8991ad1"
 
 [[repos]]
 name = "pf-cursor-theme"
