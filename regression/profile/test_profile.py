@@ -469,19 +469,21 @@ class ProfileTest(unittest.TestCase):
         # fetch and atomically installed Debian 13 application root.
         # Image#336 advances only PF_IMAGE_SHA to add squashfs-tools to the
         # hermetic build container used to assemble that application root.
+        # Image#338 advances only PF_IMAGE_SHA to route Gamescope to the dynamic
+        # GE8300 DRM nodes and alias the Xwayland GLX powervr vendor to Mesa.
         # Kernel#126 advances PF_KERNEL_SHA only on the Linux 7 rows; its retained-panel
         # lifecycle leaves every other build argument, state, and missing pin unchanged.
         expected = {
-            ("a133", "dev"): "dbb0234ae2e0767697fe427cabe726234e8cb39d9c3ac0b9342f0cfbfc50b5d6",
-            ("a133", "release"): "be58bb935aa772594ac466081994dff67056fe33afd1ade7cd337693162410ca",
-            ("a133-open-7x", "dev"): "268bc8f351c346146b54acfc6d74de98dd1166282f0a23a0ec30d17d7d0476df",
-            ("a133-open-7x", "release"): "d086e3189c50b3eb640e5ec77c75483827c3d093c44bf2245b3bb395b8387345",
-            ("a133-owned", "dev"): "ed3c88e431dd53b729fbfb73422ce28aadc31660ac32439764db4e6252b77f34",
-            ("a133-owned", "release"): "3ce5e19a9ed6dda34cc69871dfc753a8e85d203b7de020a9559c5086d81b67ec",
-            ("a523", "dev"): "3b9307c050e6333da2578e92b57f47725c0795d507b16cd57f337cf47bd1b807",
-            ("a523", "release"): "14cfd0a1918250603433144fc35cb4a2a63fca735084ca4ec884a98ee2e10f9e",
-            ("sdm845", "dev"): "0175d5705981fa6b29f00894ac9d29c810b25a5725e77a2952c5089baf9255cc",
-            ("sdm845", "release"): "81d395cd92af5a5f0552f43f6a8817d452f6475e698ac08765876c5538396a14",
+            ("a133", "dev"): "28b99e7ff259c19669be5db95a303e2cd1e2a1c21c58882db6abdbb345fd2d82",
+            ("a133", "release"): "066412bfd3bcd793a4f22b39f21efbcff108c5b0024c13c7bac889e06dd6ecc7",
+            ("a133-open-7x", "dev"): "01ee082f685c502394ea8f26e598dfb330dbcf3e5bead46e38c3ff69cb232137",
+            ("a133-open-7x", "release"): "6afcdcc1291abed594950359d1a05a967c6907e1573ecd98ce546080a20c800a",
+            ("a133-owned", "dev"): "ee98e65999e094f51cd0616fdd9c08e136b82a1adf6aae148875b28201e1d3f1",
+            ("a133-owned", "release"): "7bec41be377f44fdd2c8eb04b34b8da36aedf62d6f56570fc7dc9e22ce863737",
+            ("a523", "dev"): "602af0392efb73c083b861443182fd88186cda42dd2785adb5eda8c25d76bee2",
+            ("a523", "release"): "4e0ab2b9678a1504109c4a002b7f9ecefa3d571e3cfa82fc576e1fac39a83952",
+            ("sdm845", "dev"): "eb24d8a0a125cb79c2e9f30573327e962498171512d4ffd8c2b2c13c448552b0",
+            ("sdm845", "release"): "a0aebca4a0cb9a6a3b25ef066e393b517c15eebb39455271c927671e313dfb94",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -764,7 +766,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "46e3c6a76ab8d79ddaf9f6b339171a2ec8991ad1",
+                "PF_IMAGE_SHA": "62fb324e37142e1b914ba266edfa24c66c0dcb30",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

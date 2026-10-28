@@ -767,7 +767,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # fetch and launches its atomically installed Debian 13 app root.
                        # tsp-mc9m.41.996.4: image#336 adds squashfs-tools to the hermetic
                        # build container so that the app root can be assembled.
-sha  = "46e3c6a76ab8d79ddaf9f6b339171a2ec8991ad1"
+                       # tsp-mc9m.41.996.4: image#338 routes GE8300 Gamescope to the
+                       # dynamic DRM nodes and aliases the Xwayland GLX powervr vendor.
+sha  = "62fb324e37142e1b914ba266edfa24c66c0dcb30"
 
 [[repos]]
 name = "pf-cursor-theme"
