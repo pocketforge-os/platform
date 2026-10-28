@@ -465,19 +465,21 @@ class ProfileTest(unittest.TestCase):
         # uniqueness check to loader-visible discovery paths.
         # Image#334 advances only PF_IMAGE_SHA to pass the PowerVR Vulkan opt-in
         # into generated Debian 13 application runtime services.
+        # Image#335 advances only PF_IMAGE_SHA for the signed Steam Link first-run
+        # fetch and atomically installed Debian 13 application root.
         # Kernel#126 advances PF_KERNEL_SHA only on the Linux 7 rows; its retained-panel
         # lifecycle leaves every other build argument, state, and missing pin unchanged.
         expected = {
-            ("a133", "dev"): "ce35d4c7d4653f24ef90262e6f1cc6d48c06cc6f9d1c27857d7c372ffc65ee8d",
-            ("a133", "release"): "28a16351dfbafe4cc33288d89a93a416e2e6213ac934b1392636b31cf9bf77c1",
-            ("a133-open-7x", "dev"): "74688e3a82955bc88f5147b1732654afeceaa08e3354c8ff4f5540cea53f1608",
-            ("a133-open-7x", "release"): "c082f9aba52eb644b5042d0434553b5fc341f17a03eeaa07dad95439f423956b",
-            ("a133-owned", "dev"): "fb225ed43972ac1346c3da59b0e8bdd947447b102d454e445b050c67d5bc634d",
-            ("a133-owned", "release"): "ae0e84a3fb4eaefc4d1ec932b425301d09411f12fb0173bbe942698f56b92e2e",
-            ("a523", "dev"): "ac7d53a0efc4563455292a4838eb3995abc271d8a88f6bdd6fc036384f3edfa5",
-            ("a523", "release"): "879d75a73eb4d95365b2b989d81d303c00af3013b2e4adeb2c75725a34d567d6",
-            ("sdm845", "dev"): "e3de31d384c6a100feb3d5af6b67ec36b48b1cd8fb53b9165f49ea6b389057cb",
-            ("sdm845", "release"): "ce5be0b3dcf6445e3684344c33ab67c3c236478336b848b2feea9538bf007225",
+            ("a133", "dev"): "0b9ce285d24c1e31e4a88602bc314ffe6ee7d1167a424bd2a7c908415bdfdf23",
+            ("a133", "release"): "805523f94555533daa4c321e6860e5b7a9d4a275c1676f3b49bbe4e31d27b8b4",
+            ("a133-open-7x", "dev"): "6ec2cc844d95e80b43457dacaed6933350a47656015c013ae78a8932fc707ede",
+            ("a133-open-7x", "release"): "36832e39ff3d62c64a8681b675216c92662ee6ef1519bd809caafb3cf6585927",
+            ("a133-owned", "dev"): "b40fadc62172d48070f0f9618eae0e3452a3239e1e563bb4c5ca9914e7af9fb4",
+            ("a133-owned", "release"): "07b8f8282547dee63d6f52d15b9b0d1143cc554e7a2d03f521b08318f5c62947",
+            ("a523", "dev"): "427a423124bf18c2f40f76b92c138953745941d1c63018b3046494673ab8dd36",
+            ("a523", "release"): "0102e02b699d4992acd5a2623c7bdf895650f895baba704a32f65deb5b8ae52e",
+            ("sdm845", "dev"): "5901347a7054f6b939d67b62d06573895dcab604a783754bc6871ab798da5845",
+            ("sdm845", "release"): "ecfd6c07fc1fedcc7a21f447ee173b2beb4f26b40f8a7a1b027efda4a5dca9a9",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -760,7 +762,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "8ad7c7af7c18f70850c26d56d1826fa6707db9ff",
+                "PF_IMAGE_SHA": "db1123c2d392e3d7b4d28c31d2b9bd0e7f0e5ec8",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
