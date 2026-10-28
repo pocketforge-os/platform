@@ -771,7 +771,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # dynamic DRM nodes and aliases the Xwayland GLX powervr vendor.
                        # tsp-mc9m.41.996.4: image#340 unsets SOURCE_DATE_EPOCH for the
                        # app-root mksquashfs calls, which pin -all-time 0 -mkfs-time 0.
-sha  = "02a2c4de646aa14ee12547925e02a4dca01fed63"
+                       # tsp-mc9m.60.29.31.3: image#339 pins the launcher D-pad focus
+                       # fix (launcher#180 e6bb7b43) into the open A133 launcher build.
+sha  = "56341ccaaa90a3c955e78f445ee23cadfaeec2c8"
 
 [[repos]]
 name = "pf-cursor-theme"
