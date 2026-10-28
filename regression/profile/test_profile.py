@@ -467,19 +467,21 @@ class ProfileTest(unittest.TestCase):
         # into generated Debian 13 application runtime services.
         # Image#335 advances only PF_IMAGE_SHA for the signed Steam Link first-run
         # fetch and atomically installed Debian 13 application root.
+        # Image#336 advances only PF_IMAGE_SHA to add squashfs-tools to the
+        # hermetic build container used to assemble that application root.
         # Kernel#126 advances PF_KERNEL_SHA only on the Linux 7 rows; its retained-panel
         # lifecycle leaves every other build argument, state, and missing pin unchanged.
         expected = {
-            ("a133", "dev"): "0b9ce285d24c1e31e4a88602bc314ffe6ee7d1167a424bd2a7c908415bdfdf23",
-            ("a133", "release"): "805523f94555533daa4c321e6860e5b7a9d4a275c1676f3b49bbe4e31d27b8b4",
-            ("a133-open-7x", "dev"): "6ec2cc844d95e80b43457dacaed6933350a47656015c013ae78a8932fc707ede",
-            ("a133-open-7x", "release"): "36832e39ff3d62c64a8681b675216c92662ee6ef1519bd809caafb3cf6585927",
-            ("a133-owned", "dev"): "b40fadc62172d48070f0f9618eae0e3452a3239e1e563bb4c5ca9914e7af9fb4",
-            ("a133-owned", "release"): "07b8f8282547dee63d6f52d15b9b0d1143cc554e7a2d03f521b08318f5c62947",
-            ("a523", "dev"): "427a423124bf18c2f40f76b92c138953745941d1c63018b3046494673ab8dd36",
-            ("a523", "release"): "0102e02b699d4992acd5a2623c7bdf895650f895baba704a32f65deb5b8ae52e",
-            ("sdm845", "dev"): "5901347a7054f6b939d67b62d06573895dcab604a783754bc6871ab798da5845",
-            ("sdm845", "release"): "ecfd6c07fc1fedcc7a21f447ee173b2beb4f26b40f8a7a1b027efda4a5dca9a9",
+            ("a133", "dev"): "dbb0234ae2e0767697fe427cabe726234e8cb39d9c3ac0b9342f0cfbfc50b5d6",
+            ("a133", "release"): "be58bb935aa772594ac466081994dff67056fe33afd1ade7cd337693162410ca",
+            ("a133-open-7x", "dev"): "268bc8f351c346146b54acfc6d74de98dd1166282f0a23a0ec30d17d7d0476df",
+            ("a133-open-7x", "release"): "d086e3189c50b3eb640e5ec77c75483827c3d093c44bf2245b3bb395b8387345",
+            ("a133-owned", "dev"): "ed3c88e431dd53b729fbfb73422ce28aadc31660ac32439764db4e6252b77f34",
+            ("a133-owned", "release"): "3ce5e19a9ed6dda34cc69871dfc753a8e85d203b7de020a9559c5086d81b67ec",
+            ("a523", "dev"): "3b9307c050e6333da2578e92b57f47725c0795d507b16cd57f337cf47bd1b807",
+            ("a523", "release"): "14cfd0a1918250603433144fc35cb4a2a63fca735084ca4ec884a98ee2e10f9e",
+            ("sdm845", "dev"): "0175d5705981fa6b29f00894ac9d29c810b25a5725e77a2952c5089baf9255cc",
+            ("sdm845", "release"): "81d395cd92af5a5f0552f43f6a8817d452f6475e698ac08765876c5538396a14",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -762,7 +764,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "db1123c2d392e3d7b4d28c31d2b9bd0e7f0e5ec8",
+                "PF_IMAGE_SHA": "46e3c6a76ab8d79ddaf9f6b339171a2ec8991ad1",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
