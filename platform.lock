@@ -769,7 +769,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # build container so that the app root can be assembled.
                        # tsp-mc9m.41.996.4: image#338 routes GE8300 Gamescope to the
                        # dynamic DRM nodes and aliases the Xwayland GLX powervr vendor.
-sha  = "62fb324e37142e1b914ba266edfa24c66c0dcb30"
+                       # tsp-mc9m.41.996.4: image#340 unsets SOURCE_DATE_EPOCH for the
+                       # app-root mksquashfs calls, which pin -all-time 0 -mkfs-time 0.
+sha  = "02a2c4de646aa14ee12547925e02a4dca01fed63"
 
 [[repos]]
 name = "pf-cursor-theme"
