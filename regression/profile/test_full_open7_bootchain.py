@@ -76,7 +76,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x-gpu")
         self.assertEqual(missing, [])
         expected = {
-            "PF_IMAGE_SHA": "9a2fbec37a28245b060343f11e653985e9276025",
+            "PF_IMAGE_SHA": "b9c8b7f734afd85085edbc0960fd5e8e6a0918a5",
             "PF_RUNTIME_SHA": "8c87d7b60ceb604489b6343355732504a06d743c",
             "PF_KERNEL_REPO": "kernel-sunxi-7.x",
             "PF_KERNEL_SHA": "fab62c73324f067739747e5bf92929fc7944f2c1",
