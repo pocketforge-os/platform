@@ -775,7 +775,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # fix (launcher#180 e6bb7b43) into the open A133 launcher build.
                        # tsp-mc9m.41.996.4: image#341 omits the unavailable G1 audio-sockets
                        # route that the Steam Link app-root renderer refused as empty.
-sha  = "ef686c70bd4ece77e4d14314eb544313c4237355"
+                       # tsp-mc9m.60.29.32 Build 51: image#342 seeds Gamescope for PVR;
+                       # image#343 ships the XCB GLX runtime in open GPU images.
+sha  = "615fddbe9d32a27450a95e3b136a22acefb41fc9"
 
 [[repos]]
 name = "pf-cursor-theme"
