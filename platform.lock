@@ -789,7 +789,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # destinations required by rooted Steam Link app policy.
                        # tsp-mc9m.60.29.27 Build 56: image#348 co-pins runtime#176/#177
                        # and launcher#182 for the repaired session-authority/app policy pair.
-sha  = "9a2fbec37a28245b060343f11e653985e9276025"
+                       # tsp-mc9m.60.29.58 Build58: image#350 prefs startup, #351 final
+                       # runtime ABI/CAS sealing, and #352 writable Steam Link destinations.
+sha  = "b9c8b7f734afd85085edbc0960fd5e8e6a0918a5"
 
 [[repos]]
 name = "pf-cursor-theme"
