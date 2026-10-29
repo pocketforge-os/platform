@@ -479,19 +479,21 @@ class ProfileTest(unittest.TestCase):
         # route that the Steam Link app-root renderer refused as an empty array.
         # Image#342/#343 advance only PF_IMAGE_SHA for the Gamescope PVR seed and the
         # XCB GLX runtime required by open GPU images.
+        # Image#344 advances only PF_IMAGE_SHA to expose the immutable platform runtime
+        # to the unprivileged Steam Link app identity.
         # Kernel#126 advances PF_KERNEL_SHA only on the Linux 7 rows; its retained-panel
         # lifecycle leaves every other build argument, state, and missing pin unchanged.
         expected = {
-            ("a133", "dev"): "bc862c1806742f4b0ce7ebb8f65d96e2e5f0fd968bb55517792a3582bbc6f163",
-            ("a133", "release"): "901607ea826a7e81de470bcf7aca5b9854c047714cfe8538ef17ca7f0e50ff69",
-            ("a133-open-7x", "dev"): "9d133e05290c3628cd96b4d4499f907ba44eebce87a947d029b57c1b49b1feb9",
-            ("a133-open-7x", "release"): "23b83a086a5c5ad93ff17e8ff9ff1a385ae5a1e5fc554071bf6a37511a1eb46e",
-            ("a133-owned", "dev"): "c25fcb68b03b65561af97d21b341fb0234ec4c1933e1e2e5e8a2149292996f3e",
-            ("a133-owned", "release"): "1c6903503f8e606124ee99b71a9a34e19eafa308fdda14825908e646330576d8",
-            ("a523", "dev"): "b8d4532d693342e56f188bc655199524d86ade31a0bb31d8170d17dcbb27c430",
-            ("a523", "release"): "fec1a901955ff5e9af228acfa760f5b355d39d27bf26495da8961ca3ec824c9e",
-            ("sdm845", "dev"): "7a76e71533be6e8c23ce1ce796eb7606e29140731cb6d934b62426d571c979c2",
-            ("sdm845", "release"): "81b34aec27639683f4c99cf4c20d0f97c136724868e5a6d4e4bc60f2ef5e4411",
+            ("a133", "dev"): "ca3e0b75af357be94f37e2e937118495173edaa6cea9f37429c6f16722961c46",
+            ("a133", "release"): "17d8083218d07484586887184237ead887f5e51c080831798385d3e82b746d84",
+            ("a133-open-7x", "dev"): "3a24e3b299e88260f8927f8a187a67a7647b10776b163c56f5008fe9ac7c4e8a",
+            ("a133-open-7x", "release"): "ccab42ba12efae94566ef162df6a50ba56659f6b88b14f275edf23533daf8fcb",
+            ("a133-owned", "dev"): "c6401b8c1a501cbe9971ec876914c3ec5c928bde797e686c8cf1f4d417520aa0",
+            ("a133-owned", "release"): "b203537593c13f4f1e2b7d91613cf74272abe80105f063e8eac37fa50264ceca",
+            ("a523", "dev"): "fd602a9db3bbdbaaed892ad69627782cd071d3b4cb45093daf9fccdd38420cb8",
+            ("a523", "release"): "6f3406476411c55f9699eaddc247c9550cd37afebcfb2eff8bf6344a1bdd2648",
+            ("sdm845", "dev"): "34479f75e2a3cac6f00f8c8740c3c54517a1deac8406a5ef76b82bce1ee806b1",
+            ("sdm845", "release"): "9a0da609e805748b4c20a771654b54dd7ec15fe6e19b6ec303d00be266a89112",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -774,7 +776,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "615fddbe9d32a27450a95e3b136a22acefb41fc9",
+                "PF_IMAGE_SHA": "fcab3601c67692729072653f51d2cc27be2d3ffb",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

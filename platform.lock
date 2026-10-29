@@ -777,7 +777,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # route that the Steam Link app-root renderer refused as empty.
                        # tsp-mc9m.60.29.32 Build 51: image#342 seeds Gamescope for PVR;
                        # image#343 ships the XCB GLX runtime in open GPU images.
-sha  = "615fddbe9d32a27450a95e3b136a22acefb41fc9"
+                       # tsp-mc9m.41.996.4 Build 52: image#344 exposes the immutable
+                       # platform runtime to the unprivileged Steam Link app identity.
+sha  = "fcab3601c67692729072653f51d2cc27be2d3ffb"
 
 [[repos]]
 name = "pf-cursor-theme"
