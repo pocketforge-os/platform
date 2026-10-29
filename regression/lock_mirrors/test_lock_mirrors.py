@@ -20,7 +20,7 @@ import check_lock_mirrors as gate  # noqa: E402
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "cd2b7a992b13c5807bafa8ab340801a020a647b4"
+CURRENT_IMAGE = "9a2fbec37a28245b060343f11e653985e9276025"
 CURRENT_UAPI = "3010de56dbd1057513c035fff8623f80596fe9e8"
 CURRENT_KERNEL = "19f7cbdc61dd45c697832925be901f380c8c8c75"
 CURRENT_CTS_SOURCE = "067e8832315e79817ede1c4863804e440f5d1c80"
@@ -705,9 +705,9 @@ comparison = "equal"
             "build/produce-gamescope-pvr-cache.sh": (
                 f"expected_gamescope_sha={CURRENT_GAMESCOPE}\n".encode()
             ),
-            "build/tests/fixtures/gpu-um-toolchain-87ad7361.Dockerfile": (
+            "build/tests/fixtures/gpu-um-toolchain-a3354100.Dockerfile": (
                 b"# Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at "
-                b"87ad73611a548e1805f0c21ed083915d79e34c09.\n"
+                b"a3354100c0f727f24a528b7833fca1a6ce472123.\n"
             ),
             ".github/workflows/app-policy-pair.yml": (
                 f"          repository: pocketforge-os/runtime\n"

@@ -179,8 +179,10 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # Build 48 keeps both profiles equal while adding kernel-sunxi-7.x#125's
 # post-panel-enable DSI HS clock start. The next image advances both through
 # kernel-sunxi-7.x#126's retained-panel lifecycle for transient ACTIVE=0.
+# Build 57 keeps the normal/noradio boot kernel equal at #127 speaker DRC and
+# #128 PH3 gpio-vibrator. Exported UAPI remains byte-identical to the 3010de56 witness.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "19f7cbdc61dd45c697832925be901f380c8c8c75"
+kernel = "fab62c73324f067739747e5bf92929fc7944f2c1"
 
 [[repos]]
 name = "image"
@@ -787,7 +789,7 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # destinations required by rooted Steam Link app policy.
                        # tsp-mc9m.60.29.27 Build 56: image#348 co-pins runtime#176/#177
                        # and launcher#182 for the repaired session-authority/app policy pair.
-sha  = "cd2b7a992b13c5807bafa8ab340801a020a647b4"
+sha  = "9a2fbec37a28245b060343f11e653985e9276025"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -983,6 +985,7 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
+# Build 57: exact merged #127 speaker DRC + #128 vibration; no UAPI input change.
 name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device/a133
                              # 19f7cbdc advances #126's retained-panel lifecycle across transient
                              # ACTIVE=0, including ordered whole-device teardown and error cleanup.
@@ -1259,7 +1262,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "19f7cbdc61dd45c697832925be901f380c8c8c75"
+sha  = "fab62c73324f067739747e5bf92929fc7944f2c1"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -1274,6 +1277,10 @@ ref  = "main"
 sha  = "01fd7b2d134be356ab222d93afeb9238bd53bebb"
 
 [[repos]]
+# Build 57: merged #225 D24 normalization and #226 numeric probe, including their
+# merged ancestors. Unmerged sampled-companion PR218 is deliberately excluded.
+# The image mirror update changes provenance only. Production GLVND excludes
+# pf_tools; numerical acceptance stages the separately built ABI-checked instrument.
 name = "gpu-um-tsp"           # Open Mesa/PowerVR userspace for the A133 open stack
 url  = "https://github.com/pocketforge-os/gpu-um-tsp.git"
 ref  = "main"                 # tsp-mc9m.41.1029 Build 15: gpu-um-tsp#216 merge
@@ -1432,7 +1439,7 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 15: gpu-um-tsp#216 merge
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "87ad73611a548e1805f0c21ed083915d79e34c09"
+sha  = "a3354100c0f727f24a528b7833fca1a6ce472123"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
