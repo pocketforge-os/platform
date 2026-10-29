@@ -477,19 +477,21 @@ class ProfileTest(unittest.TestCase):
         # reviewed head e6bb7b43 for the D-pad focus fix.
         # Image#341 advances only PF_IMAGE_SHA to omit the unavailable G1 audio-sockets
         # route that the Steam Link app-root renderer refused as an empty array.
+        # Image#342/#343 advance only PF_IMAGE_SHA for the Gamescope PVR seed and the
+        # XCB GLX runtime required by open GPU images.
         # Kernel#126 advances PF_KERNEL_SHA only on the Linux 7 rows; its retained-panel
         # lifecycle leaves every other build argument, state, and missing pin unchanged.
         expected = {
-            ("a133", "dev"): "9a53ea14cc117f331444b4f9d81fa0464ca3a6216723ce0d2a370b24d461826f",
-            ("a133", "release"): "98fbf6ad6c23098c6ad106dd6067072ccdc80003b2a28962ac6224e52662846d",
-            ("a133-open-7x", "dev"): "8ac96ac40a5ced9ebc1a1a072da92351a0f9a5a83d0fe1b2e71346b996d70ecf",
-            ("a133-open-7x", "release"): "48b0ab311b3a0151bbfea5a0e6c796bbd046ed03fcd507d90dd5541d25b109ea",
-            ("a133-owned", "dev"): "053b867945d6caecbc3491bd3860323b5b811fb83a4763d57f7ecd5fe6bd80d6",
-            ("a133-owned", "release"): "ae8715c3757f354c107e1477ab4e5a03306b473811ba64f3c7c958bde99c85af",
-            ("a523", "dev"): "ed3bfac4821e680e4204ff6dedda4c20607cecf766959edc376c3e8a9bcb09f5",
-            ("a523", "release"): "e851657481e138c4cbaf4feca7a696c9a551da1b81e60f4cb2d30dde7c606978",
-            ("sdm845", "dev"): "4198d7797f0587d9d57387af048142163552a2cbcab20103bb44849aef6cd47e",
-            ("sdm845", "release"): "20742c7679ceb50e3ac0f1c6e6568c0f63423d99d9e13de50ffac1d2ddad76b7",
+            ("a133", "dev"): "bc862c1806742f4b0ce7ebb8f65d96e2e5f0fd968bb55517792a3582bbc6f163",
+            ("a133", "release"): "901607ea826a7e81de470bcf7aca5b9854c047714cfe8538ef17ca7f0e50ff69",
+            ("a133-open-7x", "dev"): "9d133e05290c3628cd96b4d4499f907ba44eebce87a947d029b57c1b49b1feb9",
+            ("a133-open-7x", "release"): "23b83a086a5c5ad93ff17e8ff9ff1a385ae5a1e5fc554071bf6a37511a1eb46e",
+            ("a133-owned", "dev"): "c25fcb68b03b65561af97d21b341fb0234ec4c1933e1e2e5e8a2149292996f3e",
+            ("a133-owned", "release"): "1c6903503f8e606124ee99b71a9a34e19eafa308fdda14825908e646330576d8",
+            ("a523", "dev"): "b8d4532d693342e56f188bc655199524d86ade31a0bb31d8170d17dcbb27c430",
+            ("a523", "release"): "fec1a901955ff5e9af228acfa760f5b355d39d27bf26495da8961ca3ec824c9e",
+            ("sdm845", "dev"): "7a76e71533be6e8c23ce1ce796eb7606e29140731cb6d934b62426d571c979c2",
+            ("sdm845", "release"): "81b34aec27639683f4c99cf4c20d0f97c136724868e5a6d4e4bc60f2ef5e4411",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -772,7 +774,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "ef686c70bd4ece77e4d14314eb544313c4237355",
+                "PF_IMAGE_SHA": "615fddbe9d32a27450a95e3b136a22acefb41fc9",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
