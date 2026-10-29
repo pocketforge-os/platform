@@ -779,7 +779,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # image#343 ships the XCB GLX runtime in open GPU images.
                        # tsp-mc9m.41.996.4 Build 52: image#344 exposes the immutable
                        # platform runtime to the unprivileged Steam Link app identity.
-sha  = "fcab3601c67692729072653f51d2cc27be2d3ffb"
+                       # tsp-mc9m.60.29.31.4 Build 53: image#345 co-pins launcher#181's
+                       # fail-closed power-menu state machine into the open A133 image.
+sha  = "499da4d9dddf0e191926ea05707300dc1045e14c"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1849,7 +1851,10 @@ ref  = "main"                 # image#278 power-menu generation: launcher#169 me
                               # tsp-mc9m.60.29.31.3: image#339 co-pins launcher#180 reviewed
                               # head e6bb7b43 (D-pad focus fix); it is the parent of merge
                               # 02c56c3d with the same tree. Runtime stays 1640d5ec.
-sha  = "e6bb7b43cb7372f4b7a744a0033b260aacc90420"
+                              # tsp-mc9m.60.29.31.4: image#345 co-pins launcher#181 merge
+                              # e79b5707 (fail-closed power-menu state machine). Runtime
+                              # stays 1640d5ec.
+sha  = "e79b57077a6a4f85ae26ccf2d41f135f6d11c6a6"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
