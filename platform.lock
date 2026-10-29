@@ -785,7 +785,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # through the X drawable and normalizes pixels by visual masks.
                        # tsp-mc9m.60.29.27 Build 55: image#347 seeds the inert bind
                        # destinations required by rooted Steam Link app policy.
-sha  = "568a9ac238ede722406b2ffcfb69a4e3c47b5969"
+                       # tsp-mc9m.60.29.27 Build 56: image#348 co-pins runtime#176/#177
+                       # and launcher#182 for the repaired session-authority/app policy pair.
+sha  = "cd2b7a992b13c5807bafa8ab340801a020a647b4"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1746,7 +1748,10 @@ ref  = "main"                 # image#278 power-menu generation: runtime#151 mer
                               # tsp-ihne1.56.9: runtime#175 merge 1640d5ec makes every
                               # optional broker-only capability fail closed when the
                               # broker-sockets resource is absent; image#330 guards it.
-sha  = "1640d5ec5b0a02b27a51615f176fae9aef784311"
+                              # tsp-mc9m.60.29.27 Build 56: runtime#176/#177 merge
+                              # 8c87d7b6 admits the Gamescope peer and tolerates the
+                              # absent Steam Link socket path; image#348 guards it.
+sha  = "8c87d7b60ceb604489b6343355732504a06d743c"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
@@ -1858,7 +1863,9 @@ ref  = "main"                 # image#278 power-menu generation: launcher#169 me
                               # tsp-mc9m.60.29.31.4: image#345 co-pins launcher#181 merge
                               # e79b5707 (fail-closed power-menu state machine). Runtime
                               # stays 1640d5ec.
-sha  = "e79b57077a6a4f85ae26ccf2d41f135f6d11c6a6"
+                              # tsp-mc9m.60.29.27 Build 56: launcher#182 merge 900db88c
+                              # revendors runtime 8c87d7b6; image#348 guards the pair.
+sha  = "900db88c7c27f3286ac0baad4199db8f6748cb81"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
