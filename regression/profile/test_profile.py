@@ -481,19 +481,21 @@ class ProfileTest(unittest.TestCase):
         # XCB GLX runtime required by open GPU images.
         # Image#344 advances only PF_IMAGE_SHA to expose the immutable platform runtime
         # to the unprivileged Steam Link app identity.
+        # Image#345 advances PF_IMAGE_SHA and co-pins PF_LAUNCHER_SHA to launcher#181
+        # merge e79b5707 for the fail-closed power-menu state machine.
         # Kernel#126 advances PF_KERNEL_SHA only on the Linux 7 rows; its retained-panel
         # lifecycle leaves every other build argument, state, and missing pin unchanged.
         expected = {
-            ("a133", "dev"): "ca3e0b75af357be94f37e2e937118495173edaa6cea9f37429c6f16722961c46",
-            ("a133", "release"): "17d8083218d07484586887184237ead887f5e51c080831798385d3e82b746d84",
-            ("a133-open-7x", "dev"): "3a24e3b299e88260f8927f8a187a67a7647b10776b163c56f5008fe9ac7c4e8a",
-            ("a133-open-7x", "release"): "ccab42ba12efae94566ef162df6a50ba56659f6b88b14f275edf23533daf8fcb",
-            ("a133-owned", "dev"): "c6401b8c1a501cbe9971ec876914c3ec5c928bde797e686c8cf1f4d417520aa0",
-            ("a133-owned", "release"): "b203537593c13f4f1e2b7d91613cf74272abe80105f063e8eac37fa50264ceca",
-            ("a523", "dev"): "fd602a9db3bbdbaaed892ad69627782cd071d3b4cb45093daf9fccdd38420cb8",
-            ("a523", "release"): "6f3406476411c55f9699eaddc247c9550cd37afebcfb2eff8bf6344a1bdd2648",
-            ("sdm845", "dev"): "34479f75e2a3cac6f00f8c8740c3c54517a1deac8406a5ef76b82bce1ee806b1",
-            ("sdm845", "release"): "9a0da609e805748b4c20a771654b54dd7ec15fe6e19b6ec303d00be266a89112",
+            ("a133", "dev"): "14dbbb1770f4d699d8734965774c9b5ed437d81267680cfdaba8854133292177",
+            ("a133", "release"): "a0b18407bafe1d3c836b4f6a39225a06f431e514c97f9a2688590253e16d1d7d",
+            ("a133-open-7x", "dev"): "21b8bbc4c44be0772ec33828cc7420985b6c71b16ab7b0773ffb7c11e80ee418",
+            ("a133-open-7x", "release"): "fb50ca80a4a22cf96b818a315160fc37189d87d98a1397cce81fc06178578dec",
+            ("a133-owned", "dev"): "d8034110492683a2eefdefd0a6e4e91494bc2e0cb2da6202af1386971791efd8",
+            ("a133-owned", "release"): "89ba13de7687f3525f8a90416bab22fd57aa9485e6d4adbaac5f84efc2b0dae0",
+            ("a523", "dev"): "1037d89412b81c257520a42f1fc265984a53f2e22ce41d6d2164be5a3fa22155",
+            ("a523", "release"): "e9de5f981ff218e670dfb526cfee736e2af1ff1555dc1b047f449acdde73e714",
+            ("sdm845", "dev"): "7b65841e2bb5d06fe6bd726e089b9639346b13c21b2d63325b4bbedd5a8db952",
+            ("sdm845", "release"): "e24b40d0b3b355a3d56b9b1dc449115e4b85475ffbcc69b4ff3b8fb8218fcac6",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -711,7 +713,7 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "e6bb7b43cb7372f4b7a744a0033b260aacc90420")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "e79b57077a6a4f85ae26ccf2d41f135f6d11c6a6")
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
@@ -776,14 +778,14 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "87ad73611a548e1805f0c21ed083915d79e34c09",
-                "PF_IMAGE_SHA": "fcab3601c67692729072653f51d2cc27be2d3ffb",
+                "PF_IMAGE_SHA": "499da4d9dddf0e191926ea05707300dc1045e14c",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
-        self.assertEqual(args["PF_LAUNCHER_SHA"], "e6bb7b43cb7372f4b7a744a0033b260aacc90420")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], "e79b57077a6a4f85ae26ccf2d41f135f6d11c6a6")
         self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
         self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
         self.assertEqual(
