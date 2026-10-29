@@ -783,7 +783,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # fail-closed power-menu state machine into the open A133 image.
                        # tsp-mc9m.60.29.32 Build 54: image#346 verifies GLX presentation
                        # through the X drawable and normalizes pixels by visual masks.
-sha  = "295cb8ad15ba828cab336edebebf4e394eb38a14"
+                       # tsp-mc9m.60.29.27 Build 55: image#347 seeds the inert bind
+                       # destinations required by rooted Steam Link app policy.
+sha  = "568a9ac238ede722406b2ffcfb69a4e3c47b5969"
 
 [[repos]]
 name = "pf-cursor-theme"
