@@ -781,7 +781,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # platform runtime to the unprivileged Steam Link app identity.
                        # tsp-mc9m.60.29.31.4 Build 53: image#345 co-pins launcher#181's
                        # fail-closed power-menu state machine into the open A133 image.
-sha  = "499da4d9dddf0e191926ea05707300dc1045e14c"
+                       # tsp-mc9m.60.29.32 Build 54: image#346 verifies GLX presentation
+                       # through the X drawable and normalizes pixels by visual masks.
+sha  = "295cb8ad15ba828cab336edebebf4e394eb38a14"
 
 [[repos]]
 name = "pf-cursor-theme"
