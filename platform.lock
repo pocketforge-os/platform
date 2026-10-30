@@ -181,11 +181,14 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # kernel-sunxi-7.x#126's retained-panel lifecycle for transient ACTIVE=0.
 # Build 57 keeps the normal/noradio boot kernel equal at #127 speaker DRC and
 # #128 PH3 gpio-vibrator. Exported UAPI remains byte-identical to the 3010de56 witness.
+# Build59 keeps both equal through #129's existing CE hardware/fallback counters:
+# only CONFIG_CRYPTO_DEV_SUN8I_CE_DEBUG=y changes; exported UAPI remains unchanged.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "fab62c73324f067739747e5bf92929fc7944f2c1"
+kernel = "d37bf5c3026e5e0ed6d097996a6a9f1fda9322cc"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
-# Kernel, boot chain, exported UAPI, Gamescope and all unrelated inputs stay fixed.
+# Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
+# Gamescope and all unrelated inputs stay fixed.
 [[repos]]
 name = "image"
 url  = "https://github.com/pocketforge-os/image.git"
@@ -1266,7 +1269,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "fab62c73324f067739747e5bf92929fc7944f2c1"
+sha  = "d37bf5c3026e5e0ed6d097996a6a9f1fda9322cc"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
