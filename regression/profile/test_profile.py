@@ -495,17 +495,21 @@ class ProfileTest(unittest.TestCase):
         # Linux7 rows; every other argument/state/missing-pin field is unchanged.
         # Build58 changes only PF_IMAGE_SHA; all20 profile/variant payloads
         # preserve every other argument, state, and missing-pin field.
+        # Build59 changes PF_IMAGE_SHA and PF_RUNTIME_SHA on every row;
+        # launcher and GPU-UM SHA changes remain confined to profiles selecting
+        # those inputs. Kernel#129 additionally changes PF_KERNEL_SHA/PF_GPU_KM_SHA
+        # only on Linux7 rows. All20 payloads preserve all other fields/state/missing pins.
         expected = {
-            ("a133", "dev"): "88c84bae4984497bd320cbbe4aae6bcd0891732b8694eb06e5e5e0887e1c8c8c",
-            ("a133", "release"): "cd5f6072b6437073244bb415b855287692badf90488d00a6dae3e92817259b71",
-            ("a133-open-7x", "dev"): "c3d7c4e784f208999fbbdeda54898979459055f43b1a6bee9c15335604e695b1",
-            ("a133-open-7x", "release"): "3dd513d21d6c41f3d46fb9c39499a41dbcbf969cdb9d50d5c63d5cfb99e64bfc",
-            ("a133-owned", "dev"): "00205c04aa9b32b2c908f8d3757ac1e6da39b01e3c54a71382d1f76996b4623e",
-            ("a133-owned", "release"): "f18ad3586eb50ae8ad752d25fe258e185fda7f4b14ec2d532424e45cbe61e628",
-            ("a523", "dev"): "bedea04a4afdf8cc12eeaffeef22811f283136cbb6ee8abd3f02749182766677",
-            ("a523", "release"): "13ad9e244c34bb8fbf0159684809135724d99215682991ebf6336159f4d8d9d1",
-            ("sdm845", "dev"): "12b1f21e3ae370ad11a428abbc18fcf3688d33da451d1e9e8e59a7b2bc5e7a33",
-            ("sdm845", "release"): "5496829429b5681ab25704ba74ba23116fb4844245e4661345b3911c47ebfb2b",
+            ("a133", "dev"): "9a81dbac49b2a530f4cfaa2f578d5c5ea9091bb88bda17da91ac34f421bf86ee",
+            ("a133", "release"): "214a72df758dbbd28b9dc78add25e451cfefbe6bde418e3e61b72431d80c4f93",
+            ("a133-open-7x", "dev"): "34710066a88991213236c4175dd6aa279cc49cc5382a6ea77e6ff66179b453c8",
+            ("a133-open-7x", "release"): "d2796a2261cbad83de85e2e774538f9e9aa2147bb503fb36ff48bc854bbf12bb",
+            ("a133-owned", "dev"): "34dab6a78efcd5ed490a9848cb691f118b79887f0ca25b0082c5e271a89f3b72",
+            ("a133-owned", "release"): "aa55511fc8ea641121883158e5f658f158f0c2baea88c82be7a6cd14b1be6108",
+            ("a523", "dev"): "4481044019a5dbb077ad6b622963590e59ba5103754bb4c384216792c9029664",
+            ("a523", "release"): "6f424de84a29dd5449e7c1d41b0ecae2ad61b891dbf3be3aea15d1ec2678564b",
+            ("sdm845", "dev"): "f928e1f665ccbcb523c51070fb33569aeadcc30de6361057d0b87bf55570befd",
+            ("sdm845", "release"): "675333d0e2f2a7c8a6e1dec6e15091dc54516bf4c90c1b1e0e554f1dec9064c4",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -713,7 +717,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "6ccb87902144babc2838b03840c0413bf0941ab4")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "a3354100c0f727f24a528b7833fca1a6ce472123")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -723,7 +727,7 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "900db88c7c27f3286ac0baad4199db8f6748cb81")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], "2df03a48a91f7b4dfe2626848af80f4eca6398da")
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
@@ -756,7 +760,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "fab62c73324f067739747e5bf92929fc7944f2c1")
+        self.assertEqual(args["PF_KERNEL_SHA"], "d37bf5c3026e5e0ed6d097996a6a9f1fda9322cc")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -773,7 +777,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "fab62c73324f067739747e5bf92929fc7944f2c1")
+        self.assertEqual(args["PF_KERNEL_SHA"], "d37bf5c3026e5e0ed6d097996a6a9f1fda9322cc")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
@@ -787,15 +791,15 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": args["PF_IMAGE_SHA"],
             },
             {
-                "PF_GPU_UM_SHA": "a3354100c0f727f24a528b7833fca1a6ce472123",
-                "PF_IMAGE_SHA": "b9c8b7f734afd85085edbc0960fd5e8e6a0918a5",
+                "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
+                "PF_IMAGE_SHA": "0783da61aa585a837acf14c75851c74439d3c536",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
-        self.assertEqual(args["PF_LAUNCHER_SHA"], "900db88c7c27f3286ac0baad4199db8f6748cb81")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], "2df03a48a91f7b4dfe2626848af80f4eca6398da")
         self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
         self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
         self.assertEqual(

@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "fab62c73324f067739747e5bf92929fc7944f2c1"
+NORMAL_KERNEL_SHA = "d37bf5c3026e5e0ed6d097996a6a9f1fda9322cc"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -38,7 +38,7 @@ NORMAL_KERNEL_SHA = "fab62c73324f067739747e5bf92929fc7944f2c1"
 # them equal for the built-in virtio console; #120's hardware change is reverted by #121.
 # Build 47 advances both to #124's bounded LEDC suspend wait; #125 starts the
 # DSI HS clock after panel enable, and #126 retains panel power across ACTIVE=0.
-NORADIO_KERNEL_SHA = "fab62c73324f067739747e5bf92929fc7944f2c1"
+NORADIO_KERNEL_SHA = "d37bf5c3026e5e0ed6d097996a6a9f1fda9322cc"
 NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
 
 
@@ -151,8 +151,9 @@ class Open7NoradioProfileTest(unittest.TestCase):
             document,
         )
         self.assertIn(
-            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; Build57 keeps it "
-            "equal to the canonical pin through kernel#127 speaker DRC and kernel#128 vibration.",
+            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; Build59 keeps it equal "
+            "through kernel#129's CE debug counters; Build57 kept it equal to the canonical "
+            "pin through kernel#127 speaker DRC and kernel#128 vibration.",
             document,
         )
         self.assertNotIn("holds its lock-owned kernel pin at `23cdf7bf`", document)
