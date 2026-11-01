@@ -504,8 +504,8 @@ class ProfileTest(unittest.TestCase):
         expected = {
             ("a133", "dev"): "9a81dbac49b2a530f4cfaa2f578d5c5ea9091bb88bda17da91ac34f421bf86ee",
             ("a133", "release"): "214a72df758dbbd28b9dc78add25e451cfefbe6bde418e3e61b72431d80c4f93",
-            ("a133-open-7x", "dev"): "924047754743c5a0f9401224819587693668b751f284f0469180725a5626c9ad",
-            ("a133-open-7x", "release"): "9e5a16155338e006dbe4a72f7e48b6721412967fc508e7c71121c233a9518ca7",
+            ("a133-open-7x", "dev"): "d80ad2f02950878c34df4902fc399f7e06f72d42abfc7b912da37313c28c5792",
+            ("a133-open-7x", "release"): "72068a99a46756fbf146b803853b180740e9891bec89128d0a6e5ebfa5c066e2",
             ("a133-owned", "dev"): "34dab6a78efcd5ed490a9848cb691f118b79887f0ca25b0082c5e271a89f3b72",
             ("a133-owned", "release"): "aa55511fc8ea641121883158e5f658f158f0c2baea88c82be7a6cd14b1be6108",
             ("a523", "dev"): "4481044019a5dbb077ad6b622963590e59ba5103754bb4c384216792c9029664",
@@ -762,7 +762,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "5748f50814707efebfdaf24916117a2121990bc3")
+        self.assertEqual(args["PF_KERNEL_SHA"], "30fbe3701f971e7c435c911d8d526bc03b8f585f")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -779,7 +779,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "5748f50814707efebfdaf24916117a2121990bc3")
+        self.assertEqual(args["PF_KERNEL_SHA"], "30fbe3701f971e7c435c911d8d526bc03b8f585f")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
