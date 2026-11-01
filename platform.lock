@@ -181,10 +181,11 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # kernel-sunxi-7.x#126's retained-panel lifecycle for transient ACTIVE=0.
 # Build 57 keeps the normal/noradio boot kernel equal at #127 speaker DRC and
 # #128 PH3 gpio-vibrator. Exported UAPI remains byte-identical to the 3010de56 witness.
-# Build59 keeps both equal through #129's existing CE hardware/fallback counters:
-# only CONFIG_CRYPTO_DEV_SUN8I_CE_DEBUG=y changes; exported UAPI remains unchanged.
+# Build59 kept both equal through #129's existing CE hardware/fallback counters.
+# Build60 keeps both equal through #132's microphone support and the
+# static-key-gated MMC recovery trace candidate.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "d37bf5c3026e5e0ed6d097996a6a9f1fda9322cc"
+kernel = "5748f50814707efebfdaf24916117a2121990bc3"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -992,7 +993,8 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-# Build 57: exact merged #127 speaker DRC + #128 vibration; no UAPI input change.
+# Build60: exact pushed MMC recovery trace candidate atop merged #132 microphone support.
+# Trace collection is static-key gated and off by default; candidate must not be rebased.
 name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device/a133
                              # 19f7cbdc advances #126's retained-panel lifecycle across transient
                              # ACTIVE=0, including ordered whole-device teardown and error cleanup.
@@ -1269,7 +1271,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "d37bf5c3026e5e0ed6d097996a6a9f1fda9322cc"
+sha  = "5748f50814707efebfdaf24916117a2121990bc3"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
