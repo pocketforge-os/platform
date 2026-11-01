@@ -29,6 +29,8 @@ grep -Fq 'gamescope|$(v PF_GAMESCOPE_REPO)|$(v PF_GAMESCOPE_SHA)|1' <<<"${stage_
 grep -Fq 'stage-gamescope-source.py' <<<"${stage_body}"
 grep -Fq -- '--source-tree-sha256 "$(v PF_GAMESCOPE_SOURCE_TREE_SHA256)"' <<<"${stage_body}"
 grep -Fq -- '--build-context "gamescope-src=$src_dir/gamescope"' <<<"${docker_body}"
+grep -Fq 'gamescope_identity="$(pf_gamescope_identity_sha256 "$src_dir" "$ba")"' <<<"${docker_body}"
+grep -Fq -- '--build-arg "PF_GAMESCOPE_IDENTITY_SHA256=$gamescope_identity"' <<<"${docker_body}"
 if grep -Fq 'gamescope-deps' <<<"${docker_body}"; then
     echo 'FAIL: raw Gamescope dependency cache remains a Docker context' >&2
     exit 1
@@ -38,6 +40,7 @@ extract() { sed -n "/^$1()/,/^}/p" "${BUILD}"; }
 eval "$(extract pf_find_git_source)"
 eval "$(extract pf_ensure_commit)"
 eval "$(extract pf_stage_sources)"
+eval "$(extract pf_gamescope_identity_sha256)"
 pf_log() { :; }
 pf_die() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 
@@ -146,6 +149,15 @@ receipt = {
 pathlib.Path(a.receipt).write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
 PY
 chmod 0755 "${tmp}/home/gamescope/.github/scripts/materialize-source-closure.py"
+mkdir -p "${tmp}/home/gamescope/scripts"
+cat >"${tmp}/home/gamescope/scripts/gamescope_package.py" <<'PY'
+#!/usr/bin/env python3
+import sys
+
+if len(sys.argv) < 2 or sys.argv[1] != "render-identity":
+    raise SystemExit("expected render-identity")
+sys.stdout.write("canonical gamescope identity fixture\n")
+PY
 printf 'fixture licence\n' >"${tmp}/home/gamescope/LICENSE"
 printf 'base\n' >"${tmp}/home/gamescope/source"
 git -C "${tmp}/home/gamescope" init -q
@@ -214,6 +226,21 @@ assert len(list((root / ".pf-source-licenses").iterdir())) == 32
 assert (root / ".pf-gamescope-admission.json").is_file()
 assert (root / ".pf-gamescope-materialization.json").is_file()
 PY
+identity="$(pf_gamescope_identity_sha256 "${tmp}/selected" "${common}${gamescope}")"
+expected_identity="$(printf 'canonical gamescope identity fixture\n' | sha256sum | cut -d' ' -f1)"
+[ "${identity}" = "${expected_identity}" ] || {
+    echo "FAIL: staged canonical renderer digest mismatch: ${identity}" >&2
+    exit 1
+}
+[ -z "$(pf_gamescope_identity_sha256 "${tmp}/selected" "${common}")" ] || {
+    echo 'FAIL: non-g1 profile emitted a Gamescope identity' >&2
+    exit 1
+}
+if ( pf_gamescope_identity_sha256 "${tmp}/missing" "${common}${gamescope}" \
+        >/dev/null 2>&1 ); then
+    echo 'FAIL: missing image-owned Gamescope identity renderer was accepted' >&2
+    exit 1
+fi
 
 wrong_tree_digest="$(printf '0%.0s' {1..64})"
 if ( HOME="${tmp}/home" PF_MIRROR_DIR="${tmp}/mirrors" VARIANT=dev \

@@ -797,7 +797,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # and launcher#182 for the repaired session-authority/app policy pair.
                        # tsp-mc9m.60.29.58 Build58: image#350 prefs startup, #351 final
                        # runtime ABI/CAS sealing, and #352 writable Steam Link destinations.
-sha  = "0783da61aa585a837acf14c75851c74439d3c536"
+                       # tsp-c4ea5d98e01bef8f4f4c supplies the canonical Gamescope
+                       # identity renderer and verifies its platform-produced digest.
+sha  = "cac756cf21753604d47740dc8c26e2fbc07d6866"
 
 [[repos]]
 name = "pf-cursor-theme"
