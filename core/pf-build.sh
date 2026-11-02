@@ -366,6 +366,41 @@ pf_stage_sources() {
     fi
 }
 
+# Render the image-owned canonical Gamescope identity from the staged source and
+# return the SHA-256 that the image must install.  The image script owns both
+# validation and serialization; platform only supplies its lock-pinned inputs.
+pf_gamescope_identity_sha256() {
+    local src_dir="$1" ba="$2" mode renderer digest python
+    mode="$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_MODE=//p')"
+    case "$mode" in
+        ""|not-shipped) return 0 ;;
+        g1) ;;
+        *) pf_die "stage: unsupported PF_GAMESCOPE_MODE=$mode" ;;
+    esac
+
+    renderer="$src_dir/image/scripts/gamescope_package.py"
+    { [ -f "$renderer" ] && [ ! -L "$renderer" ]; } \
+        || pf_die "stage: image-owned Gamescope identity renderer is unavailable"
+    python="${PF_PY:-python3}"
+    digest="$(
+        "$python" "$renderer" render-identity \
+            --source "$src_dir/gamescope" \
+            --upstream-base "$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_UPSTREAM_BASE=//p')" \
+            --integrated-head "$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_SHA=//p')" \
+            --present-head "$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_PRESENT_HEAD=//p')" \
+            --staging-head "$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_STAGING_HEAD=//p')" \
+            --rotation-head "$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_ROTATION_HEAD=//p')" \
+            --patch-series-sha256 "$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_PATCH_SERIES_SHA256=//p')" \
+            --dependency-manifest-sha256 "$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256=//p')" \
+            --source-tree-sha256 "$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_SOURCE_TREE_SHA256=//p')" \
+            --license-sha256 "$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_LICENSE_SHA256=//p')" \
+        | sha256sum | cut -d' ' -f1
+    )" || pf_die "stage: canonical Gamescope identity rendering failed"
+    [[ "$digest" =~ ^[0-9a-f]{64}$ ]] \
+        || pf_die "stage: canonical Gamescope identity digest is malformed"
+    printf '%s\n' "$digest"
+}
+
 pf_release_caller_temporary() {
     local status="$1"
     trap - EXIT
@@ -777,6 +812,10 @@ pf_os_image_dockerbuild() {
         return 0
     fi
     pf_stage_sources "$src_dir" "$ba"
+    local gamescope_identity
+    gamescope_identity="$(pf_gamescope_identity_sha256 "$src_dir" "$ba")"
+    [ -z "$gamescope_identity" ] \
+        || cmd+=( --build-arg "PF_GAMESCOPE_IDENTITY_SHA256=$gamescope_identity" )
     [ "$TARGET" = ci-dell ] && pf_create_staging_dir "$cache_dir"
     pf_ensure_insecure_builder "$builder"
     pf_log "EXEC os-image multistage build"

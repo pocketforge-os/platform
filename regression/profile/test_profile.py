@@ -501,17 +501,19 @@ class ProfileTest(unittest.TestCase):
         # only on Linux7 rows. All20 payloads preserve all other fields/state/missing pins.
         # Build60 advances only PF_KERNEL_SHA/PF_GPU_KM_SHA on Linux7 rows for the
         # merged mic path and default-off MMC recovery trace candidate.
+        # tsp-c4ea5d98e01bef8f4f4c advances only PF_IMAGE_SHA on every row for
+        # the canonical Gamescope identity renderer and image-side digest gate.
         expected = {
-            ("a133", "dev"): "9a81dbac49b2a530f4cfaa2f578d5c5ea9091bb88bda17da91ac34f421bf86ee",
-            ("a133", "release"): "214a72df758dbbd28b9dc78add25e451cfefbe6bde418e3e61b72431d80c4f93",
-            ("a133-open-7x", "dev"): "d80ad2f02950878c34df4902fc399f7e06f72d42abfc7b912da37313c28c5792",
-            ("a133-open-7x", "release"): "72068a99a46756fbf146b803853b180740e9891bec89128d0a6e5ebfa5c066e2",
-            ("a133-owned", "dev"): "34dab6a78efcd5ed490a9848cb691f118b79887f0ca25b0082c5e271a89f3b72",
-            ("a133-owned", "release"): "aa55511fc8ea641121883158e5f658f158f0c2baea88c82be7a6cd14b1be6108",
-            ("a523", "dev"): "4481044019a5dbb077ad6b622963590e59ba5103754bb4c384216792c9029664",
-            ("a523", "release"): "6f424de84a29dd5449e7c1d41b0ecae2ad61b891dbf3be3aea15d1ec2678564b",
-            ("sdm845", "dev"): "f928e1f665ccbcb523c51070fb33569aeadcc30de6361057d0b87bf55570befd",
-            ("sdm845", "release"): "675333d0e2f2a7c8a6e1dec6e15091dc54516bf4c90c1b1e0e554f1dec9064c4",
+            ("a133", "dev"): "5dfe555136222812623da686e756f6b04cb37e08c476399e0c89a018822f469c",
+            ("a133", "release"): "3047e4c69d9424fa425332780a1bfea4ad8b85e4407c56a672c9de8b8dd4fc1a",
+            ("a133-open-7x", "dev"): "d8086f3a5423e87adab1e308024778785523d82f7a93d0352e60c7f787f5568d",
+            ("a133-open-7x", "release"): "f68b9b859998a7edcb1b7b9b1596611b387842b0376bba16012499fb0760caf7",
+            ("a133-owned", "dev"): "4bfa97f4f7bc5c512877091b0ff99c313cfe5fd20c89a04db343ae7d00b0afda",
+            ("a133-owned", "release"): "bb00876d9f8b1c59caf5708c57f965b3f4d0dad5cae612e39ec6a6b4f442aaf1",
+            ("a523", "dev"): "fb2a3cca55b5391a45ae614ac672e84fe46ff6572d90a11c78af44a8f0b4202f",
+            ("a523", "release"): "65f750fcc5f240ae48dbbc3582c9476362acc653c0e504e31868e2907673efc3",
+            ("sdm845", "dev"): "e2925146acb51eaf87a040ad4096f00b390fe5aa6b3960c9927b59d4d061723b",
+            ("sdm845", "release"): "27cdec40b7b1dbd411a80bd8342cac0ef495ea11317cf35e3e23f3186ccbf3ac",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -794,7 +796,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "0783da61aa585a837acf14c75851c74439d3c536",
+                "PF_IMAGE_SHA": "cac756cf21753604d47740dc8c26e2fbc07d6866",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
