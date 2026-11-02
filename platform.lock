@@ -799,7 +799,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # runtime ABI/CAS sealing, and #352 writable Steam Link destinations.
                        # tsp-c4ea5d98e01bef8f4f4c supplies the canonical Gamescope
                        # identity renderer and verifies its platform-produced digest.
-sha  = "2875455c93964fcc347b81d8423700424011e508"
+                       # tsp-37d3ee05ab12a6dfc7af Build63: image#356 packages the
+                       # fetch helper's complete Python standard-library closure.
+sha  = "01c264ffdee89b6568a77f2fb97a190612b8a3fa"
 
 [[repos]]
 name = "pf-cursor-theme"
