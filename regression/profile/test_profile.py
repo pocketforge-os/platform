@@ -504,16 +504,16 @@ class ProfileTest(unittest.TestCase):
         # tsp-c4ea5d98e01bef8f4f4c advances only PF_IMAGE_SHA on every row for
         # the canonical Gamescope identity renderer and image-side digest gate.
         expected = {
-            ("a133", "dev"): "5dfe555136222812623da686e756f6b04cb37e08c476399e0c89a018822f469c",
-            ("a133", "release"): "3047e4c69d9424fa425332780a1bfea4ad8b85e4407c56a672c9de8b8dd4fc1a",
-            ("a133-open-7x", "dev"): "d8086f3a5423e87adab1e308024778785523d82f7a93d0352e60c7f787f5568d",
-            ("a133-open-7x", "release"): "f68b9b859998a7edcb1b7b9b1596611b387842b0376bba16012499fb0760caf7",
-            ("a133-owned", "dev"): "4bfa97f4f7bc5c512877091b0ff99c313cfe5fd20c89a04db343ae7d00b0afda",
-            ("a133-owned", "release"): "bb00876d9f8b1c59caf5708c57f965b3f4d0dad5cae612e39ec6a6b4f442aaf1",
-            ("a523", "dev"): "fb2a3cca55b5391a45ae614ac672e84fe46ff6572d90a11c78af44a8f0b4202f",
-            ("a523", "release"): "65f750fcc5f240ae48dbbc3582c9476362acc653c0e504e31868e2907673efc3",
-            ("sdm845", "dev"): "e2925146acb51eaf87a040ad4096f00b390fe5aa6b3960c9927b59d4d061723b",
-            ("sdm845", "release"): "27cdec40b7b1dbd411a80bd8342cac0ef495ea11317cf35e3e23f3186ccbf3ac",
+            ("a133", "dev"): "7dbac9958097bf78e870dcaf7762ea6b89f6111554e01e90d6958698a99744a8",
+            ("a133", "release"): "50edbe65ddc1970a182f81a5ee3cef8539f1e9bc6ef71c14a6b46f7a68ea59e3",
+            ("a133-open-7x", "dev"): "5004fa4e8212179a32267e7ac79155528f7c05dffab1cd07da8f3c81e3f4af26",
+            ("a133-open-7x", "release"): "457d244c8db8e59cd6cf109df85b9cae475855007b94e36989dd033e87212f68",
+            ("a133-owned", "dev"): "e24b7a1754589415822a44003be136092e19a5fc234de2a052ebba44a88426e7",
+            ("a133-owned", "release"): "00906a76c8423a4c98c688b3facb7c46378e1bceca0465748c5d1f20371a2935",
+            ("a523", "dev"): "8059bcbff5c4c74504dcef8e86ecf75e3830bd94e5626d44308fd26b217f5a54",
+            ("a523", "release"): "dfccf7da1f5560d1a74aebb38dca5b3c7f64ff47c72cbe3bc3159739cb129a2f",
+            ("sdm845", "dev"): "bff3d7ee7f371a555135afdacf3af519d219a367fedf4ec4e85141367a12c5f5",
+            ("sdm845", "release"): "7d387c490a80be8a0e496644c1217f6619b69bade60165b38d84f4bc109743d4",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -796,7 +796,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "cac756cf21753604d47740dc8c26e2fbc07d6866",
+                "PF_IMAGE_SHA": "2875455c93964fcc347b81d8423700424011e508",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
