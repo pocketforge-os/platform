@@ -799,7 +799,7 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # runtime ABI/CAS sealing, and #352 writable Steam Link destinations.
                        # tsp-c4ea5d98e01bef8f4f4c supplies the canonical Gamescope
                        # identity renderer and verifies its platform-produced digest.
-sha  = "cac756cf21753604d47740dc8c26e2fbc07d6866"
+sha  = "2875455c93964fcc347b81d8423700424011e508"
 
 [[repos]]
 name = "pf-cursor-theme"
