@@ -801,7 +801,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # identity renderer and verifies its platform-produced digest.
                        # tsp-37d3ee05ab12a6dfc7af Build63: image#356 packages the
                        # fetch helper's complete Python standard-library closure.
-sha  = "01c264ffdee89b6568a77f2fb97a190612b8a3fa"
+                       # tsp-df26535aaeb8d6b959f4: image#357 replaces the leaked
+                       # build-network resolver in the immutable Steam Link root.
+sha  = "83f78fddf7f50cbe0e0808982f8f8aac3d250fd5"
 
 [[repos]]
 name = "pf-cursor-theme"
