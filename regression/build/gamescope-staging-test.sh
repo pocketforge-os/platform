@@ -29,7 +29,7 @@ grep -Fq 'gamescope|$(v PF_GAMESCOPE_REPO)|$(v PF_GAMESCOPE_SHA)|1' <<<"${stage_
 grep -Fq 'stage-gamescope-source.py' <<<"${stage_body}"
 grep -Fq -- '--source-tree-sha256 "$(v PF_GAMESCOPE_SOURCE_TREE_SHA256)"' <<<"${stage_body}"
 grep -Fq -- '--build-context "gamescope-src=$src_dir/gamescope"' <<<"${docker_body}"
-grep -Fq 'gamescope_identity="$(pf_gamescope_identity_sha256 "$src_dir" "$ba")"' <<<"${docker_body}"
+grep -Fq 'gamescope_identity="$(pf_gamescope_identity_sha256 "$src_dir" "$ba" "$PF_IMAGE_REPO")"' <<<"${docker_body}"
 grep -Fq -- '--build-arg "PF_GAMESCOPE_IDENTITY_SHA256=$gamescope_identity"' <<<"${docker_body}"
 if grep -Fq 'gamescope-deps' <<<"${docker_body}"; then
     echo 'FAIL: raw Gamescope dependency cache remains a Docker context' >&2
@@ -51,6 +51,33 @@ cleanup() {
 }
 trap cleanup EXIT
 mkdir -p "${tmp}/home/gamescope/.github/scripts" "${tmp}/cache-seed/repos"
+mkdir -p "${tmp}/image-build/build" "${tmp}/overlay-build/build"
+printf '%s\n' \
+    'COPY --from=image-src scripts/gamescope_package.py /work/image/scripts/gamescope_package.py' \
+    >"${tmp}/image-build/build/Dockerfile.pf"
+printf '%s\n' \
+    'COPY gamescope_package.py /work/image/scripts/gamescope_package.py' \
+    >"${tmp}/overlay-build/build/Dockerfile.pf"
+cat >"${tmp}/overlay-build/build/gamescope_package.py" <<'PY'
+#!/usr/bin/env python3
+import pathlib
+import sys
+
+identity = (
+    "schema=pocketforge.gamescope-build/v1\n"
+    "meson_options_sha256=27e0582619ca43a75e9ded2bca2466e758cbc1a3363405e25b3c7a9c33c58e02\n"
+    "meson_cross_file_sha256=034b903aee3bae3171f3599ed3db4efc3de2031dcdb7e1fa4f6063a73084064c\n"
+)
+if len(sys.argv) < 2:
+    raise SystemExit("command required")
+if sys.argv[1] == "render-identity":
+    sys.stdout.write(identity)
+elif sys.argv[1] == "configure-build":
+    output = pathlib.Path(sys.argv[sys.argv.index("--identity-out") + 1])
+    output.write_text(identity, encoding="utf-8")
+else:
+    raise SystemExit(f"unexpected command: {sys.argv[1]}")
+PY
 
 projects="${tmp}/projects.tsv"
 for index in $(seq 0 31); do
@@ -226,19 +253,63 @@ assert len(list((root / ".pf-source-licenses").iterdir())) == 32
 assert (root / ".pf-gamescope-admission.json").is_file()
 assert (root / ".pf-gamescope-materialization.json").is_file()
 PY
-identity="$(pf_gamescope_identity_sha256 "${tmp}/selected" "${common}${gamescope}")"
+identity="$(PF_IMAGE_REPO="${tmp}/image-build" \
+    pf_gamescope_identity_sha256 "${tmp}/selected" "${common}${gamescope}" \
+        "${tmp}/image-build")"
 expected_identity="$(printf 'canonical gamescope identity fixture\n' | sha256sum | cut -d' ' -f1)"
 [ "${identity}" = "${expected_identity}" ] || {
     echo "FAIL: staged canonical renderer digest mismatch: ${identity}" >&2
     exit 1
 }
-[ -z "$(pf_gamescope_identity_sha256 "${tmp}/selected" "${common}")" ] || {
+[ -z "$(PF_IMAGE_REPO="${tmp}/image-build" \
+    pf_gamescope_identity_sha256 "${tmp}/selected" "${common}" \
+        "${tmp}/image-build")" ] || {
     echo 'FAIL: non-g1 profile emitted a Gamescope identity' >&2
     exit 1
 }
-if ( pf_gamescope_identity_sha256 "${tmp}/missing" "${common}${gamescope}" \
+if ( PF_IMAGE_REPO="${tmp}/image-build" \
+    pf_gamescope_identity_sha256 "${tmp}/missing" "${common}${gamescope}" \
+        "${tmp}/image-build" \
         >/dev/null 2>&1 ); then
     echo 'FAIL: missing image-owned Gamescope identity renderer was accepted' >&2
+    exit 1
+fi
+
+# Reproduce the full-build ordering: platform renders the digest after source
+# staging but before BuildKit, then the packager selected by the effective
+# Dockerfile writes the post-Meson identity.  The automation overlay selects a
+# transformed build-context packager whose two Meson identity fields differ
+# from the pristine image-src renderer; both steps must execute that same
+# selected image-owned serializer.
+python3 "${tmp}/overlay-build/build/gamescope_package.py" configure-build \
+    --identity-out "${tmp}/configured-gamescope-build-id"
+configured_identity="$(sha256sum "${tmp}/configured-gamescope-build-id" | cut -d' ' -f1)"
+rendered_identity="$(PF_IMAGE_REPO="${tmp}/overlay-build" \
+    pf_gamescope_identity_sha256 "${tmp}/selected" "${common}${gamescope}" \
+        "${tmp}/overlay-build")"
+[ "${rendered_identity}" = "${configured_identity}" ] || {
+    echo "FAIL: pre-BuildKit Gamescope identity ${rendered_identity} != configured identity ${configured_identity}" >&2
+    exit 1
+}
+
+mkdir -p "${tmp}/missing-build-packager/build" "${tmp}/ambiguous-build/build"
+printf '%s\n' \
+    'COPY gamescope_package.py /work/image/scripts/gamescope_package.py' \
+    >"${tmp}/missing-build-packager/build/Dockerfile.pf"
+if ( PF_IMAGE_REPO="${tmp}/missing-build-packager" \
+    pf_gamescope_identity_sha256 "${tmp}/selected" "${common}${gamescope}" \
+        "${tmp}/missing-build-packager" >/dev/null 2>&1 ); then
+    echo 'FAIL: missing effective build-context Gamescope renderer was accepted' >&2
+    exit 1
+fi
+printf '%s\n' \
+    'COPY --from=image-src scripts/gamescope_package.py /work/image/scripts/gamescope_package.py' \
+    'COPY gamescope_package.py /work/image/scripts/gamescope_package.py' \
+    >"${tmp}/ambiguous-build/build/Dockerfile.pf"
+if ( PF_IMAGE_REPO="${tmp}/ambiguous-build" \
+    pf_gamescope_identity_sha256 "${tmp}/selected" "${common}${gamescope}" \
+        "${tmp}/ambiguous-build" >/dev/null 2>&1 ); then
+    echo 'FAIL: ambiguous effective Gamescope renderer selection was accepted' >&2
     exit 1
 fi
 

@@ -370,7 +370,9 @@ pf_stage_sources() {
 # return the SHA-256 that the image must install.  The image script owns both
 # validation and serialization; platform only supplies its lock-pinned inputs.
 pf_gamescope_identity_sha256() {
-    local src_dir="$1" ba="$2" mode renderer digest python
+    local src_dir="$1" ba="$2" image_repo="${3:-${PF_IMAGE_REPO:-}}"
+    local mode dockerfile staged_copy build_copy staged_count build_count
+    local renderer digest python
     mode="$(printf '%s\n' "$ba" | sed -n 's/^PF_GAMESCOPE_MODE=//p')"
     case "$mode" in
         ""|not-shipped) return 0 ;;
@@ -378,7 +380,22 @@ pf_gamescope_identity_sha256() {
         *) pf_die "stage: unsupported PF_GAMESCOPE_MODE=$mode" ;;
     esac
 
-    renderer="$src_dir/image/scripts/gamescope_package.py"
+    [ -n "$image_repo" ] \
+        || pf_die "stage: effective image build context is unavailable"
+    dockerfile="$image_repo/build/Dockerfile.pf"
+    { [ -f "$dockerfile" ] && [ ! -L "$dockerfile" ]; } \
+        || pf_die "stage: effective image Dockerfile is unavailable"
+    staged_copy='COPY --from=image-src scripts/gamescope_package.py /work/image/scripts/gamescope_package.py'
+    build_copy='COPY gamescope_package.py /work/image/scripts/gamescope_package.py'
+    staged_count="$(awk -v line="$staged_copy" '$0 == line { count++ } END { print count + 0 }' "$dockerfile")"
+    build_count="$(awk -v line="$build_copy" '$0 == line { count++ } END { print count + 0 }' "$dockerfile")"
+    case "$staged_count:$build_count" in
+        1:0) renderer="$src_dir/image/scripts/gamescope_package.py" ;;
+        0:1) renderer="$image_repo/build/gamescope_package.py" ;;
+        *)
+            pf_die "stage: effective Dockerfile must select exactly one image-owned Gamescope identity renderer"
+            ;;
+    esac
     { [ -f "$renderer" ] && [ ! -L "$renderer" ]; } \
         || pf_die "stage: image-owned Gamescope identity renderer is unavailable"
     python="${PF_PY:-python3}"
@@ -813,7 +830,7 @@ pf_os_image_dockerbuild() {
     fi
     pf_stage_sources "$src_dir" "$ba"
     local gamescope_identity
-    gamescope_identity="$(pf_gamescope_identity_sha256 "$src_dir" "$ba")"
+    gamescope_identity="$(pf_gamescope_identity_sha256 "$src_dir" "$ba" "$PF_IMAGE_REPO")"
     [ -z "$gamescope_identity" ] \
         || cmd+=( --build-arg "PF_GAMESCOPE_IDENTITY_SHA256=$gamescope_identity" )
     [ "$TARGET" = ci-dell ] && pf_create_staging_dir "$cache_dir"
