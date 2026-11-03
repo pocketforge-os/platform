@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "cc0ddc3bfeaed9298f95d48bbc97e39313b328bb"
+NORMAL_KERNEL_SHA = "3c5017a53627d38e34fa4d0c0c77b9e1e932bb2b"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -38,9 +38,9 @@ NORMAL_KERNEL_SHA = "cc0ddc3bfeaed9298f95d48bbc97e39313b328bb"
 # them equal for the built-in virtio console; #120's hardware change is reverted by #121.
 # Build 47 advances both to #124's bounded LEDC suspend wait; #125 starts the
 # DSI HS clock after panel enable, and #126 retains panel power across ACTIVE=0.
-# Kernel#134 keeps them equal through A133 ADC channel-enable sequencing and
-# complete channel-field sanitization during power-up and power-down.
-NORADIO_KERNEL_SHA = "cc0ddc3bfeaed9298f95d48bbc97e39313b328bb"
+# Kernel#135 keeps them equal through the A133 capture FIFO restart repair, which
+# clears latched RX status and resets the ADC sample counter after every FIFO flush.
+NORADIO_KERNEL_SHA = "3c5017a53627d38e34fa4d0c0c77b9e1e932bb2b"
 NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
 
 
@@ -154,8 +154,9 @@ class Open7NoradioProfileTest(unittest.TestCase):
         )
         self.assertIn(
             f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; it remains equal to the "
-            "canonical pin through kernel#134's A133 ADC enable sequencing and channel-field "
-            "sanitization; it is not yet build- or device-verified. Build61 kept it equal "
+            "canonical pin through kernel#135's A133 capture FIFO restart repair; it is not "
+            "yet build- or device-verified. Kernel#134 kept it equal through ADC channel "
+            "sequencing and channel-field sanitization; Build61 kept it equal "
             "through the CPU PLL and MMC recovery changes; Build60 kept it equal through "
             "the merged mic path and default-off MMC recovery "
             "trace candidate; "
