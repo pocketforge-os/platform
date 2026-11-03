@@ -513,17 +513,19 @@ class ProfileTest(unittest.TestCase):
         # A133 capture FIFO restart repair.
         # Steam Link R9 advances only PF_IMAGE_SHA on every row for image#359's
         # sealed FFmpeg 59 runtime closure.
+        # Image#360 advances only PF_IMAGE_SHA on every row for sealed Valve
+        # keyring verification through gpgv.
         expected = {
-            ("a133", "dev"): "1388310fb5ec5f1b7d282f774ce1e405eafe7abfcfeb349f1a8505104b29e773",
-            ("a133", "release"): "458afa5e690c2257545d682f035f620516738ed0ce91e6490a1d00a3ba96511f",
-            ("a133-open-7x", "dev"): "715096cc7ff8958aba9e7fbd8a0cc513589bf358a36363e72edf1ed1382be231",
-            ("a133-open-7x", "release"): "084e1cca947f6d2597be223711afb6e724c83057cc4c4f46af6610cc1e2270e9",
-            ("a133-owned", "dev"): "b5f560b58c178e66a4508f2a95a19bfffa59dc8eecf3ddee9fdab938354bb08e",
-            ("a133-owned", "release"): "5aa1bf0c103fe11488f9e419e6385d84eb4c732e52e33f7e7e6b1806e180562c",
-            ("a523", "dev"): "83c4c542c786a71dff4fc381b2d7b94ed8df11b54920eca279821c8a2ecf51f7",
-            ("a523", "release"): "6d60113cba8c7b94b8fa7f971c68ce9f8e3a4c8508d630fce423bb8e59e0db74",
-            ("sdm845", "dev"): "8b5036b85dfe56c73593cd1aa9d61f62dcbdc338de0fd454b034b91bf43b9b25",
-            ("sdm845", "release"): "275e25abb8f7deb2d3b3807aaa749915c9e272a9e159d830ab541f8edab7f14c",
+            ("a133", "dev"): "208a13a6f1ac89d635472c09894dc59b5e709587e9cd76c82822585b8785c38d",
+            ("a133", "release"): "28b1bffc4edca3fd0a8c11c5996d47232160d5c3b3cd68cc1647657da59aa2d0",
+            ("a133-open-7x", "dev"): "0234b26b51658f595a4ca5af100ee91b675e33b2a934e72af20942f8a5e03a1c",
+            ("a133-open-7x", "release"): "f76edc038772458c622499dfc2aad408ef402a022750e7b899a1e389b756264b",
+            ("a133-owned", "dev"): "d66bb5718c7974983fd1f971868cc35c9d329ed1b6cb7267a98d7830b27b7dc4",
+            ("a133-owned", "release"): "61567ba08f65a6dc6605af755b6cb473eaa56b0a62043e6bd21a35b342365dcf",
+            ("a523", "dev"): "a7dd965317cab6f56b869c3fd491841cf998b7903f592bf8d1fcaca0ff755c6d",
+            ("a523", "release"): "be2470759b6aea9acf112837f81ca40b559ba84006eeae511a38b992e60f36b1",
+            ("sdm845", "dev"): "7807a3f3c50b0aa8748b99b1233a4867a8ff67260e1f0bd0f5c10423e147701c",
+            ("sdm845", "release"): "2e88910b2ffcf94dc4aff43c957c528c4cc0f0093c78a2054312a7d7d3c735a9",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -806,7 +808,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "0f0e52f57dbc5ae963a3f8106831ae1bf854c6ca",
+                "PF_IMAGE_SHA": "c8151d294065bb206fa91542cc0398731521bb42",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
