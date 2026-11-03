@@ -507,11 +507,13 @@ class ProfileTest(unittest.TestCase):
         # complete Steam Link fetch-helper Python standard-library closure.
         # Build64 advances only PF_IMAGE_SHA on every row for image#357's
         # deterministic systemd-resolved stub inside the Steam Link root.
+        # Kernel#134 advances only PF_KERNEL_SHA/PF_GPU_KM_SHA on Linux7 rows
+        # for sequenced ADC channel enable and complete channel-field sanitization.
         expected = {
             ("a133", "dev"): "d59c7d69f5544905465a28a00f423ec3e9a3cb200c0fb05939d5dfbbeddaa0da",
             ("a133", "release"): "6a25aaaad42165d9b3cf37f066793912346047732a0abf06ca0d93fd9ebae3a6",
-            ("a133-open-7x", "dev"): "8af59faf7b7e852b472ff1dc93ea48086792f50cdf8f5b54d89d666fd6891a3d",
-            ("a133-open-7x", "release"): "7609063fa7b2bd03cbacb207d959a6d5df2479c938cf806b2af165e7465b8ec2",
+            ("a133-open-7x", "dev"): "67db1ac2222d267387d7deceb9245a48f8a389ee2c67cd50774a41150f47c5aa",
+            ("a133-open-7x", "release"): "ae5886a7e3b4d5d19a29ec3afcc41e2543f08d3c7c6d969ae847518317199a55",
             ("a133-owned", "dev"): "dbb55070bd847d4229000d5d3675be418832c1aa9ee4774d27fd23c4907a9a2d",
             ("a133-owned", "release"): "9e1def7402127f6c43e68bc66e7bc8de4152a732e7cfa835288b6c93f641a283",
             ("a523", "dev"): "aa9ea00d54f19111b4f8c54c8aa65fb18a3c9a67af2bc88107b86fc389daadd7",
@@ -768,7 +770,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "30fbe3701f971e7c435c911d8d526bc03b8f585f")
+        self.assertEqual(args["PF_KERNEL_SHA"], "cc0ddc3bfeaed9298f95d48bbc97e39313b328bb")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -785,7 +787,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "30fbe3701f971e7c435c911d8d526bc03b8f585f")
+        self.assertEqual(args["PF_KERNEL_SHA"], "cc0ddc3bfeaed9298f95d48bbc97e39313b328bb")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
