@@ -805,7 +805,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # fetch helper's complete Python standard-library closure.
                        # tsp-df26535aaeb8d6b959f4: image#357 replaces the leaked
                        # build-network resolver in the immutable Steam Link root.
-sha  = "83f78fddf7f50cbe0e0808982f8f8aac3d250fd5"
+                       # tsp-e954c599a9c57eac66ce: image#358 accepts the canonical
+                       # Valve archive URL pointer without delegating download authority.
+sha  = "b86d1d8461767c7d583ea74a6bedef52c235cf6d"
 
 [[repos]]
 name = "pf-cursor-theme"
