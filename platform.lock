@@ -807,7 +807,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # build-network resolver in the immutable Steam Link root.
                        # tsp-e954c599a9c57eac66ce: image#358 accepts the canonical
                        # Valve archive URL pointer without delegating download authority.
-sha  = "b86d1d8461767c7d583ea74a6bedef52c235cf6d"
+                       # tsp-dc56661ef7854b198ab2: image#359 seals the source-owned
+                       # Steam Link FFmpeg 59 runtime before hashing its closure.
+sha  = "0f0e52f57dbc5ae963a3f8106831ae1bf854c6ca"
 
 [[repos]]
 name = "pf-cursor-theme"
