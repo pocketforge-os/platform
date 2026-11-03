@@ -184,8 +184,10 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # Build59 kept both equal through #129's existing CE hardware/fallback counters.
 # Build60 keeps both equal through #132's microphone support and the
 # static-key-gated MMC recovery trace candidate.
+# kernel-sunxi-7.x#134 keeps both equal while sequencing the A133 ADC channel
+# enable after power-up and sanitizing the complete channel field in both directions.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "30fbe3701f971e7c435c911d8d526bc03b8f585f"
+kernel = "cc0ddc3bfeaed9298f95d48bbc97e39313b328bb"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -999,8 +1001,9 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "6ccb87902144babc2838b03840c0413bf0941ab4"
 
 [[repos]]
-# Build60: exact pushed MMC recovery trace candidate atop merged #132 microphone support.
-# Trace collection is static-key gated and off by default; candidate must not be rebased.
+# kernel-sunxi-7.x#134 sequences the A133 ADC channel enable after power-up and
+# sanitizes the full two-bit channel field on enable and disable. The merge commit
+# retains Build61's CPU PLL and MMC recovery tracing changes unchanged.
 name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device/a133
                              # 19f7cbdc advances #126's retained-panel lifecycle across transient
                              # ACTIVE=0, including ordered whole-device teardown and error cleanup.
@@ -1277,7 +1280,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "30fbe3701f971e7c435c911d8d526bc03b8f585f"
+sha  = "cc0ddc3bfeaed9298f95d48bbc97e39313b328bb"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
