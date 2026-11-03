@@ -809,7 +809,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # Valve archive URL pointer without delegating download authority.
                        # tsp-dc56661ef7854b198ab2: image#359 seals the source-owned
                        # Steam Link FFmpeg 59 runtime before hashing its closure.
-sha  = "0f0e52f57dbc5ae963a3f8106831ae1bf854c6ca"
+                       # tsp-mc9m.60.29.61.9: image#360 replaces mutable GnuPG state
+                       # with a sealed Valve keyring verified by gpgv.
+sha  = "c8151d294065bb206fa91542cc0398731521bb42"
 
 [[repos]]
 name = "pf-cursor-theme"
