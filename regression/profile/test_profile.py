@@ -515,17 +515,19 @@ class ProfileTest(unittest.TestCase):
         # sealed FFmpeg 59 runtime closure.
         # Image#360 advances only PF_IMAGE_SHA on every row for sealed Valve
         # keyring verification through gpgv.
+        # Image#361 advances only PF_IMAGE_SHA on every row for the repaired
+        # strict physical GPU collector budget.
         expected = {
-            ("a133", "dev"): "208a13a6f1ac89d635472c09894dc59b5e709587e9cd76c82822585b8785c38d",
-            ("a133", "release"): "28b1bffc4edca3fd0a8c11c5996d47232160d5c3b3cd68cc1647657da59aa2d0",
-            ("a133-open-7x", "dev"): "0234b26b51658f595a4ca5af100ee91b675e33b2a934e72af20942f8a5e03a1c",
-            ("a133-open-7x", "release"): "f76edc038772458c622499dfc2aad408ef402a022750e7b899a1e389b756264b",
-            ("a133-owned", "dev"): "d66bb5718c7974983fd1f971868cc35c9d329ed1b6cb7267a98d7830b27b7dc4",
-            ("a133-owned", "release"): "61567ba08f65a6dc6605af755b6cb473eaa56b0a62043e6bd21a35b342365dcf",
-            ("a523", "dev"): "a7dd965317cab6f56b869c3fd491841cf998b7903f592bf8d1fcaca0ff755c6d",
-            ("a523", "release"): "be2470759b6aea9acf112837f81ca40b559ba84006eeae511a38b992e60f36b1",
-            ("sdm845", "dev"): "7807a3f3c50b0aa8748b99b1233a4867a8ff67260e1f0bd0f5c10423e147701c",
-            ("sdm845", "release"): "2e88910b2ffcf94dc4aff43c957c528c4cc0f0093c78a2054312a7d7d3c735a9",
+            ("a133", "dev"): "df9f1f8645f3e00f704eff6bcb8b2dbc7151336bcaf75489cf990b4963d61c0e",
+            ("a133", "release"): "8eef74a5ffb58273e7e693bd238abb9bb4034c3bf78fc69c344dc9a9f5624476",
+            ("a133-open-7x", "dev"): "52437a3043310cc841f5506ca63ae67bcaabf8353c6f9fdb91422a281414772c",
+            ("a133-open-7x", "release"): "695abddd35548877ffe4d9fbedd9c7de3e01200e5a5647eb6b7dc3f5eb93dca7",
+            ("a133-owned", "dev"): "db20e4cce8f9b54729ba564bb7b78371f3bfe65ac9832161f630ceca4604bce4",
+            ("a133-owned", "release"): "795850b9cdf21ead9136a390e2565a2d81b8381f33efa70343e5a741e96e3cf6",
+            ("a523", "dev"): "463a9738afd822058aa418299e0975f44af02674f022ab034467636cb980376a",
+            ("a523", "release"): "0205fc331171303b9ce3a72a489cec1a622bd8d782616b9d7b73c519bbad5899",
+            ("sdm845", "dev"): "0009ed2b24e2f88b09a55d71ec68cc9b4c1f74e4c13ba7590eb9290cc3d82af9",
+            ("sdm845", "release"): "92ba78756fcd1cea3ebb444cadaddccd5721040ff56c7f4a89cd04a5e7a2ce7c",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -808,7 +810,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "c8151d294065bb206fa91542cc0398731521bb42",
+                "PF_IMAGE_SHA": "84cdaa647b66e1c373d2b4e1cc4f26a443e508f8",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
