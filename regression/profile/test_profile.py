@@ -509,17 +509,19 @@ class ProfileTest(unittest.TestCase):
         # deterministic systemd-resolved stub inside the Steam Link root.
         # Kernel#134 advances only PF_KERNEL_SHA/PF_GPU_KM_SHA on Linux7 rows
         # for sequenced ADC channel enable and complete channel-field sanitization.
+        # Steam Link R8 advances only PF_IMAGE_SHA on every row for image#358's
+        # fail-closed canonical Valve archive URL pointer parsing.
         expected = {
-            ("a133", "dev"): "d59c7d69f5544905465a28a00f423ec3e9a3cb200c0fb05939d5dfbbeddaa0da",
-            ("a133", "release"): "6a25aaaad42165d9b3cf37f066793912346047732a0abf06ca0d93fd9ebae3a6",
-            ("a133-open-7x", "dev"): "67db1ac2222d267387d7deceb9245a48f8a389ee2c67cd50774a41150f47c5aa",
-            ("a133-open-7x", "release"): "ae5886a7e3b4d5d19a29ec3afcc41e2543f08d3c7c6d969ae847518317199a55",
-            ("a133-owned", "dev"): "dbb55070bd847d4229000d5d3675be418832c1aa9ee4774d27fd23c4907a9a2d",
-            ("a133-owned", "release"): "9e1def7402127f6c43e68bc66e7bc8de4152a732e7cfa835288b6c93f641a283",
-            ("a523", "dev"): "aa9ea00d54f19111b4f8c54c8aa65fb18a3c9a67af2bc88107b86fc389daadd7",
-            ("a523", "release"): "78dcb12f55bbf03ded10c2bc5b8ddff4f9d4204eebf5ada91c07500888eb171a",
-            ("sdm845", "dev"): "534f5b031e3310a009c93a2c0def574586035e272b3c54aacc9538b4ea5ec708",
-            ("sdm845", "release"): "d5f1b31b63638006c2360b357d84d1ad000fa3446bd9ccad173108b7c3a80562",
+            ("a133", "dev"): "84f532c8305f9469262a7d6c70a1b9aade043bf8111146f1185e53580be34f26",
+            ("a133", "release"): "ce39cf53cc2d55d03d7d50563c227f5d80ab53e8359e363f0d8e2569dc5ef54a",
+            ("a133-open-7x", "dev"): "cc4eb2d3c24d87a4176973977e00b7f35ff4545a9c049e176dc878dcc0a4723e",
+            ("a133-open-7x", "release"): "fe2acfbdb6cb4eb5e053cebb3ba1c7cd612875a6ebe69c5201542d7f376153a8",
+            ("a133-owned", "dev"): "a1f76cf8a58ac6490588de471f48d0ebfcde528b6872bfb35170b93796cb126a",
+            ("a133-owned", "release"): "8134a65cc59330b6102a070019de8afd71ce15b5421b4017ac62e30f31f066db",
+            ("a523", "dev"): "432940d6e8764083f96bba83e76234602b1945e692a0a51035f746e498e2d161",
+            ("a523", "release"): "211ea9ef3be978392028f7ccd8845087999cfb549dca6d1c0eea6dbb6c7792e5",
+            ("sdm845", "dev"): "d0834c677034b3c012aebf29176b21f778bacf2bcaf7f1d5c50f7744a2bfd6d4",
+            ("sdm845", "release"): "6d2ffda31933c5c513f0d4efc3b69165c8df9344001aa4705ee257071c0e20c4",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -802,7 +804,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "83f78fddf7f50cbe0e0808982f8f8aac3d250fd5",
+                "PF_IMAGE_SHA": "b86d1d8461767c7d583ea74a6bedef52c235cf6d",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
