@@ -14,7 +14,7 @@ spec.loader.exec_module(profile)
 
 SELECTED = "a133-open-7x-gpu"
 UAPI_SHA = "3010de56dbd1057513c035fff8623f80596fe9e8"
-KERNEL_SHA = "cc0ddc3bfeaed9298f95d48bbc97e39313b328bb"
+KERNEL_SHA = "3c5017a53627d38e34fa4d0c0c77b9e1e932bb2b"
 EXPECTED_ARGS = {
     "PF_STEAMLINK_FFMPEG59_MODE": "v1",
     "PF_FFMPEG_DEBIAN_VERSION": "7:5.1.8-0+deb12u1",
@@ -37,8 +37,8 @@ class PlatformRuntimeTest(unittest.TestCase):
         self.assertEqual(runtime["source_repo"], "kernel-sunxi-7.x")
         self.assertEqual(runtime["source_sha"], UAPI_SHA)
         self.assertEqual(lock["repos"][runtime["source_repo"]]["sha"], KERNEL_SHA)
-        # Kernel#134's A133 ADC sequencing/channel-field changes and Build60's mic/MMC
-        # trace changes leave both exported UAPI trees unchanged.
+        # Kernel#135's capture FIFO restart, #134's ADC sequencing/channel-field
+        # changes, and Build60's mic/MMC trace changes leave both exported UAPI trees unchanged.
         # Keep image#283's authenticated producer receipt exact.
         self.assertNotEqual(runtime["source_sha"], KERNEL_SHA)
 
