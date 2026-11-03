@@ -813,7 +813,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # with a sealed Valve keyring verified by gpgv.
                        # tsp-mc9m.60.29.62.10: image#361 gives the strict physical GPU
                        # probe collector enough time for its internal Vulkan fence wait.
-sha  = "84cdaa647b66e1c373d2b4e1cc4f26a443e508f8"
+                       # tsp-mc9m.60.29.61.13: image#362 removes the persisted
+                       # build-network resolver backup from the owned image rootfs.
+sha  = "6ef78760433bdec3bb22a959c65eac7bcd3bcdc7"
 
 [[repos]]
 name = "pf-cursor-theme"

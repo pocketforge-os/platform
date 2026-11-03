@@ -517,17 +517,19 @@ class ProfileTest(unittest.TestCase):
         # keyring verification through gpgv.
         # Image#361 advances only PF_IMAGE_SHA on every row for the repaired
         # strict physical GPU collector budget.
+        # Image#362 advances only PF_IMAGE_SHA on every row to remove the
+        # persisted build-network resolver backup from the owned rootfs.
         expected = {
-            ("a133", "dev"): "df9f1f8645f3e00f704eff6bcb8b2dbc7151336bcaf75489cf990b4963d61c0e",
-            ("a133", "release"): "8eef74a5ffb58273e7e693bd238abb9bb4034c3bf78fc69c344dc9a9f5624476",
-            ("a133-open-7x", "dev"): "52437a3043310cc841f5506ca63ae67bcaabf8353c6f9fdb91422a281414772c",
-            ("a133-open-7x", "release"): "695abddd35548877ffe4d9fbedd9c7de3e01200e5a5647eb6b7dc3f5eb93dca7",
-            ("a133-owned", "dev"): "db20e4cce8f9b54729ba564bb7b78371f3bfe65ac9832161f630ceca4604bce4",
-            ("a133-owned", "release"): "795850b9cdf21ead9136a390e2565a2d81b8381f33efa70343e5a741e96e3cf6",
-            ("a523", "dev"): "463a9738afd822058aa418299e0975f44af02674f022ab034467636cb980376a",
-            ("a523", "release"): "0205fc331171303b9ce3a72a489cec1a622bd8d782616b9d7b73c519bbad5899",
-            ("sdm845", "dev"): "0009ed2b24e2f88b09a55d71ec68cc9b4c1f74e4c13ba7590eb9290cc3d82af9",
-            ("sdm845", "release"): "92ba78756fcd1cea3ebb444cadaddccd5721040ff56c7f4a89cd04a5e7a2ce7c",
+            ("a133", "dev"): "87cb1bb5827af8a5ab96e177f71c1401e51640cdc5c02c39a5b7e60e8ae16caa",
+            ("a133", "release"): "c28293f204d159a1624319de9373121177a3f165452995e2c6fcffededa5a022",
+            ("a133-open-7x", "dev"): "a7ea8832c9d27af84c11cbb723ace72725d1a59f0898730324546e383d1e9896",
+            ("a133-open-7x", "release"): "15128d01353bd037e4d0b5a285006b3d6b854a5d14452603a5e151e63554e711",
+            ("a133-owned", "dev"): "a70ec35e82145dda157e96108ca2375b763f064c523a9279a5d75ceedc8ae079",
+            ("a133-owned", "release"): "d030fd4ae4d5498de14f06f322151a2e22d323b9e0e3c377702365b192940141",
+            ("a523", "dev"): "4f83d7be7fea624b801d6089f93b075ab2af9a1b063317567ee327e3346715f2",
+            ("a523", "release"): "4bfff8a9ef96a36aabd667295c2dc1401eb81444a09fa171705edce14e0ae5e8",
+            ("sdm845", "dev"): "e969ad5912df09a4feee1e9bd48f1f83310163b4e1be9d28d640d334155b8e79",
+            ("sdm845", "release"): "72ee774fd5b9a19d09f86f8764f2b2a6c8782c8de679ac74b032c28580b09cb3",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -810,7 +812,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "84cdaa647b66e1c373d2b4e1cc4f26a443e508f8",
+                "PF_IMAGE_SHA": "6ef78760433bdec3bb22a959c65eac7bcd3bcdc7",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
