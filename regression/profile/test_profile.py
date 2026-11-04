@@ -521,17 +521,19 @@ class ProfileTest(unittest.TestCase):
         # strict physical GPU collector budget.
         # Image#362 advances only PF_IMAGE_SHA on every row to remove the
         # persisted build-network resolver backup from the owned rootfs.
+        # Image#363 advances only PF_IMAGE_SHA on every row for the verified
+        # fetched Steam Link executable aliases.
         expected = {
-            ("a133", "dev"): "87cb1bb5827af8a5ab96e177f71c1401e51640cdc5c02c39a5b7e60e8ae16caa",
-            ("a133", "release"): "c28293f204d159a1624319de9373121177a3f165452995e2c6fcffededa5a022",
-            ("a133-open-7x", "dev"): "852882b18f26aed4b40e138e30b715eee4b1bb1e112fe31c019ab0e963ffe451",
-            ("a133-open-7x", "release"): "3d7ab6dcbf6278bae5f7e223096778a3c5c745652533d4b861d9acdb45cd0d54",
-            ("a133-owned", "dev"): "a70ec35e82145dda157e96108ca2375b763f064c523a9279a5d75ceedc8ae079",
-            ("a133-owned", "release"): "d030fd4ae4d5498de14f06f322151a2e22d323b9e0e3c377702365b192940141",
-            ("a523", "dev"): "4f83d7be7fea624b801d6089f93b075ab2af9a1b063317567ee327e3346715f2",
-            ("a523", "release"): "4bfff8a9ef96a36aabd667295c2dc1401eb81444a09fa171705edce14e0ae5e8",
-            ("sdm845", "dev"): "e969ad5912df09a4feee1e9bd48f1f83310163b4e1be9d28d640d334155b8e79",
-            ("sdm845", "release"): "72ee774fd5b9a19d09f86f8764f2b2a6c8782c8de679ac74b032c28580b09cb3",
+            ("a133", "dev"): "7bed551fdb999c485615a573dbfe16fe82ffa221154c8495a8553708d3f09d59",
+            ("a133", "release"): "07b3deede1d16c4254e2127c0ee943b3c010c9379711740ff7bd02cd2b0c59f6",
+            ("a133-open-7x", "dev"): "b931b6a3808d50e25c629c9a5e6a446fe581a0b36bfa3de459be88d7e9011c30",
+            ("a133-open-7x", "release"): "4fb337560e35cd77cab5d62f0c28f4adc21d4d1517dff9466531425bac414915",
+            ("a133-owned", "dev"): "849fc4d94a9c05a0b513a2ea9255cfe2c805648d7ad9b7f0b8bafca0026a171d",
+            ("a133-owned", "release"): "accfbf32fddf5df603d89fa2fadd95c7f2bb8084e5a7b1e2a33d12a321c6c765",
+            ("a523", "dev"): "e291df1150f5c3ba45562a71e226460fd1dda43f367199a2247efb687601f53b",
+            ("a523", "release"): "94fd96297c90e0e5355fd21d99d32d9a3e91767116c4ecfe526b61b9ca2aadeb",
+            ("sdm845", "dev"): "279feca7a15adb42a6aa0b99b38007e1e3701601a4eb361c3facdd2f9a248b93",
+            ("sdm845", "release"): "8267f04943575d60f87d1960f2dd9483847f7008831b45b46952dbb352d91658",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -814,7 +816,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "6ef78760433bdec3bb22a959c65eac7bcd3bcdc7",
+                "PF_IMAGE_SHA": "cb07f44a242cba3014fe2981f601ba94d26fc9c0",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
