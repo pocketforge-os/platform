@@ -815,7 +815,7 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # probe collector enough time for its internal Vulkan fence wait.
                        # tsp-mc9m.60.29.61.13: image#362 removes the persisted
                        # build-network resolver backup from the owned image rootfs.
-sha  = "6ef78760433bdec3bb22a959c65eac7bcd3bcdc7"
+sha  = "cb07f44a242cba3014fe2981f601ba94d26fc9c0"
 
 [[repos]]
 name = "pf-cursor-theme"
