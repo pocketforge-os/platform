@@ -154,8 +154,9 @@ class Open7NoradioProfileTest(unittest.TestCase):
         )
         self.assertIn(
             f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; it remains equal to the "
-            "canonical pin through kernel#137's gpio-vibra rumble intensity; it is not "
-            "yet build- or device-verified. Kernel#136 kept it equal through the sunxi "
+            "canonical pin through kernel#141's A133 TSP mic route direction; it is not "
+            "yet build- or device-verified. Kernel#137 kept it equal through the gpio-vibra "
+            "rumble intensity; kernel#136 kept it equal through the sunxi "
             "watchdog suspend repair; kernel#135 kept it equal through the capture "
             "FIFO restart repair; Build61 kept it equal "
             "through the CPU PLL and MMC recovery changes; Build60 kept it equal through "
