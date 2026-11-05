@@ -523,11 +523,13 @@ class ProfileTest(unittest.TestCase):
         # persisted build-network resolver backup from the owned rootfs.
         # Image#363 advances only PF_IMAGE_SHA on every row for the verified
         # fetched Steam Link executable aliases.
+        # Kernel#137 advances only the Linux7 kernel/GPU-KM pins for gpio-vibra
+        # rumble intensity on the a133-open-7x rows.
         expected = {
             ("a133", "dev"): "7bed551fdb999c485615a573dbfe16fe82ffa221154c8495a8553708d3f09d59",
             ("a133", "release"): "07b3deede1d16c4254e2127c0ee943b3c010c9379711740ff7bd02cd2b0c59f6",
-            ("a133-open-7x", "dev"): "b931b6a3808d50e25c629c9a5e6a446fe581a0b36bfa3de459be88d7e9011c30",
-            ("a133-open-7x", "release"): "4fb337560e35cd77cab5d62f0c28f4adc21d4d1517dff9466531425bac414915",
+            ("a133-open-7x", "dev"): "5c2f1bfca6f3c2333dc4bae8ec13ba1a6ce82504f8bd44415f03b3dc0f9ae574",
+            ("a133-open-7x", "release"): "f713da5c3385b51fa9140f2d5d0750a0f1c07e3e3a5c082e10796f5eb745f651",
             ("a133-owned", "dev"): "849fc4d94a9c05a0b513a2ea9255cfe2c805648d7ad9b7f0b8bafca0026a171d",
             ("a133-owned", "release"): "accfbf32fddf5df603d89fa2fadd95c7f2bb8084e5a7b1e2a33d12a321c6c765",
             ("a523", "dev"): "e291df1150f5c3ba45562a71e226460fd1dda43f367199a2247efb687601f53b",
@@ -784,7 +786,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "957926f416a263dde20789214a80be7c01419e24")
+        self.assertEqual(args["PF_KERNEL_SHA"], "ee8b98cd7a045baddd8a1007d5dda2d38e3763f4")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -801,7 +803,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "957926f416a263dde20789214a80be7c01419e24")
+        self.assertEqual(args["PF_KERNEL_SHA"], "ee8b98cd7a045baddd8a1007d5dda2d38e3763f4")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
