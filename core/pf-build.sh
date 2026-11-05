@@ -571,6 +571,25 @@ pf_stage_only_sources() {
     fi
 }
 
+# pf_apt_cache_buildargs — the build args that route apt through the transport cache
+# (tsp-hqm1p.135). One NAME=VALUE per line; nothing when PF_APT_PROXY is unset/empty, so a
+# direct build's argv is unchanged.
+#
+# Before this only `PF_APT_PROXY` was handed over, and only the rootfs stage declared an ARG
+# for it; every other apt-running stage (wpa, sdl, cloud-init, gpu-um-build, steamlink
+# ffmpeg59, debuginfo, ...) went straight to snapshot.debian.org and failed whenever that
+# was down. `http_proxy` is BuildKit's PREDEFINED proxy build-arg: it reaches every RUN
+# without an ARG line, is excluded from the layer cache key and from `docker history`, and
+# apt honours it. The Dockerfile's sanitising SHELL wrapper admits exactly that one name
+# (image/build/Dockerfile.pf). Deliberately NOT https_proxy: the https fetches (rustup,
+# crates, pip, ffmpeg source) stay direct. PF_APT_PROXY is kept for the stages that still
+# read it (the injected Gamescope dependency stage). Transport only: apt verifies every
+# .deb against the signed snapshot index, so no output byte can change.
+pf_apt_cache_buildargs() {
+    [ -n "${PF_APT_PROXY:-}" ] || return 0
+    printf 'PF_APT_PROXY=%s\nhttp_proxy=%s\n' "$PF_APT_PROXY" "$PF_APT_PROXY"
+}
+
 pf_os_image_dockerbuild() {
     # Lock-pinned build-arg surface (the ONE place that reads profile+lock).
     local ba; ba="$("$PF_PY" "$PF_PLATFORM_DIR/core/profile.py" buildargs "$DEVICE" "$VARIANT")" \
@@ -717,6 +736,7 @@ pf_os_image_dockerbuild() {
     local build_stage_target="${PF_BUILD_STAGE_TARGET:-export}"
     build_stage_target="$(pf_validate_build_stage_target "$build_stage_target")"
 
+    local line
     local -a cmd=( docker buildx build
         --builder "$builder"
         --allow security.insecure
@@ -743,8 +763,11 @@ pf_os_image_dockerbuild() {
     # Optional transparent apt cache proxy (e.g. the NAS apt-cacher-ng at http://10.0.32.86:3142).
     # Fetch transport only — apt verifies every .deb vs the signed snapshot index, so it never
     # changes output bytes (R1 / G-reproducible safe). Opt-in via the PF_APT_PROXY env; a CI host
-    # points it at its own cache (or leaves it unset for direct snapshot).
-    [ -n "${PF_APT_PROXY:-}" ] && cmd+=( --build-arg "PF_APT_PROXY=$PF_APT_PROXY" )
+    # points it at its own cache (or leaves it unset for direct snapshot). See
+    # pf_apt_cache_buildargs: the cache reaches EVERY apt-running stage, not only rootfs.
+    while IFS= read -r line; do
+        [ -z "$line" ] || cmd+=( --build-arg "$line" )
+    done < <(pf_apt_cache_buildargs)
     # Hermetic blob-fetch (B3 / tsp-1dl.3): PF_FETCH_MODE=fallback selects the git-clone-blobs path
     # (merge-1 safety); default hermetic (the FETCH stage's ARG default). PF_CAR_SHA256 is the
     # vendor-originals.car rot-detection gate (hermetic only) — from platform.lock [car].sha256
@@ -764,7 +787,6 @@ pf_os_image_dockerbuild() {
         cmd+=( --secret "id=wifi,src=$PF_WIFI_SECRET_FILE"
                --build-arg "PF_WIFI_SHA=$(sha256sum "$PF_WIFI_SECRET_FILE" | cut -d' ' -f1)" )
     fi
-    local line
     while IFS= read -r line; do
         case "$line" in PF_LOCK_STATE=*|PF_LOCK_MISSING_SHAS=*|"") continue ;; esac
         cmd+=( --build-arg "$line" )

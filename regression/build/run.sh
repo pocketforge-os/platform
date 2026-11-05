@@ -44,3 +44,6 @@ bash "$HERE/producer-staging-lifecycle-test.sh"
 
 echo "### insecure builder config self-heal (tsp-mc9m.41.984.20) ###"
 bash "$HERE/insecure-builder-config-test.sh"
+
+echo "### apt cache reaches every apt-running stage (tsp-hqm1p.135) ###"
+bash "$HERE/apt-cache-transport-test.sh"
