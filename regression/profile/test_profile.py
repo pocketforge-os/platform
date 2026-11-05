@@ -525,19 +525,21 @@ class ProfileTest(unittest.TestCase):
         # fetched Steam Link executable aliases.
         # Image#364 advances only PF_IMAGE_SHA on every row to seed libepoxy
         # in the platform runtime.
+        # Image#365 advances only PF_IMAGE_SHA on every row to seed the full
+        # Steam Link 1.4.5.327 NEEDED closure (libmd4c etc.).
         # Kernel#137 advances only the Linux7 kernel/GPU-KM pins for gpio-vibra
         # rumble intensity on the a133-open-7x rows.
         expected = {
-            ("a133", "dev"): "33dda0825681541e31e2f89e5bb49e5d58b3921bfd75ae42710ca1ebbcff0039",
-            ("a133", "release"): "322c36850b2c662dc0d66c083ec1c2adcdd41d98304cf6acb802c1dd01eab13c",
-            ("a133-open-7x", "dev"): "bff6da128322f5863f32dc129d6eb2e8f8dc29f94349891cb16267165d8cde44",
-            ("a133-open-7x", "release"): "a04e4e65cb49f56abf4cf14da393042656f15675f4935d73f915edcf2f8452df",
-            ("a133-owned", "dev"): "d908bd7916fdc68260759d64241c143bf4ad67e77481ff8384e521bff473786a",
-            ("a133-owned", "release"): "08969746f66419d5579c3a07bb36b08096b0fc5079a2a66e66cb21c587300dae",
-            ("a523", "dev"): "6e16bd6eacde310e1828c6d652aab8f9b80887e46f49821eac997c5f0a3d3b34",
-            ("a523", "release"): "42bdd4fae591aa2559e35ba74ae13bc73a1eb7a1ec8d0ce09127051d733c8464",
-            ("sdm845", "dev"): "2e9c0b7e6a83e009ced785c8660fb6550f18c4095cd251b30e4dece4f339a222",
-            ("sdm845", "release"): "3db844f47fb79c89a7d0f4b8d674d0ad1af84e5995ddb77a1353c599023de3f2",
+            ("a133", "dev"): "81b32138626bc3306d2c44ea217250acc20668a42fe542fa4b7ecdb2248b7c9f",
+            ("a133", "release"): "e858a7e569db12259b19eb7de894745c226be43554d22e1fc20eed6be6e46b19",
+            ("a133-open-7x", "dev"): "4ae1dfc55f451b579d51161f5b927238e2d4115c706ab1cab549450d7607de9e",
+            ("a133-open-7x", "release"): "b2e2c52dc4d8c908766cb9220dffe179a207436a385d0f0cbbf460cd5e5e3969",
+            ("a133-owned", "dev"): "777f0b9aa4f2d5562a3b25d11e689eb027641d3472da40b6983c886dbce8ba2e",
+            ("a133-owned", "release"): "2b94809b1cb550f6323c1b0b32124afe8848b832988620ce8bc4de8e26c84637",
+            ("a523", "dev"): "e37c6f968d26b5e21eddcec4df0d6f13c4dd9ff6bb8f0212daea55075f2f57bb",
+            ("a523", "release"): "fb065316002645445bbce44eed50da141932adb9ff6575a966fe006ff696c288",
+            ("sdm845", "dev"): "c8e5c5639bdc285595e87bced50d0ed578602b932b2b5cf58d65ccb5e8e765c8",
+            ("sdm845", "release"): "f5073490d6fd1a17e47532354652fc0a8086176135e8af57326070b6ebd543f8",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -820,7 +822,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "59361a67fa000fb00c74ed901885fd55a124f825",
+                "PF_IMAGE_SHA": "a6157df1cce53e6ecaf7aab7dcbd415be8904cfa",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

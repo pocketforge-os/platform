@@ -819,7 +819,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # build-network resolver backup from the owned image rootfs.
                        # tsp-mc9m.60.29.61.15: image#363 carries the Steam Link
                        # executable-alias repair for verified fetched executables.
-sha  = "59361a67fa000fb00c74ed901885fd55a124f825"
+                       # tsp-mc9m.60.29.61.16: image#365 seeds the full Steam Link
+                       # 1.4.5.327 NEEDED closure (libmd4c etc.).
+sha  = "a6157df1cce53e6ecaf7aab7dcbd415be8904cfa"
 
 [[repos]]
 name = "pf-cursor-theme"
