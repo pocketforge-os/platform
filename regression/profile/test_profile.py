@@ -523,19 +523,21 @@ class ProfileTest(unittest.TestCase):
         # persisted build-network resolver backup from the owned rootfs.
         # Image#363 advances only PF_IMAGE_SHA on every row for the verified
         # fetched Steam Link executable aliases.
+        # Image#364 advances only PF_IMAGE_SHA on every row to seed libepoxy
+        # in the platform runtime.
         # Kernel#137 advances only the Linux7 kernel/GPU-KM pins for gpio-vibra
         # rumble intensity on the a133-open-7x rows.
         expected = {
-            ("a133", "dev"): "7bed551fdb999c485615a573dbfe16fe82ffa221154c8495a8553708d3f09d59",
-            ("a133", "release"): "07b3deede1d16c4254e2127c0ee943b3c010c9379711740ff7bd02cd2b0c59f6",
-            ("a133-open-7x", "dev"): "5c2f1bfca6f3c2333dc4bae8ec13ba1a6ce82504f8bd44415f03b3dc0f9ae574",
-            ("a133-open-7x", "release"): "f713da5c3385b51fa9140f2d5d0750a0f1c07e3e3a5c082e10796f5eb745f651",
-            ("a133-owned", "dev"): "849fc4d94a9c05a0b513a2ea9255cfe2c805648d7ad9b7f0b8bafca0026a171d",
-            ("a133-owned", "release"): "accfbf32fddf5df603d89fa2fadd95c7f2bb8084e5a7b1e2a33d12a321c6c765",
-            ("a523", "dev"): "e291df1150f5c3ba45562a71e226460fd1dda43f367199a2247efb687601f53b",
-            ("a523", "release"): "94fd96297c90e0e5355fd21d99d32d9a3e91767116c4ecfe526b61b9ca2aadeb",
-            ("sdm845", "dev"): "279feca7a15adb42a6aa0b99b38007e1e3701601a4eb361c3facdd2f9a248b93",
-            ("sdm845", "release"): "8267f04943575d60f87d1960f2dd9483847f7008831b45b46952dbb352d91658",
+            ("a133", "dev"): "33dda0825681541e31e2f89e5bb49e5d58b3921bfd75ae42710ca1ebbcff0039",
+            ("a133", "release"): "322c36850b2c662dc0d66c083ec1c2adcdd41d98304cf6acb802c1dd01eab13c",
+            ("a133-open-7x", "dev"): "bff6da128322f5863f32dc129d6eb2e8f8dc29f94349891cb16267165d8cde44",
+            ("a133-open-7x", "release"): "a04e4e65cb49f56abf4cf14da393042656f15675f4935d73f915edcf2f8452df",
+            ("a133-owned", "dev"): "d908bd7916fdc68260759d64241c143bf4ad67e77481ff8384e521bff473786a",
+            ("a133-owned", "release"): "08969746f66419d5579c3a07bb36b08096b0fc5079a2a66e66cb21c587300dae",
+            ("a523", "dev"): "6e16bd6eacde310e1828c6d652aab8f9b80887e46f49821eac997c5f0a3d3b34",
+            ("a523", "release"): "42bdd4fae591aa2559e35ba74ae13bc73a1eb7a1ec8d0ce09127051d733c8464",
+            ("sdm845", "dev"): "2e9c0b7e6a83e009ced785c8660fb6550f18c4095cd251b30e4dece4f339a222",
+            ("sdm845", "release"): "3db844f47fb79c89a7d0f4b8d674d0ad1af84e5995ddb77a1353c599023de3f2",
         }
         for key, digest in expected.items():
             dev_id, variant = key
