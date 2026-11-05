@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "ee8b98cd7a045baddd8a1007d5dda2d38e3763f4"
+NORMAL_KERNEL_SHA = "cc576449c3453cf57d24d54c365e8622d5637aba"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -40,7 +40,7 @@ NORMAL_KERNEL_SHA = "ee8b98cd7a045baddd8a1007d5dda2d38e3763f4"
 # DSI HS clock after panel enable, and #126 retains panel power across ACTIVE=0.
 # Kernel#136 keeps them equal through the sunxi watchdog suspend repair, preserving
 # firmware-started state and restarting active or hardware-running watchdogs on resume.
-NORADIO_KERNEL_SHA = "ee8b98cd7a045baddd8a1007d5dda2d38e3763f4"
+NORADIO_KERNEL_SHA = "cc576449c3453cf57d24d54c365e8622d5637aba"
 NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
 
 
@@ -154,8 +154,9 @@ class Open7NoradioProfileTest(unittest.TestCase):
         )
         self.assertIn(
             f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; it remains equal to the "
-            "canonical pin through kernel#137's gpio-vibra rumble intensity; it is not "
-            "yet build- or device-verified. Kernel#136 kept it equal through the sunxi "
+            "canonical pin through kernel#141's A133 TSP mic route direction; it is not "
+            "yet build- or device-verified. Kernel#137 kept it equal through the gpio-vibra "
+            "rumble intensity; kernel#136 kept it equal through the sunxi "
             "watchdog suspend repair; kernel#135 kept it equal through the capture "
             "FIFO restart repair; Build61 kept it equal "
             "through the CPU PLL and MMC recovery changes; Build60 kept it equal through "
