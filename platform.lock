@@ -186,8 +186,10 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # static-key-gated MMC recovery trace candidate.
 # kernel-sunxi-7.x#136 keeps both equal while preserving firmware-started watchdog
 # state and stopping/restarting active or hardware-running watchdogs across suspend.
+# tsp-mc9m.41.923.5.3 keeps both equal through kernel-sunxi-7.x#137's gpio-vibra
+# variable rumble intensity (hrtimer duty on PH3, suspend-race fix, KUnit in CI).
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "957926f416a263dde20789214a80be7c01419e24"
+kernel = "ee8b98cd7a045baddd8a1007d5dda2d38e3763f4"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -1293,7 +1295,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "957926f416a263dde20789214a80be7c01419e24"
+sha  = "ee8b98cd7a045baddd8a1007d5dda2d38e3763f4"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
