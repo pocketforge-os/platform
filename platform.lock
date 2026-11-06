@@ -828,7 +828,10 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # tsp-hqm1p.143: image#367 patches apt (CVE-2026-109518) in the
                        # build bases and rootfs, uses https on internet legs, keeps the
                        # LAN NAS-cache hop on http, and bounds the ime-bus-security apt step.
-sha  = "4632029b69e65b1073f2fc441bb66c667ae35211"
+                       # tsp-hqm1p.143: image#368 makes the gpu-um and poolsuite toolchains
+                       # take their apt scheme from http_proxy (http through the cache,
+                       # https direct), fixing the unconditional https of image#367.
+sha  = "189b450d64cde9688933a040c68bd69d58b15e82"
 
 [[repos]]
 name = "pf-cursor-theme"
