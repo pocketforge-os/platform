@@ -839,7 +839,10 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # errors in the steamlink-ffmpeg59 fetch_one.
                        # tsp-hqm1p.155: image#370 defaults the A133 Headphone Playback
                        # Volume to 7, paired with kernel-sunxi-7.x#144's inverted TLV.
-sha  = "adff4ab76d27e61945a32b63a222ab5d79e5753c"
+                       # tsp-hqm1p.143: image#371 makes the app-root and A523 rootfs
+                       # builders take their apt scheme from http_proxy (AC5 run
+                       # 42215946514 root cause), completing the image#368 scheme fix.
+sha  = "2e8663b215ffea6d7428799ab21513e9030f959f"
 
 [[repos]]
 name = "pf-cursor-theme"

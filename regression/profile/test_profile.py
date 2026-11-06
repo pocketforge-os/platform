@@ -543,17 +543,19 @@ class ProfileTest(unittest.TestCase):
         # kernel#142/#143/#144 (DSI detach guard, hci_xradio KUnit clock, inverted
         # headphone TLV) advance only PF_KERNEL_SHA on the a133-open-7x rows;
         # tsp-hqm1p.155 verified this by diffing the old and new payloads.
+        # Image#371 advances only PF_IMAGE_SHA on every row so the app-root and A523
+        # rootfs builders take their apt scheme from http_proxy.
         expected = {
-            ("a133", "dev"): "3ca11cca2d96154e48c5c23302d6747ac9c0bee0293e1e067e6213802b5216b2",
-            ("a133", "release"): "92aa8cea457ee475ddbe6b9da5a8c9fde7b76e6ff3e081b955da32b6996f9dd4",
-            ("a133-open-7x", "dev"): "76c51c4993016a9f119ffdd0d182518df06e26b016b222c25f11de79c828fc45",
-            ("a133-open-7x", "release"): "2c0bebf71f98d8526c67792eafe570d43b21f52f07d8b92a81eafa05abdfcc6a",
-            ("a133-owned", "dev"): "1dde6308b35f5d1bbff6d86f4d0ffa597555779600c58746978a3d3f3504c510",
-            ("a133-owned", "release"): "17d15322be890ebcc8b597861c9bf22fa69a72f254788ad56119c44a7664064d",
-            ("a523", "dev"): "9923da42140e8d7f0c72adbe3b03fdc82f9130c812edd0d2c9227301f2377b67",
-            ("a523", "release"): "734da13f603e08f612c38d18fdc5be887af4df1caaf22c97bce8b456e85ac53a",
-            ("sdm845", "dev"): "272739cc9d1cf96fdfb0fcbd522d5171cf32136ea0d822298982edb1e4dcfff4",
-            ("sdm845", "release"): "9a13e20a25b16900e4d05471047c9fc5127e65074429547b01021889efadc80d",
+            ("a133", "dev"): "44dbd24f4103b552c5ea44eca2b9f66946ab9011f295ecb8a2d6d757ec0668ff",
+            ("a133", "release"): "02b7c5bea9f9d72b7bc374dd38b189a6603ca622a0e652e5fbab99c999191455",
+            ("a133-open-7x", "dev"): "406835d233534dbb1e44cd4e9cbf63b7c7f5c070f6daf414c1df0c3621a15315",
+            ("a133-open-7x", "release"): "8cf109ebf39cf90fe3e64cd0c35cc07b5f7baee2b65ea3b3943be4901c484a01",
+            ("a133-owned", "dev"): "e3d9c10b5a836bd13fd2a28f327ef6cb3c93b226b98948bbd9f13fb30ad3c301",
+            ("a133-owned", "release"): "74e0999fadac333c46b8fbf88ae9c659ddce33aab95265d1126a9039b67e58e1",
+            ("a523", "dev"): "9fa90b62ac2d7bfc68ac08152f5c0c59e2926627d956cefe948917ce8898f9fe",
+            ("a523", "release"): "1acadb3781c2136322f856a4b4960ac97c02d4a88a5329b56f2aed774fbf4c9d",
+            ("sdm845", "dev"): "858d6a29611e12552b6b2bdbd6fb907516ed7251efab5bf769e5855a6cbcb858",
+            ("sdm845", "release"): "3e7362a8d045c03a874960dc459338393a226cada5f26ebecd2d515c23c4470b",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -836,7 +838,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "adff4ab76d27e61945a32b63a222ab5d79e5753c",
+                "PF_IMAGE_SHA": "2e8663b215ffea6d7428799ab21513e9030f959f",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
