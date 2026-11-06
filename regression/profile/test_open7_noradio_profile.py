@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "89d4c68dfc150828e5a368361071d62459912a63"
+NORMAL_KERNEL_SHA = "3ee1b219a1b534dbda5f0a186e8038b8913b8cf1"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -40,7 +40,7 @@ NORMAL_KERNEL_SHA = "89d4c68dfc150828e5a368361071d62459912a63"
 # DSI HS clock after panel enable, and #126 retains panel power across ACTIVE=0.
 # Kernel#136 keeps them equal through the sunxi watchdog suspend repair, preserving
 # firmware-started state and restarting active or hardware-running watchdogs on resume.
-NORADIO_KERNEL_SHA = "89d4c68dfc150828e5a368361071d62459912a63"
+NORADIO_KERNEL_SHA = "3ee1b219a1b534dbda5f0a186e8038b8913b8cf1"
 NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
 
 
