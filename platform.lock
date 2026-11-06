@@ -190,8 +190,12 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # variable rumble intensity (hrtimer duty on PH3, suspend-race fix, KUnit in CI).
 # kernel-sunxi-7.x#141 keeps both equal: the A133 TSP DTS routes "MIC1" to "Mic"
 # (sink, source) so MIC1 boost/bias and the Left ADC power up during capture.
+# tsp-hqm1p.155 keeps both equal through kernel-sunxi-7.x#143 (hci_xradio KUnit
+# never_writes uses the injected clock), #142 (sun6i_dsi_detach() guards its hotplug
+# event) and #144 (A133 Headphone Playback Volume inverted with a -42..0 dB TLV).
+# The exported include/uapi (5ccf3d70) and arm64 UAPI (92d8ba17) trees are unchanged.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "cc576449c3453cf57d24d54c365e8622d5637aba"
+kernel = "89d4c68dfc150828e5a368361071d62459912a63"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -831,7 +835,14 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # tsp-hqm1p.143: image#368 makes the gpu-um and poolsuite toolchains
                        # take their apt scheme from http_proxy (http through the cache,
                        # https direct), fixing the unconditional https of image#367.
-sha  = "189b450d64cde9688933a040c68bd69d58b15e82"
+                       # tsp-hqm1p.153: image#369 retries transient snapshot.debian.org
+                       # errors in the steamlink-ffmpeg59 fetch_one.
+                       # tsp-hqm1p.155: image#370 defaults the A133 Headphone Playback
+                       # Volume to 7, paired with kernel-sunxi-7.x#144's inverted TLV.
+                       # tsp-hqm1p.143: image#371 makes the app-root and A523 rootfs
+                       # builders take their apt scheme from http_proxy (AC5 run
+                       # 42215946514 root cause), completing the image#368 scheme fix.
+sha  = "2e8663b215ffea6d7428799ab21513e9030f959f"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1307,7 +1318,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "cc576449c3453cf57d24d54c365e8622d5637aba"
+sha  = "89d4c68dfc150828e5a368361071d62459912a63"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch

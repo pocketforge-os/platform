@@ -538,17 +538,24 @@ class ProfileTest(unittest.TestCase):
         # rumble intensity on the a133-open-7x rows.
         # Kernel#141 advances only the Linux7 kernel/GPU-KM pins for the A133 TSP
         # mic route direction on the a133-open-7x rows.
+        # Image#369/#370 advance only PF_IMAGE_SHA on every row (the Steam Link
+        # FFmpeg fetch retry and the A133 headphone volume default 7), and
+        # kernel#142/#143/#144 (DSI detach guard, hci_xradio KUnit clock, inverted
+        # headphone TLV) advance only PF_KERNEL_SHA on the a133-open-7x rows;
+        # tsp-hqm1p.155 verified this by diffing the old and new payloads.
+        # Image#371 advances only PF_IMAGE_SHA on every row so the app-root and A523
+        # rootfs builders take their apt scheme from http_proxy.
         expected = {
-            ("a133", "dev"): "c1059f1c811c7fe43f1dcf2ace0b7829e3164584ff77baa8d9473fddd4a919e3",
-            ("a133", "release"): "bd3261f5e9ff4e38c3d973343a0d9c102f04e507ac718c83d35d28157315ce1e",
-            ("a133-open-7x", "dev"): "36cac1dc8d7dc0d438af64e4a6e6902da31c2377456b0baac6c0e86b4def5898",
-            ("a133-open-7x", "release"): "923a113ff07430fc9aa9e065908a0c67a57b6b84f3c51c26cef8bc256073375e",
-            ("a133-owned", "dev"): "41ec134cc867fcdb845d53d5f0266c6ea184594b209c4a84ae5d1516d6f50e77",
-            ("a133-owned", "release"): "68ad4f9f96f0f89bb03ca2fca3f2d39305a52896af28facc68e2df977fc5b778",
-            ("a523", "dev"): "a8ec0cc73df79dba49070243b238e52102f0021613fd3682358691bb0fca2cc5",
-            ("a523", "release"): "011060bc709bd7db796429420eb100b91210e7552bdd151a501726b447fa65b1",
-            ("sdm845", "dev"): "f88549a407996ecd6bacb888da1d0f3a484a08d72c700831d91f5738ae86e333",
-            ("sdm845", "release"): "95e636b65edeec55368b93f7c449a870656865f840fda1026ce3b1a4499e4f2f",
+            ("a133", "dev"): "44dbd24f4103b552c5ea44eca2b9f66946ab9011f295ecb8a2d6d757ec0668ff",
+            ("a133", "release"): "02b7c5bea9f9d72b7bc374dd38b189a6603ca622a0e652e5fbab99c999191455",
+            ("a133-open-7x", "dev"): "406835d233534dbb1e44cd4e9cbf63b7c7f5c070f6daf414c1df0c3621a15315",
+            ("a133-open-7x", "release"): "8cf109ebf39cf90fe3e64cd0c35cc07b5f7baee2b65ea3b3943be4901c484a01",
+            ("a133-owned", "dev"): "e3d9c10b5a836bd13fd2a28f327ef6cb3c93b226b98948bbd9f13fb30ad3c301",
+            ("a133-owned", "release"): "74e0999fadac333c46b8fbf88ae9c659ddce33aab95265d1126a9039b67e58e1",
+            ("a523", "dev"): "9fa90b62ac2d7bfc68ac08152f5c0c59e2926627d956cefe948917ce8898f9fe",
+            ("a523", "release"): "1acadb3781c2136322f856a4b4960ac97c02d4a88a5329b56f2aed774fbf4c9d",
+            ("sdm845", "dev"): "858d6a29611e12552b6b2bdbd6fb907516ed7251efab5bf769e5855a6cbcb858",
+            ("sdm845", "release"): "3e7362a8d045c03a874960dc459338393a226cada5f26ebecd2d515c23c4470b",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -799,7 +806,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "cc576449c3453cf57d24d54c365e8622d5637aba")
+        self.assertEqual(args["PF_KERNEL_SHA"], "89d4c68dfc150828e5a368361071d62459912a63")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -816,7 +823,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "cc576449c3453cf57d24d54c365e8622d5637aba")
+        self.assertEqual(args["PF_KERNEL_SHA"], "89d4c68dfc150828e5a368361071d62459912a63")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
@@ -831,7 +838,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "189b450d64cde9688933a040c68bd69d58b15e82",
+                "PF_IMAGE_SHA": "2e8663b215ffea6d7428799ab21513e9030f959f",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
