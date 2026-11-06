@@ -1,5 +1,25 @@
 #!/usr/bin/env bash
 # Bounded named BuildKit entry point for platform's pf-builder-vm CI image.
+#
+# Transport-only apt cache (tsp-hqm1p.138). sim-suite builds sim's image here, and
+# sim pins its apt sources to snapshot.debian.org, whose cold-object 504s fail the
+# job. The NAS apt-cacher-ng (nas/ in pocketforge-automation) fronts the same
+# pinned snapshot: it changes where the bytes come from, never which bytes, and apt
+# still verifies every package against the signed snapshot index. The cache is
+# handed to the build as the Docker-predefined http_proxy build arg, which needs no
+# ARG line and stays out of `docker history` and out of the layer cache key, so the
+# NAS address never lands in a shipped image and a layer is the same through the
+# cache or direct. sim's Dockerfile has no sanitising SHELL or `env -i`, so the
+# arg reaches every apt RUN as is. Contract, ported from pocketforge-automation
+# scripts/pf-ci-buildx prepare_apt_cache (a second copy: platform's CI clones only
+# platform and sim, so it cannot source automation's): probe the cache first, pass
+# http_proxy only when it answers, print `state=used|unreachable`, else build
+# direct. Differences from the automation copy, all because sim is the one
+# consumer: no `# pf-apt-cache: transport-only` marker (a recipe pinning
+# snapshot.debian.org sources is the opt-in), the recipe defaults to
+# <context>/Dockerfile, and the pin may be an `ARG SNAPSHOT_TIMESTAMP=` default
+# behind printf `%s` sources, as sim writes it.
+# PF_CI_APT_CACHE_URL overrides the cache; set empty to build direct.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -9,6 +29,14 @@ LOCK="${PF_CI_BUILDX_LOCK:-${RUNNER_TEMP:-/tmp}/pf-ci-buildx.lock}"
 CONFIG_SOURCE="$ROOT/buildkit/pf-ci-buildkitd.toml"
 CONFIG=
 BUILDER_CLEANUP_NEEDED=0
+APT_CACHE_ARGS=()
+# snapshot.debian.org flickers per object during an outage: the first fetch of a
+# cold object 504s while the backend fills and a later one succeeds. An object
+# must miss this many attempts in a row, this many seconds apart, before the
+# cache is declared unreachable.
+APT_CACHE_PROBE_ATTEMPTS="${PF_CI_APT_CACHE_PROBE_ATTEMPTS:-3}"
+APT_CACHE_PROBE_RETRY_SLEEP="${PF_CI_APT_CACHE_PROBE_RETRY_SLEEP:-10}"
+APT_CACHE_PROBE_MAX_TIME=60
 
 exec 9> "$LOCK"
 flock -n 9 || {
@@ -98,6 +126,159 @@ prepare_config() {
     } >> "$CONFIG"
 }
 
+# The value of the last `--build-arg NAME=VALUE` / `--build-arg=NAME=VALUE`, as
+# docker resolves a repeated one.
+build_arg() {
+    local name="$1" prev='' arg kv value=''
+    shift
+    for arg in "$@"; do
+        kv=''
+        if [ "$prev" = --build-arg ]; then
+            kv="$arg"
+        else
+            case "$arg" in --build-arg=*) kv="${arg#--build-arg=}" ;; esac
+        fi
+        case "$kv" in "$name="*) value="${kv#*=}" ;; esac
+        prev="$arg"
+    done
+    printf '%s\n' "$value"
+}
+
+# The recipe the build reads: --file/-f, else Dockerfile in the build context (the
+# last argument). Prints nothing when there is none to read.
+recipe_path() {
+    local prev='' arg last=''
+    for arg in "$@"; do
+        case "$prev" in
+            --file|-f) printf '%s\n' "$arg"; return ;;
+        esac
+        case "$arg" in
+            --file=*) printf '%s\n' "${arg#--file=}"; return ;;
+        esac
+        prev="$arg"
+        last="$arg"
+    done
+    if [ -n "$last" ] && [ "${last#-}" = "$last" ] && [ -d "$last" ]; then
+        printf '%s/Dockerfile\n' "${last%/}"
+    fi
+}
+
+# Architecture of the build, for the index the probe fetches: the first
+# --platform value, else amd64 (the runners). Anything else is not probed.
+probe_arch() {
+    local prev='' arg platform=''
+    for arg in "$@"; do
+        if [ "$prev" = --platform ]; then platform="$arg"; break; fi
+        case "$arg" in --platform=*) platform="${arg#--platform=}"; break ;; esac
+        prev="$arg"
+    done
+    platform="${platform#linux/}"
+    case "${platform%%/*}" in
+        ''|amd64) printf 'amd64\n' ;;
+        arm64) printf 'arm64\n' ;;
+        *) return 1 ;;
+    esac
+}
+
+# The pinned timestamp behind printf `%s` sources: the SNAPSHOT_TIMESTAMP build
+# arg, else the recipe's `ARG SNAPSHOT_TIMESTAMP=` default. Empty when neither is
+# a snapshot timestamp.
+snapshot_timestamp() {
+    local recipe="$1" ts
+    shift
+    ts="$(build_arg SNAPSHOT_TIMESTAMP "$@")"
+    if [ -z "$ts" ]; then
+        ts="$(sed -nE 's/^ARG[[:space:]]+SNAPSHOT_TIMESTAMP=([0-9]{8}T[0-9]{6}Z)[[:space:]]*$/\1/p' \
+            "$recipe" | head -n 1)"
+    fi
+    if [[ "$ts" =~ ^[0-9]{8}T[0-9]{6}Z$ ]]; then
+        printf '%s\n' "$ts"
+    fi
+}
+
+# What the recipe's pinned snapshot sources need before a build can pass: for
+# every distinct source, the signed InRelease and the first component's binary
+# index. A source is `http://snapshot.debian.org/archive/debian[-security]/<pin>
+# <suite> <component>`, <pin> a literal timestamp or printf's `%s`, and a line may
+# carry several (sim writes three per printf, once per base stage).
+snapshot_probe_urls() {
+    local recipe="$1" arch="$2" ts="$3" base suite component
+    { grep -oE 'http://snapshot\.debian\.org/archive/debian(-security)?/([0-9]{8}T[0-9]{6}Z|%s)/? [a-z][a-z-]* [a-z][a-z-]*' \
+        "$recipe" || true; } | while read -r base suite component; do
+        base="${base%/}"
+        if [ "${base##*/}" = '%s' ]; then
+            [ -n "$ts" ] || continue
+            base="${base%/%s}/$ts"
+        fi
+        printf '%s/dists/%s/InRelease\n' "$base" "$suite"
+        printf '%s/dists/%s/%s/binary-%s/Packages.xz\n' "$base" "$suite" "$component" "$arch"
+    done | awk '!seen[$0]++'
+}
+
+# One probe object through the cache, a miss retried; each fetch fails on an HTTP
+# error and is time-bounded.
+apt_cache_fetch() {
+    local url="$1" object="$2" attempt=1
+    while :; do
+        curl --fail --silent --connect-timeout 5 --max-time "$APT_CACHE_PROBE_MAX_TIME" \
+            --proxy "$url" --output /dev/null "$object" && return 0
+        [ "$attempt" -lt "$APT_CACHE_PROBE_ATTEMPTS" ] || return 1
+        attempt=$((attempt + 1))
+        sleep "$APT_CACHE_PROBE_RETRY_SLEEP"
+    done
+}
+
+# Sets APT_CACHE_ARGS to the build arg that routes the build's apt through the
+# cache, or leaves it empty for a direct build, and prints one
+# `pf_ci_buildx=apt_cache state=...` line:
+#   state=used         the cache served every probe object
+#   state=unreachable  the cache missed one object every attempt; build direct
+#   state=off          disabled, or nothing to probe (no recipe, unsupported
+#                      platform, no pinned snapshot source)
+# A malformed URL is a configuration error and fails closed.
+prepare_apt_cache() {
+    local url="${PF_CI_APT_CACHE_URL-http://10.0.32.86:3142}" recipe arch ts probes probe
+    APT_CACHE_ARGS=()
+    if [ -z "$url" ]; then
+        printf 'pf_ci_buildx=apt_cache state=off reason=disabled\n' >&2
+        return 0
+    fi
+    [[ "$url" =~ ^http://[A-Za-z0-9.-]+:[0-9]+$ ]] || {
+        printf 'pf_ci_buildx=refused reason=apt_cache_url_invalid\n' >&2
+        exit 2
+    }
+    recipe="$(recipe_path "$@")"
+    if [ -z "$recipe" ] || [ ! -f "$recipe" ]; then
+        printf 'pf_ci_buildx=apt_cache state=off reason=no_recipe\n' >&2
+        return 0
+    fi
+    arch="$(probe_arch "$@")" || {
+        printf 'pf_ci_buildx=apt_cache state=off reason=unsupported_platform\n' >&2
+        return 0
+    }
+    ts="$(snapshot_timestamp "$recipe" "$@")"
+    probes="$(snapshot_probe_urls "$recipe" "$arch" "$ts")"
+    if [ -z "$probes" ]; then
+        printf 'pf_ci_buildx=apt_cache state=off reason=no_snapshot_source\n' >&2
+        return 0
+    fi
+    # Fetching each pinned source's InRelease AND its binary index through the
+    # cache proves the whole path (acng, its snapshot router, a reachable index).
+    # InRelease alone is not enough: the live cache served it while answering
+    # 503/504 for every cold Packages object, and apt then spent minutes on
+    # retries. A miss builds direct, exactly as before this existed. A passing
+    # probe also warms the cache for the build that follows.
+    while IFS= read -r probe; do
+        if ! apt_cache_fetch "$url" "$probe"; then
+            printf 'pf_ci_buildx=apt_cache state=unreachable fallback=direct url=%s attempts=%s object=%s\n' \
+                "$url" "$APT_CACHE_PROBE_ATTEMPTS" "${probe#http://snapshot.debian.org/archive/}" >&2
+            return 0
+        fi
+    done <<< "$probes"
+    APT_CACHE_ARGS=(--build-arg "http_proxy=$url")
+    printf 'pf_ci_buildx=apt_cache state=used url=%s\n' "$url" >&2
+}
+
 [ "${1:-}" = build ] || {
     printf 'usage: pf-ci-buildx build BUILDX_ARGS...\n' >&2
     exit 2
@@ -107,6 +288,7 @@ shift
     printf 'pf_ci_buildx=refused reason=build_arguments_missing\n' >&2
     exit 2
 }
+prepare_apt_cache "$@"
 prepare_config
 BUILDER_CLEANUP_NEEDED=1
 if docker buildx inspect "$BUILDER" >/dev/null 2>&1; then
@@ -116,6 +298,16 @@ docker buildx create --name "$BUILDER" --driver docker-container \
     --driver-opt network=host --config "$CONFIG" --bootstrap >/dev/null
 set +e
 docker buildx build --builder "$BUILDER" \
-    --label org.pocketforge.cache-owner=pf-build-ci "$@"
+    --label org.pocketforge.cache-owner=pf-build-ci "${APT_CACHE_ARGS[@]}" "$@"
 rc=$?
+# The probe only proves the pinned indexes; a cold pool object or a dead router can
+# still fail the build behind it. The cache is an optimisation and must never turn
+# a build that would pass direct into a failure, so rebuild once without it (layers
+# that already succeeded stay cached). A build killed by a signal is not rebuilt.
+if [ "$rc" -ne 0 ] && [ "$rc" -lt 128 ] && [ "${#APT_CACHE_ARGS[@]}" -gt 0 ]; then
+    printf 'pf_ci_buildx=apt_cache state=build_failed rc=%s fallback=direct\n' "$rc" >&2
+    docker buildx build --builder "$BUILDER" \
+        --label org.pocketforge.cache-owner=pf-build-ci "$@"
+    rc=$?
+fi
 exit "$rc"
