@@ -532,21 +532,23 @@ class ProfileTest(unittest.TestCase):
         # Image#367 advances only PF_IMAGE_SHA on every row to patch apt
         # (CVE-2026-109518) in the build bases and rootfs and move internet
         # apt legs to https.
+        # Image#368 advances only PF_IMAGE_SHA on every row to make the gpu-um and
+        # poolsuite toolchains take their apt scheme from http_proxy.
         # Kernel#137 advances only the Linux7 kernel/GPU-KM pins for gpio-vibra
         # rumble intensity on the a133-open-7x rows.
         # Kernel#141 advances only the Linux7 kernel/GPU-KM pins for the A133 TSP
         # mic route direction on the a133-open-7x rows.
         expected = {
-            ("a133", "dev"): "57353ba04cb31a8b76d8e5923661e895ddc1d1652ae946fe95ce3ec2bd43a852",
-            ("a133", "release"): "13e30516fe81094897011172228d9fb0c15379406e29a7d89f69414ecbbaad9f",
-            ("a133-open-7x", "dev"): "ae1b8c9750dc69d1594a20e9056ee6fb6b7ddcb713166aefffc37d6d2800bfe1",
-            ("a133-open-7x", "release"): "8e3ec913c84616e420cc726ef3c21ffebe74a25ca35ee5043650c3489d256c43",
-            ("a133-owned", "dev"): "f396d4812002488164775dcf2a5d22359d6a9ad1ddde48c5567bbbd42b4faff6",
-            ("a133-owned", "release"): "ee3650f24517ef7b7b04e3fbd05c53f2e72b6a18abc477b2fd227e24d8e7591a",
-            ("a523", "dev"): "470cd6a28c73b26d7a2e3d999bfba96afff6bffd180fd7fd89cc3a2788254efa",
-            ("a523", "release"): "bb2cd36b9758d8fb7fd3490d21b6ecfb436403beccc82d60669cd6ae4bcd12c9",
-            ("sdm845", "dev"): "316b67b71ad5f83eb58d51f2bed57931172b31aea3245e5470b14c7b53eff589",
-            ("sdm845", "release"): "bfd5433b1295c5a09605359ce9afe8542bc81ff1219b3cb443c63d32129b0d6e",
+            ("a133", "dev"): "c1059f1c811c7fe43f1dcf2ace0b7829e3164584ff77baa8d9473fddd4a919e3",
+            ("a133", "release"): "bd3261f5e9ff4e38c3d973343a0d9c102f04e507ac718c83d35d28157315ce1e",
+            ("a133-open-7x", "dev"): "36cac1dc8d7dc0d438af64e4a6e6902da31c2377456b0baac6c0e86b4def5898",
+            ("a133-open-7x", "release"): "923a113ff07430fc9aa9e065908a0c67a57b6b84f3c51c26cef8bc256073375e",
+            ("a133-owned", "dev"): "41ec134cc867fcdb845d53d5f0266c6ea184594b209c4a84ae5d1516d6f50e77",
+            ("a133-owned", "release"): "68ad4f9f96f0f89bb03ca2fca3f2d39305a52896af28facc68e2df977fc5b778",
+            ("a523", "dev"): "a8ec0cc73df79dba49070243b238e52102f0021613fd3682358691bb0fca2cc5",
+            ("a523", "release"): "011060bc709bd7db796429420eb100b91210e7552bdd151a501726b447fa65b1",
+            ("sdm845", "dev"): "f88549a407996ecd6bacb888da1d0f3a484a08d72c700831d91f5738ae86e333",
+            ("sdm845", "release"): "95e636b65edeec55368b93f7c449a870656865f840fda1026ce3b1a4499e4f2f",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -829,7 +831,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "4632029b69e65b1073f2fc441bb66c667ae35211",
+                "PF_IMAGE_SHA": "189b450d64cde9688933a040c68bd69d58b15e82",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
