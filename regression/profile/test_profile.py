@@ -529,21 +529,24 @@ class ProfileTest(unittest.TestCase):
         # Steam Link 1.4.5.327 NEEDED closure (libmd4c etc.).
         # Image#366 advances only PF_IMAGE_SHA on every row to let every
         # Dockerfile.pf apt stage use the transport apt cache.
+        # Image#367 advances only PF_IMAGE_SHA on every row to patch apt
+        # (CVE-2026-109518) in the build bases and rootfs and move internet
+        # apt legs to https.
         # Kernel#137 advances only the Linux7 kernel/GPU-KM pins for gpio-vibra
         # rumble intensity on the a133-open-7x rows.
         # Kernel#141 advances only the Linux7 kernel/GPU-KM pins for the A133 TSP
         # mic route direction on the a133-open-7x rows.
         expected = {
-            ("a133", "dev"): "4701e5ba7ddf8ff2a2d4cd47993afbc4d059de5faf1d3280907f7cfa1fdc09d5",
-            ("a133", "release"): "b963292a5e856b5e28f2edcedef7bd62e8a53820d2b1e7bd59df2c2cc7dfbee0",
-            ("a133-open-7x", "dev"): "d0883f69b55fe0e8971da251d91e1a2ebbc2d6b25a398955ba254e01ef9daf60",
-            ("a133-open-7x", "release"): "dcd9ceb0031e9f941df412e83cc3e420e22e1a0688eaa03dd2cb37ce94d66450",
-            ("a133-owned", "dev"): "8b8f9b20fb48a813d803cce07560d75c3df2fe79bbb7131b0463011b3cb6abc5",
-            ("a133-owned", "release"): "fb64671a7630c543453294dc1bfcfa45f440fadf6ce95e3e0361f6e79e5d3914",
-            ("a523", "dev"): "bc58158b6d18e67a5b03ab5201ffe1f8d02dced69b5d0fa5e93612833febb3ad",
-            ("a523", "release"): "aca101a82b49cc0e14f3c48f6c3079e6c731fec511383099df7b2afdf2e139cd",
-            ("sdm845", "dev"): "0fde32f127d0e3861c745126df46b6b49d66b7bcd89f66cf4dcfc7dc6083a989",
-            ("sdm845", "release"): "4c6edfb93a226c3c83f2495e46cbc69aefe18583c5806035cc121645c591e5ce",
+            ("a133", "dev"): "57353ba04cb31a8b76d8e5923661e895ddc1d1652ae946fe95ce3ec2bd43a852",
+            ("a133", "release"): "13e30516fe81094897011172228d9fb0c15379406e29a7d89f69414ecbbaad9f",
+            ("a133-open-7x", "dev"): "ae1b8c9750dc69d1594a20e9056ee6fb6b7ddcb713166aefffc37d6d2800bfe1",
+            ("a133-open-7x", "release"): "8e3ec913c84616e420cc726ef3c21ffebe74a25ca35ee5043650c3489d256c43",
+            ("a133-owned", "dev"): "f396d4812002488164775dcf2a5d22359d6a9ad1ddde48c5567bbbd42b4faff6",
+            ("a133-owned", "release"): "ee3650f24517ef7b7b04e3fbd05c53f2e72b6a18abc477b2fd227e24d8e7591a",
+            ("a523", "dev"): "470cd6a28c73b26d7a2e3d999bfba96afff6bffd180fd7fd89cc3a2788254efa",
+            ("a523", "release"): "bb2cd36b9758d8fb7fd3490d21b6ecfb436403beccc82d60669cd6ae4bcd12c9",
+            ("sdm845", "dev"): "316b67b71ad5f83eb58d51f2bed57931172b31aea3245e5470b14c7b53eff589",
+            ("sdm845", "release"): "bfd5433b1295c5a09605359ce9afe8542bc81ff1219b3cb443c63d32129b0d6e",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -826,7 +829,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "9a99abddb5b89e8e1b4d1e9a18d1428e353bbf55",
+                "PF_IMAGE_SHA": "4632029b69e65b1073f2fc441bb66c667ae35211",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

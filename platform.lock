@@ -825,7 +825,10 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # 1.4.5.327 NEEDED closure (libmd4c etc.).
                        # tsp-hqm1p.135: image#366 lets every Dockerfile.pf apt stage use
                        # the transport apt cache through the BuildKit http_proxy build-arg.
-sha  = "9a99abddb5b89e8e1b4d1e9a18d1428e353bbf55"
+                       # tsp-hqm1p.143: image#367 patches apt (CVE-2026-109518) in the
+                       # build bases and rootfs, uses https on internet legs, keeps the
+                       # LAN NAS-cache hop on http, and bounds the ime-bus-security apt step.
+sha  = "4632029b69e65b1073f2fc441bb66c667ae35211"
 
 [[repos]]
 name = "pf-cursor-theme"
