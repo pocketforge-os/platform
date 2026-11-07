@@ -848,7 +848,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # (needed by Steam Link in the demo image).
                        # image#373 grants Steam Link the Mesa device/sysfs/proc reads its
                        # Landlock policy denied (EGL init), pinned pre-merge for image C.
-sha  = "6f2a50157a4bd90fa1273bd93bac23752ee70760"
+                       # image#374 grants Steam Link /proc/meminfo, /proc/stat and
+                       # /sys/devices/system/cpu (PVR heap / ZINK device memory, sat3w/sat3x).
+sha  = "ffa7904a52dd2ab4850be84448d33e9056d19daf"
 
 [[repos]]
 name = "pf-cursor-theme"
