@@ -547,17 +547,19 @@ class ProfileTest(unittest.TestCase):
         # only PF_KERNEL_SHA on the a133-open-7x rows.
         # Image#371 advances only PF_IMAGE_SHA on every row so the app-root and A523
         # rootfs builders take their apt scheme from http_proxy.
+        # Image#372 (DRIRC_CONFIGDIR + 00-mesa-defaults.conf) advances only PF_IMAGE_SHA
+        # on every row.
         expected = {
-            ("a133", "dev"): "44dbd24f4103b552c5ea44eca2b9f66946ab9011f295ecb8a2d6d757ec0668ff",
-            ("a133", "release"): "02b7c5bea9f9d72b7bc374dd38b189a6603ca622a0e652e5fbab99c999191455",
-            ("a133-open-7x", "dev"): "94126f3b443c51c400439fdd2385dbf6751b386b06e33b8bab6c0cf4508dc264",
-            ("a133-open-7x", "release"): "c7d036fa151fb90af090106e516708a743874fb48c41a1707d08f906dd441de0",
-            ("a133-owned", "dev"): "e3d9c10b5a836bd13fd2a28f327ef6cb3c93b226b98948bbd9f13fb30ad3c301",
-            ("a133-owned", "release"): "74e0999fadac333c46b8fbf88ae9c659ddce33aab95265d1126a9039b67e58e1",
-            ("a523", "dev"): "9fa90b62ac2d7bfc68ac08152f5c0c59e2926627d956cefe948917ce8898f9fe",
-            ("a523", "release"): "1acadb3781c2136322f856a4b4960ac97c02d4a88a5329b56f2aed774fbf4c9d",
-            ("sdm845", "dev"): "858d6a29611e12552b6b2bdbd6fb907516ed7251efab5bf769e5855a6cbcb858",
-            ("sdm845", "release"): "3e7362a8d045c03a874960dc459338393a226cada5f26ebecd2d515c23c4470b",
+            ("a133", "dev"): "fc18369a192b06e0d9be48001bb65a9914759c69378f5d287d70471b3c117d10",
+            ("a133", "release"): "e6f7bf7dc86fb5ac88fbcb493ecb7319186e9106fb11409386f0c5264d42d014",
+            ("a133-open-7x", "dev"): "da3b1269aba87a17d042d5ba2c51d80bc300a7c1478b0b29ba80fef7c98cd0c6",
+            ("a133-open-7x", "release"): "89358b8393a0c4a68315f906594bb0f7bdaeb121b78e3a244770dbea1c0f9998",
+            ("a133-owned", "dev"): "b9d8243a6d90255b258dc6a49033c8cbcfd1e3fcef08cf30f8f50aabeaaf5956",
+            ("a133-owned", "release"): "3c07bd9944108c4f7c17ce1f1da888d5fb5b6faf2e6f1c0d27150a7044f93acb",
+            ("a523", "dev"): "27f3eb49d6dbbd372b454d1d7bf4da3aa8bf5d914a78426f19ce8ec2f33d233d",
+            ("a523", "release"): "404b14774d06cc394d46260fc5c1696b5b138e312ac4d5165bd330b6cdf776f0",
+            ("sdm845", "dev"): "f33783f5f63bb8c97b9d315adfbd04f4a95c455c597289c2e7e99994b2923606",
+            ("sdm845", "release"): "c1b05e93c4fd0c33b4b27a4c614f206def0569d539cb6f5df571586ff8f18905",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -840,7 +842,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "2e8663b215ffea6d7428799ab21513e9030f959f",
+                "PF_IMAGE_SHA": "dc242e4e0dab4d1b0f34fb261c9adf185ced10bc",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
