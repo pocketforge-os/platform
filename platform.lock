@@ -846,7 +846,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # 42215946514 root cause), completing the image#368 scheme fix.
                        # image#372 sets DRIRC_CONFIGDIR and ships 00-mesa-defaults.conf
                        # (needed by Steam Link in the demo image).
-sha  = "dc242e4e0dab4d1b0f34fb261c9adf185ced10bc"
+                       # image#373 grants Steam Link the Mesa device/sysfs/proc reads its
+                       # Landlock policy denied (EGL init), pinned pre-merge for image C.
+sha  = "6f2a50157a4bd90fa1273bd93bac23752ee70760"
 
 [[repos]]
 name = "pf-cursor-theme"
