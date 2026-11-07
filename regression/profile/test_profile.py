@@ -66,6 +66,8 @@ class ProfileTest(unittest.TestCase):
         # Canonical hashes were generated from origin/main (48d20a4) before this
         # branch added a133-open-7x. They pin every pre-existing profile's entire
         # resolved shape, not merely the fields consumed by today's build args.
+        # Image#374 (Steam Link meminfo/stat/cpu grants) likewise advances only PF_IMAGE_SHA
+        # on every row (old digests reproduced by swapping the sha back).
         expected = {
             "a133": "123423ea4a97007817409cda84f6eb65cf717d1c5db1102e84fdf3dcceec595f",
             "a133-open": "309c3b76951dd73977a759a80372337ecf33308f28f9048a2ba1d0285e1d99ac",
@@ -552,16 +554,16 @@ class ProfileTest(unittest.TestCase):
         # Image#373 (Steam Link Mesa device/sysfs/proc grants) likewise advances only
         # PF_IMAGE_SHA on every row (old digests reproduced by swapping the sha back).
         expected = {
-            ("a133", "dev"): "18e84b1bb40765432f8dfc6d5f8c6afd74090bee3eb0035e8776ad524b5d1c36",
-            ("a133", "release"): "3f529f144d5c16c871dd4f2b816a7f102e3389ae20952b5776a5b5cf25691740",
-            ("a133-open-7x", "dev"): "9901acc46a664779027f0985a4b8c6a6bea1824bc5db4c106d76813b2953c63a",
-            ("a133-open-7x", "release"): "478fa30d00291fb78561a2cac2ccc96ec9a1bb85410b05318a205cc7dd4044b0",
-            ("a133-owned", "dev"): "ed0cb93752c95c1637f820455163d2c5f19f88f2aa61b65ef5acdee8e9607557",
-            ("a133-owned", "release"): "6067ad778042bab194d23c246b82d30f8685c971af88d533a19e0c8d96571a1f",
-            ("a523", "dev"): "e093e14e420547a2f75d964b37eb952a968162a4068592556305f6f8c0d22085",
-            ("a523", "release"): "1f15eb9f208b5f25b2615d8aeda20fac007c003b1df3c9a26769dcc33b064938",
-            ("sdm845", "dev"): "dfa13110f63890426d1a2c9876e38834883fd9b5c4b409b04a39cdb3fec272a4",
-            ("sdm845", "release"): "541fc3d73e00ce35425d417b7151099845eb67889926a5ddf6a64c0bfea34a1c",
+            ("a133", "dev"): "ce7203278e2758dc9f7b19380948a8b1328001f52f13f567dd9cf2ff29d9c957",
+            ("a133", "release"): "a0a7b56474ef0c66a19e42dc2cffd1c09c251746abe879ebc9608f3975d383b2",
+            ("a133-open-7x", "dev"): "0228e479a356b46b17bff39865c874e181f11934ca2277aecd5b3de2009f9fa9",
+            ("a133-open-7x", "release"): "7e2543a43f236d5cbb3caf396a2a1e24534bb1bcb7205cdf362d206b33432b27",
+            ("a133-owned", "dev"): "839fc71e373a72d5b10a70408c8ced57ed510a5dbe1b247cb61be7ab7506244f",
+            ("a133-owned", "release"): "106b7898045330695fd789a0b75c6bbab1c6ab4b3bfc872a931e395d1a7fe7b5",
+            ("a523", "dev"): "41b8cb42e8ce4b47907417ea577bbddb539330346d548e29903a0f9aa3e24e14",
+            ("a523", "release"): "fb040b4679025a53b24655112c030c5290de7ccee7a01cb792a0c8bc7890b0ec",
+            ("sdm845", "dev"): "c48ba95d350a3318e80688f838d9dc6577e321d463923b35bfcbad50959c7578",
+            ("sdm845", "release"): "dc1ec78e99c61dc6898085ab259285fa5dfe9fc407a685ba9749a499de120cb8",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -844,7 +846,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "6f2a50157a4bd90fa1273bd93bac23752ee70760",
+                "PF_IMAGE_SHA": "ffa7904a52dd2ab4850be84448d33e9056d19daf",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
