@@ -862,7 +862,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # image#379 apt Retries::Delay fix (rootfs apt.conf + build stages); carries #378.
                        # image#382 installs the App Pad udev rule 70-pf-app-pad.rules and orders the
                        # Steam Link unit after the broker; carries #379.
-sha  = "203b98ae5cdad52198c09914b6a448c4a7e2b0e4"
+                       # image#384 bakes the pad settle as an ordered oneshot (V2; ExecStartPre=+ fails 226/NAMESPACE on systemd 252).
+sha  = "e2ab0614c0c2373ab7d8a4bc4af48c68c60f4f48"
 
 [[repos]]
 name = "pf-cursor-theme"
