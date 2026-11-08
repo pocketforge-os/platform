@@ -247,10 +247,11 @@ REASON_MATCH = {
     "invalid-dest": lambda path, message: path.endswith(".dest"),
     "reserved-source": lambda path, message: "vendor-signed-pointer" in message
     or path.endswith("source"),
-    "v3-only-include": lambda path, message: path == "fetch"
-    and "forbidden" in message,
-    "v3-only-source": lambda path, message: path == "fetch"
-    and "forbidden" in message,
+    "v3-only-include": lambda path, message: re.match(
+        r"^fetch\.files\.\d+\.include$", path
+    )
+    is not None,
+    "v3-only-source": lambda path, message: path == "fetch.source",
 }
 
 
