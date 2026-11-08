@@ -9,10 +9,14 @@ schema_version 3 case per fetch rule. ``expected.json`` records the corpus
 sha256 and the expected verdict for every descriptor, so the runtime parser and
 ``abi/app.schema.json`` cannot drift apart silently.
 
-Standard-library only. When the reference ``jsonschema`` package is importable
-the schema is additionally checked with it; otherwise (the CI contract) a small
-Draft 2020-12 interpreter covers the keywords this schema uses. Set
-``PF_SCHEMA_FORCE_STDLIB=1`` to exercise the interpreter locally.
+Standard-library only (the regression-suites contract). Verdicts come from a
+small bundled Draft 2020-12 interpreter that FAILS CLOSED: before validating,
+the schema is walked and any keyword outside the interpreter's supported set
+aborts the run with ``FAIL unsupported schema keyword: <kw> at <pointer>``.
+When the reference ``jsonschema`` package is importable (it is on the CI
+runner) every corpus case is validated with BOTH engines and any verdict
+disagreement fails the run. ``PF_SCHEMA_FORCE_STDLIB=1`` skips the
+cross-check locally.
 """
 
 import hashlib
@@ -94,6 +98,49 @@ def _type_ok(value, name):
     raise ValueError(f"unsupported schema type {name}")
 
 
+SUPPORTED_KEYWORDS = {
+    # annotations (no validation effect)
+    "$schema", "$id", "$comment", "title", "description", "default", "examples",
+    # applicators and assertions the interpreter implements
+    "$ref", "$defs", "allOf", "anyOf", "not", "if", "then", "else",
+    "type", "enum", "const", "minLength", "pattern", "minimum", "maximum",
+    "required", "properties", "additionalProperties",
+    "minItems", "uniqueItems", "items", "contains",
+}
+
+
+def unsupported_keywords(schema, pointer=""):
+    """Return [(keyword, json-pointer)] for every keyword the interpreter lacks."""
+    found = []
+    if isinstance(schema, list):
+        for index, sub in enumerate(schema):
+            found.extend(unsupported_keywords(sub, f"{pointer}/{index}"))
+        return found
+    if not isinstance(schema, dict):
+        return found
+    for keyword, value in schema.items():
+        here = f"{pointer}/{keyword}"
+        if keyword not in SUPPORTED_KEYWORDS:
+            found.append((keyword, here))
+        elif keyword in ("properties", "$defs"):
+            for name, sub in value.items():  # names, not keywords
+                found.extend(unsupported_keywords(sub, f"{here}/{name}"))
+        elif keyword in ("not", "if", "then", "else", "items", "contains",
+                         "additionalProperties", "allOf", "anyOf"):
+            found.extend(unsupported_keywords(value, here))
+        # const/enum/default/examples hold instance data: do not descend
+    return found
+
+
+def require_supported(schema):
+    bad = unsupported_keywords(schema)
+    if bad:
+        keyword, pointer = bad[0]
+        print(f"FAIL unsupported schema keyword: {keyword} at {pointer or '/'}")
+        return False
+    return True
+
+
 def validate(instance, schema, root, path=""):
     """Return a list of (instance-path, message) schema violations."""
     errors = []
@@ -159,6 +206,10 @@ def validate(instance, schema, root, path=""):
             for index, value in enumerate(instance):
                 if value in instance[:index]:
                     errors.append((path, f"duplicate item {value!r}"))
+        if "contains" in schema and not any(
+            not validate(value, schema["contains"], root, path) for value in instance
+        ):
+            errors.append((path, "no array item matches contains"))
         items = schema.get("items")
         if isinstance(items, (dict, bool)):
             for index, value in enumerate(instance):
@@ -166,19 +217,57 @@ def validate(instance, schema, root, path=""):
     return errors
 
 
-def schema_errors(instance, schema):
-    if not os.environ.get("PF_SCHEMA_FORCE_STDLIB"):
-        try:
-            from jsonschema import Draft202012Validator
-        except ImportError:
-            pass
-        else:
-            validator = Draft202012Validator(schema)
-            return [
-                (".".join(str(part) for part in error.absolute_path), error.message)
-                for error in validator.iter_errors(instance)
-            ]
+def jsonschema_module():
+    if os.environ.get("PF_SCHEMA_FORCE_STDLIB"):
+        return None
+    try:
+        import jsonschema
+    except ImportError:
+        return None
+    return jsonschema
+
+
+def stdlib_errors(instance, schema):
     return validate(instance, schema, schema)
+
+
+def reference_errors(jsonschema, instance, schema):
+    validator = jsonschema.Draft202012Validator(schema)
+    return [
+        (".".join(str(part) for part in error.absolute_path), error.message)
+        for error in validator.iter_errors(instance)
+    ]
+
+
+# Per-reason predicate over a (path, message) error from the stdlib interpreter,
+# so a refusal for the wrong reason (e.g. the schema_version enum) does not pass.
+REASON_MATCH = {
+    "missing-size": lambda path, message: "'size'" in message,
+    "invalid-include": lambda path, message: re.search(r"\.include(\.\d+)?$", path) is not None,
+    "invalid-dest": lambda path, message: path.endswith(".dest"),
+    "reserved-source": lambda path, message: "vendor-signed-pointer" in message
+    or path.endswith("source"),
+    "v3-only-include": lambda path, message: path == "fetch"
+    and "forbidden" in message,
+    "v3-only-source": lambda path, message: path == "fetch"
+    and "forbidden" in message,
+}
+
+
+def self_test():
+    """The guard must reject a schema using a keyword the interpreter lacks."""
+    bad = {"type": "object", "properties": {"a": {"propertyNames": {"pattern": "^x"}}}}
+    found = unsupported_keywords(bad)
+    check(
+        found == [("propertyNames", "/properties/a/propertyNames")],
+        "self-test: unsupported keyword propertyNames is detected",
+        repr(found),
+    )
+    good = {"properties": {"propertyNames": {"type": "string"}}}
+    check(
+        not unsupported_keywords(good),
+        "self-test: a property merely named like a keyword is not flagged",
+    )
 
 
 def main():
@@ -187,16 +276,17 @@ def main():
     with open(SCHEMA_PATH, encoding="utf-8") as handle:
         schema = json.load(handle)
 
-    force_stdlib = bool(os.environ.get("PF_SCHEMA_FORCE_STDLIB"))
-    try:
-        if force_stdlib:
-            raise ImportError
-        from jsonschema import Draft202012Validator  # noqa: F401
+    self_test()
+    if not require_supported(schema):
+        return 1
+    jsonschema = jsonschema_module()
+    if jsonschema:
+        from importlib import metadata
 
-        engine = "jsonschema Draft202012Validator"
-    except ImportError:
-        engine = "bundled Draft 2020-12 interpreter"
-    print(f"app-schema corpus verdicts via {engine}")
+        version = metadata.version("jsonschema")
+        print(f"verdicts via stdlib interpreter (cross-checked against jsonschema {version})")
+    else:
+        print("verdicts via stdlib interpreter (jsonschema not present; no cross-check)")
 
     check(
         len(table["cases"]) == len(described_files()),
@@ -214,7 +304,15 @@ def main():
         path = os.path.join(CORPUS, "descriptors", relative)
         with open(path, "rb") as handle:
             descriptor = tomllib.loads(handle.read().decode("utf-8"))
-        errors = schema_errors(descriptor, schema)
+        errors = stdlib_errors(descriptor, schema)
+        if jsonschema:
+            reference = reference_errors(jsonschema, descriptor, schema)
+            check(
+                bool(errors) == bool(reference),
+                f"{relative}: stdlib and jsonschema verdicts agree",
+                f"stdlib {'refuse' if errors else 'accept'}, "
+                f"jsonschema {'refuse' if reference else 'accept'}",
+            )
         if case["expect"] == "accept":
             check(
                 not errors,
@@ -237,13 +335,38 @@ def main():
                 f"{relative}: refusal names {wanted}",
                 "errors at " + ", ".join(sorted({where for where, _ in errors})[:5]),
             )
+            predicate = REASON_MATCH.get(case["reason"])
+            check(
+                predicate is not None
+                and any(predicate(where, message) for where, message in errors),
+                f"{relative}: refusal matches reason {case['reason']}",
+                "; ".join(f"{where}: {message}" for where, message in errors[:3]),
+            )
         else:
             check(False, f"{relative}: unknown expectation {case['expect']!r}")
+
+    # schema_version 4 is refused by the parser with a message the shared
+    # corpus has no reason class for, so it is pinned here, schema side only.
+    v4 = tomllib.loads(
+        'schema_version = 4\n[app]\nid = "com.pocketforge.v4"\nname = "V4"\n'
+        '[runtime]\nfamily = "pocketforge/a133-powervr"\nabi = "1"\n'
+    )
+    v4_errors = stdlib_errors(v4, schema)
+    check(
+        any(where == "schema_version" for where, _ in v4_errors),
+        "schema_version = 4: refused at schema_version",
+        repr(v4_errors[:2]),
+    )
+    if jsonschema:
+        check(
+            bool(reference_errors(jsonschema, v4, schema)),
+            "schema_version = 4: jsonschema refuses too",
+        )
 
     if FAILS:
         print(f"\n{FAILS} check(s) failed")
         return 1
-    print(f"\nall {len(table['cases']) * 2 + 2} checks passed")
+    print("\nall checks passed")
     return 0
 
 
