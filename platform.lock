@@ -864,7 +864,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # Steam Link unit after the broker; carries #379.
                        # image#384 bakes the pad settle as an ordered oneshot (V2; ExecStartPre=+ fails 226/NAMESPACE on systemd 252).
 # image#385 makes pf-x11-authorize skip X11 events ahead of the reply (gps1 unexpected_x11_reply, Xwayland replacement).
-sha  = "53d8d39aed61234685dab05e7b758c07a23b6524"
+# image#386 (6e3a8d5d) adds additive PF_SELF_FLASH_V3_PROGRESS write-rate markers to the self-flash-v3 initrd; it is 53d8d39a plus #386 only (image H for the OTA capture window).
+sha  = "6e3a8d5dc48841b26ccb4bfac11c58d42eeb1361"
 
 [[repos]]
 name = "pf-cursor-theme"
