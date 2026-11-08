@@ -270,6 +270,42 @@ def self_test():
     )
 
 
+def reason_separation_test(schema):
+    """A v3-only refusal predicate must name its own offending property.
+
+    The include and source cases used to share one predicate (both matched the
+    single ``fetch`` error produced by a ``not``), so either reason satisfied
+    either case. Prove on purpose-built v1 descriptors that the predicates are
+    disjoint.
+    """
+    common = (
+        '[app]\nid = "com.pocketforge.reason"\n'
+        '[runtime]\nfamily = "pocketforge/a133-powervr"\nabi = "1"\n'
+        '[fetch]\nenabled = true\n'
+    )
+    source = tomllib.loads(common + 'source = "pinned"\n')
+    include = tomllib.loads(
+        common
+        + '[[fetch.files]]\nurl = "https://example.invalid/a.tar.gz"\n'
+        + 'format = "tar.gz"\ninclude = ["data/"]\n'
+    )
+    for label, descriptor, own, other in (
+        ("source", source, "v3-only-source", "v3-only-include"),
+        ("include", include, "v3-only-include", "v3-only-source"),
+    ):
+        errors = stdlib_errors(descriptor, schema)
+        check(
+            any(REASON_MATCH[own](where, message) for where, message in errors),
+            f"reason self-test: v1 {label} refusal matches {own}",
+            repr(errors),
+        )
+        check(
+            not any(REASON_MATCH[other](where, message) for where, message in errors),
+            f"reason self-test: v1 {label} refusal does not match {other}",
+            repr(errors),
+        )
+
+
 def main():
     with open(os.path.join(CORPUS, "expected.json"), encoding="utf-8") as handle:
         table = json.load(handle)
@@ -279,6 +315,7 @@ def main():
     self_test()
     if not require_supported(schema):
         return 1
+    reason_separation_test(schema)
     jsonschema = jsonschema_module()
     if jsonschema:
         from importlib import metadata
