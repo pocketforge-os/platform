@@ -850,7 +850,12 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # Landlock policy denied (EGL init), pinned pre-merge for image C.
                        # image#374 grants Steam Link /proc/meminfo, /proc/stat and
                        # /sys/devices/system/cpu (PVR heap / ZINK device memory, sat3w/sat3x).
-sha  = "ffa7904a52dd2ab4850be84448d33e9056d19daf"
+                       # image#375 adds Steam Link LAN streaming egress (udp 27031-27036,
+                       # tcp 27036-27037) and a writable XDG_DATA_HOME, and re-pins runtime
+                       # 78f43d3c / launcher f2b98927 (AF_NETLINK for networked apps).
+                       # image#376 carries libasound2t64 and the platform asound.conf into
+                       # the Steam Link app root (ALSA direct audio, bead .26).
+sha  = "12bf0fdb953b698d3bca0f2ef75bf3d3d3d4cd1f"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1822,7 +1827,9 @@ ref  = "main"                 # image#278 power-menu generation: runtime#151 mer
                               # tsp-mc9m.60.29.27 Build 56: runtime#176/#177 merge
                               # 8c87d7b6 admits the Gamescope peer and tolerates the
                               # absent Steam Link socket path; image#348 guards it.
-sha  = "7d92ef9fa5a6c1dca21d7f0e1e568c0cf2de6bc8"
+                              # tsp-mc9m.60.29.61: runtime#182 merge 78f43d3c gives networked apps
+                              # AF_NETLINK (glibc getifaddrs); image#375 guards it.
+sha  = "78f43d3c92a7c7655e115779f20e1168b53ec1c1"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
@@ -1936,7 +1943,9 @@ ref  = "main"                 # image#278 power-menu generation: launcher#169 me
                               # stays 1640d5ec.
                               # tsp-mc9m.60.29.27 Build 56: launcher#182 merge 900db88c
                               # revendors runtime 8c87d7b6; image#348 guards the pair.
-sha  = "2df03a48a91f7b4dfe2626848af80f4eca6398da"
+                              # tsp-mc9m.60.29.61: launcher#185 merge f2b98927 revendors runtime
+                              # 78f43d3c; image#375 guards the pair.
+sha  = "f2b98927bc79ab61eaef0a7748c75f6b8c1e2b27"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
