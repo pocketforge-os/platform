@@ -859,7 +859,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # /dev/snd/timer (ALSA dmix) to Steam Link (r25 on image E).
                        # image#378 grants the input pad (Steam Link pad policy) and rumble,
                        # re-pins runtime 9b42a8df / launcher 3b808f7a (image F).
-sha  = "f2dff1fb8056fc2801aace56152364f192a4bea9"
+                       # image#379 apt Retries::Delay fix (rootfs apt.conf + build stages); carries #378.
+sha  = "10f662548373834040af18fc7a034318aa77da18"
 
 [[repos]]
 name = "pf-cursor-theme"
