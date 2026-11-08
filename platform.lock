@@ -857,7 +857,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # the Steam Link app root (ALSA direct audio, bead .26).
                        # image#377 grants Valve CM egress (tcp/udp 27015-27030) and
                        # /dev/snd/timer (ALSA dmix) to Steam Link (r25 on image E).
-sha  = "0a00836a2e834d7201eaf94283b2454b1b329011"
+                       # image#378 grants the input pad (Steam Link pad policy) and rumble,
+                       # re-pins runtime 9b42a8df / launcher 3b808f7a (image F).
+sha  = "f2dff1fb8056fc2801aace56152364f192a4bea9"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1831,7 +1833,9 @@ ref  = "main"                 # image#278 power-menu generation: runtime#151 mer
                               # absent Steam Link socket path; image#348 guards it.
                               # tsp-mc9m.60.29.61: runtime#182 merge 78f43d3c gives networked apps
                               # AF_NETLINK (glibc getifaddrs); image#375 guards it.
-sha  = "78f43d3c92a7c7655e115779f20e1168b53ec1c1"
+                              # runtime#183 broker rumble + runtime#184 pad policy merge
+                              # 9b42a8df; image#378 guards it.
+sha  = "9b42a8df66e8d8efed0bb14dedda2de28378c7eb"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
@@ -1947,7 +1951,9 @@ ref  = "main"                 # image#278 power-menu generation: launcher#169 me
                               # revendors runtime 8c87d7b6; image#348 guards the pair.
                               # tsp-mc9m.60.29.61: launcher#185 merge f2b98927 revendors runtime
                               # 78f43d3c; image#375 guards the pair.
-sha  = "f2b98927bc79ab61eaef0a7748c75f6b8c1e2b27"
+                              # launcher#186 merge 3b808f7a revendors runtime 9b42a8df;
+                              # image#378 guards the pair.
+sha  = "3b808f7ac825266a8757c2d13f6ae4621ffbd95f"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY
