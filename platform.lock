@@ -855,7 +855,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # 78f43d3c / launcher f2b98927 (AF_NETLINK for networked apps).
                        # image#376 carries libasound2t64 and the platform asound.conf into
                        # the Steam Link app root (ALSA direct audio, bead .26).
-sha  = "12bf0fdb953b698d3bca0f2ef75bf3d3d3d4cd1f"
+                       # image#377 grants Valve CM egress (tcp/udp 27015-27030) and
+                       # /dev/snd/timer (ALSA dmix) to Steam Link (r25 on image E).
+sha  = "0a00836a2e834d7201eaf94283b2454b1b329011"
 
 [[repos]]
 name = "pf-cursor-theme"
