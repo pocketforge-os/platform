@@ -863,7 +863,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
                        # image#382 installs the App Pad udev rule 70-pf-app-pad.rules and orders the
                        # Steam Link unit after the broker; carries #379.
                        # image#384 bakes the pad settle as an ordered oneshot (V2; ExecStartPre=+ fails 226/NAMESPACE on systemd 252).
-sha  = "e2ab0614c0c2373ab7d8a4bc4af48c68c60f4f48"
+# image#385 makes pf-x11-authorize skip X11 events ahead of the reply (gps1 unexpected_x11_reply, Xwayland replacement).
+sha  = "53d8d39aed61234685dab05e7b758c07a23b6524"
 
 [[repos]]
 name = "pf-cursor-theme"
