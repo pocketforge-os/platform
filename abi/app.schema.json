@@ -59,7 +59,7 @@
                 {
                   "required": ["files"],
                   "properties": {
-                    "files": { "minItems": 1, "items": { "required": ["include"] } }
+                    "files": { "contains": { "required": ["include"] } }
                   }
                 }
               ]
