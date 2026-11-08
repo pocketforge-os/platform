@@ -1838,7 +1838,9 @@ ref  = "main"                 # image#278 power-menu generation: runtime#151 mer
                               # AF_NETLINK (glibc getifaddrs); image#375 guards it.
                               # runtime#183 broker rumble + runtime#184 pad policy merge
                               # 9b42a8df; image#378 guards it.
-sha  = "9b42a8df66e8d8efed0bb14dedda2de28378c7eb"
+                              # runtime#188 merge 8a493f00 (carries 9b42a8df: W1 #185, #186, W2 #187,
+                              # W3 #188); image#381 guards it, image#382 keeps it.
+sha  = "8a493f00101b03894783ef8941df59f2abba5388"
 
 [[repos]]
 name = "launcher"             # pf-shell persistent launcher (Rust); a133-OPEN ONLY (tsp-mc9m.41.924.4,
@@ -1956,7 +1958,9 @@ ref  = "main"                 # image#278 power-menu generation: launcher#169 me
                               # 78f43d3c; image#375 guards the pair.
                               # launcher#186 merge 3b808f7a revendors runtime 9b42a8df;
                               # image#378 guards the pair.
-sha  = "3b808f7ac825266a8757c2d13f6ae4621ffbd95f"
+                              # launcher#188 merge 302b420f revendors runtime 8a493f00; image#381
+                              # guards the pair.
+sha  = "302b420f23262069a92046cf1122869a2d9f4753"
 
 [[repos]]
 name = "recovery"             # pocketforge-recovery-entry (product-010 F16); a133-OPEN ONLY

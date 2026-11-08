@@ -77,7 +77,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
         self.assertEqual(missing, [])
         expected = {
             "PF_IMAGE_SHA": "203b98ae5cdad52198c09914b6a448c4a7e2b0e4",
-            "PF_RUNTIME_SHA": "9b42a8df66e8d8efed0bb14dedda2de28378c7eb",
+            "PF_RUNTIME_SHA": "8a493f00101b03894783ef8941df59f2abba5388",
             "PF_KERNEL_REPO": "kernel-sunxi-7.x",
             "PF_KERNEL_SHA": "3ee1b219a1b534dbda5f0a186e8038b8913b8cf1",
             "PF_KERNEL_DTB": "sun50i-a133-pocketforge-odyssey.dtb",
@@ -91,7 +91,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_LIBSDL3_SHA": "7411a94803c95b2f93a898f3773ffe95dfec4263",
             "PF_DISPLAY_PIPELINE": "fbdev",
             "PF_LAUNCHER_REPO": "launcher",
-            "PF_LAUNCHER_SHA": "3b808f7ac825266a8757c2d13f6ae4621ffbd95f",
+            "PF_LAUNCHER_SHA": "302b420f23262069a92046cf1122869a2d9f4753",
             "PF_RECOVERY_REPO": "recovery",
             "PF_RECOVERY_SHA": "443a84e47c96d83de967948844d8e5eaa41d7413",
             "PF_BLOBS_SHA": "02ad8b7158ae39797f2693607ea9f2e6975f9ffd",
