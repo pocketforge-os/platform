@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://pocketforge.os/schemas/app.schema.json",
   "title": "PocketForge canonical app descriptor (app.toml)",
-  "description": "THE reconciled app.toml — ONE descriptor, THREE consumers (the on-device broker/supervisor at launch; the packaging path at build/sign; the SDK/author tooling at scaffold). Reconciles the three pre-E8 schemas: Phase-1 plan pocketforge-plan.md §9.3/§9.4 ([app]/[launch]/[health]/[fetch]); Phase-2 OCI build-integration-reference.md §18 (the sibling OCI/signature/SBOM/slice files); and pf-broker manifest.rs ([app].use=[] authority graph). E8 (tsp-ziac.1) ADDS the [runtime] platform-family pin (family + abi + platform-version), which none of the three carried. The OCI/signature/SBOM/resource-limit layer is a set of SIBLING FILES beside app.toml (see docs/PLATFORM-ABI-CONTRACT.md), not keys in this file. v2 (tsp-mc9m.41.1026.4 / runtime#126) adds schema_version and [display] orientations (from the display-orientation contract tsp-mc9m.41.996.18). v3 (tsp-ziac.4.3.1) adds the [fetch] v3 rules: optional source (pinned; vendor-signed-pointer is reserved and refused), per-file include prefixes, single-component dest restrictions, and size required when fetch is enabled.",
+  "description": "THE reconciled app.toml — ONE descriptor, THREE consumers (the on-device broker/supervisor at launch; the packaging path at build/sign; the SDK/author tooling at scaffold). Reconciles the three pre-E8 schemas: Phase-1 plan pocketforge-plan.md §9.3/§9.4 ([app]/[launch]/[health]/[fetch]); Phase-2 OCI build-integration-reference.md §18 (the sibling OCI/signature/SBOM/slice files); and pf-broker manifest.rs ([app].use=[] authority graph). E8 (tsp-ziac.1) ADDS the [runtime] platform-family pin (family + abi + platform-version), which none of the three carried. The OCI/signature/SBOM/resource-limit layer is a set of SIBLING FILES beside app.toml (see docs/PLATFORM-ABI-CONTRACT.md), not keys in this file. [display] orientations (from the display-orientation contract tsp-mc9m.41.996.18) are accepted with or without schema_version, matching the runtime parser; v2 (tsp-mc9m.41.1026.4 / runtime#126) adds schema_version to tag them. v3 (tsp-ziac.4.3.1) adds the [fetch] v3 rules: optional source (pinned; vendor-signed-pointer is reserved and refused), per-file include prefixes, single-component dest restrictions, and size required when fetch is enabled.",
   "type": "object",
   "additionalProperties": false,
   "required": ["app", "runtime"],
   "properties": {
-    "schema_version": { "type": "integer", "enum": [1, 2, 3], "default": 1, "description": "Schema version. 1 = pre-display (old manifests accepted unchanged). 2 = adds [display] orientations. 3 = adds the [fetch] v3 rules." },
+    "schema_version": { "type": "integer", "enum": [1, 2, 3], "default": 1, "description": "Schema version. 1 = original descriptor (schema_version absent or 1), which also accepts [display] orientations. 2 = tags [display] with an explicit schema_version. 3 = adds the [fetch] v3 rules." },
     "app":          { "$ref": "#/$defs/app" },
     "runtime":      { "$ref": "#/$defs/runtime" },
     "launch":       { "$ref": "#/$defs/launch" },
@@ -18,16 +18,6 @@
     "recommended":  { "$ref": "#/$defs/requirements" }
   },
   "allOf": [
-    {
-      "if": {
-        "required": ["schema_version"],
-        "properties": { "schema_version": { "enum": [2, 3] } }
-      },
-      "then": {},
-      "else": {
-        "properties": { "display": false }
-      }
-    },
     {
       "description": "v3 [fetch] source/include/dest rules; v1/v2 refuse source and include entirely.",
       "if": {
@@ -51,18 +41,18 @@
         }
       },
       "else": {
+        "description": "v1/v2: the v3-only source and include properties are refused by name.",
         "properties": {
           "fetch": {
-            "not": {
-              "anyOf": [
-                { "required": ["source"] },
-                {
-                  "required": ["files"],
+            "properties": {
+              "source": false,
+              "files": {
+                "items": {
                   "properties": {
-                    "files": { "contains": { "required": ["include"] } }
+                    "include": false
                   }
                 }
-              ]
+              }
             }
           }
         }

@@ -252,6 +252,19 @@ abi = "1"
 check("v1 manifest (no schema_version, no display) is valid",
       schema_errors(V1_PLAIN) == [], schema_errors(V1_PLAIN))
 
+V1_DISPLAY = """\
+[app]
+id = "com.test.v1display"
+[display]
+orientations = ["portrait"]
+[runtime]
+family = "pocketforge/a133-powervr"
+abi = "1"
+"""
+v1_display_errors = schema_errors(V1_DISPLAY)
+check("v1 manifest (no schema_version) with [display] is valid",
+      v1_display_errors == [], v1_display_errors)
+
 print()
 if FAILS:
     print(f"FAILED: {len(FAILS)} check(s): {', '.join(FAILS)}")
