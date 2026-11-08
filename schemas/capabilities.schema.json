@@ -284,6 +284,7 @@
         "ev_type":    { "enum": ["EV_FF"] },
         "code":       { "type": "string", "pattern": "^FF_[A-Z0-9_]+$" },
         "sysfs":      { "type": "string", "minLength": 1 },
+        "source":     { "type": "string", "minLength": 1 },
         "controller": { "type": "string", "minLength": 1 },
         "count":      { "type": "integer", "minimum": 1 }
       }

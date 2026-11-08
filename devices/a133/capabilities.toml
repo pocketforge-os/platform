@@ -313,12 +313,21 @@ skin_part = "btn_power"
 
 # ---- ACTUATORS ----
 # 23 addressable RGB LEDs (sunxi_led0..22 ×rgb) = the analog-stick rings + edge (probe §14).
-# NO rumble on the base unit (omitted — the Pro S adds pwm-vibrator).
 [[actuators]]
 id = "leds"
 kind = "led_array"
 controller = "sunxi_led"
 count = 23
+
+# Rumble motor: exposed as an EV_FF/FF_RUMBLE force-feedback effect via a GPIO-driven vibrator
+# (bead tsp-5d987353440091da0020; design D3.8). Expectation only — the live EVIOCGBIT probe on
+# silicon is ground truth.
+[[actuators]]
+id = "rumble"
+kind = "rumble"
+ev_type = "EV_FF"
+code = "FF_RUMBLE"
+source = "gpio-vibrator"
 
 # NO [[sensors]] — the base unit has no accel/gyro/mag (probe §§11-16). Omission, not a stub.
 
