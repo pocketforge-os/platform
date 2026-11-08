@@ -15,3 +15,6 @@ python3 "$HERE/appmanifest-test.py"
 echo
 echo "### app-schema JSON Schema validation ###"
 python3 "$HERE/app-schema-test.py"
+echo
+echo "### app-schema v3 drift corpus ###"
+python3 "$HERE/app-schema-corpus-test.py"
