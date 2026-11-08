@@ -183,7 +183,7 @@ check("unknown orientation 'rotated' rejected",
       bad_orient_errors != [],
       bad_orient_errors)
 
-# ── Negative: schema_version 3 rejected ──
+# ── Positive: schema_version 3 accepted (openmbu authorization, bead tsp-ziac.4.3.1) ──
 SV3 = """\
 schema_version = 3
 [app]
@@ -193,8 +193,8 @@ family = "pocketforge/a133-powervr"
 abi = "1"
 """
 sv3_errors = schema_errors(SV3)
-check("schema_version 3 rejected",
-      sv3_errors != [],
+check("schema_version 3 accepted",
+      sv3_errors == [],
       sv3_errors)
 
 # ── Negative: empty orientations rejected ──
