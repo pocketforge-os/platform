@@ -867,7 +867,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # image#386 (6e3a8d5d) adds additive PF_SELF_FLASH_V3_PROGRESS write-rate markers to the self-flash-v3 initrd; it is 53d8d39a plus #386 only (image H for the OTA capture window).
 # image#389 (896ab923) wires the gamescope focus client (plus the rootfs-base split and cache-export target); image#390 (04af31e2) moves the
 # PF_RUNTIME_SHA / PF_LAUNCHER_SHA guards to runtime 7b97af8f / launcher d256ea37 and carries #389.
-sha  = "04af31e2132aae92d8bbd95878a11162b1961fdf"
+# image#392 (8df8d571) moves the input-harness gamescope pin to dd997616 and re-pins the guest-payload manifest sha; it carries #390.
+sha  = "8df8d57123b64862f53f5b09d2155d4166286fc9"
 
 [[repos]]
 name = "pf-cursor-theme"

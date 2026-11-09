@@ -863,3 +863,12 @@ consumer_path = "tools/a-cts-recovery/smoke.sh"
 parser = "template"
 template = "grep -Fxq 'source_commit={value}'"
 reason = "CTS provenance receipt check in the raw-image smoke harness (image#214/#217)"
+
+[[references]]
+id = "fake-gamescope-focus-runtime-pin"
+platform_field = "repos.runtime.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-fake-gamescope-focus.sh"
+parser = "template"
+template = "runtime_sha={value}"
+reason = "runtime revision the fake-gamescope focus test builds against"
