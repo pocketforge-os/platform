@@ -160,10 +160,52 @@ pf_max_epoch() {
 pf_validate_build_stage_target() {
     local target="$1"
     case "$target" in
-        export|component-test-fetch|component-test-kernel|component-test-gpu-km|component-test-gpu-um|component-test-bootchain|component-test-sdl|component-test-wpa|component-test-cloud-init|component-test-runtime|component-test-ffmpeg|component-test-sdl-static|component-test-hwprobe|component-test-poolsuite|component-test-recovery|component-test-launcher|component-test-gamescope|component-test-cursor-theme) ;;
+        export|cache-export|component-test-fetch|component-test-kernel|component-test-gpu-km|component-test-gpu-um|component-test-bootchain|component-test-sdl|component-test-wpa|component-test-cloud-init|component-test-runtime|component-test-ffmpeg|component-test-sdl-static|component-test-hwprobe|component-test-poolsuite|component-test-recovery|component-test-launcher|component-test-gamescope|component-test-cursor-theme) ;;
         *) pf_die "PF_BUILD_STAGE_TARGET is not an admitted export/component-test target: $target" ;;
     esac
     printf '%s\n' "$target"
+}
+
+# pf_registry_cache_args <build-stage-target> <host-target>
+# Cross-slot BuildKit cache aperture (tsp-hqm1p.182.13). Appends validated
+# --cache-from/--cache-to pairs to the caller's `cmd` array; it must run in the
+# caller's shell (not a subshell) so a refusal stops the build.
+#   PF_BUILDX_CACHE_FROM: 0-3 newline-separated exact slot refs, no options.
+#   PF_BUILDX_CACHE_TO:   0-1 slot ref with allowlisted export options, only for
+#                         the cache-export target (and that target requires it).
+# Only the owned-image L2 namespace on the NAS registry is admitted. Cache import
+# and export never change output bytes; the exact grammar keeps this aperture from
+# becoming a general buildx flag passthrough.
+pf_registry_cache_args() {
+    local stage="$1" host="$2" line count=0
+    local ref='type=registry,ref=10\.0\.32\.86:5555/pocketforge/cache-owned-image:slot-[1-9]'
+    local opt='mode=max|image-manifest=true|oci-mediatypes=true|compression=zstd|compression-level=[0-9]{1,2}|force-compression=true|ignore-error=true'
+    local -A seen=()
+    local from="${PF_BUILDX_CACHE_FROM:-}" to="${PF_BUILDX_CACHE_TO:-}"
+    if [ -n "$from$to" ] && [ "$host" = ci-dell ]; then
+        pf_die "registry cache flags do not combine with the ci-dell local cache"
+    fi
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        [[ "$line" =~ ^${ref}$ ]] \
+            || pf_die "PF_BUILDX_CACHE_FROM line is not an admitted registry cache ref: $line"
+        [ -z "${seen[$line]:-}" ] || pf_die "PF_BUILDX_CACHE_FROM repeats a ref: $line"
+        seen[$line]=1
+        count=$((count + 1))
+        [ "$count" -le 3 ] || pf_die "PF_BUILDX_CACHE_FROM admits at most 3 refs"
+    done <<< "$from"
+    if [ -n "$to" ]; then
+        [[ "$to" =~ ^${ref}(,(${opt}))*$ ]] \
+            || pf_die "PF_BUILDX_CACHE_TO is not an admitted registry cache ref: $to"
+        [ "$stage" = cache-export ] \
+            || pf_die "PF_BUILDX_CACHE_TO is only admitted for the cache-export target"
+    elif [ "$stage" = cache-export ]; then
+        pf_die "the cache-export target needs PF_BUILDX_CACHE_TO"
+    fi
+    while IFS= read -r line; do
+        [ -z "$line" ] || cmd+=( --cache-from "$line" )
+    done <<< "$from"
+    [ -z "$to" ] || cmd+=( --cache-to "$to" )
 }
 
 # pf_stage_sources <src_dir> <buildargs-text>
@@ -840,8 +882,16 @@ pf_os_image_dockerbuild() {
         cmd+=( --cache-from "type=local,src=$cache_dir"
                --cache-to   "type=local,dest=$cache_dir,mode=max" )
     fi
-    cmd+=( --output     "type=local,dest=$PF_OUT_DIR"
-           --metadata-file "$PF_OUT_DIR/build-metadata.json"
+    # Cross-slot registry L2 (tsp-hqm1p.182.13): validated slot refs only; see
+    # pf_registry_cache_args. The cache-export solve exists only to export cache, so
+    # it extracts nothing into PF_OUT_DIR.
+    pf_registry_cache_args "$build_stage_target" "$TARGET"
+    if [ "$build_stage_target" = cache-export ]; then
+        cmd+=( --output type=cacheonly )
+    else
+        cmd+=( --output "type=local,dest=$PF_OUT_DIR" )
+    fi
+    cmd+=( --metadata-file "$PF_OUT_DIR/build-metadata.json"
            "$PF_IMAGE_REPO/build" )
 
     if [ "${PF_DRY_RUN:-1}" = 1 ]; then
