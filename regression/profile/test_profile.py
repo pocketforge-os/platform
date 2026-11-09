@@ -568,17 +568,18 @@ class ProfileTest(unittest.TestCase):
         # Image#390 (focus-client wiring, carries #389) advances PF_IMAGE_SHA plus the runtime (7b97af8f) and launcher (d256ea37) co-pins on every open row;
         # gamescope#28 moves the a133-open-7x-gpu series/source digests. Prior digests reproduce by swapping those pins back.
         # Image#392 (input-harness pins, carries #390) advances only PF_IMAGE_SHA (previous: 04af31e2).
+        # Image#393 (cloud-init fixture stage closure) likewise advances only PF_IMAGE_SHA (previous: 8df8d571).
         expected = {
-            ("a133", "dev"): "b9ab818476405e58ffcc1bdc51265b439a4b460926247f53a27b2ee7a408f9e2",
-            ("a133", "release"): "7046d33f59f35947c97d956a2c00f2b7cb23a66fce0041be55e1109bdf83b189",
-            ("a133-open-7x", "dev"): "1fc8603feb9fabf9f86fc01fa48963b6541ac97f3e9784fe9e3b24d66be88880",
-            ("a133-open-7x", "release"): "3e864b3ed26e2afc05cb5fcab7cb57f14f2e096dc1659b059042ce4e5c39d97e",
-            ("a133-owned", "dev"): "dbd2d209523ba4290ab5e653a40a564ff898bf89dc026f25c80a0f8a889162e8",
-            ("a133-owned", "release"): "0588aa0e3d6e428ef8bbd0b7e3680d67f650b84bf4e90122379e8a7b6847e9fd",
-            ("a523", "dev"): "30fee28c8d259ad6ac9981f5ccba500427036074c56635c672471fcbcbb4044d",
-            ("a523", "release"): "9fa2c9e83fd198a89e0736e97eb7b7fbb453aa07f93cb07b825b8fb637dc515f",
-            ("sdm845", "dev"): "777645de29c7e20bc9cdc092754d0b2889bbbcc195c348ebdd053156e1eb6c0e",
-            ("sdm845", "release"): "cd2ca781486f19de616c2c25a132c100956d5a0a5938a6396f1cf1a5badbd596",
+            ("a133", "dev"): "e2a5ab6cf403336e059ed68e40a337ac78f90d6c4f676a270393c719d5188ee3",
+            ("a133", "release"): "1ae2a2a2bcc7366d900a8768223f12820cb4963222bd70ca04b62d60bf3303eb",
+            ("a133-open-7x", "dev"): "0a3305f53042fafd2873fd9fe09a2d7b6458653cfa30f18726b9608b3b112195",
+            ("a133-open-7x", "release"): "44a58e5715f71ea05241a471b680a60130185c7c9228435254e38036a94f819a",
+            ("a133-owned", "dev"): "8056c6c42c291334a1a2b167a5ae1ff3a3483c5825a3535dcf68f0a0a42f0d6b",
+            ("a133-owned", "release"): "f6e9af6ea9baf4f0c48f5c47e006aa7586733017c6cd4c449cd4860362bd114d",
+            ("a523", "dev"): "ce32a7910f91b56ab417faa7f9bc5fcd2f0dafb45b228d900aaa7e5c5db43b35",
+            ("a523", "release"): "08a5cb7c2bbfda128aa56132e9eb70fb0bfb30bb7ef86a60cc3745b7bcfde372",
+            ("sdm845", "dev"): "bfb7c028d98e0f826c30c272d92116fa002d6bc3ebdf155d35378c1749c36741",
+            ("sdm845", "release"): "a1ace354f7d7ea54757e169e2820e67839004940bea82aefed1900a6aecd3143",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -861,7 +862,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "8df8d57123b64862f53f5b09d2155d4166286fc9",
+                "PF_IMAGE_SHA": "37fb15ca68591f48638382e4a422d0dbbca7e3a3",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")

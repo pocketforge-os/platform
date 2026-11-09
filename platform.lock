@@ -868,7 +868,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # image#389 (896ab923) wires the gamescope focus client (plus the rootfs-base split and cache-export target); image#390 (04af31e2) moves the
 # PF_RUNTIME_SHA / PF_LAUNCHER_SHA guards to runtime 7b97af8f / launcher d256ea37 and carries #389.
 # image#392 (8df8d571) moves the input-harness gamescope pin to dd997616 and re-pins the guest-payload manifest sha; it carries #390.
-sha  = "8df8d57123b64862f53f5b09d2155d4166286fc9"
+# image#393 (37fb15ca) stages rootfs-package-list.sh in the cloud-init fixture; it carries #392.
+sha  = "37fb15ca68591f48638382e4a422d0dbbca7e3a3"
 
 [[repos]]
 name = "pf-cursor-theme"
