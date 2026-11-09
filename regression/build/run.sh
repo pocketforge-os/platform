@@ -47,3 +47,6 @@ bash "$HERE/insecure-builder-config-test.sh"
 
 echo "### apt cache reaches every apt-running stage (tsp-hqm1p.135) ###"
 bash "$HERE/apt-cache-transport-test.sh"
+
+echo "### cross-slot registry cache aperture (tsp-hqm1p.182.13) ###"
+bash "$HERE/registry-cache-flags-test.sh"
