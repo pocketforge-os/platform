@@ -208,6 +208,18 @@ pf_registry_cache_args() {
     [ -z "$to" ] || cmd+=( --cache-to "$to" )
 }
 
+# pf_build_output_args <build-stage-target> <out-dir>
+# Appends the --output to the caller's `cmd` array. The cache-export solve exists
+# only to export cache (tsp-hqm1p.182.13), so it extracts nothing; every other
+# target writes its stage into the out dir.
+pf_build_output_args() {
+    if [ "$1" = cache-export ]; then
+        cmd+=( --output type=cacheonly )
+    else
+        cmd+=( --output "type=local,dest=$2" )
+    fi
+}
+
 # pf_stage_sources <src_dir> <buildargs-text>
 # Materialize each source repo as a `git archive` of its platform.lock SHA under
 # <src_dir>/<logical>/ (the named build contexts the Dockerfile COPYs from). NEVER a clone
@@ -886,11 +898,7 @@ pf_os_image_dockerbuild() {
     # pf_registry_cache_args. The cache-export solve exists only to export cache, so
     # it extracts nothing into PF_OUT_DIR.
     pf_registry_cache_args "$build_stage_target" "$TARGET"
-    if [ "$build_stage_target" = cache-export ]; then
-        cmd+=( --output type=cacheonly )
-    else
-        cmd+=( --output "type=local,dest=$PF_OUT_DIR" )
-    fi
+    pf_build_output_args "$build_stage_target" "$PF_OUT_DIR"
     cmd+=( --metadata-file "$PF_OUT_DIR/build-metadata.json"
            "$PF_IMAGE_REPO/build" )
 

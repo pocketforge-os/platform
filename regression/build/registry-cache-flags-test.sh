@@ -8,15 +8,19 @@
 #   PF_BUILDX_CACHE_FROM  0-3 newline-separated exact slot refs
 #   PF_BUILDX_CACHE_TO    0-1 slot ref with allowlisted export options, and only for
 #                         the cache-export target, which then outputs cacheonly.
-# Anything else is refused by name before buildx runs. Proven against the real
-# pf-build.sh dry-run argv and the sed-extracted shipped validator.
-set -euo pipefail
+# Anything else is refused by name before buildx runs. Proven against the
+# sed-extracted shipped functions (the cmd array they build) plus a structural pin
+# of their call site in pf_os_image_dockerbuild. It is hermetic: no image checkout,
+# no source mirrors, no network. (A full `pf-build.sh --dry-run` resolves every
+# pinned SHA's epoch through ~/wt/.mirrors, which the offline CI runner lacks.)
+set -Eeuo pipefail
+trap 'rc=$?; echo "FAIL: line ${LINENO}: ${BASH_COMMAND} (rc=${rc})" >&2; exit "${rc}"' ERR
 ROOT="$(cd "$(dirname "$0")/../.." >/dev/null 2>&1 && pwd)"
 # shellcheck source=core/lib/common.sh
 . "$ROOT/core/lib/common.sh"
 extract() { sed -n "/^$1()/,/^}/p" "$ROOT/core/pf-build.sh"; }
-eval "$(extract pf_validate_build_stage_target; extract pf_registry_cache_args)"
-for f in pf_validate_build_stage_target pf_registry_cache_args; do
+eval "$(extract pf_validate_build_stage_target; extract pf_registry_cache_args; extract pf_build_output_args)"
+for f in pf_validate_build_stage_target pf_registry_cache_args pf_build_output_args; do
     declare -F "$f" >/dev/null || { echo "FAIL: could not extract $f from core/pf-build.sh"; exit 1; }
 done
 
@@ -28,47 +32,74 @@ type=registry,ref=$REF:slot-2
 type=registry,ref=$REF:slot-3"
 TO2="type=registry,ref=$REF:slot-2,mode=max,image-manifest=true,oci-mediatypes=true,compression=zstd,ignore-error=true"
 
-dry() {  # [VAR=value...] — the real pf-build.sh dry-run argv, inputs scrubbed first
-    env -u PF_BUILDX_CACHE_FROM -u PF_BUILDX_CACHE_TO -u PF_BUILD_STAGE_TARGET "$@" \
-        "$ROOT/core/pf-build.sh" --device a133 --variant dev --dry-run \
-        --bead registry-cache-test 2>&1
+argv() {  # <stage> <host> <from> <to> -> the aperture's cmd words, one per line
+    local cmd=()
+    PF_BUILDX_CACHE_FROM="$3" PF_BUILDX_CACHE_TO="$4" pf_registry_cache_args "$1" "$2"
+    pf_build_output_args "$1" /out
+    printf '%s\n' "${cmd[@]}"
+}
+expect() {  # <label> <want> <got>
+    [ "$2" = "$3" ] || { printf 'FAIL: %s\n--- want\n%s\n--- got\n%s\n' "$1" "$2" "$3" >&2; exit 1; }
 }
 
-echo "== 1. default argv carries no registry cache =="
-out="$(dry)"
-if grep -Eq 'type=registry|cacheonly' <<< "$out"; then
-    echo "FAIL: default build gained registry cache flags"; exit 1
-fi
-grep -Fq -- '--target export' <<< "$out" || { echo "FAIL: default target is not export"; exit 1; }
-echo "ok   - unset inputs leave the argv unchanged"
+echo "== 1. default: no registry cache, local output =="
+expect "default argv" "--output
+type=local,dest=/out" "$(argv export ephemeral "" "")"
+echo "ok   - unset inputs add nothing but the unchanged local output"
 
 echo "== 2. warm import: three slot refs, in order, no export =="
-out="$(dry PF_BUILDX_CACHE_FROM="$FROM3")"
-got="$(grep -o -- '--cache-from [^ ]*' <<< "$out" | sed 's/\\//g')"
-want="$(printf -- '--cache-from %s\n' "type=registry,ref=$REF:slot-1" "type=registry,ref=$REF:slot-2" "type=registry,ref=$REF:slot-3")"
-[ "$got" = "$want" ] || { echo "FAIL: cache-from argv:"; printf '%s\n' "$got"; exit 1; }
-! grep -Fq -- '--cache-to' <<< "$out" || { echo "FAIL: import-only build exports"; exit 1; }
-grep -Fq -- '--output type=local' <<< "$out" || { echo "FAIL: image build lost its local output"; exit 1; }
+expect "import argv" "--cache-from
+type=registry,ref=$REF:slot-1
+--cache-from
+type=registry,ref=$REF:slot-2
+--cache-from
+type=registry,ref=$REF:slot-3
+--output
+type=local,dest=/out" "$(argv export ephemeral "$FROM3" "")"
 echo "ok   - --cache-from x3 on the export target"
 
 echo "== 3. cache-export solve: own slot ref, cacheonly output =="
-out="$(dry PF_BUILD_STAGE_TARGET=cache-export PF_BUILDX_CACHE_FROM="$FROM3" PF_BUILDX_CACHE_TO="$TO2")"
-grep -Fq -- '--target cache-export' <<< "$out" || { echo "FAIL: cache-export target not selected"; exit 1; }
-[ "$(grep -o -- '--cache-to [^ ]*' <<< "$out" | sed 's/\\//g')" = "--cache-to $TO2" ] \
-    || { echo "FAIL: cache-to argv wrong"; grep -o -- '--cache-to [^ ]*' <<< "$out"; exit 1; }
-grep -Fq -- '--output type=cacheonly' <<< "$out" || { echo "FAIL: cache-export must output cacheonly"; exit 1; }
-! grep -Fq -- '--output type=local' <<< "$out" || { echo "FAIL: cache-export extracts files"; exit 1; }
+expect "cache-export argv" "--cache-from
+type=registry,ref=$REF:slot-1
+--cache-from
+type=registry,ref=$REF:slot-2
+--cache-from
+type=registry,ref=$REF:slot-3
+--cache-to
+$TO2
+--output
+type=cacheonly" "$(argv cache-export ephemeral "$FROM3" "$TO2")"
 echo "ok   - one --cache-to, --output type=cacheonly"
+
+echo "== 3b. the shipped build wires both functions into its buildx argv =="
+body="$(extract pf_os_image_dockerbuild)"
+# The patterns below match pf-build.sh's literal variable text.
+# shellcheck disable=SC2016
+grep -Fxq '    pf_registry_cache_args "$build_stage_target" "$TARGET"' <<< "$body" \
+    || { echo "FAIL: pf_os_image_dockerbuild does not call pf_registry_cache_args" >&2; exit 1; }
+# shellcheck disable=SC2016
+grep -Fxq '    pf_build_output_args "$build_stage_target" "$PF_OUT_DIR"' <<< "$body" \
+    || { echo "FAIL: pf_os_image_dockerbuild does not call pf_build_output_args" >&2; exit 1; }
+# shellcheck disable=SC2016
+order="$(grep -nE '^    (pf_registry_cache_args|pf_build_output_args) |--metadata-file|--target "\$build_stage_target"|"\$SCRIPT_DIR/lib/pf-build-env" "\$\{cmd\[@\]\}"' <<< "$body" | cut -d: -f1 | paste -sd' ')"
+read -r t_line c_line o_line m_line x_line <<< "$order"
+if ! { [ -n "${x_line:-}" ] && [ "$t_line" -lt "$c_line" ] && [ "$c_line" -lt "$o_line" ] \
+    && [ "$o_line" -lt "$m_line" ] && [ "$m_line" -lt "$x_line" ]; }; then
+    echo "FAIL: call order --target < cache args < output < metadata < exec, got lines: $order" >&2
+    exit 1
+fi
+if grep -Eq -- '--output +"type=local' <<< "$body"; then
+    echo "FAIL: pf_os_image_dockerbuild still spells its own --output" >&2; exit 1
+fi
+echo "ok   - target, cache args, output, metadata, then the one exec of cmd"
 
 echo "== 4. refusals are named and happen before buildx =="
 refuse() {  # <expected-message> <stage> <host> <from> <to>
-    local want="$1" rc
-    set +e
+    local want="$1" rc=0
+    # `|| rc=$?` keeps the expected refusal out of the ERR trap.
     # shellcheck disable=SC2034  # cmd is the array pf_registry_cache_args appends to
     ( cmd=(); PF_BUILDX_CACHE_FROM="$4" PF_BUILDX_CACHE_TO="$5" pf_registry_cache_args "$2" "$3" ) \
-        >"$TMP/r.out" 2>"$TMP/r.err"
-    rc=$?
-    set -e
+        >"$TMP/r.out" 2>"$TMP/r.err" || rc=$?
     [ "$rc" -ne 0 ] || { echo "FAIL: admitted ($want): from='$4' to='$5' stage=$2 host=$3"; exit 1; }
     grep -Fq "$want" "$TMP/r.err" || { echo "FAIL: refusal not named '$want':"; cat "$TMP/r.err"; exit 1; }
 }
