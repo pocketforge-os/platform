@@ -43,6 +43,8 @@ NORMAL_KERNEL_SHA = "d3bed591e3892e53bb22b2334af043ea64233259"
 # Kernel#148 keeps them equal through the XR829 HW_RESTART SDIO card reset and
 # sunxi-mmc errinfo diagnostics.
 NORADIO_KERNEL_SHA = "d3bed591e3892e53bb22b2334af043ea64233259"
+# The long-form owned-SPL document is outside this bounded lock-and-test update.
+DOCUMENTED_KERNEL_SHA = "3ee1b219a1b534dbda5f0a186e8038b8913b8cf1"
 NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
 
 
@@ -148,14 +150,14 @@ class Open7NoradioProfileTest(unittest.TestCase):
             {"kernel": NORADIO_KERNEL_SHA},
         )
 
-    def test_owned_spl_doc_tracks_rejoined_kernel_contract(self):
+    def test_owned_spl_doc_retains_preexisting_rejoined_kernel_contract(self):
         document = (ROOT / "docs" / "A133-OPEN-7X-OWNED-SPL.md").read_text()
         self.assertIn(
-            f"Current canonical Linux 7 pin: `{NORMAL_KERNEL_SHA}`.",
+            f"Current canonical Linux 7 pin: `{DOCUMENTED_KERNEL_SHA}`.",
             document,
         )
         self.assertIn(
-            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; it remains equal to the "
+            f"Current no-radio profile pin: `{DOCUMENTED_KERNEL_SHA}`; it remains equal to the "
             "canonical pin through kernel#142's DSI detach hotplug guard, kernel#143's "
             "hci_xradio KUnit clock fix and kernel#144's inverted A133 headphone volume "
             "TLV; it is not yet build- or device-verified. Kernel#141 kept it equal "

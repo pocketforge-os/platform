@@ -547,6 +547,8 @@ class ProfileTest(unittest.TestCase):
         # tsp-hqm1p.155 verified this by diffing the old and new payloads.
         # Kernel#145/#146 (sunxi-mmc post-error reset, G2D mix S_FMT context) advance
         # only PF_KERNEL_SHA on the a133-open-7x rows.
+        # Kernel#148 (XR829 HW_RESTART SDIO card reset and sunxi-mmc errinfo) likewise
+        # advances only PF_KERNEL_SHA on the a133-open-7x rows.
         # Image#371 advances only PF_IMAGE_SHA on every row so the app-root and A523
         # rootfs builders take their apt scheme from http_proxy.
         # Image#372 (DRIRC_CONFIGDIR + 00-mesa-defaults.conf) advances only PF_IMAGE_SHA
@@ -572,8 +574,8 @@ class ProfileTest(unittest.TestCase):
         expected = {
             ("a133", "dev"): "e2a5ab6cf403336e059ed68e40a337ac78f90d6c4f676a270393c719d5188ee3",
             ("a133", "release"): "1ae2a2a2bcc7366d900a8768223f12820cb4963222bd70ca04b62d60bf3303eb",
-            ("a133-open-7x", "dev"): "0a3305f53042fafd2873fd9fe09a2d7b6458653cfa30f18726b9608b3b112195",
-            ("a133-open-7x", "release"): "44a58e5715f71ea05241a471b680a60130185c7c9228435254e38036a94f819a",
+            ("a133-open-7x", "dev"): "27fdad72879b539453b313abd38b6dcd49d63a2163fc52a2cbe1dc284e912a7d",
+            ("a133-open-7x", "release"): "909a229dea91bb0178a2480b03100365219a958ee113f6b73b9ba1700d51882a",
             ("a133-owned", "dev"): "8056c6c42c291334a1a2b167a5ae1ff3a3483c5825a3535dcf68f0a0a42f0d6b",
             ("a133-owned", "release"): "f6e9af6ea9baf4f0c48f5c47e006aa7586733017c6cd4c449cd4860362bd114d",
             ("a523", "dev"): "ce32a7910f91b56ab417faa7f9bc5fcd2f0dafb45b228d900aaa7e5c5db43b35",
