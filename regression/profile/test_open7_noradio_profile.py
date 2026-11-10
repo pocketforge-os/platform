@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "3ee1b219a1b534dbda5f0a186e8038b8913b8cf1"
+NORMAL_KERNEL_SHA = "d3bed591e3892e53bb22b2334af043ea64233259"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -40,7 +40,11 @@ NORMAL_KERNEL_SHA = "3ee1b219a1b534dbda5f0a186e8038b8913b8cf1"
 # DSI HS clock after panel enable, and #126 retains panel power across ACTIVE=0.
 # Kernel#136 keeps them equal through the sunxi watchdog suspend repair, preserving
 # firmware-started state and restarting active or hardware-running watchdogs on resume.
-NORADIO_KERNEL_SHA = "3ee1b219a1b534dbda5f0a186e8038b8913b8cf1"
+# Kernel#148 keeps them equal through the XR829 HW_RESTART SDIO card reset and
+# sunxi-mmc errinfo diagnostics.
+NORADIO_KERNEL_SHA = "d3bed591e3892e53bb22b2334af043ea64233259"
+# Keep the source-owned documentation assertion anchored to the current lock expectation.
+DOCUMENTED_KERNEL_SHA = NORMAL_KERNEL_SHA
 NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
 
 
@@ -146,15 +150,17 @@ class Open7NoradioProfileTest(unittest.TestCase):
             {"kernel": NORADIO_KERNEL_SHA},
         )
 
-    def test_owned_spl_doc_tracks_rejoined_kernel_contract(self):
+    def test_owned_spl_doc_tracks_current_rejoined_kernel_contract(self):
         document = (ROOT / "docs" / "A133-OPEN-7X-OWNED-SPL.md").read_text()
         self.assertIn(
-            f"Current canonical Linux 7 pin: `{NORMAL_KERNEL_SHA}`.",
+            f"Current canonical Linux 7 pin: `{DOCUMENTED_KERNEL_SHA}`.",
             document,
         )
         self.assertIn(
-            f"Current no-radio profile pin: `{NORADIO_KERNEL_SHA}`; it remains equal to the "
-            "canonical pin through kernel#142's DSI detach hotplug guard, kernel#143's "
+            f"Current no-radio profile pin: `{DOCUMENTED_KERNEL_SHA}`; it remains equal to the "
+            "canonical pin through merged kernel#148's XR829 HW_RESTART SDIO card reset and "
+            "sunxi-mmc errinfo diagnostics; the merge also retains kernel#142's DSI detach "
+            "hotplug guard, kernel#143's "
             "hci_xradio KUnit clock fix and kernel#144's inverted A133 headphone volume "
             "TLV; it is not yet build- or device-verified. Kernel#141 kept it equal "
             "through the A133 TSP mic route direction; kernel#137 kept it equal through "
