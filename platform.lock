@@ -871,7 +871,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # PF_RUNTIME_SHA / PF_LAUNCHER_SHA guards to runtime 7b97af8f / launcher d256ea37 and carries #389.
 # image#392 (8df8d571) moves the input-harness gamescope pin to dd997616 and re-pins the guest-payload manifest sha; it carries #390.
 # image#393 (37fb15ca) stages rootfs-package-list.sh in the cloud-init fixture; it carries #392.
-sha  = "37fb15ca68591f48638382e4a422d0dbbca7e3a3"
+# image#394 (e6e3165f) refreshes the exact gpu-um-tsp toolchain producer identity to
+# ef3b4093d8557fae482599112a7467d223774b73; it carries #393.
+sha  = "e6e3165f2b69308e418bf4e6e4ed4597d73aa3c6"
 
 [[repos]]
 name = "pf-cursor-theme"
