@@ -789,7 +789,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "095f0c0b95eba4e05a1c6c8f9d88d7b28179a054")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "ef3b4093d8557fae482599112a7467d223774b73")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -863,7 +863,7 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": args["PF_IMAGE_SHA"],
             },
             {
-                "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
+                "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
                 "PF_IMAGE_SHA": "37fb15ca68591f48638382e4a422d0dbbca7e3a3",
             },
         )
