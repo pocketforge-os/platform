@@ -571,17 +571,19 @@ class ProfileTest(unittest.TestCase):
         # gamescope#28 moves the a133-open-7x-gpu series/source digests. Prior digests reproduce by swapping those pins back.
         # Image#392 (input-harness pins, carries #390) advances only PF_IMAGE_SHA (previous: 04af31e2).
         # Image#393 (cloud-init fixture stage closure) likewise advances only PF_IMAGE_SHA (previous: 8df8d571).
+        # Image#394 (gpu-um-tsp exact producer mirror) likewise advances only PF_IMAGE_SHA
+        # (previous: 37fb15ca); all ten payloads were regenerated with the canonical form below.
         expected = {
-            ("a133", "dev"): "e2a5ab6cf403336e059ed68e40a337ac78f90d6c4f676a270393c719d5188ee3",
-            ("a133", "release"): "1ae2a2a2bcc7366d900a8768223f12820cb4963222bd70ca04b62d60bf3303eb",
-            ("a133-open-7x", "dev"): "27fdad72879b539453b313abd38b6dcd49d63a2163fc52a2cbe1dc284e912a7d",
-            ("a133-open-7x", "release"): "909a229dea91bb0178a2480b03100365219a958ee113f6b73b9ba1700d51882a",
-            ("a133-owned", "dev"): "8056c6c42c291334a1a2b167a5ae1ff3a3483c5825a3535dcf68f0a0a42f0d6b",
-            ("a133-owned", "release"): "f6e9af6ea9baf4f0c48f5c47e006aa7586733017c6cd4c449cd4860362bd114d",
-            ("a523", "dev"): "ce32a7910f91b56ab417faa7f9bc5fcd2f0dafb45b228d900aaa7e5c5db43b35",
-            ("a523", "release"): "08a5cb7c2bbfda128aa56132e9eb70fb0bfb30bb7ef86a60cc3745b7bcfde372",
-            ("sdm845", "dev"): "bfb7c028d98e0f826c30c272d92116fa002d6bc3ebdf155d35378c1749c36741",
-            ("sdm845", "release"): "a1ace354f7d7ea54757e169e2820e67839004940bea82aefed1900a6aecd3143",
+            ("a133", "dev"): "10765a50063cde0e2da988ecd260e41043e3bf340debd45b54c1bc32ccc67ad5",
+            ("a133", "release"): "124c7a61efd88cd561b74e2852e90caefc44523f992299608394a10456d8d937",
+            ("a133-open-7x", "dev"): "2667639ace1ddef1931c6a855b33e4bad58d857e057361a101d6c6bfc44f7916",
+            ("a133-open-7x", "release"): "d6684ccc18f92b57eb57e3f1e2beb5fcfda1047a8914142d2e7fcd223758d5e0",
+            ("a133-owned", "dev"): "09d8878a3ac3a5fe58c12de2d0423e898d967167713a9f817f770a0ab743368a",
+            ("a133-owned", "release"): "812c1eb47346ecc5f0ab8927d2367c1a6451f850ecd0be2c89dbfe7fb2c9d6b3",
+            ("a523", "dev"): "0fdeedc8676b62b7cd7a8e959d497e881660d73dd4ed71060bba9e7d656294ba",
+            ("a523", "release"): "2a9dd598c7f9220e7b5b2ba64c546e4f0f59d979413d4f464e03d089ed2d1c84",
+            ("sdm845", "dev"): "89fa0486a0a78079e181dcfe1888e3f8d5a10bc847dd77ce8e7993a130baed4d",
+            ("sdm845", "release"): "1b1d8394466e00ee21acebc73def1d5479b6b583e0d8f3c9a1fa81e4a7659247",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -789,7 +791,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], "095f0c0b95eba4e05a1c6c8f9d88d7b28179a054")
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], "ef3b4093d8557fae482599112a7467d223774b73")
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -863,8 +865,8 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": args["PF_IMAGE_SHA"],
             },
             {
-                "PF_GPU_UM_SHA": "0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15",
-                "PF_IMAGE_SHA": "37fb15ca68591f48638382e4a422d0dbbca7e3a3",
+                "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
+                "PF_IMAGE_SHA": "e6e3165f2b69308e418bf4e6e4ed4597d73aa3c6",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
