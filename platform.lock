@@ -1674,12 +1674,18 @@ sha  = "3c8c5c537028e6f749f7888b05e85aa95aa88db4"
 [[repos]]
 name = "libsdl3-sunxifb"      # userspace lib (not per-device)
 url  = "https://github.com/pocketforge-os/libsdl3-sunxifb.git"
-ref  = "main"                # tsp-mc9m.41.924.16.13.3.3.1: libsdl3-sunxifb#28 7411a948 makes the proven Stage A
+ref  = "main"                # tsp-mc9m.41.923.5.4: libsdl3-sunxifb#29 5d792fb1 compiles the dynamically loaded
+                              # Wayland video backend into both PocketForge singleton variants while preserving
+                              # KMSDRM for open and sunxifb for ddk. Wayland/xkbcommon dependencies come only from
+                              # the pinned AArch64 sysroot; the artifact contract requires Wayland_bootstrap without
+                              # adding direct Wayland DT_NEEDED entries. Fast-forward, 1.
+                              # abi/platform-abi.json sdl.sha is regenerated; abi/families.toml platform_version stays
+                              # "20" (lock_state=interim).
+                              # Previous pin (7411a94803c95b2f93a898f3773ffe95dfec4263):
+                              # tsp-mc9m.41.924.16.13.3.3.1: libsdl3-sunxifb#28 7411a948 makes the proven Stage A
                               # renderer pre-rotation and legacy rotate-pass load elision the absent-hint defaults,
                               # preserving explicit opt-outs, raw-GLES fallback and benchmark experiment selection.
                               # Fast-forward, 2. Image 96e1eb13 builds SDL from PF_LIBSDL3_SHA with no equality guard.
-                              # abi/platform-abi.json sdl.sha is regenerated; abi/families.toml platform_version stays
-                              # "20" (lock_state=interim).
                               # Previous pin (a286526622fe5cb52271e325180e77609adeaad5):
                               # tsp-mc9m.41.924.16.13.3.3: libsdl3-sunxifb#27 a2865266: default-off
                               # SDL_KMSDRM_RENDERER_PREROTATION draws the GLES2 SDL_Renderer default framebuffer
@@ -1733,7 +1739,7 @@ ref  = "main"                # tsp-mc9m.41.924.16.13.3.3.1: libsdl3-sunxifb#28 7
                               # f5e73b52 supplies the reviewed
                               # KMSDRM-enabled open-model artifact for imagePR126.
                               # Prior: tsp-4i6u #14: SDL_Renderer on sunxifb now works — SUNXIFB_CreateWindow loads EGL via the refcounted SDL_GL_LoadLibrary(NULL) wrapper (not the raw hook), fixing the egl_data/driver_loaded desync that made SDL_CreateRenderer fail ("EGL context already created" / "no matching render driver"); preserves Fix A's eager-surface invariant (tsp-osr NULL+0x8 deref stays fixed). Prior: tsp-147u.8.5 #12 (pf-gfxbench stage-schedule CALIBRATION, 60.41->2.00fps on tsp-base); #9 (pf-gfxbench app); tsp-ve5 #5 (eglBindAPI return check); UM blob path reorg tsp/ -> sunxi/a133/ (#2).
-sha  = "7411a94803c95b2f93a898f3773ffe95dfec4263"
+sha  = "5d792fb15394f882a027cb5dae57f8e620c6edf2"
 
 [[repos]]
 name = "wpa-supplicant-tsp"   # owned wpa_supplicant 2.10 fork (GREAT_SNR 25->45 roam hysteresis,
