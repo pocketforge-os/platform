@@ -575,16 +575,17 @@ class ProfileTest(unittest.TestCase):
         # (previous: 37fb15ca). Image#395 carries the reviewed SDL Wayland build contract and
         # again advances only PF_IMAGE_SHA. Kernel#149/#150/#151 advance only PF_KERNEL_SHA
         # for the a133-open-7x rows; all ten payloads were regenerated canonically below.
+        # Pool Suite#21 advances only PF_POOLSUITE_SHA on dev rows; release rows remain unchanged.
         expected = {
-            ("a133", "dev"): "fb92a770594957aa3c06f0b9c2ab8238f8d228f63837f481c3686e3f83391627",
+            ("a133", "dev"): "3620a556222c622c2a15107252d299751074f0b47c80dc9fc282f80e77630970",
             ("a133", "release"): "66b5210a6d65be1456334a3418395017f5a7d9996a33d023b550efee7c507932",
-            ("a133-open-7x", "dev"): "4bd6aea793a3d3acfec68eb995108237cf6e85fb8448c4e01c1901b709bf6140",
+            ("a133-open-7x", "dev"): "910f8015395aed6d15d74c22a5987f6c70e0b2f2873e23c12ef903768dafb5d8",
             ("a133-open-7x", "release"): "bbd0b2847ffb4c66f68a5272f472f0e5781b8325745bd35c48972a255459ec12",
-            ("a133-owned", "dev"): "58c69f28f6346906da594a78fd9228827f9a7b7e8908825f6d78d9606f2c12f6",
+            ("a133-owned", "dev"): "b27bd18f7038ed7893e8c322a0b98b70175ffbf53a32772fafb67a78568b8a8a",
             ("a133-owned", "release"): "f6f43edfafee6fdd62dd43ffb83b301d4e680fac9360d392f16053920fa9c208",
-            ("a523", "dev"): "849f0c325c67d080b025b19f62038e8f167efea5198b7a05686b8dd403369b00",
+            ("a523", "dev"): "a0198a9cc1df4927a2f5783eb3567bc4caef98830ab7b1be2bb8718c9b056423",
             ("a523", "release"): "5bb339fe2ca820229e81b7353c62382088cd5b806591473ed514b942007de33c",
-            ("sdm845", "dev"): "ac1e625dc106312e9358b00776c35e1f6b835592e774e66401f994f7cccd632f",
+            ("sdm845", "dev"): "c1f1b97f3a80293836a492ebd72f3d692ab96db726368b5dea21f1ba788bb5dd",
             ("sdm845", "release"): "7dd987fd167b7f16cff47c37a9a625d285db461277ecb273efa4f5272d61ff5e",
         }
         for key, digest in expected.items():
@@ -776,7 +777,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(release_missing, [])
         self.assertRegex(dev["PF_HWPROBE_SHA"], r"^[0-9a-f]{40}$")
         self.assertRegex(dev["PF_SIM_SHA"], r"^[0-9a-f]{40}$")
-        self.assertEqual(dev["PF_POOLSUITE_SHA"], "cceaab085a270268efccc07930a732b41039dabf")
+        self.assertEqual(dev["PF_POOLSUITE_SHA"], "d60054f2c6b01e79b77cf753c6e0bbcc3cfbc2e5")
         self.assertEqual(release["PF_HWPROBE_SHA"], "")
         self.assertEqual(release["PF_SIM_SHA"], "")
         self.assertEqual(release["PF_POOLSUITE_SHA"], "")
