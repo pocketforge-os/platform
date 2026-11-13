@@ -197,9 +197,13 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # S_FMT context fix) keep both equal as well.
 # kernel-sunxi-7.x#148 adds XR829 HW_RESTART SDIO card reset and sunxi-mmc errinfo
 # diagnostics; both profiles remain equal at its tested-tree-identical merge.
+# kernel-sunxi-7.x#149 records the A133 VENC vendor contract, #150 records the
+# lawful source-acquisition blocker, and #151 enables built-in
+# CONFIG_CRYPTO_USER_API_SKCIPHER=y for A133 AF_ALG skcipher/cbc(aes).
+# Both profiles remain equal at merged device/a133 commit f067ee58.
 # The exported include/uapi (5ccf3d70) and arm64 UAPI (92d8ba17) trees are unchanged.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "d3bed591e3892e53bb22b2334af043ea64233259"
+kernel = "f067ee584346f30b5037451930e82c9ef8175582"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -1080,6 +1084,11 @@ ref  = "device/a133-linear"    # tsp-mc9m.60.7.2.3.12: kernel-sunxi-6.x#279 reje
 sha  = "095f0c0b95eba4e05a1c6c8f9d88d7b28179a054"
 
 [[repos]]
+# kernel-sunxi-7.x#149 records the A133 VENC vendor contract, #150 records its
+# lawful source-acquisition blocker, and #151 enables built-in
+# CONFIG_CRYPTO_USER_API_SKCIPHER=y for A133 AF_ALG skcipher/cbc(aes).
+# Merge f067ee58 advances the prior d3bed591e3892e53bb22b2334af043ea64233259
+# pin while retaining #148 and the complete historical provenance below.
 # kernel-sunxi-7.x#148 adds XR829 HW_RESTART SDIO card reset and sunxi-mmc errinfo
 # diagnostics. Merge d3bed591 has the same tree as tested head fd72b5e1.
 # kernel-sunxi-7.x#136 preserves a firmware-started sunxi watchdog's timeout and
@@ -1361,7 +1370,7 @@ name = "kernel-sunxi-7.x"    # KERNEL PIN (tsp-98733d6399be82e4f00c.5.3): device
                                # kernel-sunxi-7.x#14 keeps cldo1 powered so mmc0 retains its rootfs
 url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
-sha  = "d3bed591e3892e53bb22b2334af043ea64233259"
+sha  = "f067ee584346f30b5037451930e82c9ef8175582"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch

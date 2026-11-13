@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "d3bed591e3892e53bb22b2334af043ea64233259"
+NORMAL_KERNEL_SHA = "f067ee584346f30b5037451930e82c9ef8175582"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -42,7 +42,9 @@ NORMAL_KERNEL_SHA = "d3bed591e3892e53bb22b2334af043ea64233259"
 # firmware-started state and restarting active or hardware-running watchdogs on resume.
 # Kernel#148 keeps them equal through the XR829 HW_RESTART SDIO card reset and
 # sunxi-mmc errinfo diagnostics.
-NORADIO_KERNEL_SHA = "d3bed591e3892e53bb22b2334af043ea64233259"
+# Kernel#149/#150 retain the A133 VENC provenance and source blocker, and #151
+# keeps them equal while enabling built-in CRYPTO_USER_API_SKCIPHER for AF_ALG.
+NORADIO_KERNEL_SHA = "f067ee584346f30b5037451930e82c9ef8175582"
 # Keep the source-owned documentation assertion anchored to the current lock expectation.
 DOCUMENTED_KERNEL_SHA = NORMAL_KERNEL_SHA
 NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
@@ -157,21 +159,14 @@ class Open7NoradioProfileTest(unittest.TestCase):
             document,
         )
         self.assertIn(
-            f"Current no-radio profile pin: `{DOCUMENTED_KERNEL_SHA}`; it remains equal to the "
-            "canonical pin through merged kernel#148's XR829 HW_RESTART SDIO card reset and "
-            "sunxi-mmc errinfo diagnostics; the merge also retains kernel#142's DSI detach "
-            "hotplug guard, kernel#143's "
-            "hci_xradio KUnit clock fix and kernel#144's inverted A133 headphone volume "
-            "TLV; it is not yet build- or device-verified. Kernel#141 kept it equal "
-            "through the A133 TSP mic route direction; kernel#137 kept it equal through "
-            "the gpio-vibra rumble intensity; kernel#136 kept it equal through the sunxi "
-            "watchdog suspend repair; kernel#135 kept it equal through the capture "
-            "FIFO restart repair; Build61 kept it equal "
-            "through the CPU PLL and MMC recovery changes; Build60 kept it equal through "
-            "the merged mic path and default-off MMC recovery "
-            "trace candidate; "
-            "Build59 kept it equal through kernel#129's CE debug counters; Build57 kept it "
-            "equal to the canonical pin through kernel#127 speaker DRC and kernel#128 vibration.",
+            "merged kernel#149/#150/#151 records the A133 VENC vendor contract and lawful "
+            "source-acquisition blocker, then enables built-in "
+            "`CONFIG_CRYPTO_USER_API_SKCIPHER=y` for A133 AF_ALG `skcipher` / `cbc(aes)`.",
+            document,
+        )
+        self.assertIn(
+            "the prior `d3bed591e3892e53bb22b2334af043ea64233259` kernel#148 pin and "
+            "its earlier provenance remain documented below and in `platform.lock`.",
             document,
         )
         self.assertNotIn("holds its lock-owned kernel pin at `23cdf7bf`", document)
