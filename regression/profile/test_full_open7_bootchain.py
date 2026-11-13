@@ -79,13 +79,13 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_IMAGE_SHA": "e6e3165f2b69308e418bf4e6e4ed4597d73aa3c6",
             "PF_RUNTIME_SHA": "7b97af8ffe1acb2665b946f97f4473728ba2ccb1",
             "PF_KERNEL_REPO": "kernel-sunxi-7.x",
-            "PF_KERNEL_SHA": "d3bed591e3892e53bb22b2334af043ea64233259",
+            "PF_KERNEL_SHA": "f067ee584346f30b5037451930e82c9ef8175582",
             "PF_KERNEL_DTB": "sun50i-a133-pocketforge-odyssey.dtb",
             "PF_KERNEL_REQUIRED_MODULES": "powervr",
             "PF_GPU_MODEL": "open",
             "PF_GPU_KM_MODEL": "in-tree-7.x",
             "PF_GPU_KM_REPO": "kernel-sunxi-7.x",
-            "PF_GPU_KM_SHA": "d3bed591e3892e53bb22b2334af043ea64233259",
+            "PF_GPU_KM_SHA": "f067ee584346f30b5037451930e82c9ef8175582",
             "PF_GPU_UM_REPO": "gpu-um-tsp",
             "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
             "PF_LIBSDL3_SHA": "7411a94803c95b2f93a898f3773ffe95dfec4263",
@@ -113,7 +113,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
     def test_noradio_profile_carries_the_canonical_kernel(self):
         args, _state, missing = profile.build_args("a133-open-7x-gpu-noradio")
         self.assertEqual(missing, [])
-        canonical_kernel = "d3bed591e3892e53bb22b2334af043ea64233259"
+        canonical_kernel = "f067ee584346f30b5037451930e82c9ef8175582"
         self.assertEqual(args["PF_KERNEL_SHA"], canonical_kernel)
         self.assertEqual(args["PF_GPU_KM_SHA"], canonical_kernel)
 
