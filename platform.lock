@@ -873,7 +873,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # image#393 (37fb15ca) stages rootfs-package-list.sh in the cloud-init fixture; it carries #392.
 # image#394 (e6e3165f) refreshes the exact gpu-um-tsp toolchain producer identity to
 # ef3b4093d8557fae482599112a7467d223774b73; it carries #393.
-sha  = "e6e3165f2b69308e418bf4e6e4ed4597d73aa3c6"
+# image#395 (02904c88) advances the input-harness SDL mirror to 5d792fb1, records
+# the explicit Wayland build contract, and carries #394.
+sha  = "02904c882e5dbcee7fb62bd030532c241edc1128"
 
 [[repos]]
 name = "pf-cursor-theme"

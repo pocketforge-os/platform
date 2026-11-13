@@ -572,18 +572,19 @@ class ProfileTest(unittest.TestCase):
         # Image#392 (input-harness pins, carries #390) advances only PF_IMAGE_SHA (previous: 04af31e2).
         # Image#393 (cloud-init fixture stage closure) likewise advances only PF_IMAGE_SHA (previous: 8df8d571).
         # Image#394 (gpu-um-tsp exact producer mirror) likewise advances only PF_IMAGE_SHA
-        # (previous: 37fb15ca); all ten payloads were regenerated with the canonical form below.
+        # (previous: 37fb15ca). Image#395 carries the reviewed SDL Wayland build contract and
+        # again advances only PF_IMAGE_SHA; all ten payloads were regenerated canonically below.
         expected = {
-            ("a133", "dev"): "10765a50063cde0e2da988ecd260e41043e3bf340debd45b54c1bc32ccc67ad5",
-            ("a133", "release"): "124c7a61efd88cd561b74e2852e90caefc44523f992299608394a10456d8d937",
-            ("a133-open-7x", "dev"): "2667639ace1ddef1931c6a855b33e4bad58d857e057361a101d6c6bfc44f7916",
-            ("a133-open-7x", "release"): "d6684ccc18f92b57eb57e3f1e2beb5fcfda1047a8914142d2e7fcd223758d5e0",
-            ("a133-owned", "dev"): "09d8878a3ac3a5fe58c12de2d0423e898d967167713a9f817f770a0ab743368a",
-            ("a133-owned", "release"): "812c1eb47346ecc5f0ab8927d2367c1a6451f850ecd0be2c89dbfe7fb2c9d6b3",
-            ("a523", "dev"): "0fdeedc8676b62b7cd7a8e959d497e881660d73dd4ed71060bba9e7d656294ba",
-            ("a523", "release"): "2a9dd598c7f9220e7b5b2ba64c546e4f0f59d979413d4f464e03d089ed2d1c84",
-            ("sdm845", "dev"): "89fa0486a0a78079e181dcfe1888e3f8d5a10bc847dd77ce8e7993a130baed4d",
-            ("sdm845", "release"): "1b1d8394466e00ee21acebc73def1d5479b6b583e0d8f3c9a1fa81e4a7659247",
+            ("a133", "dev"): "fb92a770594957aa3c06f0b9c2ab8238f8d228f63837f481c3686e3f83391627",
+            ("a133", "release"): "66b5210a6d65be1456334a3418395017f5a7d9996a33d023b550efee7c507932",
+            ("a133-open-7x", "dev"): "55edf38325e209ca307829c9ea2d6af0b12a2e09aa3bc3e8660450685be1670d",
+            ("a133-open-7x", "release"): "03761a8c05f5c57378ee04072f614f1eab5012397ba5b86fc8ff47ae435487fc",
+            ("a133-owned", "dev"): "58c69f28f6346906da594a78fd9228827f9a7b7e8908825f6d78d9606f2c12f6",
+            ("a133-owned", "release"): "f6f43edfafee6fdd62dd43ffb83b301d4e680fac9360d392f16053920fa9c208",
+            ("a523", "dev"): "849f0c325c67d080b025b19f62038e8f167efea5198b7a05686b8dd403369b00",
+            ("a523", "release"): "5bb339fe2ca820229e81b7353c62382088cd5b806591473ed514b942007de33c",
+            ("sdm845", "dev"): "ac1e625dc106312e9358b00776c35e1f6b835592e774e66401f994f7cccd632f",
+            ("sdm845", "release"): "7dd987fd167b7f16cff47c37a9a625d285db461277ecb273efa4f5272d61ff5e",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -866,7 +867,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
-                "PF_IMAGE_SHA": "e6e3165f2b69308e418bf4e6e4ed4597d73aa3c6",
+                "PF_IMAGE_SHA": "02904c882e5dbcee7fb62bd030532c241edc1128",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "5d792fb15394f882a027cb5dae57f8e620c6edf2")
