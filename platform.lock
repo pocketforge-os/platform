@@ -1679,8 +1679,8 @@ ref  = "main"                # tsp-mc9m.41.923.5.4: libsdl3-sunxifb#29 5d792fb1 
                               # KMSDRM for open and sunxifb for ddk. Wayland/xkbcommon dependencies come only from
                               # the pinned AArch64 sysroot; the artifact contract requires Wayland_bootstrap without
                               # adding direct Wayland DT_NEEDED entries. Fast-forward, 1.
-                              # abi/platform-abi.json sdl.sha is regenerated; abi/families.toml platform_version stays
-                              # "20" (lock_state=interim).
+                              # abi/platform-abi.json sdl.sha is regenerated and the resolved SHA-set advances
+                              # abi/families.toml platform_version to "21" (lock_state=interim).
                               # Previous pin (7411a94803c95b2f93a898f3773ffe95dfec4263):
                               # tsp-mc9m.41.924.16.13.3.3.1: libsdl3-sunxifb#28 7411a948 makes the proven Stage A
                               # renderer pre-rotation and legacy rotate-pass load elision the absent-hint defaults,

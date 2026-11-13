@@ -88,7 +88,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_GPU_KM_SHA": "d3bed591e3892e53bb22b2334af043ea64233259",
             "PF_GPU_UM_REPO": "gpu-um-tsp",
             "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
-            "PF_LIBSDL3_SHA": "7411a94803c95b2f93a898f3773ffe95dfec4263",
+            "PF_LIBSDL3_SHA": "5d792fb15394f882a027cb5dae57f8e620c6edf2",
             "PF_DISPLAY_PIPELINE": "fbdev",
             "PF_LAUNCHER_REPO": "launcher",
             "PF_LAUNCHER_SHA": "d256ea3751379efdb93f16e9bd4faf7c2c3024d4",

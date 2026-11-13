@@ -21,13 +21,13 @@ APP_RUNTIME = {
     "schema_version": 1,
     "runtime_family": "pocketforge/a133-powervr",
     "runtime_abi": "1",
-    "platform_version": "20",
+    "platform_version": "21",
     "supported_capabilities": ["audio", "entropy", "input", "open_url", "settings"],
 }
 APP_BUILD_ARGS = {
     "PF_APP_RUNTIME_FAMILY": "pocketforge/a133-powervr",
     "PF_APP_RUNTIME_ABI": "1",
-    "PF_APP_PLATFORM_VERSION": "20",
+    "PF_APP_PLATFORM_VERSION": "21",
     "PF_APP_CAPABILITIES": "audio entropy input open_url settings",
 }
 A133_OPEN_PROFILES = {
@@ -869,7 +869,7 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": "e6e3165f2b69308e418bf4e6e4ed4597d73aa3c6",
             },
         )
-        self.assertEqual(args["PF_LIBSDL3_SHA"], "7411a94803c95b2f93a898f3773ffe95dfec4263")
+        self.assertEqual(args["PF_LIBSDL3_SHA"], "5d792fb15394f882a027cb5dae57f8e620c6edf2")
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")

@@ -736,7 +736,7 @@ comparison = "equal"
                 f"GAMESCOPE_COMMIT={CURRENT_GAMESCOPE}\n".encode()
             ),
             "tests/input-harness/guest-payload.pins": (
-                b"SDL_COMMIT=7411a94803c95b2f93a898f3773ffe95dfec4263\n"
+                b"SDL_COMMIT=5d792fb15394f882a027cb5dae57f8e620c6edf2\n"
             ),
             "tests/input-harness/README.md": (
                 f"`{CURRENT_GAMESCOPE}` (pocketforge-linear tip, matching\n".encode()
