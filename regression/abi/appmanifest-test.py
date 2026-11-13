@@ -154,7 +154,7 @@ use = ["input", "pointer", "menu", "options"]
 [runtime]
 family = "pocketforge/a133-powervr"
 abi = "1"
-platform-version = "20"
+platform-version = "21"
 """
 check("input-layer capabilities pass the static validator",
       appmanifest.validate_toml_text(INPUT_LAYER) == [], appmanifest.validate_toml_text(INPUT_LAYER))
@@ -166,7 +166,7 @@ use = ["pointer", "pointer?", "menu:large"]
 [runtime]
 family = "pocketforge/a133-powervr"
 abi = "1"
-platform-version = "20"
+platform-version = "21"
 """
 iv = appmanifest.validate_toml_text(INPUT_LAYER_ABUSE)
 check("duplicate pointer rejected", has(iv, "DuplicateCapability"))
