@@ -34,6 +34,7 @@ A133_OPEN_PROFILES = {
     "a133-open",
     "a133-open-7x-gpu",
     "a133-open-7x-gpu-cts",
+    "a133-open-7x-gpu-kexec-canary",
     "a133-open-7x-gpu-noradio",
     "a133-open-7x-gpu-spl-trace",
 }
@@ -80,6 +81,7 @@ class ProfileTest(unittest.TestCase):
                 "a133-open-7x",
                 "a133-open-7x-gpu",
                 "a133-open-7x-gpu-cts",
+                "a133-open-7x-gpu-kexec-canary",
                 "a133-open-7x-gpu-noradio",
                 "a133-open-7x-gpu-spl-trace",
             },
@@ -103,6 +105,7 @@ class ProfileTest(unittest.TestCase):
             "a133-open-7x": "none",
             "a133-open-7x-gpu": "fbdev",
             "a133-open-7x-gpu-cts": "fbdev",
+            "a133-open-7x-gpu-kexec-canary": "fbdev",
             "a133-open-7x-gpu-noradio": "fbdev",
             "a133-open-7x-gpu-spl-trace": "fbdev",
             "a133-owned": "fbdev",
@@ -584,16 +587,16 @@ class ProfileTest(unittest.TestCase):
         # for the a133-open-7x rows; all ten payloads were regenerated canonically below.
         # Pool Suite#21 advances only PF_POOLSUITE_SHA on dev rows; release rows remain unchanged.
         expected = {
-            ("a133", "dev"): "f74d7d92e9d6882a31ed0d230cf0acc062608542dc95e1d33aa8ef9ce91e2798",
-            ("a133", "release"): "d05f628b5093e93d0e60b8e7a7bf7a4a8664a667dd0393062e28a14fb8e27411",
-            ("a133-open-7x", "dev"): "fe8b5385e6dfc5fd8d064d4cc9bb0b0d23d2a2a7f6df5f0e265cfe4197cd9d84",
-            ("a133-open-7x", "release"): "0335d2bcaecbd52c41e40377cb3a1d62cf63b37f31816fc577c3cbba00974654",
-            ("a133-owned", "dev"): "86dd2a031b4981580665ad98faf582dbc546bac8b62b2f0c237679d11eafa0c8",
-            ("a133-owned", "release"): "ed6d0c9bd2b1a2aeecc0ba5bc47a5f7c963f3b358e9cd484cbe6ea7970b39869",
-            ("a523", "dev"): "5e043ee2d3a8381386f83b7c6e2faba224787fb3566b3db3f9b98f948546f66c",
-            ("a523", "release"): "c43a37575006338fdd614083160e1325a79d30a5564ed20dd4edc1e11fd70d98",
-            ("sdm845", "dev"): "1bc1874e6e4cd4b853672348de1e8e5bc95109748813fe24d7b068bc48de0e5b",
-            ("sdm845", "release"): "918f94218088d2361c1acb5867bfa628a226b49d3694f63ab1e37f3e902a7fbc",
+            ("a133", "dev"): "85e9d6c28e0204b7d6ce9f26880fba43f95607a2404fb87a29a988ae8b75da73",
+            ("a133", "release"): "c88716bf30eb44d802aca9ce9a70fe1131be979d303c3061611b677946737490",
+            ("a133-open-7x", "dev"): "2a118291692131715b332af76abeb8a4b91d580f79c16e61f628158734f67e11",
+            ("a133-open-7x", "release"): "18cacf5689fc12a14f50da326e8d5a70fda8de2ae7ef61a92988a71e6afb2935",
+            ("a133-owned", "dev"): "aaa24e7b76075c813737400ae451972736d14cdcce6ba67b2f01d14c2d243bb8",
+            ("a133-owned", "release"): "f4936ebf894a38e0fe0222ced4ab795a9e7f3299e464e9b514b9cfc9067cb7be",
+            ("a523", "dev"): "ea95589d9a8b78545737baf34360e201e7d4c7025a0b99da899405ac97fdb1ad",
+            ("a523", "release"): "1521cdb75be9a8587b4054474f5a3ffef5b082c9586a8af1f492b2dfadbc2289",
+            ("sdm845", "dev"): "446a59d16cfba73eb3fc6c2e53a72c69d2c0394dced31c539ef0d5fb3e2c5457",
+            ("sdm845", "release"): "7311775f3b06522816d64efe0fb24cfbaba7a502370f67a34b4300be2c7330b5",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -844,7 +847,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "f067ee584346f30b5037451930e82c9ef8175582")
+        self.assertEqual(args["PF_KERNEL_SHA"], "011fd206aa4fe91237ace0f087fcff995b192184")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -861,7 +864,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "f067ee584346f30b5037451930e82c9ef8175582")
+        self.assertEqual(args["PF_KERNEL_SHA"], "011fd206aa4fe91237ace0f087fcff995b192184")
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
@@ -876,7 +879,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
-                "PF_IMAGE_SHA": "8cd52a7bd35ee3e7a6da549b74b659e007ff461f",
+                "PF_IMAGE_SHA": "84186bb5da0cdd2d05bf56dab4e1841d12fcd940",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "5d792fb15394f882a027cb5dae57f8e620c6edf2")
