@@ -877,9 +877,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # image#393 (37fb15ca) stages rootfs-package-list.sh in the cloud-init fixture; it carries #392.
 # image#394 (e6e3165f) refreshes the exact gpu-um-tsp toolchain producer identity to
 # ef3b4093d8557fae482599112a7467d223774b73; it carries #393.
-# image#398 (d04cc96b) carries #397 and repairs the Steam Link platform-version-21
-# consumer contract.
-sha  = "d04cc96b8cfdced34ad00499f014f09388ce2e85"
+# image#399 (8cd52a7b) advances the Gamescope PVR-cache producer and input-harness
+# consumer mirrors to the merged focus-liveness repair at 73b30677; it carries #398.
+sha  = "8cd52a7bd35ee3e7a6da549b74b659e007ff461f"
 
 [[repos]]
 name = "pf-cursor-theme"
