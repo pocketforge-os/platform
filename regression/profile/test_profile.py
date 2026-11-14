@@ -139,7 +139,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(resolved, expected)
 
     def test_gamescope_source_tree_digest_is_required_lowercase_and_emitted(self):
-        expected = "9ff724df38380d3ab2d7aab370665445add656670957094f60e167ddbca0fa9d"
+        expected = "2116b5b3923fb0c1bb1bb831e4dcc466add45180dd7964e4a4635134706420d6"
         resolved, _ = profile.resolve("a133-open-7x-gpu")
         self.assertEqual(resolved["gamescope"]["source_tree_sha256"], expected)
         args, _, missing = profile.build_args("a133-open-7x-gpu")
@@ -568,7 +568,8 @@ class ProfileTest(unittest.TestCase):
         # Image#385 (pf-x11-authorize event skipping) likewise advances only PF_IMAGE_SHA (previous: e2ab0614).
         # Image#386 (additive self-flash-v3 initrd progress markers) advances only PF_IMAGE_SHA (previous: 53d8d39a).
         # Image#390 (focus-client wiring, carries #389) advances PF_IMAGE_SHA plus the runtime (7b97af8f) and launcher (d256ea37) co-pins on every open row;
-        # gamescope#28 moves the a133-open-7x-gpu series/source digests. Prior digests reproduce by swapping those pins back.
+        # gamescope#29 appends the focus-liveness repair and moves the a133-open-7x-gpu
+        # series/source digests. Prior digests reproduce by swapping those pins back.
         # Image#392 (input-harness pins, carries #390) advances only PF_IMAGE_SHA (previous: 04af31e2).
         # Image#393 (cloud-init fixture stage closure) likewise advances only PF_IMAGE_SHA (previous: 8df8d571).
         # Image#394 (gpu-um-tsp exact producer mirror) likewise advances only PF_IMAGE_SHA
@@ -577,21 +578,22 @@ class ProfileTest(unittest.TestCase):
         # Wayland development cross-build dependency closure. Image#397 provides the production
         # AArch64 SDL Wayland target-sysroot closure and again advances only PF_IMAGE_SHA.
         # Image#398 repairs the Steam Link platform-version-21 consumer contract and likewise
-        # advances only PF_IMAGE_SHA.
+        # advances only PF_IMAGE_SHA. Image#399 advances the Gamescope PVR-cache producer and
+        # input-harness consumer mirrors to 73b30677 and again advances only PF_IMAGE_SHA.
         # Kernel#149/#150/#151 advance only PF_KERNEL_SHA
         # for the a133-open-7x rows; all ten payloads were regenerated canonically below.
         # Pool Suite#21 advances only PF_POOLSUITE_SHA on dev rows; release rows remain unchanged.
         expected = {
-            ("a133", "dev"): "fb3bcc60f4cd830ac73ab18db06b3454e2856b182d68bc26b60825ee94bce8c1",
-            ("a133", "release"): "3eb053cf5e932f28731d637c038239b6081e791a8321f38d22fb603dccdceb6c",
-            ("a133-open-7x", "dev"): "41882a98d1145faf27e688802421c7e3f36ee1f29ce2cf728b21e5249cc0a9a8",
-            ("a133-open-7x", "release"): "75bc4d1add42fc0f9de29c3bcb8c7f0b68191e561c1398e06e06ead0e68586af",
-            ("a133-owned", "dev"): "8b152e26c315dde50bb126c052e37a2f5e951d3523d9f5edea1de04d9be1b599",
-            ("a133-owned", "release"): "752de121557ea6792808c448543af0d96218651a75e50d84257d2d6b86dc9a19",
-            ("a523", "dev"): "03b9eb69a7b2f4d4c394a707a01542e5f311832510fe0ee5f8e1f32fe9465535",
-            ("a523", "release"): "7ca6008849849092f5375a973380cbda276012c346027d075dd7dc65b4d40450",
-            ("sdm845", "dev"): "ded0ee71d6a4be82e52ea36da1220b0a9507f45108e392ea861a6803524ae1d3",
-            ("sdm845", "release"): "2b71f1e0a8fa6113767e558443e04d71f6df32f5a6a21f6698274e25bf1933d7",
+            ("a133", "dev"): "f74d7d92e9d6882a31ed0d230cf0acc062608542dc95e1d33aa8ef9ce91e2798",
+            ("a133", "release"): "d05f628b5093e93d0e60b8e7a7bf7a4a8664a667dd0393062e28a14fb8e27411",
+            ("a133-open-7x", "dev"): "fe8b5385e6dfc5fd8d064d4cc9bb0b0d23d2a2a7f6df5f0e265cfe4197cd9d84",
+            ("a133-open-7x", "release"): "0335d2bcaecbd52c41e40377cb3a1d62cf63b37f31816fc577c3cbba00974654",
+            ("a133-owned", "dev"): "86dd2a031b4981580665ad98faf582dbc546bac8b62b2f0c237679d11eafa0c8",
+            ("a133-owned", "release"): "ed6d0c9bd2b1a2aeecc0ba5bc47a5f7c963f3b358e9cd484cbe6ea7970b39869",
+            ("a523", "dev"): "5e043ee2d3a8381386f83b7c6e2faba224787fb3566b3db3f9b98f948546f66c",
+            ("a523", "release"): "c43a37575006338fdd614083160e1325a79d30a5564ed20dd4edc1e11fd70d98",
+            ("sdm845", "dev"): "1bc1874e6e4cd4b853672348de1e8e5bc95109748813fe24d7b068bc48de0e5b",
+            ("sdm845", "release"): "918f94218088d2361c1acb5867bfa628a226b49d3694f63ab1e37f3e902a7fbc",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -874,7 +876,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
-                "PF_IMAGE_SHA": "d04cc96b8cfdced34ad00499f014f09388ce2e85",
+                "PF_IMAGE_SHA": "8cd52a7bd35ee3e7a6da549b74b659e007ff461f",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "5d792fb15394f882a027cb5dae57f8e620c6edf2")

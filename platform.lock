@@ -877,9 +877,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # image#393 (37fb15ca) stages rootfs-package-list.sh in the cloud-init fixture; it carries #392.
 # image#394 (e6e3165f) refreshes the exact gpu-um-tsp toolchain producer identity to
 # ef3b4093d8557fae482599112a7467d223774b73; it carries #393.
-# image#398 (d04cc96b) carries #397 and repairs the Steam Link platform-version-21
-# consumer contract.
-sha  = "d04cc96b8cfdced34ad00499f014f09388ce2e85"
+# image#399 (8cd52a7b) advances the Gamescope PVR-cache producer and input-harness
+# consumer mirrors to the merged focus-liveness repair at 73b30677; it carries #398.
+sha  = "8cd52a7bd35ee3e7a6da549b74b659e007ff461f"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -890,14 +890,16 @@ sha  = "c5783fbb7d9d89c82bc1b4757c303e267b6cd104"
 [[repos]]
 name = "gamescope"
 url  = "https://github.com/pocketforge-os/gamescope.git"
-ref  = "pocketforge-linear" # compositor focus client: gamescope#28 merged at dd997616 (95 non-merge commits, zero merges over base
-                        # bb2ddfc8); 12 commits since cf4475a7: the focus client (4) and KMS modifier/rotation fixes (8: c9e5b371 542ff9eb
-                        # 53608bd6 acd44204 a1ac83fa 3f3c1aa3 77db0aec 3d085131). These change on-device output and need the device window.
-                        # patch_ids_sha256 2ef8980baebb70550cb0b59d5890cba8f4617b081107502c8ddfe99e129b32aa;
-                        # format-patch digest 6b02d0554b092637fc726925d0c5b87e9430ecc8de5d688a9e74ab0f4c83ff39;
-                        # source tree 9ff724df38380d3ab2d7aab370665445add656670957094f60e167ddbca0fa9d (core/stage-gamescope-source.py refusal at a
+ref  = "pocketforge-linear" # native-Wayland cross-user focus liveness: gamescope#29 merged at 73b30677 (96 non-merge commits,
+                        # zero merges over base bb2ddfc8); one commit since dd997616 routes focus through the native Wayland path.
+                        # patch_ids_sha256 772f3583b5996728131f6bfc1c792490da63c6d32de1f498af1251be51dadc67;
+                        # format-patch digest bdb9e21e66e31d586fb1a19d2fabe550338fc8d78507d03e34a170ef4af08195;
+                        # source tree 2116b5b3923fb0c1bb1bb831e4dcc466add45180dd7964e4a4635134706420d6 (core/stage-gamescope-source.py refusal at a
                         # zeroed --source-tree-sha256, actual= printed, against a dependency cache built for manifest 5bb3f589, which is unchanged
                         # along with LICENSE).
+                        # Previous pin: compositor focus client: gamescope#28 merged at dd997616 (95 non-merge commits, zero merges over base
+                        # bb2ddfc8); 12 commits since cf4475a7: the focus client (4) and KMS modifier/rotation fixes (8: c9e5b371 542ff9eb
+                        # 53608bd6 acd44204 a1ac83fa 3f3c1aa3 77db0aec 3d085131). These change on-device output and need the device window.
                         # Previous pin: tsp-mc9m.41.1026.10 idle-power follow-up: gamescope#25 merged at cf4475a7
                         # (83 non-merge commits, zero merges over base bb2ddfc8). Eager Vulkan pipeline compilation is
                         # opt-in; demand compilation remains the default and the existing timerfd fix is retained.
@@ -960,7 +962,7 @@ ref  = "pocketforge-linear" # compositor focus client: gamescope#28 merged at dd
                         # (tsp-op5a.440.1.1,
                         # 4232739e75c95113871e260967e8b4ff995ea897): branch-only integration
                         # candidate.
-sha  = "dd997616269812dcaad3fdcc302b192e2f709101"
+sha  = "73b3067780af4839ffa85d425cfb26923959139a"
 dependency_manifest_sha256 = "5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6"
 
 [[repos]]
