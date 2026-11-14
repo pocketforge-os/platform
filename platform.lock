@@ -877,9 +877,9 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # image#393 (37fb15ca) stages rootfs-package-list.sh in the cloud-init fixture; it carries #392.
 # image#394 (e6e3165f) refreshes the exact gpu-um-tsp toolchain producer identity to
 # ef3b4093d8557fae482599112a7467d223774b73; it carries #393.
-# image#396 (abcbb6cb) carries #395 and closes the hermetic AArch64 Pool Suite SDL
-# Wayland development cross-build dependency closure.
-sha  = "abcbb6cb0e9f85329c10c15cf7bdf44c52e8471a"
+# image#397 (571e9b55) carries #396 and provides the production AArch64 SDL Wayland
+# target-sysroot closure.
+sha  = "571e9b5563f9c44e9b33bdfb40b3d5e87f31994c"
 
 [[repos]]
 name = "pf-cursor-theme"
