@@ -16,7 +16,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "f067ee584346f30b5037451930e82c9ef8175582"
+NORMAL_KERNEL_SHA = "011fd206aa4fe91237ace0f087fcff995b192184"
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -44,7 +44,7 @@ NORMAL_KERNEL_SHA = "f067ee584346f30b5037451930e82c9ef8175582"
 # sunxi-mmc errinfo diagnostics.
 # Kernel#149/#150 retain the A133 VENC provenance and source blocker, and #151
 # keeps them equal while enabling built-in CRYPTO_USER_API_SKCIPHER for AF_ALG.
-NORADIO_KERNEL_SHA = "f067ee584346f30b5037451930e82c9ef8175582"
+NORADIO_KERNEL_SHA = "011fd206aa4fe91237ace0f087fcff995b192184"
 # Keep the source-owned documentation assertion anchored to the current lock expectation.
 DOCUMENTED_KERNEL_SHA = NORMAL_KERNEL_SHA
 NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"

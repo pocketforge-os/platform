@@ -27,6 +27,7 @@ A133_OPEN_PROFILES = {
     "a133-open",
     "a133-open-7x-gpu",
     "a133-open-7x-gpu-cts",
+    "a133-open-7x-gpu-kexec-canary",
     "a133-open-7x-gpu-noradio",
     "a133-open-7x-gpu-spl-trace",
 }
@@ -89,6 +90,10 @@ PRE_DESCRIPTOR_DIGESTS = {
     ("a133-open-7x-gpu", "buildargs release"): "2cd6b46c6ca24004c454e1ec9f7cf5bce2e9bd1e9c59ce2c50c2b93b7bb97195",
     ("a133-open-7x-gpu", "env"): "d8f9bd9b1fc5159735ae4a9fc2ed413bf2db17a46615e49651020d0b1d7a2f3a",
     ("a133-open-7x-gpu", "resolve"): "15a9485badff2585611e7c2555f0fee489ae8c9eef5d192389dd9691d4e17f9a",
+    ("a133-open-7x-gpu-kexec-canary", "buildargs dev"): "d7e0d4031d1ace3836b2b216b113f4cdb2b12a954b7d567f4aa6b74149a0f797",
+    ("a133-open-7x-gpu-kexec-canary", "buildargs release"): "b38f6c91d7099a9cd7b17486ad3a38ced3a32be7a44dfecf5daedbe770a892b6",
+    ("a133-open-7x-gpu-kexec-canary", "env"): "56b9f07ec7439b90cbbb3015f58dddb3982aecb2f5ae48c786d1e48507929bc7",
+    ("a133-open-7x-gpu-kexec-canary", "resolve"): "5908f3228fab4b59c02471df2612ec6b4885bf2a106e78b130e43357dd40f1b4",
     ("a133-open-7x-gpu-noradio", "buildargs dev"): "9ee8dea90350c05d2d7112f0511fb14b0bb49630835b1d0416817c93a1c74321",
     ("a133-open-7x-gpu-noradio", "buildargs release"): "6a30f618a754a138fd5679637eaa3f2c5bf43ad547dcb4f89385366dd538f223",
     ("a133-open-7x-gpu-noradio", "env"): "d3efc6a7693b973a9581d5115c61b2cd3b53f8f291b008d930cb72351cdbd5a8",
