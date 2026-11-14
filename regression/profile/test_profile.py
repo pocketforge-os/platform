@@ -576,20 +576,22 @@ class ProfileTest(unittest.TestCase):
         # advances only PF_IMAGE_SHA. Image#396 closes the hermetic AArch64 Pool Suite SDL
         # Wayland development cross-build dependency closure. Image#397 provides the production
         # AArch64 SDL Wayland target-sysroot closure and again advances only PF_IMAGE_SHA.
+        # Image#398 repairs the Steam Link platform-version-21 consumer contract and likewise
+        # advances only PF_IMAGE_SHA.
         # Kernel#149/#150/#151 advance only PF_KERNEL_SHA
         # for the a133-open-7x rows; all ten payloads were regenerated canonically below.
         # Pool Suite#21 advances only PF_POOLSUITE_SHA on dev rows; release rows remain unchanged.
         expected = {
-            ("a133", "dev"): "2994cb540756261debe9443f5a9393e7004a0802471d0d85c188fc76f17a8400",
-            ("a133", "release"): "04eb40d046cb677dc718a0a4247f17e2e447269138cb49332a3e82f8ab1d5840",
-            ("a133-open-7x", "dev"): "65dd653fb6a0ccdaf02f55e7cef5a75c65cf39a2c22d7add70a3740660147adc",
-            ("a133-open-7x", "release"): "d853d3039fb55ded4950d7f6d339c28433ef3a407fed5f302332f3b716ba2e47",
-            ("a133-owned", "dev"): "30e69200e28221be2d6b19f2ec7db3ac8d5fa890f980b0bbda990a87d1f5b6ee",
-            ("a133-owned", "release"): "e167b93fe1c2ccb341d7a8ce824c89d718fcbb6da95ff2a32bd313d26d86b2a9",
-            ("a523", "dev"): "0996f892a7dc980fcbcccae5d73ecd475facf715b04698a4a78776eea089b5a2",
-            ("a523", "release"): "3c3ba9bf90907769e094747016e5cff1323cc0c07905cd1e1391c6443e46a9a5",
-            ("sdm845", "dev"): "ececd76617d915307f99e836008d330a5e3cf0d56a5200914b60fcded5bfa27a",
-            ("sdm845", "release"): "36a8f9cc192e9dcdcd39a33561da5e21e25bbc5e2f2949c79dcb11ef1ac858c0",
+            ("a133", "dev"): "fb3bcc60f4cd830ac73ab18db06b3454e2856b182d68bc26b60825ee94bce8c1",
+            ("a133", "release"): "3eb053cf5e932f28731d637c038239b6081e791a8321f38d22fb603dccdceb6c",
+            ("a133-open-7x", "dev"): "41882a98d1145faf27e688802421c7e3f36ee1f29ce2cf728b21e5249cc0a9a8",
+            ("a133-open-7x", "release"): "75bc4d1add42fc0f9de29c3bcb8c7f0b68191e561c1398e06e06ead0e68586af",
+            ("a133-owned", "dev"): "8b152e26c315dde50bb126c052e37a2f5e951d3523d9f5edea1de04d9be1b599",
+            ("a133-owned", "release"): "752de121557ea6792808c448543af0d96218651a75e50d84257d2d6b86dc9a19",
+            ("a523", "dev"): "03b9eb69a7b2f4d4c394a707a01542e5f311832510fe0ee5f8e1f32fe9465535",
+            ("a523", "release"): "7ca6008849849092f5375a973380cbda276012c346027d075dd7dc65b4d40450",
+            ("sdm845", "dev"): "ded0ee71d6a4be82e52ea36da1220b0a9507f45108e392ea861a6803524ae1d3",
+            ("sdm845", "release"): "2b71f1e0a8fa6113767e558443e04d71f6df32f5a6a21f6698274e25bf1933d7",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -872,7 +874,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
-                "PF_IMAGE_SHA": "571e9b5563f9c44e9b33bdfb40b3d5e87f31994c",
+                "PF_IMAGE_SHA": "d04cc96b8cfdced34ad00499f014f09388ce2e85",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "5d792fb15394f882a027cb5dae57f8e620c6edf2")
