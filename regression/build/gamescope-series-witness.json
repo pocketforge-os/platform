@@ -1,6 +1,6 @@
 {
   "commands": [
-    "MIRROR=<a governed gamescope mirror>; BASE=bb2ddfc8b1091d6c4d0133b1ea9dcd2494b69ab9; HEAD=dd997616269812dcaad3fdcc302b192e2f709101",
+    "MIRROR=<a governed gamescope mirror>; BASE=bb2ddfc8b1091d6c4d0133b1ea9dcd2494b69ab9; HEAD=73b3067780af4839ffa85d425cfb26923959139a",
     "git -C $MIRROR merge-base --is-ancestor $BASE $HEAD",
     "git -C $MIRROR rev-list --merges $BASE..$HEAD   # must print nothing",
     "for c in $(git -C $MIRROR rev-list --reverse $BASE..$HEAD); do git -C $MIRROR show --pretty=email --patch $c | git -C $MIRROR patch-id --stable | awk '{print $1}'; done > ids.txt",
@@ -8,20 +8,20 @@
     "git -C $MIRROR format-patch --stdout --no-stat $BASE..$HEAD | sha256sum   # patch_series_sha256",
     "git -C $MIRROR show $HEAD:.github/pocketforge-source-closure.tsv | sha256sum   # dependency_manifest_sha256",
     "git -C $MIRROR show $HEAD:LICENSE | sha256sum   # license_sha256",
-    "python3 core/stage-gamescope-source.py --git-dir $MIRROR --head $HEAD --base $BASE --present-head b1d220453331e28554d938f060156abfeb504757 --staging-head a5b1f4697a13e671f9e8bfd108c3003987ca1fa4 --rotation-head eb3ae2c705326b0c6535ea99ee233c17a170ace4 --expected-patch-ids \"$(paste -sd' ' ids.txt)\" --patch-series-sha256 6b02d0554b092637fc726925d0c5b87e9430ecc8de5d688a9e74ab0f4c83ff39 --manifest-sha256 5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6 --source-tree-sha256 0000000000000000000000000000000000000000000000000000000000000000 --license-sha256 907dd845489cd09c25f18b6819f476805285e2adcad8c099e3506260023e9e5f --platform-lock-sha256 <lock digest> --cache-root <dependency cache root> --output <empty dir>   # refuses at the platform-locked digest check and prints actual=<source_tree_sha256>; it stops before licenses and before the deterministic archive publishes"
+    "python3 core/stage-gamescope-source.py --git-dir $MIRROR --head $HEAD --base $BASE --present-head b1d220453331e28554d938f060156abfeb504757 --staging-head a5b1f4697a13e671f9e8bfd108c3003987ca1fa4 --rotation-head eb3ae2c705326b0c6535ea99ee233c17a170ace4 --expected-patch-ids \"$(paste -sd' ' ids.txt)\" --patch-series-sha256 bdb9e21e66e31d586fb1a19d2fabe550338fc8d78507d03e34a170ef4af08195 --manifest-sha256 5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6 --source-tree-sha256 0000000000000000000000000000000000000000000000000000000000000000 --license-sha256 907dd845489cd09c25f18b6819f476805285e2adcad8c099e3506260023e9e5f --platform-lock-sha256 <lock digest> --cache-root <dependency cache root> --output <empty dir>   # refuses at the platform-locked digest check and prints actual=<source_tree_sha256>; it stops before licenses and before the deterministic archive publishes"
   ],
   "dependency_manifest_sha256": "5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6",
-  "generated_at": "2026-11-09T16:00:00Z",
+  "generated_at": "2026-11-14T19:29:11Z",
   "generator_git_version": "git version 2.43.0",
-  "integrated_head": "dd997616269812dcaad3fdcc302b192e2f709101",
+  "integrated_head": "73b3067780af4839ffa85d425cfb26923959139a",
   "license_sha256": "907dd845489cd09c25f18b6819f476805285e2adcad8c099e3506260023e9e5f",
   "materialization_witness": "source_tree_sha256 is the value core/stage-gamescope-source.py prints as actual= when it is handed a deliberately wrong --source-tree-sha256, so it comes from the real primer/materializer path, not from a re-derivation here",
   "mirror": "https://github.com/pocketforge-os/gamescope.git",
-  "patch_count": 95,
-  "patch_ids_sha256": "2ef8980baebb70550cb0b59d5890cba8f4617b081107502c8ddfe99e129b32aa",
+  "patch_count": 96,
+  "patch_ids_sha256": "772f3583b5996728131f6bfc1c792490da63c6d32de1f498af1251be51dadc67",
   "patch_ids_sha256_note": "sha256 of the bare space-joined patch-id series with no trailing newline, i.e. exactly the string core/stage-gamescope-source.py compares against PF_GAMESCOPE_REQUIRED_PATCH_IDS",
-  "patch_series_sha256": "6b02d0554b092637fc726925d0c5b87e9430ecc8de5d688a9e74ab0f4c83ff39",
+  "patch_series_sha256": "bdb9e21e66e31d586fb1a19d2fabe550338fc8d78507d03e34a170ef4af08195",
   "schema": "pocketforge.gamescope-series-witness/v1",
-  "source_tree_sha256": "9ff724df38380d3ab2d7aab370665445add656670957094f60e167ddbca0fa9d",
+  "source_tree_sha256": "2116b5b3923fb0c1bb1bb831e4dcc466add45180dd7964e4a4635134706420d6",
   "upstream_base": "bb2ddfc8b1091d6c4d0133b1ea9dcd2494b69ab9"
 }

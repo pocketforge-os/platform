@@ -139,7 +139,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(resolved, expected)
 
     def test_gamescope_source_tree_digest_is_required_lowercase_and_emitted(self):
-        expected = "9ff724df38380d3ab2d7aab370665445add656670957094f60e167ddbca0fa9d"
+        expected = "2116b5b3923fb0c1bb1bb831e4dcc466add45180dd7964e4a4635134706420d6"
         resolved, _ = profile.resolve("a133-open-7x-gpu")
         self.assertEqual(resolved["gamescope"]["source_tree_sha256"], expected)
         args, _, missing = profile.build_args("a133-open-7x-gpu")
@@ -568,7 +568,8 @@ class ProfileTest(unittest.TestCase):
         # Image#385 (pf-x11-authorize event skipping) likewise advances only PF_IMAGE_SHA (previous: e2ab0614).
         # Image#386 (additive self-flash-v3 initrd progress markers) advances only PF_IMAGE_SHA (previous: 53d8d39a).
         # Image#390 (focus-client wiring, carries #389) advances PF_IMAGE_SHA plus the runtime (7b97af8f) and launcher (d256ea37) co-pins on every open row;
-        # gamescope#28 moves the a133-open-7x-gpu series/source digests. Prior digests reproduce by swapping those pins back.
+        # gamescope#29 appends the focus-liveness repair and moves the a133-open-7x-gpu
+        # series/source digests. Prior digests reproduce by swapping those pins back.
         # Image#392 (input-harness pins, carries #390) advances only PF_IMAGE_SHA (previous: 04af31e2).
         # Image#393 (cloud-init fixture stage closure) likewise advances only PF_IMAGE_SHA (previous: 8df8d571).
         # Image#394 (gpu-um-tsp exact producer mirror) likewise advances only PF_IMAGE_SHA
