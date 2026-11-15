@@ -881,8 +881,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # ef3b4093d8557fae482599112a7467d223774b73; it carries #393.
 # image#399 (8cd52a7b) advances the Gamescope PVR-cache producer and input-harness
 # consumer mirrors to the merged focus-liveness repair at 73b30677; it carries #398.
-# tsp-e2c68cfaa58943e725f1 advances the exact merged image source to 84186bb5.
-sha  = "84186bb5da0cdd2d05bf56dab4e1841d12fcd940"
+# tsp-c2719ed572f76240e267 image#401 canary allowlists.
+sha  = "35b4de92c8c75b369f7aef7a87c819ea72fa6350"
 
 [[repos]]
 name = "pf-cursor-theme"
