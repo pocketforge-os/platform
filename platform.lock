@@ -881,8 +881,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # ef3b4093d8557fae482599112a7467d223774b73; it carries #393.
 # image#399 (8cd52a7b) advances the Gamescope PVR-cache producer and input-harness
 # consumer mirrors to the merged focus-liveness repair at 73b30677; it carries #398.
-# tsp-c2719ed572f76240e267 image#401 canary allowlists.
-sha  = "35b4de92c8c75b369f7aef7a87c819ea72fa6350"
+# tsp-1b6f41deb593c6e57ba9 image#402 fixes the boot partition size so the self-flash v3 marker matches the layout.
+sha  = "ea1a237239c4ce81aa34a3b1baea883c5f4f3dae"
 
 [[repos]]
 name = "pf-cursor-theme"
