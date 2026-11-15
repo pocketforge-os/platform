@@ -587,16 +587,16 @@ class ProfileTest(unittest.TestCase):
         # for the a133-open-7x rows; all ten payloads were regenerated canonically below.
         # Pool Suite#21 advances only PF_POOLSUITE_SHA on dev rows; release rows remain unchanged.
         expected = {
-            ("a133", "dev"): "3021ab5c518dada49b16ad00754461082ed7ce317ea93960f19c7b0ff85fafca",
-            ("a133", "release"): "e932a15513c7a875a1b104aac28ec02d0ec2dd4606244ae968425d7e21cc7cec",
-            ("a133-open-7x", "dev"): "93670b5c6841e3d48b24779abb59285aaff1ed0b7b78c1dc739b4098dd8a1c2c",
-            ("a133-open-7x", "release"): "2fab1f4d84ba57253aa3c72854dfd87f76b36d47bf8fb49e402c2b07ae2908fa",
-            ("a133-owned", "dev"): "8ed63a45cb81ec9958f852bb56148d2557a3259cbbcef75e95a6f478525baeaa",
-            ("a133-owned", "release"): "12297b60c30d31d89570bb0579c40f0214e373fea08730480f5ea9fbf42cc109",
-            ("a523", "dev"): "837dbb1667a2f476521610112b9f7c88693ab7cb9ac7a6238d6a2180cdaab6f3",
-            ("a523", "release"): "ec7ef9d0d8b0a34f2b8c5f49df88626b5170855e1d5f186caa77ce75aa7cd5c1",
-            ("sdm845", "dev"): "596c7d7c937ea5872cfe15dca45f3f8a4656055934f8d9b335af717a9f153c1a",
-            ("sdm845", "release"): "3a67e81b35a9104de61a73befd1956c7554c0aae84765b29600c010f510b3388",
+            ("a133", "dev"): "02d28ac28c8c18d9a2593063adcb262f9db50c3b9008466b072fa9f39721f19d",
+            ("a133", "release"): "db68bd1ce87a0e02b6a5f2ebb154fbe800137dc61c653744f18076e567b14104",
+            ("a133-open-7x", "dev"): "8b16333e48eab0796a455e441a90aafacfd228cd83846fa1feaa88424e7cfb27",
+            ("a133-open-7x", "release"): "df2b138dfa4dff6df2933900b353e9408bfcc4b6912f49b950d64dfc763bda40",
+            ("a133-owned", "dev"): "2df61a3f8e01b41d5b5cc557ba77c06312ec41a0c3064fac45cd9e9c186950d6",
+            ("a133-owned", "release"): "4a073ee2f4a6396f74db7f93aa9d108010bb1488129c1306a10f09406af10505",
+            ("a523", "dev"): "7ff843f846bda33cfb60d8d4cadeb4959c5ecc306a64f8c74bedd693d19eb5fc",
+            ("a523", "release"): "4f295a52b221e408242cadeba4497c7a79ac14096f44184ff6c63d8e35a6de7e",
+            ("sdm845", "dev"): "97a8df75131132cb4dd6109c2ded2176f7595f3d9288c532d28223afb58fb9ca",
+            ("sdm845", "release"): "14626f66cf54c664a17ae0de4cc0ba89fe95ff5d884e12a7d2456bdcd5dc9c23",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -879,7 +879,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
-                "PF_IMAGE_SHA": "ea1a237239c4ce81aa34a3b1baea883c5f4f3dae",
+                "PF_IMAGE_SHA": "9e47748d97921be22b46f9aede6e9329c2a3bd7c",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "5d792fb15394f882a027cb5dae57f8e620c6edf2")
