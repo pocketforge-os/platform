@@ -506,9 +506,9 @@ reason = "image#283 source provenance for the A133 mixer defaults"
 
 [[references]]
 id = "a133-audio-controls-kernel-provenance"
-platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
+platform_field = "repos.kernel-sunxi-7.x.sha"
 aliases = [
-  "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+  "profile_pins.a133-open-7x-gpu-noradio.kernel",
 ]
 consumer_repo = "image"
 consumer_path = "tests/fixtures/alsa/sun4i-codec-controls.kernel-sunxi-7.x.tsv"
@@ -517,10 +517,22 @@ template = '#   commit: {value}'
 reason = "image#283 ALSA control fixture source provenance"
 
 [[references]]
-id = "a133-audio-controls-rederive-command"
+id = "a133-audio-controls-prior-pin-note"
 platform_field = "platform_runtime.steamlink_ffmpeg59_v1.build_args.PF_FFMPEG_UAPI_SHA"
 aliases = [
   "platform_runtime.steamlink_ffmpeg59_v1.source_sha",
+]
+consumer_repo = "image"
+consumer_path = "tests/fixtures/alsa/sun4i-codec-controls.kernel-sunxi-7.x.tsv"
+parser = "template"
+template = '# The fixture used to pin {value}, which'
+reason = "image#403 historical note naming the fixture's previous (pre-capture) kernel pin"
+
+[[references]]
+id = "a133-audio-controls-rederive-command"
+platform_field = "repos.kernel-sunxi-7.x.sha"
+aliases = [
+  "profile_pins.a133-open-7x-gpu-noradio.kernel",
 ]
 consumer_repo = "image"
 consumer_path = "tests/fixtures/alsa/sun4i-codec-controls.kernel-sunxi-7.x.tsv"
