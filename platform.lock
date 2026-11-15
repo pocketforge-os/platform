@@ -882,7 +882,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # image#399 (8cd52a7b) advances the Gamescope PVR-cache producer and input-harness
 # consumer mirrors to the merged focus-liveness repair at 73b30677; it carries #398.
 # tsp-1b6f41deb593c6e57ba9 image#402 fixes the boot partition size so the self-flash v3 marker matches the layout.
-sha  = "ea1a237239c4ce81aa34a3b1baea883c5f4f3dae"
+# tsp-mc9m.60.29.65.27 image#403 (9e47748d) sets the Mic1 Boost Volume=16 boot default (IO8 U11).
+sha  = "9e47748d97921be22b46f9aede6e9329c2a3bd7c"
 
 [[repos]]
 name = "pf-cursor-theme"
