@@ -899,7 +899,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # tsp-1b6f41deb593c6e57ba9 image#402 fixes the boot partition size so the self-flash v3 marker matches the layout.
 # tsp-mc9m.60.29.65.27 image#403 (9e47748d) sets the Mic1 Boost Volume=16 boot default (IO8 U11).
 # tsp-1a7a5b84afefb9aeb673 image#404 (616dc303): self-flash v3 verifies the staged stream first, writes the boot chain last.
-sha  = "616dc3036a4c84f7663c0f17a1ed40408ca71406"
+# tsp-mc9m.60.29.88.13 image#405 (9ba6c7a0): mainline dev rootfs declares the software H.264 encoders (gst x264enc, x264 CLI); it carries #404.
+sha  = "9ba6c7a08e3d2cae67167161bf7691e262fda9ad"
 
 [[repos]]
 name = "pf-cursor-theme"
