@@ -208,8 +208,13 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # product PM debug (PM_DEBUG/PM_ADVANCED_DEBUG/PM_SLEEP_DEBUG), #154 fail-closed A100
 # speed bin (no OPP above 1464 MHz added), #155 A133 RTC ext-osc32k with LOSC auto-switch.
 # Exported UAPI trees are unchanged; not yet build- or device-verified.
+# tsp-mc9m.60.29.88 (MEDIA) advances both to exact merged commit 253a35bc: kernel#157
+# G2D MIX vendor 4-tap FIR + coarse pre-decimation, #158 MIX timeout recovery by reset
+# (no permanent poison), #156 sun8i-rotate 100 ms job timeout with generation-gated
+# recovery, #159 Cedrus VE ID classifier + read-only debugfs cedrus/ve_regs.
+# Exported UAPI trees are unchanged; not yet build- or device-verified.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "b4a90433b20b5c6d07a5c26ae9f435d55d84565c"
+kernel = "253a35bc80db4eb1723f67bdf704a1e82089506f"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -1383,7 +1388,8 @@ url  = "https://github.com/pocketforge-os/kernel-sunxi-7.x.git"
 ref  = "device/a133"
 # tsp-e2c68cfaa58943e725f1 exact merged kexec-canary source pin (011fd206).
 # tsp-mc9m.60.29.89 PM1: b4a90433 = 011fd206 + kernel#153/#154/#155 only.
-sha  = "b4a90433b20b5c6d07a5c26ae9f435d55d84565c"
+# tsp-mc9m.60.29.88 MEDIA: 253a35bc = b4a90433 + kernel#157/#158/#159/#156 only.
+sha  = "253a35bc80db4eb1723f67bdf704a1e82089506f"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
