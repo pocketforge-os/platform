@@ -907,7 +907,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # tsp-mc9m.60.29.65.27 image#403 (9e47748d) sets the Mic1 Boost Volume=16 boot default (IO8 U11).
 # tsp-1a7a5b84afefb9aeb673 image#404 (616dc303): self-flash v3 verifies the staged stream first, writes the boot chain last.
 # tsp-mc9m.60.29.88.13 image#405 (9ba6c7a0): mainline dev rootfs declares the software H.264 encoders (gst x264enc, x264 CLI); it carries #404.
-sha  = "9ba6c7a08e3d2cae67167161bf7691e262fda9ad"
+# tsp-mc9m.60.29.33.16 image#406 (807bb488): stages the Odyssey SDR50 opt-in DTB as dtb-sdr50.bin on FAT p4.
+sha  = "807bb4886b5670d60b1a7efa164ce4cc235f8293"
 
 [[repos]]
 name = "pf-cursor-theme"

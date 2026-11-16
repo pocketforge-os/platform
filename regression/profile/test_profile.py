@@ -591,18 +591,19 @@ class ProfileTest(unittest.TestCase):
         # Kernel#160-#175 + #177 (a2f62f65, tsp-mc9m.60.29.89.7) likewise.
         # Kernel#176/#178/#179/#180 (fd99f2a4, tsp-mc9m.60.29.33.16) likewise.
         # Image#405 (software H.264 encoders, carries #404) advances only PF_IMAGE_SHA (previous: 616dc303).
+        # Image#406 (SDR50 DTB staging, carries #405) advances only PF_IMAGE_SHA (previous: 9ba6c7a0).
         # Pool Suite#21 advances only PF_POOLSUITE_SHA on dev rows; release rows remain unchanged.
         expected = {
-            ("a133", "dev"): "a58517b51a533cc4c81051ec5d7af57593ff31aa3fb4477ed682a1b47bd57565",
-            ("a133", "release"): "261d60a65d2a013e6cb0ac22c06856bdf21994ac5d831f2695f16e0c22d38787",
-            ("a133-open-7x", "dev"): "4b1b9d39645026c230caefaf920108a95ef7ad4d61e2cdc3ff63b938dc5731c9",
-            ("a133-open-7x", "release"): "f7997a43fa01e8515b03f7444979da797294596e35df4669ba34e789cb35085d",
-            ("a133-owned", "dev"): "9f5c666d57c2561a27c77d3efb951690d432a5836cffd1158daf55db29f003fe",
-            ("a133-owned", "release"): "3ecc251b6bf79e96530a74e929dc6d11afd9693a0c00f1b7a401d9d72459eddd",
-            ("a523", "dev"): "15311415a4e71e2f58f8d9dd8c77227b66ac659a8f5b4a8266b6e016bb5b8cab",
-            ("a523", "release"): "acb008927471f54d2933776e1e6e6836c7b67b30c49f0bd7df2a58d232c9eeae",
-            ("sdm845", "dev"): "a57e0b4985d2353030455db885c3c1c56267de2fc9047b9af12c9d0d92aa9926",
-            ("sdm845", "release"): "090bc9e120aae23f33e1fb7e130992e2c5ad8f679bd5990be39bfdbe50c3c32c",
+            ("a133", "dev"): "9a8f912e6d9edcf3494739209008eae1fa548058d4d9859c7e90285da1089012",
+            ("a133", "release"): "f04afbad676b95d51cf3c3b26ac442864abe45acaaac12d44009343c543e25d0",
+            ("a133-open-7x", "dev"): "4e269aeca5ece8a88d02129d859c71f677d1ffd011f733d2f2e5cf448ec839e3",
+            ("a133-open-7x", "release"): "3fe12c0960803b222301e86c4ad077dc74354c9951222f242ad0d252a6661e5e",
+            ("a133-owned", "dev"): "83c0c452e8dadfc97530aa88e64ec7826f290bf74670127c498a06c7d22c1dd6",
+            ("a133-owned", "release"): "d76bd4d3282c670de3890d0f8a388e845184d2518574d92de6db10e9cfe76bd9",
+            ("a523", "dev"): "98ce7f00741bf1d5f95da0db81f6abf18fcb5cda8f53c9b28f912415f18398fa",
+            ("a523", "release"): "333eb281df63ec9ae6cdc36ffab453404d8434d9a1538d32122e2f4f822d2c0d",
+            ("sdm845", "dev"): "85828746480627a9189010613f50be4bbf7e3ec841d29d35057ea0fc21e48153",
+            ("sdm845", "release"): "be3dafe79352fdfc18380c7371f0697436fa7c852ee57f8a02f94cf1307bf894",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -885,7 +886,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
-                "PF_IMAGE_SHA": "9ba6c7a08e3d2cae67167161bf7691e262fda9ad",
+                "PF_IMAGE_SHA": "807bb4886b5670d60b1a7efa164ce4cc235f8293",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "5d792fb15394f882a027cb5dae57f8e620c6edf2")
