@@ -1,11 +1,13 @@
 """tsp-mc9m.60.29.33.17 RED/GREEN gate: both a133-open-7x-gpu kernel pins must carry
-kernel#183 (d84c5066: SDR50 opt-in DT restores PF 3.3 V mode on the default mmc0 state)."""
+kernel#183 (d84c5066: SDR50 opt-in DT restores PF 3.3 V mode on the default mmc0 state).
+The pin is now 8689d72a = d84c5066 + kernel#184 only (tsp-55cee6aedcf359cfe27e DISP-K1),
+which still carries kernel#183."""
 import pathlib
 import re
 import unittest
 
 LOCK = pathlib.Path(__file__).resolve().parents[2] / "platform.lock"
-WANT = "d84c506667f1b67645a95af871d194ac694477fb"
+WANT = "8689d72a3e8679719e38f5ef3b1b8f0d4e9da55c"
 
 
 class KernelPinHasSdr50Fix(unittest.TestCase):
