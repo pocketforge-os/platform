@@ -608,16 +608,16 @@ class ProfileTest(unittest.TestCase):
         # row except sdm845 was regenerated once for that substitution; the raw payloads were
         # verified to reproduce the previous digests before substituting.
         expected = {
-            ("a133", "dev"): "6bdffc991018a064c664a60ebf625e1739ec25f03beaa8ee1366911e7726fb10",
-            ("a133", "release"): "964e87bcd11eb23bfeeb3c1a95a2341b5db32af87b6c96bfa8b7b6642f3e1e59",
-            ("a133-open-7x", "dev"): "a2a47a8c4ba035089862d5d155e9365c4d3844bb2d884666f126db99e32fb92e",
-            ("a133-open-7x", "release"): "096d240d332a2e3b1506d408efcc10be3c55b66402d8ebf6c51f6b146c8257a1",
-            ("a133-owned", "dev"): "63e281b99572da3754ea7bf821d619f153b45b7e78b951451d29216bfe8acdea",
-            ("a133-owned", "release"): "15d762f783b6c0aac0688ef53bc7e36b34728f29eaad8ab6f6bee1c1a5708b53",
-            ("a523", "dev"): "09e225eb7f70c65074d196061a1436dcf6e7a20a7dc5f6fd4cabd50fa86e1764",
-            ("a523", "release"): "6ce216e87563c17ae32b352eb55e441b90dad0b37f9caa3963d12223387df4d9",
-            ("sdm845", "dev"): "276809a89075df05722b3256b2e1ff5f6b6ee1c812fecdb568db8b80cafd0e89",
-            ("sdm845", "release"): "7ff4f72692091aaa59d4adc80d0f8703d238bbcbfed2d0e53cda41712bdbcb01",
+            ("a133", "dev"): "9c5197e7c0f6598b406789b9624ebd5fcac48af46e93efda6db6f11686835b50",
+            ("a133", "release"): "092a53c32befd50fcb73f8d3bd2749235a13305e4f424472c8208daebe7ac291",
+            ("a133-open-7x", "dev"): "f28efafe5211b5ab053b105cfacc0a8a473054fc77d5e7b5e72878823b4b9ee5",
+            ("a133-open-7x", "release"): "7492c0fac499888a2a141dae2468ce651171c53415b9b071c7bf448168b6ecb7",
+            ("a133-owned", "dev"): "b5c2947b4bde7f2db1a2519adc080db7072d954a5314426cd9dc51adad5a10e3",
+            ("a133-owned", "release"): "49d7818114498cfaa32dd0fc7e1946292e507f18877b2a62cb3c44c3fecaae40",
+            ("a523", "dev"): "442e928906c052e98180d48516bec39072da9ecc6184d7779b79d22d00687620",
+            ("a523", "release"): "d482f9732346d6d6b210d6cc2195c7e75672449271056cfeb140c5105a1e5cee",
+            ("sdm845", "dev"): "b432ddcfb6d95781ec4b8a37907809f6dae8075c4dc399dfd9f8bec0381a65b5",
+            ("sdm845", "release"): "9d41f4d41b11d79a84fc7316d4735c2da99a8b192010c5f8d8c7332deb1bc472",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -901,7 +901,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
-                "PF_IMAGE_SHA": "a349884924ab63713b27b99893e44b0383b4809e",
+                "PF_IMAGE_SHA": "4b4d52426193cb81e61fad0b968ce41fea1c0c68",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], "5d792fb15394f882a027cb5dae57f8e620c6edf2")
