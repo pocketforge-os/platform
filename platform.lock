@@ -236,7 +236,7 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # dirty retained A133 DSI datapath, white panel after Gamescope stop); include/uapi and arm64
 # UAPI unchanged.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "8c11370b587f3f76d72b051bffb788a09d78b523"
+kernel = "e57e805232a66bfe38bf1646bab9f5554ce68553"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -1426,7 +1426,8 @@ ref  = "device/a133"
 # tsp-e62d70cbc926a9fe2abf KIT6: dfb1c718 = 71314e32 + kernel#187 + DISP1 kernel#188; one pin for the post-gate-fix image build.
 # tsp-e62d70cbc926a9fe2abf KIT6: 00a9936e = dfb1c718 + DISP1 kernel#189; the pin that carries all kernel work for the one post-gate-fix image build.
 # tsp-35918c29797529b8dbc5: 8c11370b = 00a9936e + 3 commit(s) on device/a133 (pf-pin).
-sha  = "8c11370b587f3f76d72b051bffb788a09d78b523"
+# tsp-80425d8c0c0cda0ca87e: e57e8052 = 8c11370b + 5 commit(s) on device/a133 (pf-pin).
+sha  = "e57e805232a66bfe38bf1646bab9f5554ce68553"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
