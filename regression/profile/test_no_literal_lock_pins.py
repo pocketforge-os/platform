@@ -50,23 +50,28 @@ GUARDED_REPOS = frozenset(
         "poolsuite",
     }
 )
-# Literal copies that predate widening the guard past the kernels (tsp-hqm1p.182.348): path -> repos whose current pin it
-# still copies. pf-pin refuses `hardcoded_site` for these until each file reads platform.lock; this table may only SHRINK
-# (test_debt_is_exact fails on a stale entry and test_no_..._guarded_pin on a new copy). `image` is never guarded here:
-# its pin stays owner/gpu-16 gated and pf-pin refuses it outright.
-LITERAL_DEBT = {
-    "docs/A133-OPEN-7X-OWNED-SPL.md": ["gpu-um-tsp", "launcher", "runtime", "tfa-tsp-a133", "u-boot-tsp-a133"],
-    "regression/build/cloud-init-staging-test.sh": ["cloud-init-tsp"],
-    "regression/build/cursor-theme-staging-test.sh": ["pf-cursor-theme"],
-    "regression/build/gamescope-series-witness.json": ["gamescope"],
-    "regression/build/gamescope-staging-test.sh": ["gamescope"],
-    "regression/lock_mirrors/fixtures/current/Dockerfile.pf": ["gpu-um-tsp", "launcher", "recovery", "runtime"],
-    "regression/lock_mirrors/fixtures/current/build-rootfs.sh": ["recovery"],
-    "regression/lock_mirrors/test_lock_mirrors.py": ["gamescope", "gpu-um-tsp", "launcher", "libsdl3-sunxifb", "runtime"],
-    "regression/profile/test_full_open7_bootchain.py": ["blobs", "gpu-um-tsp", "launcher", "libsdl3-sunxifb", "recovery", "runtime", "tfa-tsp-a133", "u-boot-tsp-a133", "vendor-manifest"],
-    "regression/profile/test_open7_noradio_profile.py": ["u-boot-tsp-a133"],
-    "regression/profile/test_open7_spl_trace_profile.py": ["u-boot-tsp-a133"],
-    "regression/profile/test_profile.py": ["blobs", "gpu-um-tsp", "launcher", "libsdl3-sunxifb", "poolsuite", "recovery", "vendor-manifest"],
+# Literal copies that predate widening the guard (tsp-hqm1p.182.348): path -> repos whose current pin it still copies.
+# tsp-hqm1p.182.352 retired every entry: each site now reads platform.lock. The table is empty and must stay empty
+# (test_debt_is_empty); pf-pin refuses `hardcoded_site` for any new copy.
+LITERAL_DEBT: dict[str, list[str]] = {}
+# Typed exemptions: a literal that is an intentional HISTORICAL fixture, not a copy of the current pin. It may equal the
+# current pin today only by coincidence of history; after a pin move it is simply an old sha. path -> repo -> reason.
+# Unlike LITERAL_DEBT these are never "stale" (a pin move must edit platform.lock only), so they are validated for
+# shape (known path, guarded repo, non-empty reason) rather than for exactness.
+LITERAL_EXEMPT: dict[str, dict[str, str]] = {
+    "regression/build/gamescope-series-witness.json": {
+        "gamescope": "committed regeneration record of the integrated series (patch ids, series/tree sha256); "
+        "gamescope-series-witness-test.sh compares integrated_head to the lock and fails closed on drift, so "
+        "regenerating it is a deliberate step bound to the series hashes, not a derivable pin copy",
+    },
+    "regression/lock_mirrors/fixtures/current/Dockerfile.pf": {
+        "gpu-um-tsp": "vendored-at provenance comment naming the gpu-um-tsp commit the retained Dockerfile snippets "
+        "were copied from; it describes the fixture's origin and never tracks the pin",
+    },
+    "regression/lock_mirrors/test_lock_mirrors.py": {
+        "gpu-um-tsp": "image-tree fixture 'gpu-um-toolchain-ef3b4093.Dockerfile' whose body names the commit it was "
+        "vendored from; the file name carries the same historical sha",
+    },
 }
 SHA40 = re.compile(r"\A[0-9a-f]{40}\Z")
 HEX_RUN = re.compile(r"(?<![0-9a-fA-F])[0-9a-f]{12,40}(?![0-9a-fA-F])")
@@ -99,8 +104,10 @@ def owners(sites: str) -> set[str]:
     return set(re.findall(r"repos\.(.+?)\.sha", sites))
 
 
-def literal_hits(pins: dict[str, str], files: list[pathlib.Path], root: pathlib.Path, debt=None) -> list[str]:
-    """`debt` (path -> repos) hides recorded copies; None reports every one."""
+def literal_hits(
+    pins: dict[str, str], files: list[pathlib.Path], root: pathlib.Path, debt=None, exempt=None
+) -> list[str]:
+    """`debt` (path -> repos) and `exempt` (path -> repo -> reason) hide recorded copies; None reports every one."""
     hits = []
     for path in files:
         try:
@@ -115,6 +122,8 @@ def literal_hits(pins: dict[str, str], files: list[pathlib.Path], root: pathlib.
                         rel = path.relative_to(root).as_posix()
                         if debt is not None and owners(sites) <= set(debt.get(rel, ())):
                             continue
+                        if exempt is not None and owners(sites) <= set(exempt.get(rel, ())):
+                            continue
                         hits.append(f"{rel}:{lineno}: {run} is the current {sites}")
     return hits
 
@@ -126,7 +135,7 @@ class NoLiteralLockPins(unittest.TestCase):
 
     def test_no_test_or_doc_carries_a_current_guarded_pin(self):
         pins = guarded_pins(tomllib.loads(LOCK.read_text()))
-        hits = literal_hits(pins, scanned_files(ROOT), ROOT, LITERAL_DEBT)
+        hits = literal_hits(pins, scanned_files(ROOT), ROOT, LITERAL_DEBT, LITERAL_EXEMPT)
         self.assertEqual(
             hits,
             [],
@@ -142,6 +151,16 @@ class NoLiteralLockPins(unittest.TestCase):
             seen.setdefault(path, set()).update(owners(rest))
         for path, repos in LITERAL_DEBT.items():
             self.assertTrue(set(repos) <= seen.get(path, set()), f"stale LITERAL_DEBT entry {path} {repos}: delete it")
+
+    def test_debt_is_empty(self):
+        self.assertEqual(LITERAL_DEBT, {}, "every site reads platform.lock; do not add debt")
+
+    def test_exemptions_are_typed_and_reasoned(self):
+        for path, repos in LITERAL_EXEMPT.items():
+            self.assertTrue((ROOT / path).is_file(), f"exempt path {path} does not exist")
+            for repo, reason in repos.items():
+                self.assertIn(repo, GUARDED_REPOS, f"{path}: {repo} is not a guarded repo")
+                self.assertGreater(len(reason.strip()), 40, f"{path}/{repo}: give a real reason")
 
     def test_every_non_image_lock_repo_is_guarded(self):
         names = {r["name"] for r in tomllib.loads(LOCK.read_text()).get("repos", [])}

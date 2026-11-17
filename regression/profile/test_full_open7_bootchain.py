@@ -16,6 +16,7 @@ profile = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(profile)
 
 # tsp-hqm1p.182.339: current pins are read from platform.lock, never copied here.
+LOCK_PIN = {name: repo["sha"] for name, repo in profile.load_lock()["repos"].items()}
 KERNEL_7X_SHA = profile.load_lock()["repos"]["kernel-sunxi-7.x"]["sha"]
 
 OWNED_BOOTCHAIN = {
@@ -53,10 +54,10 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_BOOTCHAIN_MODEL": "sunxi-spl-uboot",
             "PF_BOOT_PROTO": "sunxi-spl-booti",
             "PF_UBOOT_REPO": "u-boot-tsp-a133",
-            "PF_UBOOT_SHA": "1c04d7f5c98bd203a556b308e0001c76c261e90e",
+            "PF_UBOOT_SHA": LOCK_PIN["u-boot-tsp-a133"],
             "PF_UBOOT_DEFCONFIG": "tg5040_defconfig",
             "PF_TFA_REPO": "tfa-tsp-a133",
-            "PF_TFA_SHA": "2737a2a84d80341b27fa51c1e4b651c9ad2ad4b2",
+            "PF_TFA_SHA": LOCK_PIN["tfa-tsp-a133"],
             "PF_TFA_PLAT": "sun50i_a133",
             "PF_SPL_OFFSET_KIB": "128",
         }
@@ -80,7 +81,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
         self.assertEqual(missing, [])
         expected = {
             "PF_IMAGE_SHA": "4b4d52426193cb81e61fad0b968ce41fea1c0c68",
-            "PF_RUNTIME_SHA": "7b97af8ffe1acb2665b946f97f4473728ba2ccb1",
+            "PF_RUNTIME_SHA": LOCK_PIN["runtime"],
             "PF_KERNEL_REPO": "kernel-sunxi-7.x",
             "PF_KERNEL_SHA": KERNEL_7X_SHA,
             "PF_KERNEL_DTB": "sun50i-a133-pocketforge-odyssey.dtb",
@@ -90,15 +91,15 @@ class FullOpen7BootchainTest(unittest.TestCase):
             "PF_GPU_KM_REPO": "kernel-sunxi-7.x",
             "PF_GPU_KM_SHA": KERNEL_7X_SHA,
             "PF_GPU_UM_REPO": "gpu-um-tsp",
-            "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
-            "PF_LIBSDL3_SHA": "5d792fb15394f882a027cb5dae57f8e620c6edf2",
+            "PF_GPU_UM_SHA": LOCK_PIN["gpu-um-tsp"],
+            "PF_LIBSDL3_SHA": LOCK_PIN["libsdl3-sunxifb"],
             "PF_DISPLAY_PIPELINE": "fbdev",
             "PF_LAUNCHER_REPO": "launcher",
-            "PF_LAUNCHER_SHA": "d256ea3751379efdb93f16e9bd4faf7c2c3024d4",
+            "PF_LAUNCHER_SHA": LOCK_PIN["launcher"],
             "PF_RECOVERY_REPO": "recovery",
-            "PF_RECOVERY_SHA": "443a84e47c96d83de967948844d8e5eaa41d7413",
-            "PF_BLOBS_SHA": "02ad8b7158ae39797f2693607ea9f2e6975f9ffd",
-            "PF_VENDOR_MANIFEST_SHA": "3c8c5c537028e6f749f7888b05e85aa95aa88db4",
+            "PF_RECOVERY_SHA": LOCK_PIN["recovery"],
+            "PF_BLOBS_SHA": LOCK_PIN["blobs"],
+            "PF_VENDOR_MANIFEST_SHA": LOCK_PIN["vendor-manifest"],
             "PF_BLOB_GROUPS": (
                 "pvr-fw-open-22.102.54.38 sunxi-a133-boot-chain "
                 "sunxi-a133-wifi-firmware"

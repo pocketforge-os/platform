@@ -48,7 +48,7 @@ NORMAL_KERNEL_SHA = profile.load_lock()["repos"]["kernel-sunxi-7.x"]["sha"]
 NORADIO_KERNEL_SHA = profile.load_lock()["profile_pins"][NORADIO_DEVICE]["kernel"]
 # The A133 doc names the lock entry instead of copying its SHA (tsp-hqm1p.182.339).
 DOCUMENTED_KERNEL_PIN = "the `sha` of the `kernel-sunxi-7.x` entry in `platform.lock`"
-NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
+NORMAL_UBOOT_SHA = profile.load_lock()["repos"]["u-boot-tsp-a133"]["sha"]
 
 
 def flatten(value: Any, prefix: str = "") -> dict[str, Any]:

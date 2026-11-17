@@ -3,10 +3,13 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD="$ROOT/core/pf-build.sh"
+lock_pin() { # <repo>: current pin from platform.lock, never copied into this test (tsp-hqm1p.182.352)
+    python3 -c 'import sys, tomllib; print(next(r["sha"] for r in tomllib.load(open(sys.argv[1], "rb"))["repos"] if r["name"] == sys.argv[2]))' "$ROOT/platform.lock" "$1"
+}
 
 args="$(python3 "$ROOT/core/profile.py" buildargs a133-open-7x-gpu dev)"
 cloud_sha="$(sed -n 's/^PF_CLOUD_INIT_SHA=//p' <<< "$args")"
-[ "$cloud_sha" = "37485a2249d824a89732d1f1cec8d81ad1601fba" ] || {
+[ "$cloud_sha" = "$(lock_pin cloud-init-tsp)" ] || {
     printf 'FAIL: PF_CLOUD_INIT_SHA did not resolve the cloud-init-tsp lock pin (got %s)\n' \
         "${cloud_sha:-missing}" >&2
     exit 1
