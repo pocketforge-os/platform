@@ -9,6 +9,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 
 
@@ -17,6 +18,11 @@ sys.path.insert(0, str(ROOT / "ci"))
 import check_lock_mirrors as gate  # noqa: E402
 
 
+# tsp-hqm1p.182.352: current pins are read from platform.lock, never copied here.
+LOCK_PIN = {
+    repo["name"]: repo["sha"]
+    for repo in tomllib.loads((ROOT / "platform.lock").read_text())["repos"]
+}
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
@@ -27,15 +33,16 @@ CURRENT_CTS_SOURCE = "067e8832315e79817ede1c4863804e440f5d1c80"
 CURRENT_CTS_BUNDLE = "544702ae2b495908bac41546c2d2768c4858ecc40bcb41a3120c32829d7e4c86"
 BUILD9_UAPI = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
 BUILD9_KERNEL = "45b87a7d0e68a5aaafdc94523db791483e8a27cd"
-CURRENT_GAMESCOPE = "73b3067780af4839ffa85d425cfb26923959139a"
+CURRENT_GAMESCOPE = LOCK_PIN["gamescope"]
 STALE_GAMESCOPE = "0000000000000000000000000000000000000000"
 EXPECTED_UAPI = "a75bf257f2ecb4d6cff7e2a921b77d24ebecbbb7"
 STALE_UAPI = "40ea8fd9dcaeb9526b8032038f1dc820216d7959"
-RUNTIME_SHA = "7b97af8ffe1acb2665b946f97f4473728ba2ccb1"
-LAUNCHER_SHA = "d256ea3751379efdb93f16e9bd4faf7c2c3024d4"
+RUNTIME_SHA = LOCK_PIN["runtime"]
+LAUNCHER_SHA = LOCK_PIN["launcher"]
 PREVIOUS_RUNTIME_SHA = "43eb64914d44ae905aa69b20205b436083c8d72e"
 SOURCE_LOCK_PATH = "build/platform-runtimes/steamlink-ffmpeg59/v1/source.lock"
 FIXTURES = Path(__file__).with_name("fixtures")
+
 BASE_COMMIT = "dc4b6a6fc5adf583a4b1697bc8c54a9f1be13803"
 
 
@@ -156,6 +163,14 @@ mirror_id = "{mirror_id}"
 old = {identity(old_aliases)}
 new = {identity(new_aliases)}
 '''.encode()
+
+
+def current_fixture(name: str) -> bytes:
+    """Image-tree fixture whose current-pin copies are `@@PIN:<repo>@@` tokens filled from platform.lock."""
+    text = (FIXTURES / "current" / name).read_text()
+    for repo, sha in LOCK_PIN.items():
+        text = text.replace(f"@@PIN:{repo}@@", sha)
+    return text.encode()
 
 
 def pin_lock(image_commit: str, *, duplicate_runtime_field: bool = False) -> bytes:
@@ -696,7 +711,7 @@ comparison = "equal"
     def test_current_contract_generation_passes_and_mixed_generation_fails(self) -> None:
         candidate_manifest = (ROOT / "ci" / "lock-mirrors.toml").read_bytes()
         current_tree = {
-            "build/Dockerfile.pf": (FIXTURES / "current" / "Dockerfile.pf").read_bytes(),
+            "build/Dockerfile.pf": current_fixture("Dockerfile.pf"),
             "scripts/verify-cursor-tools-recipe.py": (
                 b'"10.0.32.86:5555/pocketforge/ci-tools@sha256:'
                 b'2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862":\n'
@@ -724,7 +739,7 @@ comparison = "equal"
             SOURCE_LOCK_PATH: (FIXTURES / "corrected" / "source.lock").read_bytes().replace(
                 EXPECTED_UAPI.encode(), CURRENT_UAPI.encode(), 1
             ),
-            "scripts/build-rootfs.sh": (FIXTURES / "current" / "build-rootfs.sh").read_bytes(),
+            "scripts/build-rootfs.sh": current_fixture("build-rootfs.sh"),
             "tests/test-gamescope-pvr-cache.sh": (
                 f"g1_sha={CURRENT_GAMESCOPE}\n"
                 f"grep -F '{CURRENT_GAMESCOPE}' producer\n".encode()
@@ -736,7 +751,7 @@ comparison = "equal"
                 f"GAMESCOPE_COMMIT={CURRENT_GAMESCOPE}\n".encode()
             ),
             "tests/input-harness/guest-payload.pins": (
-                b"SDL_COMMIT=5d792fb15394f882a027cb5dae57f8e620c6edf2\n"
+                f"SDL_COMMIT={LOCK_PIN['libsdl3-sunxifb']}\n".encode()
             ),
             "tests/input-harness/README.md": (
                 f"`{CURRENT_GAMESCOPE}` (pocketforge-linear tip, matching\n".encode()

@@ -16,9 +16,9 @@ spec.loader.exec_module(profile)
 
 # tsp-hqm1p.182.339: current pins are read from platform.lock, never copied here.
 LOCK_PIN = {name: repo["sha"] for name, repo in profile.load_lock()["repos"].items()}
-KERNEL_PIN_SITE = {
-    LOCK_PIN[name]: f"<platform.lock:repos.{name}.sha>"
-    for name in ("kernel-sunxi-4.9", "kernel-sunxi-5.15", "kernel-sunxi-6.x", "kernel-sunxi-7.x")
+# tsp-hqm1p.182.352: every non-image lock repo, not only the kernels, is named by its lock site.
+PIN_SITE = {
+    sha: f"<platform.lock:repos.{name}.sha>" for name, sha in LOCK_PIN.items() if name != "image"
 }
 caps_spec = importlib.util.spec_from_file_location("pf_caps", ROOT / "core/caps.py")
 caps = importlib.util.module_from_spec(caps_spec)
@@ -604,25 +604,27 @@ class ProfileTest(unittest.TestCase):
         # Image#406 (SDR50 DTB staging, carries #405) advances only PF_IMAGE_SHA (previous: 9ba6c7a0).
         # Pool Suite#21 advances only PF_POOLSUITE_SHA on dev rows; release rows remain unchanged.
         # tsp-hqm1p.182.339: an arg equal to a current kernel lock pin is hashed as its lock
-        # site name (KERNEL_PIN_SITE), so a kernel pin advance edits platform.lock only. Every
+        # site name (PIN_SITE), so a pin advance edits platform.lock only. Every
         # row except sdm845 was regenerated once for that substitution; the raw payloads were
         # verified to reproduce the previous digests before substituting.
+        # tsp-hqm1p.182.352 widened the substitution to every non-image lock repo and regenerated
+        # every row once more, again after verifying the raw payloads reproduced the old digests.
         expected = {
-            ("a133", "dev"): "9c5197e7c0f6598b406789b9624ebd5fcac48af46e93efda6db6f11686835b50",
-            ("a133", "release"): "092a53c32befd50fcb73f8d3bd2749235a13305e4f424472c8208daebe7ac291",
-            ("a133-open-7x", "dev"): "f28efafe5211b5ab053b105cfacc0a8a473054fc77d5e7b5e72878823b4b9ee5",
-            ("a133-open-7x", "release"): "7492c0fac499888a2a141dae2468ce651171c53415b9b071c7bf448168b6ecb7",
-            ("a133-owned", "dev"): "b5c2947b4bde7f2db1a2519adc080db7072d954a5314426cd9dc51adad5a10e3",
-            ("a133-owned", "release"): "49d7818114498cfaa32dd0fc7e1946292e507f18877b2a62cb3c44c3fecaae40",
-            ("a523", "dev"): "442e928906c052e98180d48516bec39072da9ecc6184d7779b79d22d00687620",
-            ("a523", "release"): "d482f9732346d6d6b210d6cc2195c7e75672449271056cfeb140c5105a1e5cee",
-            ("sdm845", "dev"): "b432ddcfb6d95781ec4b8a37907809f6dae8075c4dc399dfd9f8bec0381a65b5",
-            ("sdm845", "release"): "9d41f4d41b11d79a84fc7316d4735c2da99a8b192010c5f8d8c7332deb1bc472",
+            ("a133", "dev"): "06c5a02e5f6a62edd50887fc62d83ea6e552d6defd9b82dac47421cbc08f20f8",
+            ("a133", "release"): "6124b25eb960cd4fa486177de1b722a5a96f5ee8ca0059c08bbc32ca770e8c62",
+            ("a133-open-7x", "dev"): "cedae613acda1d6b56d595bcdc4831249d000fedf0fb63c012c11247211f7ee9",
+            ("a133-open-7x", "release"): "9490ad92d5a74e421544e600ca05507ba5f61f41d4caac9e5afaea0f2546cf38",
+            ("a133-owned", "dev"): "097231cd637ca03f3976c3c82b770161a5e91f62c1823e89bbf1be987710e7fc",
+            ("a133-owned", "release"): "a5b0bbfa5549ba13218200cbb9076b51e3ded4cf796bf9e9f10cc98cef9dea07",
+            ("a523", "dev"): "cf68a207da03927117a4811586ff2aa7046f3f26e574380a6ac9ba2f6a5c3122",
+            ("a523", "release"): "de69d2efc789a238df8cd1f78f21bdbe737479e7e680b37e4d285a0882cdeb15",
+            ("sdm845", "dev"): "56056fab066adade6d7c7141717462d3de654fa2ea862b9d5e1c605f799325f9",
+            ("sdm845", "release"): "df5475cb6b04acf0f43cf7bee400d48907b6b6ac8827f322196b648c362b4470",
         }
         for key, digest in expected.items():
             dev_id, variant = key
             args, state, missing = profile.build_args(dev_id, variant)
-            args = {name: KERNEL_PIN_SITE.get(value, value) for name, value in args.items()}
+            args = {name: PIN_SITE.get(value, value) for name, value in args.items()}
             payload = {"args": args, "state": state, "missing": missing}
             canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
             self.assertEqual(hashlib.sha256(canonical.encode()).hexdigest(), digest, key)
@@ -809,7 +811,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(release_missing, [])
         self.assertRegex(dev["PF_HWPROBE_SHA"], r"^[0-9a-f]{40}$")
         self.assertRegex(dev["PF_SIM_SHA"], r"^[0-9a-f]{40}$")
-        self.assertEqual(dev["PF_POOLSUITE_SHA"], "d60054f2c6b01e79b77cf753c6e0bbcc3cfbc2e5")
+        self.assertEqual(dev["PF_POOLSUITE_SHA"], LOCK_PIN["poolsuite"])
         self.assertEqual(release["PF_HWPROBE_SHA"], "")
         self.assertEqual(release["PF_SIM_SHA"], "")
         self.assertEqual(release["PF_POOLSUITE_SHA"], "")
@@ -826,7 +828,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(opened["PF_KERNEL_SHA"], LOCK_PIN["kernel-sunxi-6.x"])
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
-        self.assertEqual(opened["PF_GPU_UM_SHA"], "ef3b4093d8557fae482599112a7467d223774b73")
+        self.assertEqual(opened["PF_GPU_UM_SHA"], LOCK_PIN["gpu-um-tsp"])
         self.assertEqual(
             opened["PF_KERNEL_REQUIRED_MODULES"],
             "powervr videobuf2-dma-contig sun6i-csi xradio",
@@ -836,12 +838,12 @@ class ProfileTest(unittest.TestCase):
         # pf-shell launcher (tsp-mc9m.41.924.4 / top-coord RULING B): OPEN-ONLY. The launcher
         # SHA is emitted (and required) ONLY for the open path; it resolves EMPTY for the ddk
         # path so the Dockerfile launcher-ddk NOT-SHIPPED stub keeps the ddk images byte-identical.
-        self.assertEqual(opened["PF_LAUNCHER_SHA"], "d256ea3751379efdb93f16e9bd4faf7c2c3024d4")
+        self.assertEqual(opened["PF_LAUNCHER_SHA"], LOCK_PIN["launcher"])
         self.assertEqual(opened["PF_LAUNCHER_REPO"], "launcher")
         self.assertEqual(closed["PF_LAUNCHER_SHA"], "")
         self.assertEqual(closed["PF_LAUNCHER_REPO"], "")
         # recovery entry (F16) is the same op5a wave — also OPEN-ONLY (top-coord RULING B).
-        self.assertEqual(opened["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
+        self.assertEqual(opened["PF_RECOVERY_SHA"], LOCK_PIN["recovery"])
         self.assertEqual(opened["PF_RECOVERY_REPO"], "recovery")
         self.assertEqual(closed["PF_RECOVERY_SHA"], "")
         self.assertEqual(closed["PF_RECOVERY_REPO"], "")
@@ -900,20 +902,20 @@ class ProfileTest(unittest.TestCase):
                 "PF_IMAGE_SHA": args["PF_IMAGE_SHA"],
             },
             {
-                "PF_GPU_UM_SHA": "ef3b4093d8557fae482599112a7467d223774b73",
+                "PF_GPU_UM_SHA": LOCK_PIN["gpu-um-tsp"],
                 "PF_IMAGE_SHA": "4b4d52426193cb81e61fad0b968ce41fea1c0c68",
             },
         )
-        self.assertEqual(args["PF_LIBSDL3_SHA"], "5d792fb15394f882a027cb5dae57f8e620c6edf2")
+        self.assertEqual(args["PF_LIBSDL3_SHA"], LOCK_PIN["libsdl3-sunxifb"])
         self.assertEqual(args["PF_GPU_MODULES"], "powervr.ko")
         self.assertEqual(args["PF_KERNEL_REQUIRED_MODULES"], "powervr")
         self.assertEqual(args["PF_DISPLAY_PIPELINE"], "fbdev")
-        self.assertEqual(args["PF_LAUNCHER_SHA"], "d256ea3751379efdb93f16e9bd4faf7c2c3024d4")
-        self.assertEqual(args["PF_RECOVERY_SHA"], "443a84e47c96d83de967948844d8e5eaa41d7413")
-        self.assertEqual(args["PF_BLOBS_SHA"], "02ad8b7158ae39797f2693607ea9f2e6975f9ffd")
+        self.assertEqual(args["PF_LAUNCHER_SHA"], LOCK_PIN["launcher"])
+        self.assertEqual(args["PF_RECOVERY_SHA"], LOCK_PIN["recovery"])
+        self.assertEqual(args["PF_BLOBS_SHA"], LOCK_PIN["blobs"])
         self.assertEqual(
             args["PF_VENDOR_MANIFEST_SHA"],
-            "3c8c5c537028e6f749f7888b05e85aa95aa88db4",
+            LOCK_PIN["vendor-manifest"],
         )
         self.assertIn("pvr-fw-open-22.102.54.38", args["PF_BLOB_GROUPS"])
 

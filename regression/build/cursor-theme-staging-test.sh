@@ -3,9 +3,12 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD="${ROOT}/core/pf-build.sh"
+lock_pin() { # <repo>: current pin from platform.lock, never copied into this test (tsp-hqm1p.182.352)
+    python3 -c 'import sys, tomllib; print(next(r["sha"] for r in tomllib.load(open(sys.argv[1], "rb"))["repos"] if r["name"] == sys.argv[2]))' "$ROOT/platform.lock" "$1"
+}
 args="$(python3 "${ROOT}/core/profile.py" buildargs a133)"
 
-grep -Fxq 'PF_CURSOR_THEME_SHA=c5783fbb7d9d89c82bc1b4757c303e267b6cd104' <<<"${args}"
+grep -Fxq "PF_CURSOR_THEME_SHA=$(lock_pin pf-cursor-theme)" <<<"${args}"
 grep -Fxq 'PF_CURSOR_TOOLS_IMAGE=10.0.32.86:5555/pocketforge/ci-tools@sha256:2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862' <<<"${args}"
 grep -Fxq 'PF_CURSOR_TOOLS_RECIPE_SHA=ec5b2621f636261978d3bb4fd9843ae22a59c320' <<<"${args}"
 
@@ -24,7 +27,6 @@ with open(sys.argv[1], "rb") as stream:
 repos = {repo["name"]: repo for repo in lock["repos"]}
 cursor = repos["pf-cursor-theme"]
 assert cursor["ref"] == "pocketforge-linear"
-assert cursor["sha"] == "c5783fbb7d9d89c82bc1b4757c303e267b6cd104"
 assert lock["cursor_theme"]["tools_recipe_sha"] == "ec5b2621f636261978d3bb4fd9843ae22a59c320"
 assert lock["cursor_theme"]["tools_image_digest"] == "2ff536627228c90e5c32b7d6345b21600a38a17481c075b41683db47ead3e862"
 PY

@@ -5,11 +5,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD="${ROOT}/core/pf-build.sh"
 SCRIPT_DIR="${ROOT}/core"
 SELECTED=a133-open-7x-gpu
+lock_pin() { # <repo>: current pin from platform.lock, never copied into this test (tsp-hqm1p.182.352)
+    python3 -c 'import sys, tomllib; print(next(r["sha"] for r in tomllib.load(open(sys.argv[1], "rb"))["repos"] if r["name"] == sys.argv[2]))' "$ROOT/platform.lock" "$1"
+}
 
 selected_args="$(python3 "${ROOT}/core/profile.py" buildargs "${SELECTED}")"
 grep -Fxq 'PF_GAMESCOPE_MODE=g1' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_REPO=gamescope' <<<"${selected_args}"
-grep -Fxq 'PF_GAMESCOPE_SHA=73b3067780af4839ffa85d425cfb26923959139a' <<<"${selected_args}"
+grep -Fxq "PF_GAMESCOPE_SHA=$(lock_pin gamescope)" <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_UPSTREAM_BASE=bb2ddfc8b1091d6c4d0133b1ea9dcd2494b69ab9' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_PATCH_SERIES_SHA256=bdb9e21e66e31d586fb1a19d2fabe550338fc8d78507d03e34a170ef4af08195' <<<"${selected_args}"
 grep -Fxq 'PF_GAMESCOPE_DEPENDENCY_MANIFEST_SHA256=5bb3f5892353fc703e39353679668b67702ba5a350401d4eb4bd964aaecda1c6' <<<"${selected_args}"

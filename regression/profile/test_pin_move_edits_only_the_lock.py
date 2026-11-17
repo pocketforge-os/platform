@@ -1,6 +1,6 @@
-"""tsp-hqm1p.182.339: a kernel pin advance edits platform.lock only.
+"""tsp-hqm1p.182.339: a pin advance edits platform.lock only.
 
-Copies the tracked tree to a temp dir, advances every guarded kernel pin there the way
+Copies the tracked tree to a temp dir, advances every guarded pin (every non-image lock repo) there the way
 mission-control `scripts/g16/pf-pin` does (rewrite the [[repos]] `sha`, append a
 `# <tag>: <new8> = <old8> + ...` lineage line above it, and move every [profile_pins]
 value that equalled the old pin), then runs every other regression/profile suite in the
@@ -8,6 +8,7 @@ copy. A suite that hard-codes a pin, or a golden that hashes one, fails here ins
 on the first real pin PR (platform#493 went red on exactly that).
 """
 import hashlib
+import importlib.util
 import os
 import pathlib
 import re
@@ -20,7 +21,11 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SELF = pathlib.Path(__file__).name
-GUARDED_REPOS = ("kernel-sunxi-4.9", "kernel-sunxi-5.15", "kernel-sunxi-6.x", "kernel-sunxi-7.x")
+# tsp-hqm1p.182.352: every guarded repo, not only the kernels (the set test_no_literal_lock_pins.py enforces).
+_guard = importlib.util.spec_from_file_location("no_literal_lock_pins", pathlib.Path(__file__).with_name("test_no_literal_lock_pins.py"))
+_mod = importlib.util.module_from_spec(_guard)
+_guard.loader.exec_module(_mod)
+GUARDED_REPOS = tuple(sorted(_mod.GUARDED_REPOS))
 
 
 def advance(text: str, repo: str, new: str, tag: str) -> str:
@@ -63,7 +68,7 @@ class PinMoveEditsOnlyTheLock(unittest.TestCase):
         self.assertEqual([r["sha"] for r in lock["repos"]], [new, "d" * 40])
         self.assertIn("# sim: bbbbbbbb = aaaaaaaa + simulated advance only.\nsha  =", got)
 
-    def test_profile_suites_pass_after_a_lock_only_kernel_advance(self):
+    def test_profile_suites_pass_after_a_lock_only_advance_of_every_guarded_pin(self):
         with tempfile.TemporaryDirectory(prefix="pf-pin-move-") as tmp:
             copy = pathlib.Path(tmp)
             for rel in tracked(ROOT):
