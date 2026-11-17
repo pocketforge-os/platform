@@ -14,7 +14,7 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 CANARY_DEVICE = "a133-open-7x-gpu-kexec-canary"
-KERNEL_SHA = "d8443c42bee3474c6930ba3f291093b31e129a30"
+KERNEL_SHA = "d84c506667f1b67645a95af871d194ac694477fb"
 
 
 def flatten(value: Any, prefix: str = "") -> dict[str, Any]:
