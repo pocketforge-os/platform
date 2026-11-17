@@ -14,7 +14,8 @@ grep -Fxq 'PF_CURSOR_TOOLS_RECIPE_SHA=ec5b2621f636261978d3bb4fd9843ae22a59c320' 
 
 stage_body="$(sed -n '/^pf_stage_sources()/,/^}/p' "${BUILD}")"
 grep -Fq 'cursor-theme|pf-cursor-theme|$(v PF_CURSOR_THEME_SHA)|1' <<<"${stage_body}"
-grep -Fq 'kernel|wpa-supplicant-tsp|cloud-init-tsp|cursor-theme' <<<"${stage_body}"
+# Membership, not ordering: cursor-theme must be one alternative of the receipt case list.
+grep -Eq '^[[:space:]]*([A-Za-z0-9_-]+\|)*cursor-theme(\|[A-Za-z0-9_-]+)*\)[[:space:]]*$' <<<"${stage_body}"
 grep -Fq 'chmod 0444 "$dest/.pf-source-revision"' <<<"${stage_body}"
 grep -Fq 'if [ "$logical" = cursor-theme ]' <<<"${stage_body}"
 grep -Fq -- '--build-context "cursor-theme-src=$src_dir/cursor-theme"' "${BUILD}"

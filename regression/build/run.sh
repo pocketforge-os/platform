@@ -3,6 +3,12 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" >/dev/null 2>&1 && pwd)"
 
+# Every *-staging-test.sh must be wired below, so a new one cannot sit unrun.
+for t in "$HERE"/*-staging-test.sh; do
+    grep -Fq "\$HERE/$(basename "$t")" "$HERE/run.sh" \
+        || { echo "FAIL: $(basename "$t") is not wired into run.sh" >&2; exit 1; }
+done
+
 echo "### pipefail-safe quiet-grep assertions ###"
 bash "$HERE/pipefail-grep-test.sh"
 
@@ -23,6 +29,9 @@ bash "$HERE/cloud-init-staging-test.sh"
 
 echo "### distinct authenticated kernel UAPI source staging ###"
 bash "$HERE/kernel-uapi-staging-test.sh"
+
+echo "### cursor-theme source staging ###"
+bash "$HERE/cursor-theme-staging-test.sh"
 
 echo "### deterministic Gamescope dependency cache ###"
 python3 "$HERE/test_gamescope_dependency_cache.py"
