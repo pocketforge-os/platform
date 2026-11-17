@@ -921,7 +921,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # tsp-e62d70cbc926a9fe2abf KIT6: image#408 (ab560c4f, static kexec in the dev initrd) and #409 (4b4d5242, verify-rootfs-kexec gate accepts kexec with G2D MIX).
 # tsp-7c90e8d86d4a77bbf552 KIT6 F3: image#412 (015f35c7): self-flash v3 sampler finds the NOEXEC busybox dd by fd (write markers never appeared before) plus verify/write heartbeats; ContractSHA256 unchanged.
 # tsp-ebf3209dc6629a7f70a9 KIT6 F2b: image#413 (8014b429): the self-flash v3 sampler counts the card written sectors from /sys/block/<disk>/stat, so phase=write markers print on a kernel without /proc/<pid>/io; ContractSHA256 unchanged.
-sha  = "8014b429e2c66882c3c7a1700a06e02015ad482d"
+# tsp-e11e55893e453e875cbf KIT6 F4: image#414 (c254d104): the initrd kexec capability test is pipefail-safe (a big config.gz made it report kexec_load_not_configured and the hand-off rebooted into the vendor eMMC, window 7a05e068); ContractSHA256 unchanged.
+sha  = "c254d104ebbb93cc5fae66d1d929806d627120a1"
 
 [[repos]]
 name = "pf-cursor-theme"
