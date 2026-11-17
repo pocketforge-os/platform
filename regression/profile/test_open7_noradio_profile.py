@@ -16,7 +16,8 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 NORADIO_DEVICE = "a133-open-7x-gpu-noradio"
-NORMAL_KERNEL_SHA = "8689d72a3e8679719e38f5ef3b1b8f0d4e9da55c"
+# tsp-hqm1p.182.339: both kernel pins are read from platform.lock, never copied here.
+NORMAL_KERNEL_SHA = profile.load_lock()["repos"]["kernel-sunxi-7.x"]["sha"]
 # tsp-mc9m.41.923.42 lock: the explicit no-radio kernel pin equalled the canonical pin
 # (the bisect-era 0a475ab5 predates FB_DEVICE and the PL8 SD fix). gpu-14 kernel batch
 # lock: it is NOT moved with the canonical 23cdf7bf -> 6955e721, so it now differs
@@ -44,9 +45,9 @@ NORMAL_KERNEL_SHA = "8689d72a3e8679719e38f5ef3b1b8f0d4e9da55c"
 # sunxi-mmc errinfo diagnostics.
 # Kernel#149/#150 retain the A133 VENC provenance and source blocker, and #151
 # keeps them equal while enabling built-in CRYPTO_USER_API_SKCIPHER for AF_ALG.
-NORADIO_KERNEL_SHA = "8689d72a3e8679719e38f5ef3b1b8f0d4e9da55c"
-# Keep the source-owned documentation assertion anchored to the current lock expectation.
-DOCUMENTED_KERNEL_SHA = NORMAL_KERNEL_SHA
+NORADIO_KERNEL_SHA = profile.load_lock()["profile_pins"][NORADIO_DEVICE]["kernel"]
+# The A133 doc names the lock entry instead of copying its SHA (tsp-hqm1p.182.339).
+DOCUMENTED_KERNEL_PIN = "the `sha` of the `kernel-sunxi-7.x` entry in `platform.lock`"
 NORMAL_UBOOT_SHA = "1c04d7f5c98bd203a556b308e0001c76c261e90e"
 
 
@@ -142,10 +143,8 @@ class Open7NoradioProfileTest(unittest.TestCase):
 
     def test_noradio_pins_are_lock_owned_without_repinning_normal(self):
         lock = profile.load_lock()
-        self.assertEqual(
-            lock["repos"]["kernel-sunxi-7.x"]["sha"],
-            NORMAL_KERNEL_SHA,
-        )
+        # Since Build 11 the explicit no-radio entry stays equal to the canonical pin.
+        self.assertEqual(NORADIO_KERNEL_SHA, NORMAL_KERNEL_SHA)
         self.assertNotIn(NORMAL_DEVICE, lock["profile_pins"])
         self.assertEqual(
             lock["profile_pins"][NORADIO_DEVICE],
@@ -155,7 +154,7 @@ class Open7NoradioProfileTest(unittest.TestCase):
     def test_owned_spl_doc_tracks_current_rejoined_kernel_contract(self):
         document = (ROOT / "docs" / "A133-OPEN-7X-OWNED-SPL.md").read_text()
         self.assertIn(
-            f"Current canonical Linux 7 pin: `{DOCUMENTED_KERNEL_SHA}`.",
+            f"Current canonical Linux 7 pin: {DOCUMENTED_KERNEL_PIN}.",
             document,
         )
         self.assertIn(
