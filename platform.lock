@@ -236,7 +236,7 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # dirty retained A133 DSI datapath, white panel after Gamescope stop); include/uapi and arm64
 # UAPI unchanged.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "b0d356242335c71265243ea92484fce36b4f706f"
+kernel = "71314e321fe462c578f97dd434f63d66d9e58759"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -1420,7 +1420,8 @@ ref  = "device/a133"
 # tsp-mc9m.60.29.33.17: d84c5066 = d8443c42 + kernel#183 only.
 # tsp-55cee6aedcf359cfe27e DISP-K1: 8689d72a = d84c5066 + kernel#184 only.
 # tsp-76dbc3f58842be997200 KIT6: b0d35624 = 8689d72a + kernel#185 (bb4b6cd1: kexec_load in a133_defconfig, G2D MIX kept, MIX .shutdown quiesce) + kernel#186 (MEDIA1 cedrus enc slice start code).
-sha  = "b0d356242335c71265243ea92484fce36b4f706f"
+# tsp-mc9m.60.29.88.29 MEDIA1: 71314e32 = b0d35624 + kernel#187 only (G2D MIX probe access-map diagnostic).
+sha  = "71314e321fe462c578f97dd434f63d66d9e58759"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
