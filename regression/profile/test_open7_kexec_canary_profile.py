@@ -14,7 +14,8 @@ spec.loader.exec_module(profile)
 
 NORMAL_DEVICE = "a133-open-7x-gpu"
 CANARY_DEVICE = "a133-open-7x-gpu-kexec-canary"
-KERNEL_SHA = "8689d72a3e8679719e38f5ef3b1b8f0d4e9da55c"
+# tsp-hqm1p.182.339: read from platform.lock, never a literal copy.
+KERNEL_SHA = profile.load_lock()["repos"]["kernel-sunxi-7.x"]["sha"]
 
 
 def flatten(value: Any, prefix: str = "") -> dict[str, Any]:

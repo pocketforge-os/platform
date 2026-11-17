@@ -14,7 +14,8 @@ spec.loader.exec_module(profile)
 
 SELECTED = "a133-open-7x-gpu"
 UAPI_SHA = "3010de56dbd1057513c035fff8623f80596fe9e8"
-KERNEL_SHA = "8689d72a3e8679719e38f5ef3b1b8f0d4e9da55c"
+# tsp-hqm1p.182.339: read from platform.lock, never a literal copy.
+KERNEL_SHA = profile.load_lock()["repos"]["kernel-sunxi-7.x"]["sha"]
 EXPECTED_ARGS = {
     "PF_STEAMLINK_FFMPEG59_MODE": "v1",
     "PF_FFMPEG_DEBIAN_VERSION": "7:5.1.8-0+deb12u1",

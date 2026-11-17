@@ -13,6 +13,13 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location("pf_profile", ROOT / "core/profile.py")
 profile = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(profile)
+
+# tsp-hqm1p.182.339: current pins are read from platform.lock, never copied here.
+LOCK_PIN = {name: repo["sha"] for name, repo in profile.load_lock()["repos"].items()}
+KERNEL_PIN_SITE = {
+    LOCK_PIN[name]: f"<platform.lock:repos.{name}.sha>"
+    for name in ("kernel-sunxi-4.9", "kernel-sunxi-5.15", "kernel-sunxi-6.x", "kernel-sunxi-7.x")
+}
 caps_spec = importlib.util.spec_from_file_location("pf_caps", ROOT / "core/caps.py")
 caps = importlib.util.module_from_spec(caps_spec)
 caps_spec.loader.exec_module(caps)
@@ -596,21 +603,26 @@ class ProfileTest(unittest.TestCase):
         # Image#405 (software H.264 encoders, carries #404) advances only PF_IMAGE_SHA (previous: 616dc303).
         # Image#406 (SDR50 DTB staging, carries #405) advances only PF_IMAGE_SHA (previous: 9ba6c7a0).
         # Pool Suite#21 advances only PF_POOLSUITE_SHA on dev rows; release rows remain unchanged.
+        # tsp-hqm1p.182.339: an arg equal to a current kernel lock pin is hashed as its lock
+        # site name (KERNEL_PIN_SITE), so a kernel pin advance edits platform.lock only. Every
+        # row except sdm845 was regenerated once for that substitution; the raw payloads were
+        # verified to reproduce the previous digests before substituting.
         expected = {
-            ("a133", "dev"): "9a8f912e6d9edcf3494739209008eae1fa548058d4d9859c7e90285da1089012",
-            ("a133", "release"): "f04afbad676b95d51cf3c3b26ac442864abe45acaaac12d44009343c543e25d0",
-            ("a133-open-7x", "dev"): "40cf75adece6c2c79b96284294e89bebd0bd1b90b053cab69b383ba23c14e309",
-            ("a133-open-7x", "release"): "0cb35ed0138a326a93d8298a82e2c89d974eb074681ecfbc6e4b3e9feee616af",
-            ("a133-owned", "dev"): "83c0c452e8dadfc97530aa88e64ec7826f290bf74670127c498a06c7d22c1dd6",
-            ("a133-owned", "release"): "d76bd4d3282c670de3890d0f8a388e845184d2518574d92de6db10e9cfe76bd9",
-            ("a523", "dev"): "98ce7f00741bf1d5f95da0db81f6abf18fcb5cda8f53c9b28f912415f18398fa",
-            ("a523", "release"): "333eb281df63ec9ae6cdc36ffab453404d8434d9a1538d32122e2f4f822d2c0d",
+            ("a133", "dev"): "f3a82f50be73e97c15fb9e2f70d57c94e6816c924fdbf18133ffbc2d200f873a",
+            ("a133", "release"): "911cb36c6b713069662329a1ef48d21a3b34043c5b9f3ce2a3226b6c8907ec9c",
+            ("a133-open-7x", "dev"): "e651ac93de7f8d1a00382a996d568646ccd8b573f00f3db4885cb08b0b350ef8",
+            ("a133-open-7x", "release"): "a7a8b75cd20e2ee66f09c305d5cfcfaff141785d6b793de319e0697a1a889739",
+            ("a133-owned", "dev"): "dcd07fb36582f39d4bb6610dfe9327b046c2600e31e724684688593af6ed6530",
+            ("a133-owned", "release"): "5549603a40b82d5f26ffd73ebe7e213b6a85e1c177c78365c13770a93491f5ca",
+            ("a523", "dev"): "5952529c9e5370df597a68553e59cbdb8f93a46bb1d71701aada07d073150d8d",
+            ("a523", "release"): "2168499a8df5f617e6cd51ba980f1e0c0e84058996330124ddbf3d7d612635ae",
             ("sdm845", "dev"): "85828746480627a9189010613f50be4bbf7e3ec841d29d35057ea0fc21e48153",
             ("sdm845", "release"): "be3dafe79352fdfc18380c7371f0697436fa7c852ee57f8a02f94cf1307bf894",
         }
         for key, digest in expected.items():
             dev_id, variant = key
             args, state, missing = profile.build_args(dev_id, variant)
+            args = {name: KERNEL_PIN_SITE.get(value, value) for name, value in args.items()}
             payload = {"args": args, "state": state, "missing": missing}
             canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
             self.assertEqual(hashlib.sha256(canonical.encode()).hexdigest(), digest, key)
@@ -807,11 +819,11 @@ class ProfileTest(unittest.TestCase):
         opened, _, open_missing = profile.build_args("a133-open")
         self.assertEqual(closed_missing, [])
         self.assertEqual(open_missing, [])
-        self.assertEqual(closed["PF_KERNEL_SHA"], "a7cfec247898bb2c22e51bb705a7f18fd5910285")
+        self.assertEqual(closed["PF_KERNEL_SHA"], LOCK_PIN["kernel-sunxi-4.9"])
         self.assertEqual(closed["PF_GPU_MODEL"], "ddk")
         self.assertEqual(closed["PF_GPU_REPO"], "gpu-km-tsp")
         self.assertIn("pvr-ddk-22.102.54.38", closed["PF_BLOB_GROUPS"])
-        self.assertEqual(opened["PF_KERNEL_SHA"], "095f0c0b95eba4e05a1c6c8f9d88d7b28179a054")
+        self.assertEqual(opened["PF_KERNEL_SHA"], LOCK_PIN["kernel-sunxi-6.x"])
         self.assertEqual(opened["PF_GPU_MODEL"], "open")
         self.assertEqual(opened["PF_GPU_KM_SHA"], opened["PF_KERNEL_SHA"])
         self.assertEqual(opened["PF_GPU_UM_SHA"], "ef3b4093d8557fae482599112a7467d223774b73")
@@ -857,7 +869,7 @@ class ProfileTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x")
         self.assertEqual(missing, [])
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
-        self.assertEqual(args["PF_KERNEL_SHA"], "8689d72a3e8679719e38f5ef3b1b8f0d4e9da55c")
+        self.assertEqual(args["PF_KERNEL_SHA"], LOCK_PIN["kernel-sunxi-7.x"])
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-tsp.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "none")
         self.assertEqual(args["PF_GPU_REPO"], "")
@@ -874,7 +886,7 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(args["PF_DEVICE_ID"], "a133-open-7x-gpu")
         self.assertEqual(args["PF_KERNEL_REPO"], "kernel-sunxi-7.x")
         self.assertEqual(args["PF_KERNEL_REF"], "device/a133")
-        self.assertEqual(args["PF_KERNEL_SHA"], "8689d72a3e8679719e38f5ef3b1b8f0d4e9da55c")
+        self.assertEqual(args["PF_KERNEL_SHA"], LOCK_PIN["kernel-sunxi-7.x"])
         self.assertEqual(args["PF_KERNEL_DTB"], "sun50i-a133-pocketforge-odyssey.dtb")
         self.assertEqual(args["PF_GPU_MODEL"], "open")
         self.assertEqual(args["PF_GPU_KM_MODEL"], "in-tree-7.x")
