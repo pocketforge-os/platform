@@ -235,8 +235,10 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # tsp-55cee6aedcf359cfe27e DISP-K1 advances both to 8689d72a (kernel#184: cold re-init of a
 # dirty retained A133 DSI datapath, white panel after Gamescope stop); include/uapi and arm64
 # UAPI unchanged.
+# tsp-605eb34d49ca34b418b7 DISP-K3a advances both to dfb1c718 (kernel#188: ER68576 keeps the
+# vendor close-flow 200 ms/500 ms delays across a cold cycle); include/uapi and arm64 UAPI unchanged.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "71314e321fe462c578f97dd434f63d66d9e58759"
+kernel = "dfb1c718b992f2fff0b9bd21ef9359236c01b0d5"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -1421,7 +1423,8 @@ ref  = "device/a133"
 # tsp-55cee6aedcf359cfe27e DISP-K1: 8689d72a = d84c5066 + kernel#184 only.
 # tsp-76dbc3f58842be997200 KIT6: b0d35624 = 8689d72a + kernel#185 (bb4b6cd1: kexec_load in a133_defconfig, G2D MIX kept, MIX .shutdown quiesce) + kernel#186 (MEDIA1 cedrus enc slice start code).
 # tsp-mc9m.60.29.88.29 MEDIA1: 71314e32 = b0d35624 + kernel#187 only (G2D MIX probe access-map diagnostic).
-sha  = "71314e321fe462c578f97dd434f63d66d9e58759"
+# tsp-605eb34d49ca34b418b7 DISP-K3a: dfb1c718 = 71314e32 + kernel#188 only (otm1289a cold-cycle close-flow delays).
+sha  = "dfb1c718b992f2fff0b9bd21ef9359236c01b0d5"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
