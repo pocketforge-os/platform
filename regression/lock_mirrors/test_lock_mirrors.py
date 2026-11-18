@@ -724,9 +724,9 @@ comparison = "equal"
                 b"# Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at "
                 b"0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15.\n"
             ),
-            "build/tests/fixtures/gpu-um-toolchain-ef3b4093.Dockerfile": (
+            "build/tests/fixtures/gpu-um-toolchain-68d06d10.Dockerfile": (
                 b"# Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at "
-                b"ef3b4093d8557fae482599112a7467d223774b73.\n"
+                b"68d06d106278f89c9d108affa9bff939b3318c98.\n"
             ),
             ".github/workflows/app-policy-pair.yml": (
                 f"          repository: pocketforge-os/runtime\n"
