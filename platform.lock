@@ -1615,7 +1615,10 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 15: gpu-um-tsp#216 merge
                                # publication gate only; full-image and runtime stay root gates.
                                # Prior (0dc9d15a65481267b79d9123c7add84e7e03eda2):
                                # gpu-um-tsp full-frame fixes pin (pre-PR #155).
-sha  = "68d06d106278f89c9d108affa9bff939b3318c98"
+                               # tsp-mc9m.41.924.24.41.17: gpu-um-tsp#236 (pvr/poly: never DMA
+                               # poly shareds from address 0) merged as
+                               # 1574c91b7178c3a87d1ba29d07c320f9cecb5439, the exact main pinned here.
+sha  = "1574c91b7178c3a87d1ba29d07c320f9cecb5439"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
