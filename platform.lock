@@ -236,7 +236,7 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # dirty retained A133 DSI datapath, white panel after Gamescope stop); include/uapi and arm64
 # UAPI unchanged.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "368d538e62a652a7cdb5789cadf329079d107159"
+kernel = "806c26407cda63b99ca4ec6583e0c5cc713bdbb6"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -1432,7 +1432,8 @@ ref  = "device/a133"
 # tsp-80425d8c0c0cda0ca87e: e57e8052 = 8c11370b + 5 commit(s) on device/a133 (pf-pin).
 # tsp-mc9m.60.29.88.30: 95d9b7a1 = e57e8052 + 5 commit(s) on device/a133 (pf-pin).
 # tsp-mc9m.60.29.88.34: 368d538e = 95d9b7a1 + 5 commit(s) on device/a133 (pf-pin).
-sha  = "368d538e62a652a7cdb5789cadf329079d107159"
+# tsp-mc9m.41.924.24.41.15: 806c2640 = 368d538e + kernel#196 (powervr NULL done_fence fix) on device/a133; profile_pins noradio kernel moves with it.
+sha  = "806c26407cda63b99ca4ec6583e0c5cc713bdbb6"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
@@ -1719,7 +1720,8 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # boot gate. BANNER CHANGE: 2025.10-g72abd96b6b87.
                               # tsp-mc9m.37: u-boot-tsp-a133#59 adds bounded AXP717 BOOT GATE input logging.
 # tsp-mc9m.60.29.89.2: 1e06b6e3 = 1c04d7f5 + 4 commit(s) on main (pf-pin).
-sha  = "1e06b6e3150d7d8c3f5e9cf0fdb6a5e0d523b22f"
+# tsp-mc9m.41.924.24.41.15: 7b821f1a = 1e06b6e3 + u-boot-tsp-a133#61 (POWER8 REG27 bit3 warm-reboot fix) on main.
+sha  = "7b821f1a7a619eeb3039259074063e0d27fa4587"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
