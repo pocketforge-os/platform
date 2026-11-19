@@ -19,17 +19,17 @@ def _env(dev):
 
 class DualSplProfile(unittest.TestCase):
     def test_dual_profile_resolves_and_sets_flag(self):
-        self.assertEqual(profile.resolve(DUAL)["bootchain"].get("spl_dual_8k"), True)
+        self.assertEqual(profile.resolve(DUAL)[0]["bootchain"].get("spl_dual_8k"), True)
 
     def test_base_profile_unflagged(self):
-        self.assertFalse(profile.resolve(BASE)["bootchain"].get("spl_dual_8k", False))
+        self.assertFalse(profile.resolve(BASE)[0]["bootchain"].get("spl_dual_8k", False))
 
     def test_env_flag(self):
         self.assertEqual(_env(DUAL).get("PF_SPL_DUAL_8K"), "1")
         self.assertIn(_env(BASE).get("PF_SPL_DUAL_8K", ""), ("", "0"))
 
     def test_only_flag_differs_from_base(self):
-        a, b = profile.resolve(BASE), profile.resolve(DUAL)
+        a, b = profile.resolve(BASE)[0], profile.resolve(DUAL)[0]
         for sect in ("kernel", "gpu", "display", "bootchain", "image"):
             x, y = dict(a.get(sect, {})), dict(b.get(sect, {}))
             y.pop("spl_dual_8k", None); x.pop("spl_dual_8k", None)
