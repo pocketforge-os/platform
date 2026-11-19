@@ -1621,7 +1621,8 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 15: gpu-um-tsp#216 merge
                                # poly shareds from address 0) merged as
                                # 1574c91b7178c3a87d1ba29d07c320f9cecb5439, the exact main pinned here.
 # tsp-mc9m.41.924.24.41: 417abffc = 1574c91b + 20 commit(s) on main (pf-pin).
-sha  = "417abffc68ba6f8699fda731e321a7c40ac4110b"
+# tsp-mc9m.41.924.24.41: aa539ea4 = 417abffc + 13 commit(s) on main (pf-pin).
+sha  = "aa539ea41c9453a3a15f0093498620825a496213"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
