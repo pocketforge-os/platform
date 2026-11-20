@@ -44,6 +44,7 @@ A133_OPEN_PROFILES = {
     "a133-open-7x-gpu-kexec-canary",
     "a133-open-7x-gpu-noradio",
     "a133-open-7x-gpu-spl-trace",
+    "a133-open-7x-gpu-dualspl",
 }
 
 
@@ -91,6 +92,7 @@ class ProfileTest(unittest.TestCase):
                 "a133-open-7x-gpu-kexec-canary",
                 "a133-open-7x-gpu-noradio",
                 "a133-open-7x-gpu-spl-trace",
+                "a133-open-7x-gpu-dualspl",
             },
             set(expected),
         )
@@ -115,6 +117,7 @@ class ProfileTest(unittest.TestCase):
             "a133-open-7x-gpu-kexec-canary": "fbdev",
             "a133-open-7x-gpu-noradio": "fbdev",
             "a133-open-7x-gpu-spl-trace": "fbdev",
+            "a133-open-7x-gpu-dualspl": "fbdev",
             "a133-owned": "fbdev",
             "a523": "fbdev",
             "sdm845": "drm",
