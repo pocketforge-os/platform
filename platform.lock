@@ -927,8 +927,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # tsp-mc9m.41.924.24.41.24: image#417 (b2b4f51b) mirrors the gpu-um-tsp 417abffc pin (fixture rename, drift test); runtime behavior unchanged.
 # tsp-mc9m.41.924.24.41.26: image#418 (ed0b2579) mirrors the gpu-um-tsp aa539ea4 pin (fixture rename, drift test); runtime behavior unchanged.
 # tsp-mc9m.41.924.24.41.28: image#419 (945c5310) mirrors the gpu-um-tsp d5b2de54 pin (fixture body + hermetic LLVM key); runtime behavior unchanged.
-# tsp-mc9m.41.924.24.41.30: image#420 (cb929ad8) mirrors the gpu-um-tsp 3642a0e6 pin (fixture rename only); runtime behavior unchanged.
-sha  = "cb929ad864aa9a26063a53311f955a90d3faad69"
+# tsp-mc9m.60.29.63.20.2: image#421 (7ebb0b9f) adds the opt-in --spl-8k-copy dual-SPL path (default off; flag-off output unchanged).
+sha  = "7ebb0b9f1fd3ebed307f34bdf779182f549af601"
 
 [[repos]]
 name = "pf-cursor-theme"
