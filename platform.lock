@@ -1735,7 +1735,8 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
                               # tsp-mc9m.37: u-boot-tsp-a133#59 adds bounded AXP717 BOOT GATE input logging.
 # tsp-mc9m.60.29.89.2: 1e06b6e3 = 1c04d7f5 + 4 commit(s) on main (pf-pin).
 # tsp-mc9m.41.924.24.41.15: 7b821f1a = 1e06b6e3 + u-boot-tsp-a133#61 (POWER8 REG27 bit3 warm-reboot fix) on main.
-sha  = "7b821f1a7a619eeb3039259074063e0d27fa4587"
+# tsp-mc9m.60.29.63.20.3: a6fdf565 = 7b821f1a + u-boot-tsp-a133#62 (A133 SPL: LOW/8 KiB-origin SPL finds U-Boot proper at the HIGH-layout sector) on main.
+sha  = "a6fdf56586dbc98c5fbd30a7c6f76fb243901add"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
