@@ -929,7 +929,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # tsp-mc9m.41.924.24.41.28: image#419 (945c5310) mirrors the gpu-um-tsp d5b2de54 pin (fixture body + hermetic LLVM key); runtime behavior unchanged.
 # tsp-mc9m.60.29.63.20.2: image#423 (c493ff91) admits a133-open-7x-gpu-dualspl in the profile allowlists (gamescope g1, rootfs lists); carries image#421/#422.
 # tsp-mc9m.41.924.24.41.32: image#422 (ce4aa4b5) mirrors the gpu-um-tsp 7175fc29 pin (fixture rename only); runtime behavior unchanged; it carries image#421.
-sha  = "c493ff911611aeb17ef6dcd4e0c43c71e79d623b"
+# tsp-3ff003d01dc12fc0de68: image#426 (683cc964) mirrors the gpu-um-tsp 6909bbda pin (fixture rename only); runtime behavior unchanged; it carries image#423.
+sha  = "683cc964a4586a6bf6f381eca1f5481e41d04ddf"
 
 [[repos]]
 name = "pf-cursor-theme"
