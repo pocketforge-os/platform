@@ -30,6 +30,7 @@ A133_OPEN_PROFILES = {
     "a133-open-7x-gpu-kexec-canary",
     "a133-open-7x-gpu-noradio",
     "a133-open-7x-gpu-spl-trace",
+    "a133-open-7x-gpu-dualspl",
 }
 DESCRIPTOR_KEYS = ("PF_DEVICE_DESCRIPTOR_ID", "PF_DEVICE_DESCRIPTOR_SHA256")
 DESCRIPTOR_PATH = ROOT / "devices/a133/capabilities.toml"
@@ -102,6 +103,10 @@ PRE_DESCRIPTOR_DIGESTS = {
     ("a133-open-7x-gpu-spl-trace", "buildargs release"): "d6663f3bce068f743438b8d8608bd73bc775bc572c3b621e0f7277c8fbedb08b",
     ("a133-open-7x-gpu-spl-trace", "env"): "dc53661bd070044973beca31bc3dbd4c13f3d50ea7b43a6a3c2cadfad63508fd",
     ("a133-open-7x-gpu-spl-trace", "resolve"): "a7c84b907738c59715de88262d72debfc1c5f7df91ce0029ef3f6c51408a44a3",
+    ("a133-open-7x-gpu-dualspl", "buildargs dev"): "250f0acb59b16207b5d2432031abf2c26c76dc534eefb75e8759fe184a7381ff",
+    ("a133-open-7x-gpu-dualspl", "buildargs release"): "f122bacb96bf6f95e0370a7a6610a8d95613e4e115fd13584a03fe8c4c23c88e",
+    ("a133-open-7x-gpu-dualspl", "env"): "0fd64e7155dcb6be3af5f5626cc83a965f97b43063523861ecf08a5fef3e6c6b",
+    ("a133-open-7x-gpu-dualspl", "resolve"): "9b96ded4b64575323f2019ec0c50b8ec252e2d6d8a97073fa40dd039b91802a6",
     ("a133-owned", "buildargs dev"): "a8126cdffa5588d8e9703c9ba622c11c07d89c528daea13baf948a4f3019d496",
     ("a133-owned", "buildargs release"): "2a7dbed21687be103076c0694590421752477cc9865a88e371457f4fef964f2c",
     ("a133-owned", "env"): "26ff80b05a4c64e5b27a0fe8ebb641fcd80dbe9b44f7bf1e558d3c1a3b6bd4cc",

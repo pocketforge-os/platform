@@ -738,6 +738,8 @@ def env_lines(dev_id):
         "PF_TOOLCHAIN_GCC_VERSION": tc.get("gcc_version", ""),
         "PF_TOOLCHAIN_CFLAGS_EXTRA": tc.get("cflags_extra", ""),
     }
+    if bc.get("spl_dual_8k"):
+        out["PF_SPL_DUAL_8K"] = "1"
     lines = []
     for kk, vv in out.items():
         if vv is None:
@@ -874,6 +876,8 @@ def build_args(dev_id, variant="dev"):
         # owned-SPL branch consumes it to place u-boot-sunxi-with-spl.bin. tsp-147u.13).
         "PF_SPL_OFFSET_KIB": str(bc.get("spl_offset_kib", "") or ""),
     }
+    if bc.get("spl_dual_8k"):
+        args["PF_SPL_DUAL_8K"] = "1"
     if gamescope:
         gamescope_repo = gamescope.get("repo", "")
         source = repos.get(gamescope_repo, {}) or {}

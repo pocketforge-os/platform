@@ -41,7 +41,7 @@ a523       = "advisory"
 
 # a133-open + a133-open-7x + a133-open-7x-gpu + a133-open-7x-gpu-cts +
 # a133-open-7x-gpu-kexec-canary + a133-open-7x-gpu-noradio +
-# a133-open-7x-gpu-spl-trace + a133-owned + sdm845 carry ONLY a profile.toml
+# a133-open-7x-gpu-spl-trace + a133-open-7x-gpu-dualspl + a133-owned + sdm845 carry ONLY a profile.toml
 # (a build-profile variant / porting target) —
 # no capabilities.toml, so there is nothing for the sim suites to run against. They are
 # EXPLICITLY excluded so the completeness check proves they were considered and deliberately
@@ -53,5 +53,6 @@ a133-open-7x-gpu-cts = "excluded"
 a133-open-7x-gpu-kexec-canary = "excluded"
 a133-open-7x-gpu-noradio = "excluded"
 a133-open-7x-gpu-spl-trace = "excluded"
+a133-open-7x-gpu-dualspl = "excluded"
 a133-owned = "excluded"
 sdm845     = "excluded"
