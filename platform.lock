@@ -1635,7 +1635,8 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 15: gpu-um-tsp#216 merge
 # tsp-3ff003d01dc12fc0de68: 6909bbda = 7175fc29 + 18 commit(s) on main (pf-pin).
 # tsp-92dce70c542b27ce90b1: ee2aedc3 = 6909bbda + 3 commit(s) on main (pf-pin).
 # tsp-872993e1afee8ca4e031: 12483cd7 = ee2aedc3 + 3 commit(s) on main (pf-pin).
-sha  = "12483cd7e5b1ed66e979b15543fb19dc5115a308"
+# tsp-mc9m.41.924.24.41.34: 77ba0f4f = 12483cd7 + 8 commit(s) on main (pf-pin).
+sha  = "77ba0f4fb505f6a49a6b34f1399a71751eb5015c"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
