@@ -932,7 +932,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # tsp-3ff003d01dc12fc0de68: image#426 (683cc964) mirrors the gpu-um-tsp 6909bbda pin (fixture rename only); runtime behavior unchanged; it carries image#423.
 # tsp-92dce70c542b27ce90b1: image#427 (51317cd9) mirrors the gpu-um-tsp ee2aedc3 pin (fixture rename only); its own runtime behavior is unchanged; it also carries image#425.
 # tsp-872993e1afee8ca4e031: image#428 (2d47584f) mirrors the gpu-um-tsp 12483cd7 pin (fixture rename only); its own runtime behavior is unchanged.
-sha  = "2d47584f7ff53b1332da244ee586816de0bb976e"
+# tsp-96bdc16b6ac5ce60f82d: image#429 (d04af948) mirrors the gpu-um-tsp 77ba0f4f pin (fixture rename only); its own runtime behavior is unchanged.
+sha  = "d04af94895935b8807d3856e6ac57ffbffd8d4bc"
 
 [[repos]]
 name = "pf-cursor-theme"
