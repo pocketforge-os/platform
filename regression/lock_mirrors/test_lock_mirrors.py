@@ -26,7 +26,7 @@ LOCK_PIN = {
 IMAGE_URL = "https://github.com/pocketforge-os/image.git"
 PLATFORM267_IMAGE = "4b92b6d625c38ffd4dce36e63cf847645b18da18"
 CORRECTED_IMAGE = "803f1f3848b33f9363d0054e1bb1d43957828fbc"
-CURRENT_IMAGE = "51317cd912c4bb57789b4dcdb8e0736f234954db"
+CURRENT_IMAGE = "2d47584f7ff53b1332da244ee586816de0bb976e"
 CURRENT_UAPI = "3010de56dbd1057513c035fff8623f80596fe9e8"
 CURRENT_KERNEL = "19f7cbdc61dd45c697832925be901f380c8c8c75"
 CURRENT_CTS_SOURCE = "067e8832315e79817ede1c4863804e440f5d1c80"
@@ -724,9 +724,9 @@ comparison = "equal"
                 b"# Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at "
                 b"0c3b02bd4cfd98b2fcfbc6b6c1d0a948d60bda15.\n"
             ),
-            "build/tests/fixtures/gpu-um-toolchain-ee2aedc3.Dockerfile": (
+            "build/tests/fixtures/gpu-um-toolchain-12483cd7.Dockerfile": (
                 b"# Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at "
-                b"ee2aedc375707004336a5a9f394229d2f1c7c8b5.\n"
+                b"12483cd7e5b1ed66e979b15543fb19dc5115a308.\n"
             ),
             ".github/workflows/app-policy-pair.yml": (
                 f"          repository: pocketforge-os/runtime\n"

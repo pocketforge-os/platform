@@ -931,7 +931,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # tsp-mc9m.41.924.24.41.32: image#422 (ce4aa4b5) mirrors the gpu-um-tsp 7175fc29 pin (fixture rename only); runtime behavior unchanged; it carries image#421.
 # tsp-3ff003d01dc12fc0de68: image#426 (683cc964) mirrors the gpu-um-tsp 6909bbda pin (fixture rename only); runtime behavior unchanged; it carries image#423.
 # tsp-92dce70c542b27ce90b1: image#427 (51317cd9) mirrors the gpu-um-tsp ee2aedc3 pin (fixture rename only); its own runtime behavior is unchanged; it also carries image#425.
-sha  = "51317cd912c4bb57789b4dcdb8e0736f234954db"
+# tsp-872993e1afee8ca4e031: image#428 (2d47584f) mirrors the gpu-um-tsp 12483cd7 pin (fixture rename only); its own runtime behavior is unchanged.
+sha  = "2d47584f7ff53b1332da244ee586816de0bb976e"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1633,7 +1634,8 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 15: gpu-um-tsp#216 merge
 # tsp-mc9m.41.924.24.41.32: 7175fc29 = 3642a0e6 + 11 commit(s) on main (pf-pin).
 # tsp-3ff003d01dc12fc0de68: 6909bbda = 7175fc29 + 18 commit(s) on main (pf-pin).
 # tsp-92dce70c542b27ce90b1: ee2aedc3 = 6909bbda + 3 commit(s) on main (pf-pin).
-sha  = "ee2aedc375707004336a5a9f394229d2f1c7c8b5"
+# tsp-872993e1afee8ca4e031: 12483cd7 = ee2aedc3 + 3 commit(s) on main (pf-pin).
+sha  = "12483cd7e5b1ed66e979b15543fb19dc5115a308"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
