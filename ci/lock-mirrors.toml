@@ -355,7 +355,7 @@ consumer_repo = "image"
 consumer_path = "build/tests/fixtures/gpu-um-toolchain-77ba0f4f.Dockerfile"
 parser = "template"
 template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {value}.'
-reason = "fixture source provenance for image#394's gpu-um-tsp exact pin"
+reason = "fixture source provenance for image#429's gpu-um-tsp exact pin"
 
 [[references]]
 id = "input-harness-gamescope-readme"
