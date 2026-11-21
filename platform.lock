@@ -236,7 +236,7 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # dirty retained A133 DSI datapath, white panel after Gamescope stop); include/uapi and arm64
 # UAPI unchanged.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "806c26407cda63b99ca4ec6583e0c5cc713bdbb6"
+kernel = "b61de9e7f470964fc609e3e8c33d2148bd5615e6"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -1443,7 +1443,8 @@ ref  = "device/a133"
 # tsp-mc9m.60.29.88.30: 95d9b7a1 = e57e8052 + 5 commit(s) on device/a133 (pf-pin).
 # tsp-mc9m.60.29.88.34: 368d538e = 95d9b7a1 + 5 commit(s) on device/a133 (pf-pin).
 # tsp-mc9m.41.924.24.41.15: 806c2640 = 368d538e + kernel#196 (powervr NULL done_fence fix) on device/a133; profile_pins noradio kernel moves with it.
-sha  = "806c26407cda63b99ca4ec6583e0c5cc713bdbb6"
+# tsp-366751a7606adcaf794d: b61de9e7 = 806c2640 + kernel#200 (media: sun50i-g2d-mix, sun8i-rotate: inject_timeout fault hook) on device/a133; profile_pins noradio kernel moves with it.
+sha  = "b61de9e7f470964fc609e3e8c33d2148bd5615e6"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
