@@ -74,6 +74,16 @@ class ResetCapProfile(unittest.TestCase):
         for key in ("PF_TFA_SHA", "PF_UBOOT_SHA", "PF_KERNEL_SHA"):
             self.assertEqual(a_args.get(key), b_args.get(key), f"{key} must be identical")
 
+    def test_tfa_locked_to_merged_main_linear_sha(self):
+        """Platform.lock pins tfa-tsp-a133 to exact main-linear merge 18473be6."""
+        EXPECTED_TFA_SHA = "18473be659d2549046723ffc5ec940c918fdd823"
+        a_args = _build_args(BASE)
+        b_args = _build_args(OFF)
+        self.assertEqual(a_args.get("PF_TFA_SHA"), EXPECTED_TFA_SHA,
+                         f"base profile PF_TFA_SHA must be merged main-linear {EXPECTED_TFA_SHA}")
+        self.assertEqual(b_args.get("PF_TFA_SHA"), EXPECTED_TFA_SHA,
+                         f"off profile PF_TFA_SHA must be merged main-linear {EXPECTED_TFA_SHA}")
+
     def test_identity_deltas_only(self):
         """Prove device.id, device.name are the only identity deltas."""
         a, b = profile.resolve(BASE)[0], profile.resolve(OFF)[0]
