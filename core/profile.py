@@ -661,6 +661,12 @@ def validate(dev_id, lock):
     # bootchain duality: either a source repo OR a blob group
     uboot = table("[bootchain.uboot]", bc.get("uboot", {}))
     tfa = table("[bootchain.tfa]", bc.get("tfa", {}))
+    reset_cap = tfa.get("reset_capability")
+    if reset_cap is not None:
+        if not isinstance(reset_cap, str):
+            errs.append(f"{dev_id}: [bootchain.tfa].reset_capability must be a string")
+        elif reset_cap not in ("axp717", "watchdog"):
+            errs.append(f"{dev_id}: [bootchain.tfa].reset_capability must be 'axp717' or 'watchdog'")
     has_src = bool(uboot.get("repo"))
     has_blob = bool(bc.get("blob_group"))
     if not (has_src or has_blob):
@@ -740,6 +746,10 @@ def env_lines(dev_id):
     }
     if bc.get("spl_dual_8k"):
         out["PF_SPL_DUAL_8K"] = "1"
+    reset_cap = bc.get("tfa", {}).get("reset_capability", "axp717")
+    if reset_cap not in ("axp717", "watchdog"):
+        raise ValueError(f"tfa.reset_capability must be axp717 or watchdog, got {reset_cap!r}")
+    out["PF_TFA_RESET_CAPABILITY"] = reset_cap
     lines = []
     for kk, vv in out.items():
         if vv is None:
@@ -878,6 +888,10 @@ def build_args(dev_id, variant="dev"):
     }
     if bc.get("spl_dual_8k"):
         args["PF_SPL_DUAL_8K"] = "1"
+    reset_cap = bc.get("tfa", {}).get("reset_capability", "axp717")
+    if reset_cap not in ("axp717", "watchdog"):
+        raise ValueError(f"tfa.reset_capability must be axp717 or watchdog, got {reset_cap!r}")
+    args["PF_TFA_RESET_CAPABILITY"] = reset_cap
     if gamescope:
         gamescope_repo = gamescope.get("repo", "")
         source = repos.get(gamescope_repo, {}) or {}

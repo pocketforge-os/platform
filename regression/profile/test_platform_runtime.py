@@ -51,7 +51,7 @@ class PlatformRuntimeTest(unittest.TestCase):
     def test_only_selected_profile_and_explicit_child_select_payload(self):
         payload_keys = set(EXPECTED_ARGS)
         for device in profile.list_devices():
-            if device in {SELECTED, "a133-open-7x-gpu-cts"}:
+            if device in {SELECTED, "a133-open-7x-gpu-cts", "a133-open-7x-gpu-resetcap-off"}:
                 continue
             with self.subTest(device=device):
                 args, _, _ = profile.build_args(device)
