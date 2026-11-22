@@ -45,6 +45,7 @@ A133_OPEN_PROFILES = {
     "a133-open-7x-gpu-noradio",
     "a133-open-7x-gpu-spl-trace",
     "a133-open-7x-gpu-dualspl",
+    "a133-open-7x-gpu-resetcap-off",
 }
 
 
@@ -93,6 +94,7 @@ class ProfileTest(unittest.TestCase):
                 "a133-open-7x-gpu-noradio",
                 "a133-open-7x-gpu-spl-trace",
                 "a133-open-7x-gpu-dualspl",
+                "a133-open-7x-gpu-resetcap-off",
             },
             set(expected),
         )
@@ -118,6 +120,7 @@ class ProfileTest(unittest.TestCase):
             "a133-open-7x-gpu-noradio": "fbdev",
             "a133-open-7x-gpu-spl-trace": "fbdev",
             "a133-open-7x-gpu-dualspl": "fbdev",
+            "a133-open-7x-gpu-resetcap-off": "fbdev",
             "a133-owned": "fbdev",
             "a523": "fbdev",
             "sdm845": "drm",
@@ -631,16 +634,16 @@ class ProfileTest(unittest.TestCase):
         # tsp-hqm1p.182.352 widened the substitution to every non-image lock repo and regenerated
         # every row once more, again after verifying the raw payloads reproduced the old digests.
         expected = {
-            ("a133", "dev"): "4ab9a5449a922e6bfe5f82aabea2bb3614e5b3248c937f34abcf191afe2bcfa8",
-            ("a133", "release"): "51a696e0d73dfb0e65bed5915319f7b67671b35fb2593a66bf40295591870afa",
-            ("a133-open-7x", "dev"): "3188cbec3f22b6dc32c91c6613e43f0047cbfdca36e5bdc642fffc7c59206fde",
-            ("a133-open-7x", "release"): "9967a1b783d4a50389f5a550e63f1409e56f4d0a4c7a119e3f20f5bf18216e29",
-            ("a133-owned", "dev"): "bd5ed9bc2460b35183c185158d2c5f8564661e6067fe3c9c9a4c4896b8261e52",
-            ("a133-owned", "release"): "3652cc5b7e5e1be6567788bebc292aae226b1771d50b7eb6dd293d968aee4db8",
-            ("a523", "dev"): "b9b6ab3e1c388d73e68b85a1b73fe533a8489a2d75c90cc2761646a5fbff0a7f",
-            ("a523", "release"): "070d735aac22da87bed57dc0dbac21eb71f5895d5824668d948fda7e2371e2f6",
-            ("sdm845", "dev"): "c00bff3d243c4dccaa79bfc016dbd3df1c008b17a47265cefdc086a30003973d",
-            ("sdm845", "release"): "258846be57cb4aacc6352c6223cd160063e34969e2972c18e620821bba6fc925",
+            ("a133", "dev"): "ff33a59f7b3e621b89a11a39a0efb2cb8b2cee90c112ce712267e83f5291767e",
+            ("a133", "release"): "a51f3586d44ab20bd35c28321b628c29d658fbfd7f60c38fc57276ddf533326d",
+            ("a133-open-7x", "dev"): "e070cb9855993b87f762be630713b0c80b6ebff064397697a22842986c2d28aa",
+            ("a133-open-7x", "release"): "d392613a9eb1906dd3f64e2c7a83e8fd124f86645f1bbdf6e44fa5d56d20d016",
+            ("a133-owned", "dev"): "8ffc6dd4d059293d348ad2dbeaaae441ee058d66834ba3e52b791490f7fc81fd",
+            ("a133-owned", "release"): "18f4f1ed14e4148528ebc9a2da8b89be69c59d4d6702fbd543cc3f64dda849fd",
+            ("a523", "dev"): "7da42dd1b6e8ea97ac712dd3d822ba493b278ac314521378312b8bff4aa04b26",
+            ("a523", "release"): "e8533b49335ffd4e9ef2742faaee9dfb0b6d31b1b4c43e8247431812f9a38c97",
+            ("sdm845", "dev"): "72930bf2be4f0b58098f315f1d68cf5e4f09c8fa9fb1b37045b9a68298e08bac",
+            ("sdm845", "release"): "eb419e0237f8a96d271612a3e0a4c51cc22c639f323ecc08f4894fe1e55144da",
         }
         for key, digest in expected.items():
             dev_id, variant = key

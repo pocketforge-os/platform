@@ -41,8 +41,10 @@ class ResetCapProfile(unittest.TestCase):
         self.assertEqual(_build_args(BASE).get("PF_TFA_RESET_CAPABILITY", "axp717"), "axp717")
 
     def test_only_capability_differs_from_base(self):
+        """Control/candidate are semantically identical apart from reset_capability + identity."""
         a, b = profile.resolve(BASE)[0], profile.resolve(OFF)[0]
-        for sect in ("kernel", "gpu", "display", "bootchain", "image"):
+        # Compare all sections with documented deltas
+        for sect in ("kernel", "gpu", "display", "bootchain", "image", "device"):
             x, y = dict(a.get(sect, {})), dict(b.get(sect, {}))
             if sect == "bootchain":
                 # Pop tfa sub-dict and remove reset_capability from it
@@ -53,11 +55,13 @@ class ResetCapProfile(unittest.TestCase):
                 x["tfa"] = tfa_x
                 y["tfa"] = tfa_y
             if sect == "image":
+                # Only image_name differs (identity)
                 x.pop("image_name", None); y.pop("image_name", None)
             if sect == "device":
+                # Only id and name differ (identity)
                 x.pop("id", None); y.pop("id", None)
                 x.pop("name", None); y.pop("name", None)
-            self.assertEqual(x, y, sect)
+            self.assertEqual(x, y, f"section {sect} differs beyond documented identity deltas")
 
     def test_ci_matrix_registered(self):
         self.assertRegex((ROOT / "ci-matrix.toml").read_text(),
@@ -67,8 +71,33 @@ class ResetCapProfile(unittest.TestCase):
         """Control and candidate share locked TF-A/U-Boot/kernel SHAs."""
         a_args = _build_args(BASE)
         b_args = _build_args(OFF)
-        for key in ("PF_TFA_SHA", "PF_UBOOT_SHA"):
-            self.assertEqual(a_args.get(key), b_args.get(key), key)
+        for key in ("PF_TFA_SHA", "PF_UBOOT_SHA", "PF_KERNEL_SHA"):
+            self.assertEqual(a_args.get(key), b_args.get(key), f"{key} must be identical")
+
+    def test_identity_deltas_only(self):
+        """Prove device.id, device.name are the only identity deltas."""
+        a, b = profile.resolve(BASE)[0], profile.resolve(OFF)[0]
+        # device section
+        self.assertEqual(a["device"]["id"], "a133-open-7x-gpu")
+        self.assertEqual(b["device"]["id"], "a133-open-7x-gpu-resetcap-off")
+        self.assertNotEqual(a["device"]["name"], b["device"]["name"])
+
+    def test_build_args_differ_only_in_reset_capability(self):
+        """Prove build args differ only in PF_TFA_RESET_CAPABILITY and identity fields."""
+        a_args = _build_args(BASE)
+        b_args = _build_args(OFF)
+        # Remove the one legitimate difference
+        a_cmp = dict(a_args)
+        b_cmp = dict(b_args)
+        a_cap = a_cmp.pop("PF_TFA_RESET_CAPABILITY", None)
+        b_cap = b_cmp.pop("PF_TFA_RESET_CAPABILITY", None)
+        self.assertEqual(a_cap, "axp717")
+        self.assertEqual(b_cap, "watchdog")
+        # Remove identity fields
+        for key in ("PF_DEVICE_ID", "PF_DEVICE_NAME", "PF_IMAGE_NAME"):
+            a_cmp.pop(key, None)
+            b_cmp.pop(key, None)
+        self.assertEqual(a_cmp, b_cmp, "build args differ beyond reset_capability + identity")
 
 
 if __name__ == "__main__":
