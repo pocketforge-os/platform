@@ -102,6 +102,27 @@ PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a395
 PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
 PF_FFMPEG_UAPI_SHA           = "3010de56dbd1057513c035fff8623f80596fe9e8"
 
+# tsp-mc9m.60.29.63.20.4: diagnostic sibling of a133-open-7x-gpu with
+# tfa.reset_capability = "watchdog". Identical platform_runtime so the
+# single-variable contract holds (only PF_TFA_RESET_CAPABILITY differs).
+[platform_runtime.steamlink_ffmpeg59_v1_resetcap_off]
+schema_version = 1
+profile         = "a133-open-7x-gpu-resetcap-off"
+mode_arg        = "PF_STEAMLINK_FFMPEG59_MODE"
+mode_value      = "v1"
+source_repo     = "kernel-sunxi-7.x"
+source_sha      = "3010de56dbd1057513c035fff8623f80596fe9e8"
+runtime_path    = "/usr/lib/pocketforge/platform-runtimes/steamlink-ffmpeg59/v1"
+
+[platform_runtime.steamlink_ffmpeg59_v1_resetcap_off.build_args]
+PF_FFMPEG_DEBIAN_VERSION     = "7:5.1.8-0+deb12u1"
+PF_FFMPEG_DSC_SHA256         = "5c84a3fb58051cb60564ca58e7ba3a91d7140f501883ba02adba5a770f508154"
+PF_FFMPEG_ORIG_SHA256        = "56d4daf10c17330a45c8fe11bc260997677ca2432d3d5951dbeb5515c26028cb"
+PF_FFMPEG_ORIG_ASC_SHA256    = "ee93598ac566d1be4a80801e0a58f91ede2e6a5e9e670f681723b447f23c59d0"
+PF_FFMPEG_DEBIAN_SHA256      = "16f8a5bd8209f55490cb94d5f8da116c7ab800f622e9a39512921680090952e1"
+PF_FFMPEG_PATCH_SERIES_SHA256 = "e4deeb6282ef6eeebf4a88da8c821d960f405474af3a1ba291b711dee56e90e9"
+PF_FFMPEG_UAPI_SHA           = "3010de56dbd1057513c035fff8623f80596fe9e8"
+
 # tsp-mc9m.41.924.24.14: immutable full GLES CTS checklist used only by the
 # opt-in dev test image. Unlike platform_runtime above, this input is already a
 # reproducibly built artifact; its content-addressed URL and SHA-256 are the
