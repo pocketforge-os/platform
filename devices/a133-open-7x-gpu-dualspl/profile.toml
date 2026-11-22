@@ -32,6 +32,7 @@ pipeline = "fbdev"
 # pin and must move atomically with the exact integration identity.
 [gamescope]
 mode = "g1"
+profile_class = "a133-open-7x-gpu"
 repo = "gamescope"
 ref = "pocketforge-linear"
 upstream_base = "bb2ddfc8b1091d6c4d0133b1ea9dcd2494b69ab9"

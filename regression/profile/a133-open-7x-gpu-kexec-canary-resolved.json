@@ -68,6 +68,7 @@
     "mode": "g1",
     "patch_series_sha256": "bdb9e21e66e31d586fb1a19d2fabe550338fc8d78507d03e34a170ef4af08195",
     "present_head": "b1d220453331e28554d938f060156abfeb504757",
+    "profile_class": "a133-open-7x-gpu",
     "ref": "pocketforge-linear",
     "repo": "gamescope",
     "required_patch_ids": [

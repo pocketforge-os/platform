@@ -109,6 +109,51 @@ class ResetCapProfile(unittest.TestCase):
             b_cmp.pop(key, None)
         self.assertEqual(a_cmp, b_cmp, "build args differ beyond reset_capability + identity")
 
+    # ---- tsp-mc9m.60.29.63.20.4.5: Gamescope profile_class typed compatibility ----
+
+    def test_gamescope_profile_class_present_in_resolved(self):
+        """Both base and resetcap-off resolve a gamescope.profile_class value."""
+        a_merged, _ = profile.resolve(BASE)
+        b_merged, _ = profile.resolve(OFF)
+        a_pc = a_merged.get("gamescope", {}).get("profile_class")
+        b_pc = b_merged.get("gamescope", {}).get("profile_class")
+        self.assertIsNotNone(a_pc, "base profile must declare gamescope.profile_class")
+        self.assertIsNotNone(b_pc, "off profile must declare gamescope.profile_class")
+
+    def test_gamescope_profile_class_equal_for_base_and_off(self):
+        """The typed compatibility signal is identical for base and resetcap-off."""
+        a_merged, _ = profile.resolve(BASE)
+        b_merged, _ = profile.resolve(OFF)
+        self.assertEqual(
+            a_merged["gamescope"]["profile_class"],
+            b_merged["gamescope"]["profile_class"],
+            "gamescope.profile_class must be equal for base and resetcap-off")
+
+    def test_gamescope_profile_class_canonical_value(self):
+        """The profile_class is the canonical identifier for the A133 open GPU family."""
+        merged, _ = profile.resolve(BASE)
+        self.assertEqual(merged["gamescope"]["profile_class"], "a133-open-7x-gpu")
+
+    def test_gamescope_profile_class_in_build_args(self):
+        """PF_GAMESCOPE_PROFILE_CLASS is exported as a resolved build argument."""
+        a_args = _build_args(BASE)
+        b_args = _build_args(OFF)
+        self.assertEqual(a_args.get("PF_GAMESCOPE_PROFILE_CLASS"), "a133-open-7x-gpu")
+        self.assertEqual(b_args.get("PF_GAMESCOPE_PROFILE_CLASS"), "a133-open-7x-gpu")
+
+    def test_profile_class_not_in_unrelated_a133_profiles(self):
+        """Non-gamescope A133 profiles must NOT carry PF_GAMESCOPE_PROFILE_CLASS.
+
+        Profiles that do not declare [gamescope] and do not inherit it from a
+        base that does must not publish the typed compatibility signal.  This
+        proves name-prefix similarity cannot acquire authorization.
+        """
+        for dev in ("a133", "a133-open-7x", "a133-owned"):
+            args = _build_args(dev)
+            self.assertNotIn(
+                "PF_GAMESCOPE_PROFILE_CLASS", args,
+                f"{dev} must not carry PF_GAMESCOPE_PROFILE_CLASS (no gamescope)")
+
 
 if __name__ == "__main__":
     unittest.main()
