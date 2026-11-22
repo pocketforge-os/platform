@@ -584,7 +584,7 @@ def validate(dev_id, lock):
             "mode", "repo", "ref", "upstream_base", "present_head", "staging_head",
             "rotation_head", "required_patch_ids", "patch_series_sha256",
             "dependency_manifest_sha256", "source_tree_sha256",
-            "license_sha256", "diagnostics",
+            "license_sha256", "diagnostics", "profile_class",
         }
         unknown = sorted(set(gamescope) - allowed)
         if unknown:
@@ -592,6 +592,21 @@ def validate(dev_id, lock):
         for key in ("repo", "ref"):
             if not isinstance(gamescope.get(key), str) or not gamescope[key]:
                 errs.append(f"{dev_id}: [gamescope].{key} is required")
+        # tsp-mc9m.60.29.63.20.4.5: typed Gamescope compatibility class.
+        # Required for every g1 profile so the Image side can authorize via an
+        # explicit attribute rather than a PF_DEVICE_ID allowlist.  The value is
+        # a canonical lower-case slug; the enum is governed centrally.
+        _GAMESCOPE_PROFILE_CLASS_ENUM = {"a133-open-7x-gpu"}
+        pc = gamescope.get("profile_class")
+        if not isinstance(pc, str) or not pc:
+            errs.append(f"{dev_id}: [gamescope].profile_class is required")
+        elif not re.fullmatch(r"[a-z0-9][a-z0-9-]*", pc):
+            errs.append(
+                f"{dev_id}: [gamescope].profile_class must match [a-z0-9][a-z0-9-]*")
+        elif pc not in _GAMESCOPE_PROFILE_CLASS_ENUM:
+            errs.append(
+                f"{dev_id}: [gamescope].profile_class '{pc}' is not in the governed set "
+                f"{sorted(_GAMESCOPE_PROFILE_CLASS_ENUM)}")
         if gamescope.get("mode") != "g1":
             errs.append(f"{dev_id}: [gamescope].mode must be 'g1'")
         for key in ("upstream_base", "present_head", "staging_head", "rotation_head"):
@@ -916,6 +931,7 @@ def build_args(dev_id, variant="dev"):
             "PF_GAMESCOPE_LICENSE_SHA256": gamescope["license_sha256"],
             "PF_GAMESCOPE_DIAGNOSTICS":
                 "1" if variant == "dev" and gamescope["diagnostics"] else "0",
+            "PF_GAMESCOPE_PROFILE_CLASS": gamescope["profile_class"],
         })
     app_runtime = merged.get("app_runtime")
     if app_runtime is not None:

@@ -188,6 +188,53 @@ class ProfileTest(unittest.TestCase):
             errors,
         )
 
+    # tsp-mc9m.60.29.63.20.4.5: gamescope.profile_class is typed and governed.
+
+    def test_gamescope_profile_class_required_and_governed(self):
+        """profile_class is required, must match the canonical pattern, and
+        must be a member of the governed enum set."""
+        resolved, _ = profile.resolve("a133-open-7x-gpu")
+
+        # Missing
+        invalid = copy.deepcopy(resolved)
+        del invalid["gamescope"]["profile_class"]
+        with mock.patch.object(profile, "resolve", return_value=(invalid, {})):
+            errors, _ = profile.validate("a133-open-7x-gpu", profile.load_lock())
+            self.assertTrue(
+                any("profile_class is required" in e for e in errors),
+                f"expected 'profile_class is required' in {errors}",
+            )
+
+        # Empty string
+        invalid = copy.deepcopy(resolved)
+        invalid["gamescope"]["profile_class"] = ""
+        with mock.patch.object(profile, "resolve", return_value=(invalid, {})):
+            errors, _ = profile.validate("a133-open-7x-gpu", profile.load_lock())
+            self.assertTrue(
+                any("profile_class is required" in e for e in errors),
+                f"expected 'profile_class is required' for empty string in {errors}",
+            )
+
+        # Malformed: uppercase / non-canonical
+        invalid = copy.deepcopy(resolved)
+        invalid["gamescope"]["profile_class"] = "A133-Open-7x-GPU"
+        with mock.patch.object(profile, "resolve", return_value=(invalid, {})):
+            errors, _ = profile.validate("a133-open-7x-gpu", profile.load_lock())
+            self.assertTrue(
+                any("must match [a-z0-9][a-z0-9-]*" in e for e in errors),
+                f"expected pattern-rejection in {errors}",
+            )
+
+        # Unknown value (valid pattern but not in governed enum)
+        invalid = copy.deepcopy(resolved)
+        invalid["gamescope"]["profile_class"] = "some-other-class"
+        with mock.patch.object(profile, "resolve", return_value=(invalid, {})):
+            errors, _ = profile.validate("a133-open-7x-gpu", profile.load_lock())
+            self.assertTrue(
+                any("not in the governed set" in e for e in errors),
+                f"expected governed-set rejection in {errors}",
+            )
+
     def test_app_runtime_support_is_exactly_a133_open_for_both_variants(self):
         app_keys = set(APP_BUILD_ARGS)
         observed_open = set()
