@@ -257,7 +257,7 @@ PF_CTS_SOURCE_DATE_EPOCH = "0"
 # dirty retained A133 DSI datapath, white panel after Gamescope stop); include/uapi and arm64
 # UAPI unchanged.
 [profile_pins.a133-open-7x-gpu-noradio]
-kernel = "2fe943b97da6e9cc1bf41d50d626de3839fb1bea"
+kernel = "3e57e51816f4eed74339d82fa446f60c50bb5d55"
 
 # Build59: coherent Steam root/X11 launch, power-key and D24 source publication.
 # Kernel#129 adds existing CE diagnostic counters; boot chain, exported UAPI,
@@ -1472,7 +1472,8 @@ ref  = "device/a133"
 # tsp-mc9m.60.29.88.29.1: 159fd0ae = b32d4cc4 + 2 commit(s) on device/a133 (pf-pin).
 # tsp-mc9m.60.29.65.44: 2a0d58a6 = 159fd0ae + 7 commit(s) on device/a133 (pf-pin).
 # tsp-mc9m.60.29.65.44: 2fe943b9 = 2a0d58a6 + 5 commit(s) on device/a133 (pf-pin).
-sha  = "2fe943b97da6e9cc1bf41d50d626de3839fb1bea"
+# tsp-mc9m.60.29.88.38: 3e57e518 = 2fe943b9 + kernel#207 (clk: sunxi-ng: register the A100 G2D MCLK gate) on device/a133; profile_pins noradio kernel moves with it.
+sha  = "3e57e51816f4eed74339d82fa446f60c50bb5d55"
 
 [[repos]]
 name = "kernel-sunxi-5.15"    # A523 5.15.154 line (device/a523); was kernel-tsp-a523. `upstream` branch
