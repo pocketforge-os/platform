@@ -1780,7 +1780,8 @@ ref  = "main"                 # owned-SPL bootchain (model=sunxi-spl-uboot). PR#
 # tsp-mc9m.60.29.63.20.3: a6fdf565 = 7b821f1a + u-boot-tsp-a133#62 (A133 SPL: LOW/8 KiB-origin SPL finds U-Boot proper at the HIGH-layout sector) on main.
 # tsp-mc9m.60.29.88.4.2: feb8f69d = a6fdf565 + u-boot-tsp-a133#63 (tools: accept arm64 text_offset when relocation layout is safe) on main.
 # tsp-f8cb44d31c23be62c772: 4a154cab = feb8f69d + 4 commit(s) on main (pf-pin).
-sha  = "4a154cabd4bee46f75bb851c97efc73c495d4922"
+# tsp-mc9m.60.29.63.20.6: a0696087 = 4a154cab + 3 commit(s) on main (pf-pin).
+sha  = "a069608748d77d28c4819f0dbcc62e5756e59c9e"
 
 [[repos]]
 name = "tfa-tsp-a133"         # owned A133 TF-A BL31 (mainline snapshot @a584e863 that ADDED plat/sun50i_a133);
