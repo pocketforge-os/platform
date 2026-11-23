@@ -957,7 +957,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # tsp-mc9m.41.924.24.41.36: image#430 (444863de) mirrors the gpu-um-tsp b635ac4c pin (fixture rename only); its own runtime behavior is unchanged.
 # tsp-mc9m.41.924.24.41.37: image#431 (b5918d1d) mirrors the gpu-um-tsp 4051dc0a pin (fixture rename only); its own runtime behavior is unchanged.
 # tsp-mc9m.60.29.63.20.4.7: image#433 (015c632a) consumes the typed PF_GAMESCOPE_PROFILE_CLASS for Gamescope g1 authorization (unblocks the capability-off profile build); it carries image#432 (PF_TFA_RESET_CAPABILITY).
-sha  = "015c632ac77ada9baaea11fcf9f34a5bf6f0d76a"
+# tsp-mc9m.60.29.63.20.4.8: image#434 (7d9ddfd3) adds a133-open-7x-gpu-resetcap-off to the 8 device allow-list sites (resetcap-off device allow-list additions), so the capability-off differential image build can consume the fix; it carries image#433.
+sha  = "7d9ddfd30a22b980859e0cb4ddebc7c463ce2f17"
 
 [[repos]]
 name = "pf-cursor-theme"
