@@ -6,7 +6,7 @@ import re
 import unittest
 
 LOCK = pathlib.Path(__file__).resolve().parents[2] / "platform.lock"
-WANT = "7d9ddfd30a22b980859e0cb4ddebc7c463ce2f17"
+WANT = "2e31d0a13c761a2b55245bda10bf670e883c6685"
 
 
 class ImagePinHasSdr50Staging(unittest.TestCase):
