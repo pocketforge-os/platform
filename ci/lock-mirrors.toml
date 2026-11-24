@@ -358,6 +358,15 @@ template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {val
 reason = "fixture source provenance for image#440's gpu-um-tsp exact pin"
 
 [[references]]
+id = "gpu-um-image-pin-test-expected-sha"
+platform_field = "repos.gpu-um-tsp.sha"
+consumer_repo = "image"
+consumer_path = "tests/test-gpu-um-tsp-pin.sh"
+parser = "template"
+template = 'EXPECTED_SHA="{value}"'
+reason = "image copy of the bead acceptance pin check"
+
+[[references]]
 id = "input-harness-gamescope-readme"
 platform_field = "repos.gamescope.sha"
 consumer_repo = "image"
