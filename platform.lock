@@ -959,8 +959,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # tsp-mc9m.60.29.63.20.4.7: image#433 (015c632a) consumes the typed PF_GAMESCOPE_PROFILE_CLASS for Gamescope g1 authorization (unblocks the capability-off profile build); it carries image#432 (PF_TFA_RESET_CAPABILITY).
 # tsp-mc9m.60.29.63.20.4.8: image#434 (7d9ddfd3) adds a133-open-7x-gpu-resetcap-off to the 8 device allow-list sites (resetcap-off device allow-list additions), so the capability-off differential image build can consume the fix; it carries image#433.
 # tsp-mc9m.41.924.24.41.47: image#439 (2e31d0a1) mirrors the gpu-um-tsp 9536be88 pin (fixture rename only); its own runtime behavior is unchanged.
-# tsp-mc9m.41.924.24.41.50: image#440 (f73bd12e) mirrors the gpu-um-tsp 5215bdee pin (fixture rename only); its own runtime behavior is unchanged.
-sha  = "f73bd12eebeee3ce8bb102697601b210d8c755d3"
+# tsp-mc9m.41.924.24.41.53: image#441 (ab1a0fdb) mirrors the gpu-um-tsp a9b15ee1 pin (fixture rename only); its own runtime behavior is unchanged.
+sha  = "ab1a0fdbefb92de80968acbfe963ed6c357ed8dc"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1681,13 +1681,11 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 15: gpu-um-tsp#216 merge
 # static-list topologies and XFB end-counter stores) merged as d7df01afcde; #270
 # (pvr: bias tess patch size for 5-bit CSB encoding) merged as 9536be8855f, the
 # exact main pinned here.
-# tsp-mc9m.41.924.24.41.50: gpu-um-tsp#272 (PCO compute shared-max:
-# MAX2(16384U, cdm_max_local_mem_size_regs * 4U) in the new
-# pvr_compute_shmem.h) merged as dac02e679833; #271 (PRIMQ Class A: pre-GS
-# dispatch guard for query-active non-XFB GS; pvr_poly.c linked into the
-# test) merged as 5215bdeebe1e, the exact main pinned here.
-# tsp-mc9m.41.924.24.41.50: 5215bdee = 9536be88 + 16 commit(s) on main (pf-pin).
-sha  = "5215bdeebe1e45ba7efe51427fd275e5d1200d1a"
+# tsp-mc9m.41.924.24.41.53: gpu-um-tsp#273 (pvr: add the PF_PVR_PRIMQ_VDM_WAIT
+# diagnostics knob, with tests for the VDM wait knob and lifecycle contract)
+# merged as a9b15ee12d9c, the exact main pinned here.
+# tsp-mc9m.41.924.24.41.53: a9b15ee1 = 5215bdee + 3 commit(s) on main (pf-pin).
+sha  = "a9b15ee12d9c528e6f7eec6ac441ab97f25b57a5"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
