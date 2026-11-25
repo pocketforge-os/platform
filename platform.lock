@@ -959,8 +959,8 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # tsp-mc9m.60.29.63.20.4.7: image#433 (015c632a) consumes the typed PF_GAMESCOPE_PROFILE_CLASS for Gamescope g1 authorization (unblocks the capability-off profile build); it carries image#432 (PF_TFA_RESET_CAPABILITY).
 # tsp-mc9m.60.29.63.20.4.8: image#434 (7d9ddfd3) adds a133-open-7x-gpu-resetcap-off to the 8 device allow-list sites (resetcap-off device allow-list additions), so the capability-off differential image build can consume the fix; it carries image#433.
 # tsp-mc9m.41.924.24.41.47: image#439 (2e31d0a1) mirrors the gpu-um-tsp 9536be88 pin (fixture rename only); its own runtime behavior is unchanged.
-# tsp-mc9m.41.924.24.41.53: image#441 (ab1a0fdb) mirrors the gpu-um-tsp a9b15ee1 pin (fixture rename only); its own runtime behavior is unchanged.
-sha  = "ab1a0fdbefb92de80968acbfe963ed6c357ed8dc"
+# tsp-mc9m.41.924.24.41.56: image#442 (79bb8ec6) mirrors the gpu-um-tsp 9eb1f045 pin (fixture rename only); its own runtime behavior is unchanged.
+sha  = "79bb8ec66b9b3273870269cae6590097346f2147"
 
 [[repos]]
 name = "pf-cursor-theme"
@@ -1681,11 +1681,11 @@ ref  = "main"                 # tsp-mc9m.41.1029 Build 15: gpu-um-tsp#216 merge
 # static-list topologies and XFB end-counter stores) merged as d7df01afcde; #270
 # (pvr: bias tess patch size for 5-bit CSB encoding) merged as 9536be8855f, the
 # exact main pinned here.
-# tsp-mc9m.41.924.24.41.53: gpu-um-tsp#273 (pvr: add the PF_PVR_PRIMQ_VDM_WAIT
-# diagnostics knob, with tests for the VDM wait knob and lifecycle contract)
-# merged as a9b15ee12d9c, the exact main pinned here.
-# tsp-mc9m.41.924.24.41.53: a9b15ee1 = 5215bdee + 3 commit(s) on main (pf-pin).
-sha  = "a9b15ee12d9c528e6f7eec6ac441ab97f25b57a5"
+# tsp-mc9m.41.924.24.41.56: gpu-um-tsp#274 (pvr: finer PF_PVR_PRIMQ_VDM_WAIT
+# diagnostic arms: skip-reset, skip-publish, halt-only, attach-no-pres)
+# merged as 9eb1f045099c, the exact main pinned here.
+# tsp-mc9m.41.924.24.41.56: 9eb1f045 = a9b15ee1 + 3 commit(s) on main (pf-pin).
+sha  = "9eb1f045099c2a6cb912d9d02b61d5ea5009389e"
 
 [[repos]]
 name = "gpu-km-tsp-a523"      # Mali-G57 (A523) — PER-IP, unchanged (NOT collapsed)
