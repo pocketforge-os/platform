@@ -1,7 +1,7 @@
 #!/bin/bash
 # Test that the gpu-um-tsp pin in platform.lock matches the expected value.
 set -euo pipefail
-EXPECTED_SHA="5215bdeebe1e45ba7efe51427fd275e5d1200d1a"
+EXPECTED_SHA="a9b15ee12d9c528e6f7eec6ac441ab97f25b57a5"
 LOCK="$(dirname "$0")/../platform.lock"
 ACTUAL_SHA=$(awk '
   /^\[\[repos\]\]/ { in_repo = 0 }
