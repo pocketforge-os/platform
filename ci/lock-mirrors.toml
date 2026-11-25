@@ -349,13 +349,13 @@ template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {val
 reason = "fixture source provenance for the Build 57 gpu-um-tsp exact pin"
 
 [[references]]
-id = "gpu-um-vendored-fixture-comment-5215bdee"
+id = "gpu-um-vendored-fixture-comment-a9b15ee1"
 platform_field = "repos.gpu-um-tsp.sha"
 consumer_repo = "image"
-consumer_path = "build/tests/fixtures/gpu-um-toolchain-5215bdee.Dockerfile"
+consumer_path = "build/tests/fixtures/gpu-um-toolchain-a9b15ee1.Dockerfile"
 parser = "template"
 template = 'Vendored from gpu-um-tsp docker/Dockerfile.ge8300-mesa-cross at {value}.'
-reason = "fixture source provenance for image#440's gpu-um-tsp exact pin"
+reason = "fixture source provenance for image#441's gpu-um-tsp exact pin"
 
 [[references]]
 id = "gpu-um-image-pin-test-expected-sha"
