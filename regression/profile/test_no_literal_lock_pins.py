@@ -69,7 +69,7 @@ LITERAL_EXEMPT: dict[str, dict[str, str]] = {
         "were copied from; it describes the fixture's origin and never tracks the pin",
     },
     "regression/lock_mirrors/test_lock_mirrors.py": {
-        "gpu-um-tsp": "image-tree fixture 'gpu-um-toolchain-9eb1f045.Dockerfile' whose body names the commit it was "
+        "gpu-um-tsp": "image-tree fixture 'gpu-um-toolchain-ca759083.Dockerfile' whose body names the commit it was "
         "vendored from; the file name carries the same historical sha",
     },
 }
