@@ -685,6 +685,7 @@ class ProfileTest(unittest.TestCase):
         # Image#446 (8595f4d1, tsp-mc9m.41.924.24.41.68) advances only PF_IMAGE_SHA (previous: d3ad2069); all ten rows were regenerated once after the previous digests reproduced from the old payloads.
         # Image#447 (657d6896, tsp-mc9m.41.924.24.41.70) advances only PF_IMAGE_SHA (previous: 8595f4d1); all ten rows were regenerated once after the previous digests reproduced from the old payloads.
         # Image#448 (d450f724, tsp-mc9m.41.924.24.41.71) advances only PF_IMAGE_SHA (previous: 657d6896); all ten rows were regenerated once after the previous digests reproduced from the old payloads.
+        # Image#449 (375ab6ab, tsp-mc9m.41.924.24.41.72) advances only PF_IMAGE_SHA (previous: d450f724); all ten rows were regenerated once after the previous digests reproduced from the old payloads.
         # Pool Suite#21 advances only PF_POOLSUITE_SHA on dev rows; release rows remain unchanged.
         # tsp-hqm1p.182.339: an arg equal to a current kernel lock pin is hashed as its lock
         # site name (PIN_SITE), so a pin advance edits platform.lock only. Every
@@ -693,16 +694,16 @@ class ProfileTest(unittest.TestCase):
         # tsp-hqm1p.182.352 widened the substitution to every non-image lock repo and regenerated
         # every row once more, again after verifying the raw payloads reproduced the old digests.
         expected = {
-            ("a133", "dev"): "52ca59fec631059ee61755e692489ef940893ab7e36f3b881c535e1f017b9042",
-            ("a133", "release"): "338e62e9c97ca384f493177815ae22d6eb208dd88f323d0aa639a496878e3c65",
-            ("a133-open-7x", "dev"): "398281aa96c00a7c27a1ba57edb8c7b9670bb914e812bfcacfc9ea24f1fa302a",
-            ("a133-open-7x", "release"): "dd5832583c79c7c2958aeffc0561fc97b700e1dd1d48ca16694f60eedb4951dd",
-            ("a133-owned", "dev"): "8a8920262f2ead198d3ddc1fe8a5966d04f706a06bb701beb5cd5c3f42b89920",
-            ("a133-owned", "release"): "2a784c163d96c60f1b5d6c0a76ec2be83a715daa034f82abad36c651f91d1e52",
-            ("a523", "dev"): "fc8a0f73d788de1011d54d9dcef7b5c12b48835ed454349ea99e9f7950057003",
-            ("a523", "release"): "6458f5c17735b27b702bb47762114b57795e74ad3ecd4a40b959505c67499a09",
-            ("sdm845", "dev"): "b61764de6e21a93e660251f92459fddf8b360bbf17c5578ac02f98b51005132a",
-            ("sdm845", "release"): "8faef85c0a0c48219625a64758227c37ed0dd6de13544c44cf32582f574a2410",
+            ("a133", "dev"): "044788920ae5446a9a576a9c15c972e30369a1242bffea7027c2d0b5a3a78ef9",
+            ("a133", "release"): "45c3dc3218ac5bf51c1ff329be59a072ee2c3cfdb269fe972364ac8bccf4d4cb",
+            ("a133-open-7x", "dev"): "f1998b05e87cfdb048da01adb0919c935c786cb013f2ed3c4834ab682f7844ad",
+            ("a133-open-7x", "release"): "be665a67a58adb47ecc2975140d23e77ff645d9bea2d1dab8b5543871197c4fc",
+            ("a133-owned", "dev"): "8637031b9cb6ba2a77f6e525ec9b397f126ffa15a62fa7b5eb5ad85e88c3ad7e",
+            ("a133-owned", "release"): "9720e2d7b6b6b894217a60341ca5717ba6e52bed459df59be9e6234d3c500b79",
+            ("a523", "dev"): "8301ff4d01ae4a99aa50f14a3c348e853867ca9428b9a819efe3522babf8534d",
+            ("a523", "release"): "af0c9928d11eeffd6b4404c22ac9d22a635fb909b8d2ed4a683fd2b9a4b93da8",
+            ("sdm845", "dev"): "e07cb2c5449c0e46a1aa2f68468e2aaa8e3b11f3b8aad233ab73767585942dbf",
+            ("sdm845", "release"): "33aabe35d10a47b8a2e9249e9d596f49cb95e936e8f1216568b2efda68362571",
         }
         for key, digest in expected.items():
             dev_id, variant = key
@@ -986,7 +987,7 @@ class ProfileTest(unittest.TestCase):
             },
             {
                 "PF_GPU_UM_SHA": LOCK_PIN["gpu-um-tsp"],
-                "PF_IMAGE_SHA": "d450f7247a693795bd192550189fdec8017e264e",
+                "PF_IMAGE_SHA": "375ab6ab932f51bfd913d74df325bb6c660d6157",
             },
         )
         self.assertEqual(args["PF_LIBSDL3_SHA"], LOCK_PIN["libsdl3-sunxifb"])
