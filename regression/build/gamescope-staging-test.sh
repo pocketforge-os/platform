@@ -42,6 +42,7 @@ fi
 extract() { sed -n "/^$1()/,/^}/p" "${BUILD}"; }
 eval "$(extract pf_find_git_source)"
 eval "$(extract pf_ensure_commit)"
+eval "$(extract pf_stage_target_needs_gamescope)"
 eval "$(extract pf_stage_sources)"
 eval "$(extract pf_gamescope_identity_sha256)"
 pf_log() { :; }

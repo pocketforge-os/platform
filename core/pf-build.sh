@@ -63,6 +63,12 @@ PF_BUILD_TREE_ROOT="${PF_BUILD_TREE_ROOT:-/tmp/pf-build}"
 PF_OUT_DIR="${PF_OUT_DIR:-$PF_BUILD_TREE_ROOT/$BEAD/$DEVICE}"
 PF_OUT_LIFECYCLE="${PF_OUT_LIFECYCLE:-managed}"
 PF_CALLER_TEMP_CLAIMED=0
+# Candidate-override record (tsp-hqm1p.182.949.6): set ONLY by pf_image_candidate_override /
+# pf_gpu_um_candidate_override when an override actually fires; never inherited from the env.
+PF_CANDIDATE_IMAGE_SHA=""
+PF_CANDIDATE_IMAGE_LOCK_PIN=""
+PF_CANDIDATE_GPU_UM_SHA=""
+PF_CANDIDATE_GPU_UM_LOCK_PIN=""
 STAGE_TREE_ROOT="${PF_STAGE_TREE_ROOT:-/tmp/pf-stage-only}"
 export PF_OUT_DIR PF_OUT_LIFECYCLE PF_BUILD_TREE_ROOT PF_DRY_RUN PF_IMAGE_REPO PF_PLATFORM_DIR PF_BEAD="$BEAD"
 
@@ -270,6 +276,19 @@ pf_stage_device_descriptor() {
     pf_log "stage: platform-inputs/device <- devices/$id/capabilities.toml (sha256=${got:0:12})"
 }
 
+# pf_stage_target_needs_gamescope — does PF_BUILD_STAGE_TARGET's graph use gamescope-src?
+# Returns 1 ONLY for a component-test-<x> target with x != gamescope (e.g.
+# component-test-gpu-um, whose graph never reads gamescope-src, so it must not need the
+# tsp-op5a.440.7 controlled Gamescope dependency cache). Returns 0 for export, cache-export,
+# component-test-gamescope and an unset/empty target, which keep the full admission.
+pf_stage_target_needs_gamescope() {
+    case "${PF_BUILD_STAGE_TARGET:-}" in
+        component-test-gamescope) return 0 ;;
+        component-test-*) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
 pf_stage_sources() {
     local src_dir="$1" ba="$2"
     local mirror_dir="${PF_MIRROR_DIR:-$HOME/wt/.mirrors}"
@@ -327,7 +346,16 @@ pf_stage_sources() {
     fi
     case "$(v PF_GAMESCOPE_MODE)" in
         "") ;;
-        g1) specs+=( "gamescope|$(v PF_GAMESCOPE_REPO)|$(v PF_GAMESCOPE_SHA)|1" ) ;;
+        g1)
+            if pf_stage_target_needs_gamescope; then
+                specs+=( "gamescope|$(v PF_GAMESCOPE_REPO)|$(v PF_GAMESCOPE_SHA)|1" )
+            else
+                # Outside the gamescope graph: the gamescope-src build context is still passed,
+                # so supply it EMPTY (as poolsuite/kernel-uapi) and skip the admission.
+                pf_log "stage: gamescope skipped for ${PF_BUILD_STAGE_TARGET:-} (not in its graph)"
+                create_context_dir "$src_dir/gamescope"
+            fi
+            ;;
         *) pf_die "stage: unsupported PF_GAMESCOPE_MODE=$(v PF_GAMESCOPE_MODE)" ;;
     esac
     local spec logical repo sha required gitdir dest n
@@ -535,6 +563,65 @@ pf_image_candidate_override() {
     # archive and the commit-epoch resolution) then resolves the candidate.
     ba="$(printf '%s\n' "$ba" | sed "s/^PF_IMAGE_SHA=.*/PF_IMAGE_SHA=$PF_IMAGE_SHA/")"
     pf_log "!!! NON-HERMETIC CANDIDATE: image-src overridden to $PF_IMAGE_SHA (lock pin was ${lock_image_sha:-none}) — dev validation only, NEVER a release artifact"
+    PF_CANDIDATE_IMAGE_SHA="$PF_IMAGE_SHA"
+    PF_CANDIDATE_IMAGE_LOCK_PIN="${lock_image_sha:-none}"
+}
+
+# pf_gpu_um_candidate_override — dev-only, non-hermetic gpu-um-tsp candidate override
+# (tsp-hqm1p.182.949.6), the gpu-um twin of pf_image_candidate_override. Mutates the
+# caller's `ba` IN PLACE, replacing ONLY the PF_GPU_UM_SHA line with env PF_GPU_UM_SHA, so
+# the gpu-um staging archive and the gpu-um commit-epoch resolution both use the candidate
+# and e.g. PF_BUILD_STAGE_TARGET=component-test-gpu-um builds it with the image's own gpu-um
+# recipe. Without it a PF_GPU_UM_SHA candidate build silently builds the lock pin. MUST be
+# called in the current shell so pf_die is fatal. No-op when PF_GPU_UM_SHA is empty or equals
+# the lock pin; refuses a non-dev variant, a malformed sha, a non-open GPU model (a ddk/closed
+# profile has no gpu-um) and a build-arg surface with no gpu-um pin.
+pf_gpu_um_candidate_override() {
+    [ -n "${PF_GPU_UM_SHA:-}" ] || return 0
+    [ "$VARIANT" = dev ] \
+        || pf_die "PF_GPU_UM_SHA candidate override is dev-only (non-hermetic); refusing for a '$VARIANT' build"
+    case "$PF_GPU_UM_SHA" in
+        *[!0-9a-f]* | "") pf_die "PF_GPU_UM_SHA must be exactly 40 lowercase hex chars (got '$PF_GPU_UM_SHA')" ;;
+    esac
+    [ "${#PF_GPU_UM_SHA}" -eq 40 ] \
+        || pf_die "PF_GPU_UM_SHA must be exactly 40 lowercase hex chars (got '$PF_GPU_UM_SHA')"
+    local gpu_model lock_gpu_um_sha
+    gpu_model="$(printf '%s\n' "$ba" | sed -n 's/^PF_GPU_MODEL=//p')"
+    [ "$gpu_model" = open ] \
+        || pf_die "PF_GPU_UM_SHA candidate override requires PF_GPU_MODEL=open (profile has '${gpu_model:-none}'; a ddk/closed profile has no gpu-um)"
+    lock_gpu_um_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_GPU_UM_SHA=//p')"
+    [ -n "$lock_gpu_um_sha" ] \
+        || pf_die "PF_GPU_UM_SHA candidate override: the lock-pinned build-arg surface has no PF_GPU_UM_SHA pin"
+    if [ "$PF_GPU_UM_SHA" = "$lock_gpu_um_sha" ]; then
+        pf_log "PF_GPU_UM_SHA=$PF_GPU_UM_SHA matches the platform.lock gpu-um pin — hermetic build (no override)"
+        return 0
+    fi
+    ba="$(printf '%s\n' "$ba" | sed "s/^PF_GPU_UM_SHA=.*/PF_GPU_UM_SHA=$PF_GPU_UM_SHA/")"
+    pf_log "!!! NON-HERMETIC CANDIDATE: gpu-um-src overridden to $PF_GPU_UM_SHA (lock pin was $lock_gpu_um_sha) — dev validation only, NEVER a release artifact"
+    PF_CANDIDATE_GPU_UM_SHA="$PF_GPU_UM_SHA"
+    PF_CANDIDATE_GPU_UM_LOCK_PIN="$lock_gpu_um_sha"
+}
+
+# pf_write_candidate_record — the durable record of a candidate build (tsp-hqm1p.182.949.6).
+# Always removes a stale $PF_OUT_DIR/candidate-overrides.env first; then, ONLY when an
+# override fired, writes PF_CANDIDATE_<IMAGE|GPU_UM>_SHA / _LOCK_PIN lines next to
+# build-metadata.json, so a candidate artifact can never pass for a pinned build. Touches no
+# build-arg: a no-override build's docker argv stays byte-identical.
+pf_write_candidate_record() {
+    local rec="$PF_OUT_DIR/candidate-overrides.env"
+    rm -f -- "$rec"
+    [ -n "$PF_CANDIDATE_IMAGE_SHA$PF_CANDIDATE_GPU_UM_SHA" ] || return 0
+    {
+        if [ -n "$PF_CANDIDATE_IMAGE_SHA" ]; then
+            printf 'PF_CANDIDATE_IMAGE_SHA=%s\nPF_CANDIDATE_IMAGE_LOCK_PIN=%s\n' \
+                "$PF_CANDIDATE_IMAGE_SHA" "$PF_CANDIDATE_IMAGE_LOCK_PIN"
+        fi
+        if [ -n "$PF_CANDIDATE_GPU_UM_SHA" ]; then
+            printf 'PF_CANDIDATE_GPU_UM_SHA=%s\nPF_CANDIDATE_GPU_UM_LOCK_PIN=%s\n' \
+                "$PF_CANDIDATE_GPU_UM_SHA" "$PF_CANDIDATE_GPU_UM_LOCK_PIN"
+        fi
+    } >"$rec" || pf_die "cannot write candidate record $rec"
+    pf_log "candidate record: $rec"
 }
 
 # pf_os_image_dockerbuild — construct the multistage os-image `docker build` (B4.0).
@@ -666,6 +753,7 @@ pf_os_image_dockerbuild() {
     # image change is actually staged and validated instead of silently reproducing the
     # lock pin (tsp-hqm1p.17.13). Runs in the current shell so its pf_die is fatal.
     pf_image_candidate_override
+    pf_gpu_um_candidate_override
 
     local cache_dir="$PF_OUT_DIR/cache" src_dir="$PF_OUT_DIR/src"
 
@@ -908,9 +996,14 @@ pf_os_image_dockerbuild() {
         pf_log "source contexts (git archive of the lock SHA) stage under $src_dir/ — materialized by tsp-1dl.4.2+."
         return 0
     fi
+    pf_write_candidate_record
     pf_stage_sources "$src_dir" "$ba"
-    local gamescope_identity
-    gamescope_identity="$(pf_gamescope_identity_sha256 "$src_dir" "$ba" "$PF_IMAGE_REPO")"
+    local gamescope_identity=""
+    # The identity renders the staged gamescope source; outside the gamescope graph that
+    # context is empty (pf_stage_sources), so there is nothing to render.
+    if pf_stage_target_needs_gamescope; then
+        gamescope_identity="$(pf_gamescope_identity_sha256 "$src_dir" "$ba" "$PF_IMAGE_REPO")"
+    fi
     [ -z "$gamescope_identity" ] \
         || cmd+=( --build-arg "PF_GAMESCOPE_IDENTITY_SHA256=$gamescope_identity" )
     [ "$TARGET" = ci-dell ] && pf_create_staging_dir "$cache_dir"
