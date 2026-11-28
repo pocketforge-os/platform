@@ -5,6 +5,9 @@
 # component-test-gpu-um) builds the candidate with the image's own gpu-um recipe instead of
 # silently building the platform.lock pin. Also tests pf_write_candidate_record, the durable
 # $PF_OUT_DIR/candidate-overrides.env record of either candidate override.
+# The functions under test are eval'd from core/pf-build.sh, so shellcheck cannot see
+# their reads of VARIANT / PF_*_SHA / PF_CANDIDATE_*.
+# shellcheck disable=SC2034
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -69,7 +72,9 @@ LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; PF_GPU_UM_SHA="$CAND"
 pf_gpu_um_candidate_override
 grep -qx "PF_GPU_UM_SHA=$CAND" <<<"$ba"
 ! grep -qx "PF_GPU_UM_SHA=$LOCK_PIN" <<<"$ba"
-test "$(diff <(sample_ba) <(printf '%s\n' "$ba") | grep -c '^[<>]')" -eq 2
+sb="$(sample_ba)"
+test "$(grep -c . <<<"$ba")" -eq "$(grep -c . <<<"$sb")"
+test "$(grep -c '^PF_GPU_UM_SHA=' <<<"$ba")" -eq 1
 diff <(sample_ba | grep -v '^PF_GPU_UM_SHA=') <(printf '%s\n' "$ba" | grep -v '^PF_GPU_UM_SHA=')
 grep -qx 'PF_GPU_UM_SHA_X=keep' <<<"$ba"
 grep -qx "PF_IMAGE_SHA=$IMG_PIN" <<<"$ba"
