@@ -16,7 +16,8 @@ BUILD="$ROOT/core/pf-build.sh"
 # Extract the shipped functions and drive them directly (same pattern as
 # image-candidate-override-test).
 extract() { sed -n "/^$1()/,/^}/p" "$BUILD"; }
-for fn in pf_gpu_um_candidate_override pf_image_candidate_override pf_write_candidate_record; do
+for fn in pf_gpu_um_candidate_override pf_image_candidate_override pf_write_candidate_record \
+          pf_stage_target_needs_gamescope pf_stage_sources; do
     src="$(extract "$fn")"
     [ -n "$src" ] || { echo "FAIL: core/pf-build.sh has no $fn()" >&2; exit 1; }
     eval "$src"
@@ -182,4 +183,63 @@ test "$rec_ln" -lt "$stage_ln"
 grep -q 'PF_CANDIDATE_GPU_UM_SHA=""' "$BUILD"
 echo 'ok 13 - override and record are wired into pf_os_image_dockerbuild'
 
-echo 'PASS: pf_gpu_um_candidate_override is dev-only, open-only, hex-validated, surgical and recorded'
+# --- 14. pf_stage_target_needs_gamescope: only a non-gamescope component-test target is
+#         outside the gamescope graph (scope add 4: component-test-gpu-um must not need the
+#         controlled Gamescope dependency cache) -------------------------------------------
+needs() { local rc=0; PF_BUILD_STAGE_TARGET="$1" pf_stage_target_needs_gamescope || rc=$?; echo "$rc"; }
+test "$(unset PF_BUILD_STAGE_TARGET; rc=0; pf_stage_target_needs_gamescope || rc=$?; echo "$rc")" -eq 0
+for t in "" export cache-export component-test-gamescope; do
+    test "$(needs "$t")" -eq 0 || { echo "FAIL: target '$t' must need gamescope" >&2; exit 1; }
+done
+for t in component-test-fetch component-test-kernel component-test-gpu-km component-test-gpu-um \
+         component-test-bootchain component-test-sdl component-test-wpa component-test-cloud-init \
+         component-test-runtime component-test-ffmpeg component-test-sdl-static component-test-hwprobe \
+         component-test-poolsuite component-test-recovery component-test-launcher \
+         component-test-cursor-theme; do
+    test "$(needs "$t")" -eq 1 || { echo "FAIL: target '$t' must not need gamescope" >&2; exit 1; }
+done
+echo 'ok 14 - pf_stage_target_needs_gamescope: export/cache-export/gamescope/unset need it, other component tests do not'
+
+# --- 15. pf_stage_sources: a g1 profile staged for component-test-gpu-um gets an EMPTY gamescope
+#         context and never reaches the dependency-cache admission; export still admits ---------
+stage_ba() {
+    local s=5555555555555555555555555555555555555555
+    printf 'PF_IMAGE_SHA=%s\nPF_LIBSDL3_SHA=%s\nPF_WPA_SHA=%s\nPF_CLOUD_INIT_SHA=%s\nPF_RUNTIME_SHA=%s\n' "$s" "$s" "$s" "$s" "$s"
+    printf 'PF_BLOBS_SHA=%s\nPF_VENDOR_MANIFEST_SHA=%s\nPF_GPU_MODEL=ddk\n' "$s" "$s"
+    printf 'PF_GAMESCOPE_MODE=g1\nPF_GAMESCOPE_REPO=gamescope\nPF_GAMESCOPE_SHA=%s\nPF_GAMESCOPE_REPO_URL=https://github.com/pocketforge-os/gamescope.git\n' "$s"
+}
+# stage_run <target> <src_dir>: real pf_stage_sources with no git sources (every optional repo
+# skips under PF_STAGE_ALLOW_MISSING=1) and no Gamescope dependency cache.
+stage_run() {
+    ( VARIANT=release; PF_STAGE_ALLOW_MISSING=1; PF_GAMESCOPE_DEPENDENCY_CACHE=""; \
+      PF_MIRROR_DIR="$TMPD/no-mirrors"; PF_BUILD_STAGE_TARGET="$1"; \
+      pf_log() { printf 'LOG: %s\n' "$*"; }; pf_die() { printf 'DIE: %s\n' "$*"; exit 3; }; \
+      pf_find_git_source() { return 1; }; \
+      pf_ensure_commit() { echo 'FAIL: pf_ensure_commit reached'; exit 4; }; \
+      pf_stage_sources "$2" "$(stage_ba)" )
+}
+rc=0; out="$(stage_run component-test-gpu-um "$TMPD/src-gpu-um")" || rc=$?
+test "$rc" -eq 0 || { echo "FAIL: component-test-gpu-um staging rc=$rc: $out" >&2; exit 1; }
+grep -qxF 'LOG: stage: gamescope skipped for component-test-gpu-um (not in its graph)' <<<"$out"
+! grep -q 'Gamescope dependency cache' <<<"$out"
+test -d "$TMPD/src-gpu-um/gamescope"
+test -z "$(find "$TMPD/src-gpu-um/gamescope" -mindepth 1 -print -quit)"
+rc=0; out="$(stage_run export "$TMPD/src-export")" || rc=$?
+test "$rc" -eq 3 || { echo "FAIL: export staging must still admit gamescope (rc=$rc): $out" >&2; exit 1; }
+grep -q 'DIE: stage: no local git source for gamescope' <<<"$out"
+! grep -q 'gamescope skipped' <<<"$out"
+rc=0; out="$(stage_run component-test-gamescope "$TMPD/src-gs")" || rc=$?
+test "$rc" -eq 3
+! grep -q 'gamescope skipped' <<<"$out"
+echo 'ok 15 - non-gamescope component target stages an empty gamescope context; export/gamescope unchanged'
+
+# --- 16. the Gamescope identity render (which reads the staged gamescope source) is gated by
+#         the same helper, so the empty context is never rendered ---------------------------------
+body="$(extract pf_os_image_dockerbuild)"
+grep -qF 'if pf_stage_target_needs_gamescope; then' <<<"$body"
+id_ln="$(grep -nF 'gamescope_identity="$(pf_gamescope_identity_sha256' <<<"$body" | head -n1 | cut -d: -f1)"
+gate_ln="$(grep -nF 'if pf_stage_target_needs_gamescope; then' <<<"$body" | head -n1 | cut -d: -f1)"
+test -n "$id_ln" && test "$gate_ln" -lt "$id_ln" && test "$id_ln" -le $((gate_ln + 2))
+echo 'ok 16 - Gamescope identity render is skipped outside the gamescope graph'
+
+echo 'PASS: pf_gpu_um_candidate_override is dev-only, open-only, hex-validated, surgical and recorded; gamescope staged only in its graph'
