@@ -49,7 +49,7 @@ trap 'rm -rf "$ERR" "$TMPD"' EXIT
 # require exit 3 with the named pf_die message.
 expect_die() {
     local want="$1" in_ba="$2" in_variant="$3" in_sha="$4" rc=0
-    ( ba="$in_ba"; VARIANT="$in_variant"; PF_GPU_UM_SHA="$in_sha"; reset_candidates; \
+    ( ba="$in_ba"; VARIANT="$in_variant"; PF_GPU_UM_CANDIDATE_REQUEST="$in_sha"; reset_candidates; \
       pf_log() { :; }; pf_die() { printf 'DIE: %s\n' "$*" >&2; exit 3; }; \
       pf_gpu_um_candidate_override ) 2>"$ERR" || rc=$?
     test "$rc" -eq 3 || { echo "FAIL: expected die ($want), rc=$rc" >&2; exit 1; }
@@ -57,19 +57,26 @@ expect_die() {
 }
 
 # --- 1. No PF_GPU_UM_SHA -> ba untouched, no override log, no candidate recorded ---------
-LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; unset PF_GPU_UM_SHA
+LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; unset PF_GPU_UM_CANDIDATE_REQUEST
 pf_gpu_um_candidate_override
 test "$ba" = "$(sample_ba)"
 ! grep -q 'NON-HERMETIC CANDIDATE' <<<"$LOG"
 test -z "$PF_CANDIDATE_GPU_UM_SHA"
-LOG=""; ba="$(sample_ba)"; PF_GPU_UM_SHA=""
+LOG=""; ba="$(sample_ba)"; PF_GPU_UM_CANDIDATE_REQUEST=""
 pf_gpu_um_candidate_override
 test "$ba" = "$(sample_ba)"
 test -z "$LOG"
-echo 'ok 1 - unset/empty PF_GPU_UM_SHA is a no-op'
+# The profile's own PF_GPU_UM_SHA export (pf_load_env) is not a request.
+LOG=""; ba="$(sample_ba)"; unset PF_GPU_UM_CANDIDATE_REQUEST; PF_GPU_UM_SHA="$CAND"
+pf_gpu_um_candidate_override
+test "$ba" = "$(sample_ba)"
+test -z "$LOG"
+test -z "$PF_CANDIDATE_GPU_UM_SHA"
+unset PF_GPU_UM_SHA
+echo 'ok 1 - unset/empty request is a no-op; a profile-exported PF_GPU_UM_SHA alone is not a request'
 
 # --- 2. dev + candidate != lock -> gpu-um sha flips, ONLY that line changes ---------------
-LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; PF_GPU_UM_SHA="$CAND"
+LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; PF_GPU_UM_CANDIDATE_REQUEST="$CAND"
 pf_gpu_um_candidate_override
 grep -qx "PF_GPU_UM_SHA=$CAND" <<<"$ba"
 ! grep -qx "PF_GPU_UM_SHA=$LOCK_PIN" <<<"$ba"
@@ -85,7 +92,7 @@ test "$PF_CANDIDATE_GPU_UM_LOCK_PIN" = "$LOCK_PIN"
 echo 'ok 2 - dev candidate flips only the gpu-um sha and logs the marker'
 
 # --- 3. dev + candidate == lock pin -> no override, "matches" log -------------------------
-LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; PF_GPU_UM_SHA="$LOCK_PIN"
+LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; PF_GPU_UM_CANDIDATE_REQUEST="$LOCK_PIN"
 pf_gpu_um_candidate_override
 test "$ba" = "$(sample_ba)"
 grep -q 'matches the platform.lock gpu-um pin' <<<"$LOG"
@@ -128,7 +135,7 @@ test ! -e "$PF_OUT_DIR/candidate-overrides.env"
 echo 'ok 8 - no override writes no record and removes a stale one'
 
 # --- 9. record for the gpu-um override alone -----------------------------------------------
-LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; unset PF_IMAGE_SHA; PF_GPU_UM_SHA="$CAND"
+LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; unset PF_IMAGE_SHA; PF_GPU_UM_CANDIDATE_REQUEST="$CAND"
 pf_image_candidate_override
 pf_gpu_um_candidate_override
 pf_write_candidate_record
@@ -137,7 +144,7 @@ diff <(printf 'PF_CANDIDATE_GPU_UM_SHA=%s\nPF_CANDIDATE_GPU_UM_LOCK_PIN=%s\n' "$
 echo 'ok 9 - gpu-um override writes its record'
 
 # --- 10. record for the image override alone -----------------------------------------------
-LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; PF_IMAGE_SHA="$IMG_CAND"; unset PF_GPU_UM_SHA
+LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; PF_IMAGE_SHA="$IMG_CAND"; unset PF_GPU_UM_CANDIDATE_REQUEST
 pf_image_candidate_override
 pf_gpu_um_candidate_override
 pf_write_candidate_record
@@ -146,7 +153,7 @@ diff <(printf 'PF_CANDIDATE_IMAGE_SHA=%s\nPF_CANDIDATE_IMAGE_LOCK_PIN=%s\n' "$IM
 echo 'ok 10 - image override writes its record'
 
 # --- 11. record for both overrides ---------------------------------------------------------
-LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; PF_IMAGE_SHA="$IMG_CAND"; PF_GPU_UM_SHA="$CAND"
+LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; PF_IMAGE_SHA="$IMG_CAND"; PF_GPU_UM_CANDIDATE_REQUEST="$CAND"
 pf_image_candidate_override
 pf_gpu_um_candidate_override
 pf_write_candidate_record
@@ -156,7 +163,7 @@ diff <(printf 'PF_CANDIDATE_IMAGE_SHA=%s\nPF_CANDIDATE_IMAGE_LOCK_PIN=%s\nPF_CAN
 echo 'ok 11 - both overrides are recorded'
 
 # --- 12. a pin-equal candidate (no override) records nothing --------------------------------
-LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; PF_IMAGE_SHA="$IMG_PIN"; PF_GPU_UM_SHA="$LOCK_PIN"
+LOG=""; ba="$(sample_ba)"; VARIANT=dev; reset_candidates; PF_IMAGE_SHA="$IMG_PIN"; PF_GPU_UM_CANDIDATE_REQUEST="$LOCK_PIN"
 pf_image_candidate_override
 pf_gpu_um_candidate_override
 pf_write_candidate_record
