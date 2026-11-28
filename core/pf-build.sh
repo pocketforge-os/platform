@@ -28,6 +28,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 DEVICE="" ARTIFACT="os-image" TARGET="dev-modelmaker" BEAD="${PF_BEAD:-adhoc}" VARIANT="dev"
 PF_DRY_RUN="${PF_DRY_RUN:-1}"
 PF_IMAGE_REPO="${PF_IMAGE_REPO:-$HOME/image}"
+# The caller's gpu-um candidate request (env PF_GPU_UM_SHA), captured BEFORE pf_load_env:
+# `profile.py env` exports PF_GPU_UM_SHA=<lock pin>, which clobbered the request and silently
+# turned a candidate build into a pinned one (tsp-hqm1p.182.949.6). The exported profile value
+# is left as is for the family hooks; only pf_gpu_um_candidate_override reads the request.
+PF_GPU_UM_CANDIDATE_REQUEST="${PF_GPU_UM_SHA:-}"
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -569,7 +574,8 @@ pf_image_candidate_override() {
 
 # pf_gpu_um_candidate_override — dev-only, non-hermetic gpu-um-tsp candidate override
 # (tsp-hqm1p.182.949.6), the gpu-um twin of pf_image_candidate_override. Mutates the
-# caller's `ba` IN PLACE, replacing ONLY the PF_GPU_UM_SHA line with env PF_GPU_UM_SHA, so
+# caller's `ba` IN PLACE, replacing ONLY the PF_GPU_UM_SHA line with the caller's env
+# PF_GPU_UM_SHA (as captured in PF_GPU_UM_CANDIDATE_REQUEST before pf_load_env), so
 # the gpu-um staging archive and the gpu-um commit-epoch resolution both use the candidate
 # and e.g. PF_BUILD_STAGE_TARGET=component-test-gpu-um builds it with the image's own gpu-um
 # recipe. Without it a PF_GPU_UM_SHA candidate build silently builds the lock pin. MUST be
@@ -577,14 +583,15 @@ pf_image_candidate_override() {
 # the lock pin; refuses a non-dev variant, a malformed sha, a non-open GPU model (a ddk/closed
 # profile has no gpu-um) and a build-arg surface with no gpu-um pin.
 pf_gpu_um_candidate_override() {
-    [ -n "${PF_GPU_UM_SHA:-}" ] || return 0
+    local req="${PF_GPU_UM_CANDIDATE_REQUEST:-}"
+    [ -n "$req" ] || return 0
     [ "$VARIANT" = dev ] \
         || pf_die "PF_GPU_UM_SHA candidate override is dev-only (non-hermetic); refusing for a '$VARIANT' build"
-    case "$PF_GPU_UM_SHA" in
-        *[!0-9a-f]* | "") pf_die "PF_GPU_UM_SHA must be exactly 40 lowercase hex chars (got '$PF_GPU_UM_SHA')" ;;
+    case "$req" in
+        *[!0-9a-f]* | "") pf_die "PF_GPU_UM_SHA must be exactly 40 lowercase hex chars (got '$req')" ;;
     esac
-    [ "${#PF_GPU_UM_SHA}" -eq 40 ] \
-        || pf_die "PF_GPU_UM_SHA must be exactly 40 lowercase hex chars (got '$PF_GPU_UM_SHA')"
+    [ "${#req}" -eq 40 ] \
+        || pf_die "PF_GPU_UM_SHA must be exactly 40 lowercase hex chars (got '$req')"
     local gpu_model lock_gpu_um_sha
     gpu_model="$(printf '%s\n' "$ba" | sed -n 's/^PF_GPU_MODEL=//p')"
     [ "$gpu_model" = open ] \
@@ -592,13 +599,13 @@ pf_gpu_um_candidate_override() {
     lock_gpu_um_sha="$(printf '%s\n' "$ba" | sed -n 's/^PF_GPU_UM_SHA=//p')"
     [ -n "$lock_gpu_um_sha" ] \
         || pf_die "PF_GPU_UM_SHA candidate override: the lock-pinned build-arg surface has no PF_GPU_UM_SHA pin"
-    if [ "$PF_GPU_UM_SHA" = "$lock_gpu_um_sha" ]; then
-        pf_log "PF_GPU_UM_SHA=$PF_GPU_UM_SHA matches the platform.lock gpu-um pin — hermetic build (no override)"
+    if [ "$req" = "$lock_gpu_um_sha" ]; then
+        pf_log "PF_GPU_UM_SHA=$req matches the platform.lock gpu-um pin — hermetic build (no override)"
         return 0
     fi
-    ba="$(printf '%s\n' "$ba" | sed "s/^PF_GPU_UM_SHA=.*/PF_GPU_UM_SHA=$PF_GPU_UM_SHA/")"
-    pf_log "!!! NON-HERMETIC CANDIDATE: gpu-um-src overridden to $PF_GPU_UM_SHA (lock pin was $lock_gpu_um_sha) — dev validation only, NEVER a release artifact"
-    PF_CANDIDATE_GPU_UM_SHA="$PF_GPU_UM_SHA"
+    ba="$(printf '%s\n' "$ba" | sed "s/^PF_GPU_UM_SHA=.*/PF_GPU_UM_SHA=$req/")"
+    pf_log "!!! NON-HERMETIC CANDIDATE: gpu-um-src overridden to $req (lock pin was $lock_gpu_um_sha) — dev validation only, NEVER a release artifact"
+    PF_CANDIDATE_GPU_UM_SHA="$req"
     PF_CANDIDATE_GPU_UM_LOCK_PIN="$lock_gpu_um_sha"
 }
 
