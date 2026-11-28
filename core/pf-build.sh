@@ -276,6 +276,19 @@ pf_stage_device_descriptor() {
     pf_log "stage: platform-inputs/device <- devices/$id/capabilities.toml (sha256=${got:0:12})"
 }
 
+# pf_stage_target_needs_gamescope — does PF_BUILD_STAGE_TARGET's graph use gamescope-src?
+# Returns 1 ONLY for a component-test-<x> target with x != gamescope (e.g.
+# component-test-gpu-um, whose graph never reads gamescope-src, so it must not need the
+# tsp-op5a.440.7 controlled Gamescope dependency cache). Returns 0 for export, cache-export,
+# component-test-gamescope and an unset/empty target, which keep the full admission.
+pf_stage_target_needs_gamescope() {
+    case "${PF_BUILD_STAGE_TARGET:-}" in
+        component-test-gamescope) return 0 ;;
+        component-test-*) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
 pf_stage_sources() {
     local src_dir="$1" ba="$2"
     local mirror_dir="${PF_MIRROR_DIR:-$HOME/wt/.mirrors}"
@@ -333,7 +346,16 @@ pf_stage_sources() {
     fi
     case "$(v PF_GAMESCOPE_MODE)" in
         "") ;;
-        g1) specs+=( "gamescope|$(v PF_GAMESCOPE_REPO)|$(v PF_GAMESCOPE_SHA)|1" ) ;;
+        g1)
+            if pf_stage_target_needs_gamescope; then
+                specs+=( "gamescope|$(v PF_GAMESCOPE_REPO)|$(v PF_GAMESCOPE_SHA)|1" )
+            else
+                # Outside the gamescope graph: the gamescope-src build context is still passed,
+                # so supply it EMPTY (as poolsuite/kernel-uapi) and skip the admission.
+                pf_log "stage: gamescope skipped for ${PF_BUILD_STAGE_TARGET:-} (not in its graph)"
+                create_context_dir "$src_dir/gamescope"
+            fi
+            ;;
         *) pf_die "stage: unsupported PF_GAMESCOPE_MODE=$(v PF_GAMESCOPE_MODE)" ;;
     esac
     local spec logical repo sha required gitdir dest n
@@ -976,8 +998,12 @@ pf_os_image_dockerbuild() {
     fi
     pf_write_candidate_record
     pf_stage_sources "$src_dir" "$ba"
-    local gamescope_identity
-    gamescope_identity="$(pf_gamescope_identity_sha256 "$src_dir" "$ba" "$PF_IMAGE_REPO")"
+    local gamescope_identity=""
+    # The identity renders the staged gamescope source; outside the gamescope graph that
+    # context is empty (pf_stage_sources), so there is nothing to render.
+    if pf_stage_target_needs_gamescope; then
+        gamescope_identity="$(pf_gamescope_identity_sha256 "$src_dir" "$ba" "$PF_IMAGE_REPO")"
+    fi
     [ -z "$gamescope_identity" ] \
         || cmd+=( --build-arg "PF_GAMESCOPE_IDENTITY_SHA256=$gamescope_identity" )
     [ "$TARGET" = ci-dell ] && pf_create_staging_dir "$cache_dir"
