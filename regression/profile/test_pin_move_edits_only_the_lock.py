@@ -1,6 +1,6 @@
 """tsp-hqm1p.182.339: a pin advance edits platform.lock only.
 
-Copies the tracked tree to a temp dir, advances every guarded pin (every non-image lock repo) there the way
+Copies the tracked tree to a temp dir, advances every pinned lock repo (image included) there the way
 mission-control `scripts/g16/pf-pin` does (rewrite the [[repos]] `sha`, append a
 `# <tag>: <new8> = <old8> + ...` lineage line above it, and move every [profile_pins]
 value that equalled the old pin), then runs every other regression/profile suite in the
@@ -26,6 +26,9 @@ _guard = importlib.util.spec_from_file_location("no_literal_lock_pins", pathlib.
 _mod = importlib.util.module_from_spec(_guard)
 _guard.loader.exec_module(_mod)
 GUARDED_REPOS = tuple(sorted(_mod.GUARDED_REPOS))
+# tsp-hqm1p.182.948.3: image is advanced too, so the simulated pin move fails on any test
+# or doc that still copies the current image pin (image#406 floor walk included).
+PINNED_REPOS = tuple(sorted(_mod.GUARDED_REPOS | {"image"}))
 
 
 def advance(text: str, repo: str, new: str, tag: str) -> str:
@@ -80,7 +83,7 @@ class PinMoveEditsOnlyTheLock(unittest.TestCase):
             text = lock_path.read_text()
             lock = tomllib.loads(text)
             names = {r["name"] for r in lock["repos"]}
-            for repo in GUARDED_REPOS:
+            for repo in PINNED_REPOS:
                 if repo not in names:
                     continue
                 old = next(r["sha"] for r in lock["repos"] if r["name"] == repo)
