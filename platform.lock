@@ -960,6 +960,7 @@ ref  = "main"          # tsp-mc9m.41.1029 Build 11: image#250/#245/#251/#253/#25
 # tsp-mc9m.60.29.63.20.4.8: image#434 (7d9ddfd3) adds a133-open-7x-gpu-resetcap-off to the 8 device allow-list sites (resetcap-off device allow-list additions), so the capability-off differential image build can consume the fix; it carries image#433.
 # tsp-mc9m.41.924.24.41.47: image#439 (2e31d0a1) mirrors the gpu-um-tsp 9536be88 pin (fixture rename only); its own runtime behavior is unchanged.
 # tsp-mc9m.41.924.24.41.76: image#452 (3d8c4e72) mirrors the gpu-um-tsp 874354c9 pin (fixture rename only; drops the dead pin test); its own runtime behavior is unchanged.
+# tsp-hqm1p.182.948.3: 3d8c4e72 = 807bb488 + 123 commit(s) on main (seed; merge-base --is-ancestor verified).
 sha  = "3d8c4e720f398204c4896b0a43a65f6c254c709f"
 
 [[repos]]

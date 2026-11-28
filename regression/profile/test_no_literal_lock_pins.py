@@ -11,8 +11,8 @@ guarded repo, and every [profile_pins] value equal to one, is forbidden as a lit
 (the full 40-hex SHA, or a 12+ hex prefix) in any tracked file under regression/ and
 docs/ and in any top-level *.md. Short (8-hex) prefixes in history prose stay legal:
 they name a past advance, not the current pin. GUARDED_REPOS now names every
-platform.lock repo except `image` (tsp-hqm1p.182.348); the literals the non-kernel repos
-already carry are recorded in LITERAL_DEBT, which only shrinks.
+platform.lock repo, image included (tsp-hqm1p.182.948.3); the literals the non-kernel
+repos already carried are recorded in LITERAL_DEBT, which only shrinks.
 """
 import pathlib
 import re
@@ -48,6 +48,7 @@ GUARDED_REPOS = frozenset(
         "sim",
         "pf-hwprobe",
         "poolsuite",
+        "image",
     }
 )
 # Literal copies that predate widening the guard (tsp-hqm1p.182.348): path -> repos whose current pin it still copies.
@@ -132,6 +133,7 @@ class NoLiteralLockPins(unittest.TestCase):
     def test_guard_has_pins_to_check(self):
         pins = guarded_pins(tomllib.loads(LOCK.read_text()))
         self.assertIn("repos.kernel-sunxi-7.x.sha", " ".join(pins.values()))
+        self.assertIn("repos.image.sha", " ".join(pins.values()))
 
     def test_no_test_or_doc_carries_a_current_guarded_pin(self):
         pins = guarded_pins(tomllib.loads(LOCK.read_text()))
@@ -162,9 +164,9 @@ class NoLiteralLockPins(unittest.TestCase):
                 self.assertIn(repo, GUARDED_REPOS, f"{path}: {repo} is not a guarded repo")
                 self.assertGreater(len(reason.strip()), 40, f"{path}/{repo}: give a real reason")
 
-    def test_every_non_image_lock_repo_is_guarded(self):
+    def test_every_lock_repo_is_guarded(self):
         names = {r["name"] for r in tomllib.loads(LOCK.read_text()).get("repos", [])}
-        self.assertEqual(GUARDED_REPOS, frozenset(names - {"image"}))
+        self.assertEqual(GUARDED_REPOS, frozenset(names))
 
     def test_debt_hides_only_recorded_copies(self):
         sha = "0123456789abcdef0123456789abcdef01234567"
@@ -183,7 +185,7 @@ class NoLiteralLockPins(unittest.TestCase):
         sha = "0123456789abcdef0123456789abcdef01234567"
         lock = {
             "repos": [{"name": "kernel-sunxi-7.x", "sha": sha},
-                      {"name": "image", "sha": "f" * 40}],
+                      {"name": "unguarded-synthetic", "sha": "f" * 40}],
             "profile_pins": {"dev-x": {"kernel": sha}},
         }
         pins = guarded_pins(lock)
@@ -197,7 +199,7 @@ class NoLiteralLockPins(unittest.TestCase):
                 "prefix12.md": f"pin `{sha[:12]}`\n",
                 "short8.md": f"history ({sha[:8]}) only\n",
                 "longer.md": f"{sha}ff is a different object\n",
-                "image.py": f'IMAGE = "{"f" * 40}"\n',
+                "unguarded.py": f'UNGUARDED = "{"f" * 40}"\n',
             }
             for name, body in cases.items():
                 (root / name).write_text(body)
