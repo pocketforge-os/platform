@@ -6,7 +6,6 @@ import importlib.util
 import io
 import json
 import pathlib
-import re
 import unittest
 from unittest import mock
 
@@ -80,7 +79,7 @@ class FullOpen7BootchainTest(unittest.TestCase):
         args, _, missing = profile.build_args("a133-open-7x-gpu")
         self.assertEqual(missing, [])
         expected = {
-            "PF_IMAGE_SHA": "3d8c4e720f398204c4896b0a43a65f6c254c709f",
+            "PF_IMAGE_SHA": LOCK_PIN["image"],
             "PF_RUNTIME_SHA": LOCK_PIN["runtime"],
             "PF_KERNEL_REPO": "kernel-sunxi-7.x",
             "PF_KERNEL_SHA": KERNEL_7X_SHA,
@@ -167,27 +166,17 @@ class FullOpen7BootchainTest(unittest.TestCase):
         ) as golden_file:
             self.assertEqual(json.load(golden_file), resolved)
 
-    def test_owned_spl_ledger_image_pin_matches_platform_lock(self):
+    def test_owned_spl_ledger_image_pin_names_platform_lock(self):
         document = (ROOT / "docs/A133-OPEN-7X-OWNED-SPL.md").read_text(
             encoding="utf-8"
         )
-        match = re.search(
-            r"^- Image source pin: `([0-9a-f]{40})`",
+        self.assertIn(
+            "- Image source pin: the `sha` of the `image` entry in `platform.lock`",
             document,
-            re.MULTILINE,
+            "owned-SPL ledger does not name the platform.lock image pin",
         )
-        self.assertIsNotNone(match, "owned-SPL ledger lacks an image source pin")
         current = profile.load_lock()["repos"]["image"]["sha"]
-        self.assertEqual(match.group(1), current)
-
-        stale = document.replace(match.group(1), "0" * 40, 1)
-        stale_match = re.search(
-            r"^- Image source pin: `([0-9a-f]{40})`",
-            stale,
-            re.MULTILINE,
-        )
-        self.assertIsNotNone(stale_match)
-        self.assertNotEqual(stale_match.group(1), current)
+        self.assertNotIn(f"`{current}`", document, "ledger copies the current image pin")
 
 
 if __name__ == "__main__":
